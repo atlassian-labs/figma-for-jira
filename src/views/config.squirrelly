@@ -1,8 +1,0 @@
-{{@extendsFile('./layout.squirrelly', it)}}
-    {{#content}}
-    <div>
-        {{* it.pageContent }}
-        <br/>
-        <pre class="config-container">{{ it.config }}</pre>
-    </div>
-{{/extendsFile}}

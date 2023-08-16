@@ -15,9 +15,6 @@ node_modules/
 .env
 .env.e2e
 .idea
+.vscode
 db.json
 build/
-
-/playwright-report/
-/playwright/.cache/
-/test/e2e/test-results/
