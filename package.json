@@ -27,7 +27,7 @@
     "express": "^4.18.2",
     "lodash": "^4.17.21",
     "marked": "^4.2.12",
-    "squirrelly": "^8.0.8",
+    "squirrelly": "^9.0.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
