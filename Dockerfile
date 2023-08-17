@@ -1,12 +1,21 @@
 FROM node:lts-alpine as build
 
-RUN apk --no-cache add curl
-
-COPY . /app
+# Compile TS
 WORKDIR /app
-
-# Installing packages from lockfile
+COPY package.json yarn.lock tsconfig.json ./
 RUN yarn install --frozen-lockfile
+COPY src ./src
+RUN yarn build
 
-# Only for dev instances, not for PROD
-CMD ["yarn", "start"]
+FROM node:lts-alpine as app
+
+RUN mkdir -p /opt/service/ && chown -R node: /opt/service
+WORKDIR /opt/service
+USER node
+
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile --production
+COPY --from=build /app/build ./
+
+EXPOSE 8080
+CMD ["node", "server.js"]

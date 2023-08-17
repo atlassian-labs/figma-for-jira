@@ -6,7 +6,7 @@ import {
 	getKeyId,
 } from 'atlassian-jwt';
 import { Request } from 'atlassian-jwt/dist/lib/jwt';
-import { envVars } from '../env';
+import config from '../config';
 
 const tenant = {
 	id: '123',
@@ -95,7 +95,7 @@ export const verifyAsymmetricJWTToken = async (
 	}
 
 	// Make sure the AUD claim has the correct URL
-	if (!unverifiedClaims?.aud?.[0]?.includes(envVars.APP_URL)) {
+	if (!unverifiedClaims?.aud?.[0]?.includes(config.app.baseUrl)) {
 		return Promise.reject({
 			status: 401,
 			message: 'JWT claim did not contain the correct audience (aud) claim',

@@ -5,8 +5,8 @@ import { authRouter } from './auth';
 
 export const RootRouter = Router();
 
-// Root page
-RootRouter.get('/', (_req, res) =>
+// Healthcheck
+RootRouter.get('/healthcheck', (_req, res) =>
 	res.status(200).send('Server up and working.'),
 );
 

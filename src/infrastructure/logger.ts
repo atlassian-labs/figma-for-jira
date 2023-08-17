@@ -1,10 +1,11 @@
 import pino, { type Logger as PinoLogger } from 'pino';
 import pinoHttp, { type HttpLogger } from 'pino-http';
+import config from '../config';
 import { Logger } from '../domain/services/logger';
 
 const isProduction = process.env.NODE_ENV === 'production';
-const defaultProdLogLevel = process.env.LOG_LEVEL || 'info';
-const defaultNonProdLogLevel = process.env.LOG_LEVEL || 'debug';
+const defaultLogLevel =
+	config.logging.level || (isProduction ? 'info' : 'debug');
 
 const devOptions = {
 	transport: {
@@ -20,7 +21,7 @@ class PinoLoggerImpl implements Logger {
 	httpLogger: HttpLogger;
 	constructor() {
 		this.logger = pino({
-			level: isProduction ? defaultProdLogLevel : defaultNonProdLogLevel,
+			level: defaultLogLevel,
 			...(!isProduction && devOptions),
 		});
 		this.httpLogger = pinoHttp({ logger: this.logger });
