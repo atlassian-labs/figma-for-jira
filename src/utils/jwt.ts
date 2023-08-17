@@ -1,7 +1,7 @@
 import {
 	createQueryStringHash,
 	decodeAsymmetric,
-	decodeSymmetric,
+	// decodeSymmetric,
 	getAlgorithm,
 	getKeyId,
 } from "atlassian-jwt";
