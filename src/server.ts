@@ -1,6 +1,6 @@
-import express, { json } from "express";
-import { RootRouter } from "./routes/router";
-import logger from "./infrastructure/logger";
+import express, { json } from 'express';
+import { RootRouter } from './routes/router';
+import logger from './infrastructure/logger';
 
 const app = express();
 

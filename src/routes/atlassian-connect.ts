@@ -1,7 +1,10 @@
-import { Request, Response } from "express";
-import { envVars } from "../env";
+import { Request, Response } from 'express';
+import { envVars } from '../env';
 
-export const connectDescriptorGet = async (_: Request, res: Response): Promise<void> => {
+export const connectDescriptorGet = async (
+	_: Request,
+	res: Response,
+): Promise<void> => {
 	res.status(200).json(connectAppDescriptor);
 };
 
@@ -9,16 +12,15 @@ export const connectDescriptorGet = async (_: Request, res: Response): Promise<v
  * General schema can be seen here: https://bitbucket.org/atlassian/connect-schemas/raw/master/jira-global-schema.json
  */
 export const connectAppDescriptor = {
-
 	/**
 	 * Name of the Connect app
 	 */
-	name: "Figma for Jira",
+	name: 'Figma for Jira',
 
 	/**
 	 * Description for the Connect app
 	 */
-	description: "Figma for Jira",
+	description: 'Figma for Jira',
 
 	/**
 	 *  A unique key to identify your Connect app. This key must be <= 64 characters.
@@ -36,8 +38,8 @@ export const connectAppDescriptor = {
 	 * The vendor who is offering this Connect app.
 	 */
 	vendor: {
-		name: "Atlassian",
-		url: "https://atlassian.com"
+		name: 'Atlassian',
+		url: 'https://atlassian.com',
 	},
 
 	/**
@@ -48,14 +50,14 @@ export const connectAppDescriptor = {
 	 * Defining this authentication will pass the JWT token for each page running within the iframe.
 	 */
 	authentication: {
-		type: "jwt"
+		type: 'jwt',
 	},
 
 	/**
 	 * Sets the scopes requested by the app
 	 * https://developer.atlassian.com/cloud/jira/platform/scopes-for-connect-apps/
 	 */
-	scopes: ["READ", "WRITE"],
+	scopes: ['READ', 'WRITE'],
 
 	/**
 	 * The API version is an OPTIONAL integer. If omitted we will infer an API version of 1.
@@ -70,13 +72,13 @@ export const connectAppDescriptor = {
 	 *
 	 */
 	lifecycle: {
-		installed: "/lifecycleEvents/installed",
-		uninstalled: "/lifecycleEvents/uninstalled"
+		installed: '/lifecycleEvents/installed',
+		uninstalled: '/lifecycleEvents/uninstalled',
 	},
 
 	/**
 	 * Extensions for the different parts of Jira
 	 * like links, panels, pages, permissions, workflows etc.
 	 */
-	modules: {}
+	modules: {},
 };

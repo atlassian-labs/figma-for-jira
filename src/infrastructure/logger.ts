@@ -1,14 +1,14 @@
-import pino, { type Logger as PinoLogger } from "pino";
-import pinoHttp, { type HttpLogger } from "pino-http";
-import { Logger } from "../domain/services/logger";
+import pino, { type Logger as PinoLogger } from 'pino';
+import pinoHttp, { type HttpLogger } from 'pino-http';
+import { Logger } from '../domain/services/logger';
 
-const isProduction = process.env.NODE_ENV === "production";
-const defaultProdLogLevel = process.env.LOG_LEVEL || "info";
-const defaultNonProdLogLevel = process.env.LOG_LEVEL || "debug";
+const isProduction = process.env.NODE_ENV === 'production';
+const defaultProdLogLevel = process.env.LOG_LEVEL || 'info';
+const defaultNonProdLogLevel = process.env.LOG_LEVEL || 'debug';
 
 const devOptions = {
 	transport: {
-		target: "pino-pretty",
+		target: 'pino-pretty',
 		options: {
 			colorize: true,
 		},
