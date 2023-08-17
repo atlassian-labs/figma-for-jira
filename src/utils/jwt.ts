@@ -4,15 +4,15 @@ import {
 	// decodeSymmetric,
 	getAlgorithm,
 	getKeyId,
-} from "atlassian-jwt";
-import { Request } from "atlassian-jwt/dist/lib/jwt";
-import { envVars } from "../env";
+} from 'atlassian-jwt';
+import { Request } from 'atlassian-jwt/dist/lib/jwt';
+import { envVars } from '../env';
 
 const tenant = {
-	id: "123",
-	url: "",
-	sharedSecret: "",
-	clientKey: "",
+	id: '123',
+	url: '',
+	sharedSecret: '',
+	clientKey: '',
 	enabled: true,
 };
 /**
@@ -75,7 +75,7 @@ export const verifyAsymmetricJWTToken = async (
 	if (!token) {
 		return Promise.reject({
 			status: 401,
-			message: "Missing JWT token",
+			message: 'Missing JWT token',
 		});
 	}
 
@@ -90,7 +90,7 @@ export const verifyAsymmetricJWTToken = async (
 	if (!unverifiedClaims.iss) {
 		return Promise.reject({
 			status: 401,
-			message: "JWT claim did not contain the issuer (iss) claim",
+			message: 'JWT claim did not contain the issuer (iss) claim',
 		});
 	}
 
@@ -98,7 +98,7 @@ export const verifyAsymmetricJWTToken = async (
 	if (!unverifiedClaims?.aud?.[0]?.includes(envVars.APP_URL)) {
 		return Promise.reject({
 			status: 401,
-			message: "JWT claim did not contain the correct audience (aud) claim",
+			message: 'JWT claim did not contain the correct audience (aud) claim',
 		});
 	}
 
@@ -112,7 +112,7 @@ export const verifyAsymmetricJWTToken = async (
 	if (!verifiedClaims.qsh) {
 		return Promise.reject({
 			status: 401,
-			message: "JWT validation Failed, no qsh",
+			message: 'JWT validation Failed, no qsh',
 		});
 	}
 
@@ -120,7 +120,7 @@ export const verifyAsymmetricJWTToken = async (
 	if (verifiedClaims.exp && Date.now() / 1000 - 3 >= verifiedClaims.exp) {
 		return Promise.reject({
 			status: 401,
-			message: "JWT validation failed, token is expired",
+			message: 'JWT validation failed, token is expired',
 		});
 	}
 
@@ -129,10 +129,10 @@ export const verifyAsymmetricJWTToken = async (
 
 // Check to see if QSH from token is the same as the request
 const validateQsh = async (qsh: string, request: Request): Promise<void> => {
-	if (qsh !== "context-qsh" && qsh !== createQueryStringHash(request, false)) {
+	if (qsh !== 'context-qsh' && qsh !== createQueryStringHash(request, false)) {
 		return Promise.reject({
 			status: 401,
-			message: "JWT Verification Failed, wrong qsh",
+			message: 'JWT Verification Failed, wrong qsh',
 		});
 	}
 };

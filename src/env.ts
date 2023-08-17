@@ -1,5 +1,5 @@
-import { config } from "dotenv";
-import path from "path";
+import { config } from 'dotenv';
+import path from 'path';
 
 export type EnvVars = {
 	APP_URL: string;
@@ -10,28 +10,28 @@ export type EnvVars = {
 	JIRA_ADMIN_API_TOKEN?: string;
 };
 
-const nodeEnv = process.env.NODE_ENV || "development";
-const variables: Partial<EnvVars> = [".env", `.env.${nodeEnv}`].reduce(
+const nodeEnv = process.env.NODE_ENV || 'development';
+const variables: Partial<EnvVars> = ['.env', `.env.${nodeEnv}`].reduce(
 	(acc, env) => ({
 		...acc,
 		...config({
-			path: path.resolve(__dirname, "..", env),
+			path: path.resolve(__dirname, '..', env),
 		}).parsed,
 	}),
 	{},
 );
 
 if (!variables?.APP_URL) {
-	console.error("Missing APP_URL environment variable, exiting...");
+	console.error('Missing APP_URL environment variable, exiting...');
 	process.exit(1);
 }
 
 if (!variables?.NGROK_AUTHTOKEN) {
-	console.error("Missing NGROK_AUTHTOKEN environment variable, exiting...");
+	console.error('Missing NGROK_AUTHTOKEN environment variable, exiting...');
 	process.exit(1);
 }
 
 export const envVars: EnvVars = {
-	APP_KEY: "com.figma.jira-add-on-dev",
+	APP_KEY: 'com.figma.jira-add-on-dev',
 	...variables,
 } as EnvVars;

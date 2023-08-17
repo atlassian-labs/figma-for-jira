@@ -10,15 +10,15 @@ const envExampleFilePath = path.resolve(__dirname, envExampleFileName);
  * Creates the env file
  */
 const createEnvFile = async () => {
-    if (!fs.existsSync(envFilePath)) {
-        await fs.copyFile(envExampleFilePath, envFilePath, (err) => {
-            if (err) {
-                console.error("Couldn't create .env file: ", err);
-                throw new Error("Error creating .env file: ");
-            }
-            console.log('.env file created!');
-        });
-    }
+	if (!fs.existsSync(envFilePath)) {
+		await fs.copyFile(envExampleFilePath, envFilePath, (err) => {
+			if (err) {
+				console.error("Couldn't create .env file: ", err);
+				throw new Error('Error creating .env file: ');
+			}
+			console.log('.env file created!');
+		});
+	}
 };
 
 /**
@@ -26,10 +26,10 @@ const createEnvFile = async () => {
  * The env file is based off from .env.example
  */
 (async function main() {
-    try {
-        await createEnvFile();
-        process.exit();
-    } catch (e) {
-        process.exit(1);
-    }
+	try {
+		await createEnvFile();
+		process.exit();
+	} catch (e) {
+		process.exit(1);
+	}
 })();

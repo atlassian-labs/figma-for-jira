@@ -1,4 +1,4 @@
-import { ConnectInstallation } from "../entities/connect-installations";
+import { ConnectInstallation } from '../entities/connect-installations';
 
 export interface ConnectInstallationRepository {
 	getInstallation: (key: string) => void;
