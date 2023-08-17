@@ -1,7 +1,42 @@
 <!doctype html>
-<html>
-  <head></head>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title></title>
+  </head>
   <body>
-    Hello Figma
+    <script>
+      if (window.opener) {
+        function parseQueryParamAsBoolean(value) {
+          return value.toLowerCase() === 'true';
+        }
+
+        const params = new URLSearchParams(window.location.search);
+
+        if (params.has('success')) {
+          const success = parseQueryParamAsBoolean(params.get('success'));
+          const errorMessage = params.get('errorMessage');
+
+          // Send the authentication result to the opener window
+          if (success) {
+            window.opener.postMessage(
+              {
+                type: 'auth:success',
+              },
+              '*',
+            );
+          } else {
+            window.opener.postMessage(
+              {
+                type: 'auth:failure',
+                message: errorMessage || 'Unable to connect the account.',
+                errorType,
+              },
+              '*',
+            );
+          }
+        }
+      }
+    </script>
   </body>
 </html>

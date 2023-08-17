@@ -10,5 +10,9 @@ authRouter.get('/callback', function (req, res) {
 	// 3. store in database using by calling `delegateOAuthUseCase` here
 	// 4. redirect user to './static/index.html'
 	req.log.info('Received auth callback');
-	res.sendFile(resolve('./static/index.html'));
+	const success = true;
+	const errorMessage = '';
+	res.redirect(
+		`/public/index.html?success=${success}&errorMessage=${errorMessage}`,
+	);
 });
