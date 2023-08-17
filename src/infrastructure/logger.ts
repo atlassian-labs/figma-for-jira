@@ -4,37 +4,26 @@ import { Logger } from "../domain/services/logger";
 
 const isProduction = process.env.NODE_ENV === "production";
 
-const defaultLogLevel = process.env.LOG_LEVEL || "info";
+const defaultLogLevel = process.env.LOG_LEVEL || "debug";
 
-const productionTargets = [
-	{
-		// TODO: Write to an actual log server like Splunk or Sentry
-		target: "pino/file",
-		level: defaultLogLevel,
-		options: { destination: "server.log" },
-	},
-];
-
-const developmentTargets = [
-	{
-		level: defaultLogLevel,
+const devOptions = {
+	transport: {
 		target: "pino-pretty",
-		options: {},
+		options: {
+			colorize: true,
+		},
 	},
-];
-
-const transport = pino.transport({
-	targets: isProduction
-		? productionTargets
-		: [...productionTargets, ...developmentTargets],
-});
+};
 
 class PinoLoggerImpl implements Logger {
 	logger: PinoLogger;
 	httpLogger: HttpLogger;
 	constructor() {
-		this.logger = pino(transport);
-		this.httpLogger = pinoHttp(this.logger, transport);
+		this.logger = pino({
+			level: defaultLogLevel,
+			...(!isProduction && devOptions),
+		});
+		this.httpLogger = pinoHttp({ logger: this.logger });
 	}
 
 	info(message: string, ...args: any[]) {
