@@ -3,8 +3,8 @@ import pinoHttp, { type HttpLogger } from "pino-http";
 import { Logger } from "../domain/services/logger";
 
 const isProduction = process.env.NODE_ENV === "production";
-
-const defaultLogLevel = process.env.LOG_LEVEL || "debug";
+const defaultProdLogLevel = process.env.LOG_LEVEL || "info";
+const defaultNonProdLogLevel = process.env.LOG_LEVEL || "debug";
 
 const devOptions = {
 	transport: {
@@ -20,7 +20,7 @@ class PinoLoggerImpl implements Logger {
 	httpLogger: HttpLogger;
 	constructor() {
 		this.logger = pino({
-			level: defaultLogLevel,
+			level: isProduction ? defaultProdLogLevel : defaultNonProdLogLevel,
 			...(!isProduction && devOptions),
 		});
 		this.httpLogger = pinoHttp({ logger: this.logger });
