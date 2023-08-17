@@ -1,40 +1,49 @@
 {
-  "name": "@atlassianlabs/figma-for-jira",
-  "version": "1.0.0",
-  "repository": "git@github.com:atlassian-labs/figma-for-jira.git",
-  "license": "MIT",
-  "private": false,
-  "scripts": {
-    "start": "tsnd --respawn src/server.ts"
-  },
-  "dependencies": {
-    "atlassian-jwt": "^2.0.2",
-    "express": "^4.18.2",
-    "uuid": "^9.0.0"
-  },
-  "devDependencies": {
-    "@types/express": "^4.17.16",
-    "@types/node": "^18.11.18",
-    "@typescript-eslint/eslint-plugin": "^5.55.0",
-    "@typescript-eslint/parser": "^5.55.0",
-    "dotenv": "^16.0.3",
-    "eslint": "^8.36.0",
-    "eslint-import-resolver-typescript": "^3.5.3",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-jest": "^27.2.1",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.1.1",
-    "husky": "^8.0.3",
-    "prettier": "^3.0.2",
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^4.9.5"
-  },
-  "engines": {
-    "node": ">= 16",
-    "yarn": "^1.22.0"
-  },
-  "volta": {
-    "node": "18.15.0",
-    "yarn": "1.22.18"
-  }
+	"name": "@atlassianlabs/figma-for-jira",
+	"version": "1.0.0",
+	"repository": "git@github.com:atlassian-labs/figma-for-jira.git",
+	"license": "MIT",
+	"private": false,
+	"scripts": {
+		"start": "tsnd --respawn src/server.ts",
+		"start:dev": "NODE_ENV=dev tsnd --respawn src/server.ts"
+	},
+	"dependencies": {
+		"atlassian-jwt": "^2.0.2",
+		"express": "^4.18.2",
+		"pino": "^8.15.0",
+		"pino-http": "^8.4.0",
+		"uuid": "^9.0.0"
+	},
+	"devDependencies": {
+		"@types/express": "^4.17.16",
+		"@types/node": "^18.11.18",
+		"@typescript-eslint/eslint-plugin": "^5.55.0",
+		"@typescript-eslint/parser": "^5.55.0",
+		"dotenv": "^16.0.3",
+		"eslint": "^8.36.0",
+		"eslint-import-resolver-typescript": "^3.5.3",
+		"eslint-plugin-import": "^2.27.5",
+		"eslint-plugin-jest": "^27.2.1",
+		"eslint-plugin-node": "^11.1.0",
+		"eslint-plugin-promise": "^6.1.1",
+		"husky": "^8.0.3",
+		"pino-pretty": "^10.2.0",
+		"prettier": "^3.0.2",
+		"ts-node-dev": "^2.0.0",
+		"typescript": "^4.9.5"
+	},
+	"husky": {
+		"hooks": {
+			"pre-commit": "sh hooks/pre-commit"
+		}
+	},
+	"engines": {
+		"node": ">= 16",
+		"yarn": "^1.22.0"
+	},
+	"volta": {
+		"node": "18.15.0",
+		"yarn": "1.22.18"
+	}
 }

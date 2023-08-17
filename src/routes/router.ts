@@ -1,5 +1,4 @@
-import path from "path";
-import { Router, static as Static } from "express";
+import { Router } from "express";
 import { connectDescriptorGet } from "./atlassian-connect";
 import { lifecycleEventsRouter } from "./lifecycle-events";
 
