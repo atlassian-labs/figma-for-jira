@@ -1,4 +1,5 @@
 import express, { json } from 'express';
+import config from './config';
 import { RootRouter } from './routes/router';
 import logger from './infrastructure/logger';
 
@@ -12,8 +13,8 @@ app.use(json());
 // Setting the routes
 app.use(RootRouter);
 
-const port = 3000;
+const port = config.server.port;
 app.listen(port, async () => {
 	// App is now running
-	console.log(`App listening on port ${port}`);
+	logger.info(`App listening on port ${port}`);
 });
