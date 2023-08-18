@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { Config } from './types';
-import { readEnvVarString, readEnvVarInt } from './utils';
+import { readEnvVarInt, readEnvVarString } from './utils';
 
 const config: Config = {
 	app: {

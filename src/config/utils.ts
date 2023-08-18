@@ -13,10 +13,10 @@ export function readEnvVarString(key: string, fallback?: string): string {
 
 export function readEnvVarInt(key: string, fallback?: number): number {
 	const value = parseInt(process.env[key] ?? '');
-	if (value) {
+	if (Number.isInteger(value)) {
 		return value;
 	}
-	if (isNaN(value) && fallback) {
+	if (isNaN(value) && fallback !== undefined) {
 		return fallback;
 	}
 	throw new Error(

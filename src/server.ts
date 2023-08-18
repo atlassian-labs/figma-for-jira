@@ -1,20 +1,10 @@
-import express, { json } from 'express';
 import config from './config';
-import { RootRouter } from './routes/router';
 import logger from './infrastructure/logger';
 
-const app = express();
-
-app.use(logger.httpLogger);
-
-// Calling the express.json() method for parsing
-app.use(json());
-
-// Setting the routes
-app.use(RootRouter);
+import app from './app';
 
 const port = config.server.port;
-app.listen(port, async () => {
+app.listen(port, () => {
 	// App is now running
 	logger.info(`App listening on port ${port}`);
 });

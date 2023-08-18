@@ -1,3 +1,4 @@
 /**/*.js
 prestart.ts
 postinstall.ts
+node_modules
