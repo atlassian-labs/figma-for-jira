@@ -1,4 +1,4 @@
-import { Request, Router } from 'express';
+import { Router } from 'express';
 import {
 	authHeaderAsymmetricJwtMiddleware,
 	authHeaderSymmetricJwtMiddleware,
@@ -6,12 +6,9 @@ import {
 import { ConnectInstallation } from '../domain/entities/connect-installations';
 import { installedUseCase } from '../usecases/installed';
 import postgresConnectInstallationRepository from '../infrastructure/repositories/postgres-connect-installation-repository';
+import type { TypedRequest } from './types';
 
 export const lifecycleEventsRouter = Router();
-
-interface TypedRequest<T> extends Request {
-	body: T;
-}
 
 lifecycleEventsRouter.post(
 	'/installed',

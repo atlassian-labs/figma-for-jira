@@ -1,27 +1,19 @@
 import { Router } from 'express';
 import { connectDescriptorGet } from './atlassian-connect';
 import { lifecycleEventsRouter } from './lifecycle-events';
+import { authRouter } from './auth';
 
 export const RootRouter = Router();
 
-/************************************************************************************************************************
- * Root page
- ************************************************************************************************************************/
-RootRouter.get('/', (_req, res) =>
+// Healthcheck
+RootRouter.get('/healthcheck', (_req, res) =>
 	res.status(200).send('Server up and working.'),
 );
 
-/************************************************************************************************************************
- * Connect app manifest
- ************************************************************************************************************************/
+// Connect app manifest
 RootRouter.get('/atlassian-connect.json', connectDescriptorGet);
 
-/************************************************************************************************************************
- * Public files(images, stylesheets)
- ************************************************************************************************************************/
-// RootRouter.use('/public', Static(path.join(process.cwd(), 'static')));
-
-/************************************************************************************************************************
- * Connect lifecycle Events
- ************************************************************************************************************************/
+// Connect lifecycle events
 RootRouter.use('/lifecycleEvents', lifecycleEventsRouter);
+
+RootRouter.use('/auth', authRouter);
