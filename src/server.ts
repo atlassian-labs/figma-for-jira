@@ -13,7 +13,12 @@ app.use(json());
 app.use(RootRouter);
 
 const port = 3000;
-app.listen(port, async () => {
-	// App is now running
-	console.log(`App listening on port ${port}`);
-});
+
+if (process.env.NODE_ENV !== 'test') {
+	app.listen(port, () => {
+		// App is now running
+		console.log(`App listening on port ${port}`);
+	});
+}
+
+export default app;

@@ -1,7 +1,7 @@
-import { Router, Request } from 'express';
+import { Request, Router } from 'express';
 import {
-	authHeaderSymmetricJwtMiddleware,
 	authHeaderAsymmetricJwtMiddleware,
+	authHeaderSymmetricJwtMiddleware,
 } from '../middlewares/auth-header-jwt-middleware';
 import { ConnectInstallation } from '../domain/entities/connect-installations';
 import { installedUseCase } from '../usecases/installed';

@@ -1,7 +1,10 @@
 {
-  "plugins": ["prettier"],
-  "extends": ["plugin:prettier/recommended"],
-  "rules": {
-    "prettier/prettier": "error"
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended-type-checked", "prettier"],
+  "parserOptions": {
+    "project": true,
+    "tsconfigRootDir": "__dirname"
   }
 }
