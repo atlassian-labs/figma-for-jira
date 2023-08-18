@@ -1,5 +1,6 @@
-import pino, { type Logger as PinoLogger } from 'pino';
-import pinoHttp, { type HttpLogger } from 'pino-http';
+import { pino, type Logger as PinoLogger } from 'pino';
+import { type HttpLogger, pinoHttp } from 'pino-http';
+
 import config from '../config';
 import { Logger } from '../domain/services/logger';
 

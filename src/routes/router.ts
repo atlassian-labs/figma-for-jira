@@ -1,7 +1,8 @@
 import { Router } from 'express';
+
 import { connectDescriptorGet } from './atlassian-connect';
-import { lifecycleEventsRouter } from './lifecycle-events';
 import { authRouter } from './auth';
+import { lifecycleEventsRouter } from './lifecycle-events';
 
 export const RootRouter = Router();
 

@@ -6,6 +6,7 @@ import {
 	getKeyId,
 } from 'atlassian-jwt';
 import { Request } from 'atlassian-jwt/dist/lib/jwt';
+
 import config from '../config';
 
 const tenant = {
