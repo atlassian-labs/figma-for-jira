@@ -1,5 +1,6 @@
-import { resolve } from 'path';
 import { Router } from 'express';
+
+import { resolve } from 'path';
 
 export const authRouter = Router();
 

@@ -1,12 +1,14 @@
 import { Router } from 'express';
+
+import type { TypedRequest } from './types';
+
+import { ConnectInstallation } from '../domain/entities/connect-installations';
+import postgresConnectInstallationRepository from '../infrastructure/repositories/postgres-connect-installation-repository';
 import {
 	authHeaderAsymmetricJwtMiddleware,
 	authHeaderSymmetricJwtMiddleware,
 } from '../middlewares/auth-header-jwt-middleware';
-import { ConnectInstallation } from '../domain/entities/connect-installations';
 import { installedUseCase } from '../usecases/installed';
-import postgresConnectInstallationRepository from '../infrastructure/repositories/postgres-connect-installation-repository';
-import type { TypedRequest } from './types';
 
 export const lifecycleEventsRouter = Router();
 

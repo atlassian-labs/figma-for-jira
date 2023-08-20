@@ -1,6 +1,7 @@
 import express, { json } from 'express';
-import { RootRouter } from './routes/router';
+
 import logger from './infrastructure/logger';
+import { RootRouter } from './routes/router';
 
 const app = express();
 

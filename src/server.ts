@@ -1,7 +1,6 @@
+import app from './app';
 import config from './config';
 import logger from './infrastructure/logger';
-
-import app from './app';
 
 const port = config.server.port;
 app.listen(port, () => {

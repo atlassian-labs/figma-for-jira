@@ -1,8 +1,8 @@
-import * as fs from "fs";
-import * as path from "path";
+import * as fs from 'fs';
+import * as path from 'path';
 
-const envFileName = ".env";
-const envFilePath = path.resolve(__dirname, "..", envFileName);
+const envFileName = '.env';
+const envFilePath = path.resolve(__dirname, '..', envFileName);
 
 /**
  * Fetching the list of running tunnels
@@ -10,11 +10,11 @@ const envFilePath = path.resolve(__dirname, "..", envFileName);
  * https://ngrok.com/docs/ngrok-agent/api/#request
  */
 const callTunnel = async () => {
-	const response = await fetch("http://localhost:4040/api/tunnels");
+	const response = await fetch('http://localhost:4040/api/tunnels');
 	if (response.ok) {
 		const body = await response.json();
 		if (body.tunnels.length === 0) {
-			throw new Error("No tunnels available");
+			throw new Error('No tunnels available');
 		}
 		return body;
 	}
@@ -37,9 +37,9 @@ const waitForTunnel = async (): Promise<string | void> => {
 		.catch(() => undefined);
 	if (response) {
 		try {
-			let envContents = fs.readFileSync(envFilePath, { encoding: "utf-8" });
+			let envContents = fs.readFileSync(envFilePath, { encoding: 'utf-8' });
 			const tunnel = response.tunnels.find((tunnel) =>
-				tunnel.public_url.startsWith("https"),
+				tunnel.public_url.startsWith('https'),
 			);
 			const ngrokUrl = tunnel.public_url;
 			console.info(`ngrok forwarding ${ngrokUrl} to ${tunnel.config.addr}`);
