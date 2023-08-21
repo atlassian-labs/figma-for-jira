@@ -9,6 +9,8 @@
 		"start:tunnel": "run-p makeTunnel updateAppUrl",
 		"start:sandbox": "docker-compose --env-file=.env up --detach",
 		"stop:sandbox": "docker-compose down",
+		"db:migrate": "yarn prisma migrate dev",
+		"db:generate": "yarn prisma generate",
 		"makeTunnel": "./scripts/make-tunnel.sh",
 		"updateAppUrl": "ts-node ./scripts/update-app-url.ts",
 		"installApp": "./scripts/app-install.sh",
