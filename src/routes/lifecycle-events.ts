@@ -36,8 +36,9 @@ export function makeLifecycleRouter(
 				// docs https://developer.atlassian.com/cloud/jira/platform/connect-app-descriptor/#lifecycle-http-request-payload
 				displayUrl: req.body.displayUrl ?? req.body.baseUrl,
 			};
-			installedUseCase(connectInstallationRepository, installation).catch(next);
-			res.sendStatus(204);
+			installedUseCase(connectInstallationRepository, installation)
+				.then(() => res.sendStatus(204))
+				.catch(next);
 		},
 	);
 
