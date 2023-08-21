@@ -1,10 +1,15 @@
-import { ConnectInstallation } from 'src/domain/entities/connect-installations';
-import { ConnectInstallationRepository } from 'src/domain/repositories/connect-installation-repository';
+import { ConnectInstallationCreateParams } from 'src/domain/entities/connect-installation';
 
-export const installedUseCase = (
-	repository: ConnectInstallationRepository,
-	installation: ConnectInstallation,
-) => {
-	console.log('installedUseCase', installation);
-	repository.upsertInstallation(installation);
-};
+import { ConnectInstallationRepository } from '../domain/repositories/connect-installation-repository';
+
+export class InstalledUseCase {
+	connectInstallationRepository: ConnectInstallationRepository;
+
+	constructor(connectInstallationRepository: ConnectInstallationRepository) {
+		this.connectInstallationRepository = connectInstallationRepository;
+	}
+
+	execute = async (installation: ConnectInstallationCreateParams) => {
+		await this.connectInstallationRepository.upsertInstallation(installation);
+	};
+}
