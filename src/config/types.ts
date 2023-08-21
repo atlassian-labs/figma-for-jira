@@ -1,19 +1,19 @@
 export type Config = {
-	app: {
-		baseUrl: string;
-		key: string;
+	readonly app: {
+		readonly baseUrl: string;
+		readonly key: string;
 	};
-	server: {
-		port: number;
+	readonly server: {
+		readonly port: number;
 	};
-	logging: {
-		level: string;
+	readonly logging: {
+		readonly level: string;
 	};
-	database: {
-		host: string;
-		schema: string;
-		role: string;
-		password: string;
-		url: string;
+	readonly database: {
+		readonly host: string;
+		readonly schema: string;
+		readonly role: string;
+		readonly password: string;
+		readonly url: string;
 	};
 };

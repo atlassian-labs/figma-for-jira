@@ -1,7 +1,7 @@
 import {
 	ConnectInstallation,
 	ConnectInstallationCreateParams,
-} from '../entities/connect-installations';
+} from '../entities/connect-installation';
 
 export interface ConnectInstallationRepository {
 	getInstallation: (key: string) => Promise<ConnectInstallation>;

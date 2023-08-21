@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import {
 	ConnectInstallation,
 	ConnectInstallationCreateParams,
-} from 'src/domain/entities/connect-installations';
+} from 'src/domain/entities/connect-installation';
 import { ConnectInstallationRepository } from 'src/domain/repositories/connect-installation-repository';
 import logger from '../logger';
 

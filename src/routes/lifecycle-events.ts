@@ -2,7 +2,7 @@ import { RequestHandler, Router } from 'express';
 
 import type { TypedRequest } from './types';
 
-import { ConnectInstallationCreateParams } from '../domain/entities/connect-installations';
+import { ConnectInstallationCreateParams } from '../domain/entities/connect-installation';
 import { ConnectInstallationRepository } from '../domain/repositories/connect-installation-repository';
 import {
 	authHeaderAsymmetricJwtMiddleware,
@@ -11,11 +11,11 @@ import {
 import { installedUseCase } from '../usecases/installed';
 
 type ConnectLifecycleEventRequestBody = {
-	key: string;
-	clientKey: string;
-	sharedSecret: string;
-	baseUrl: string;
-	displayUrl?: string;
+	readonly key: string;
+	readonly clientKey: string;
+	readonly sharedSecret: string;
+	readonly baseUrl: string;
+	readonly displayUrl?: string;
 };
 
 export function makeLifecycleRouter(
@@ -33,6 +33,7 @@ export function makeLifecycleRouter(
 				sharedSecret: req.body.sharedSecret,
 				baseUrl: req.body.baseUrl,
 				// displayUrl should be set to baseUrl if value is not present in request
+				// docs https://developer.atlassian.com/cloud/jira/platform/connect-app-descriptor/#lifecycle-http-request-payload
 				displayUrl: req.body.displayUrl ?? req.body.baseUrl,
 			};
 			installedUseCase(connectInstallationRepository, installation).catch(next);
