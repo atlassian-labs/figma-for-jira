@@ -4,6 +4,7 @@ import express, { json } from 'express';
 import logger from './infrastructure/logger';
 import { PostgresConnectInstallationRepository } from './infrastructure/repositories/postgres-connect-installation-repository';
 import { makeRootRouter } from './routes/router';
+import { InstalledUseCase } from './usecases/installed';
 
 const app = express();
 
@@ -13,12 +14,15 @@ const connectInstallationRepository = new PostgresConnectInstallationRepository(
 	prismaClient,
 );
 
+// Use cases
+const installedUseCase = new InstalledUseCase(connectInstallationRepository);
+
 app.use(logger.httpLogger);
 
 // Calling the express.json() method for parsing
 app.use(json());
 
 // Setting the routes
-app.use(makeRootRouter(connectInstallationRepository));
+app.use(makeRootRouter(installedUseCase));
 
 export default app;

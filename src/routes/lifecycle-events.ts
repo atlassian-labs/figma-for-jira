@@ -8,7 +8,7 @@ import {
 	authHeaderAsymmetricJwtMiddleware,
 	authHeaderSymmetricJwtMiddleware,
 } from '../middlewares/auth-header-jwt-middleware';
-import { installedUseCase } from '../usecases/installed';
+import { InstalledUseCase } from '../usecases/installed';
 
 type ConnectLifecycleEventRequestBody = {
 	readonly key: string;
@@ -19,7 +19,7 @@ type ConnectLifecycleEventRequestBody = {
 };
 
 export function makeLifecycleRouter(
-	connectInstallationRepository: ConnectInstallationRepository,
+	installedUseCase: InstalledUseCase,
 ): Router {
 	const lifecycleEventsRouter = Router();
 
@@ -36,7 +36,8 @@ export function makeLifecycleRouter(
 				// docs https://developer.atlassian.com/cloud/jira/platform/connect-app-descriptor/#lifecycle-http-request-payload
 				displayUrl: req.body.displayUrl ?? req.body.baseUrl,
 			};
-			installedUseCase(connectInstallationRepository, installation)
+			installedUseCase
+				.execute(installation)
 				.then(() => res.sendStatus(204))
 				.catch(next);
 		},

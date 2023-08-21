@@ -1,18 +1,21 @@
-import { installedUseCase } from './installed';
+import { InstalledUseCase } from './installed';
 
 import { ConnectInstallationRepository } from '../domain/repositories/connect-installation-repository';
 
 describe('installedUseCase', () => {
 	let repositoryMock: jest.MockedObject<ConnectInstallationRepository>;
+	let sut: InstalledUseCase;
 
 	beforeEach(() => {
 		repositoryMock = {
 			getInstallation: jest.fn(),
 			upsertInstallation: jest.fn(),
 		};
+
+		sut = new InstalledUseCase(repositoryMock);
 	});
 
-	it('should call repository layer upsert', () => {
+	it('should call repository layer upsert', async () => {
 		const installation = {
 			key: 'test-key',
 			clientKey: 'test-client-key',
@@ -21,7 +24,7 @@ describe('installedUseCase', () => {
 			displayUrl: 'http://display-url.com',
 		};
 
-		installedUseCase(repositoryMock, installation);
+		await sut.execute(installation);
 
 		expect(repositoryMock.upsertInstallation).toHaveBeenCalledWith(
 			installation,

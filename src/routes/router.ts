@@ -2,15 +2,13 @@ import { Router, static as Static } from 'express';
 
 import { join } from 'path';
 
+import { InstalledUseCase } from 'src/usecases/installed';
+
 import { connectDescriptorGet } from './atlassian-connect';
 import { authRouter } from './auth';
 import { makeLifecycleRouter } from './lifecycle-events';
 
-import { ConnectInstallationRepository } from '../domain/repositories/connect-installation-repository';
-
-export const makeRootRouter = (
-	connectInstallationRepository: ConnectInstallationRepository,
-): Router => {
+export const makeRootRouter = (installedUseCase: InstalledUseCase): Router => {
 	const RootRouter = Router();
 
 	// Healthcheck
@@ -25,10 +23,7 @@ export const makeRootRouter = (
 	RootRouter.get('/atlassian-connect.json', connectDescriptorGet);
 
 	// Connect lifecycle events
-	RootRouter.use(
-		'/lifecycleEvents',
-		makeLifecycleRouter(connectInstallationRepository),
-	);
+	RootRouter.use('/lifecycleEvents', makeLifecycleRouter(installedUseCase));
 
 	RootRouter.use('/auth', authRouter);
 
