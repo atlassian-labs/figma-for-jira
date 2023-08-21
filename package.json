@@ -15,7 +15,11 @@
 		"build": "tsc",
 		"test": "jest",
 		"test:unit": "jest --roots src",
-		"test:it": "jest --roots test"
+		"test:it": "jest --roots test",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
+		"format": "prettier . --write",
+		"format:check": "prettier . --check"
 	},
 	"dependencies": {
 		"@prisma/client": "^5.1.1",

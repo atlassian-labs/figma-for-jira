@@ -1,29 +1,31 @@
-{
-  "root": true,
-  "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
-  "extends": [
+/* eslint-env node */
+module.exports = {
+  root: true,
+  parser: "@typescript-eslint/parser",
+  plugins: ["@typescript-eslint"],
+  extends: [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended-type-checked",
     "plugin:import/recommended",
     "plugin:import/typescript",
     "prettier"
   ],
-  "parserOptions": {
-    "project": true
+  parserOptions: {
+    project: true,
+    tsconfigRootDir: __dirname
   },
-  "rules": {
+  rules: {
     "sort-imports": [
       "error",
       {
-        "ignoreCase": true,
-        "ignoreDeclarationSort": true
+        ignoreCase: true,
+        ignoreDeclarationSort: true
       }
     ],
     "import/order": [
       "error",
       {
-        "groups": [
+        groups: [
           "external",
           "builtin",
           "internal",
@@ -31,18 +33,18 @@
           "parent",
           "index"
         ],
-        "alphabetize": {
-          "order": "asc"
+        alphabetize: {
+          order: "asc"
         },
         "newlines-between": "always"
       }
     ],
     "import/no-unassigned-import": "error"
   },
-  "settings": {
+  settings: {
     "import/resolver": {
-      "typescript": true,
-      "node": true
+      typescript: true,
+      node: true
     }
   }
 }
