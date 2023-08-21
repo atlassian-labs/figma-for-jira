@@ -1,10 +1,13 @@
-import { ConnectInstallation } from 'src/domain/entities/connect-installations';
-import { ConnectInstallationRepository } from 'src/domain/repositories/connect-installation-repository';
+import {
+	ConnectInstallation,
+	ConnectInstallationCreateParams,
+} from 'src/domain/entities/connect-installations';
+import { ConnectInstallationRepository } from '../domain/repositories/connect-installation-repository';
+import logger from '../infrastructure/logger';
 
-export const installedUseCase = (
+export const installedUseCase = async (
 	repository: ConnectInstallationRepository,
-	installation: ConnectInstallation,
+	installation: ConnectInstallationCreateParams,
 ) => {
-	console.log('installedUseCase', installation);
-	repository.upsertInstallation(installation);
+	await repository.upsertInstallation(installation);
 };

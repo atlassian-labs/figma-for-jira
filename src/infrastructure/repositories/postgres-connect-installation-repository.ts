@@ -1,16 +1,38 @@
-import { ConnectInstallation } from 'src/domain/entities/connect-installations';
+import { PrismaClient } from '@prisma/client';
+import {
+	ConnectInstallation,
+	ConnectInstallationCreateParams,
+} from 'src/domain/entities/connect-installations';
 import { ConnectInstallationRepository } from 'src/domain/repositories/connect-installation-repository';
+import logger from '../logger';
 
-class PostgresConnectInstallationRepository
+export class PostgresConnectInstallationRepository
 	implements ConnectInstallationRepository
 {
-	getInstallation = (key: string) => {
-		console.log('get install');
+	prisma: PrismaClient;
+
+	constructor(prismaClient: PrismaClient) {
+		this.prisma = prismaClient;
+	}
+
+	getInstallation = async (key: string): Promise<ConnectInstallation> => {
+		return await this.prisma.connectInstallation.findFirstOrThrow({
+			where: { key },
+		});
 	};
 
-	upsertInstallation = (installation: ConnectInstallation) => {
-		console.log('upsert install');
+	upsertInstallation = async (
+		installation: ConnectInstallationCreateParams,
+	) => {
+		try {
+			return await this.prisma.connectInstallation.upsert({
+				create: installation,
+				update: installation,
+				where: { key: installation.key },
+			});
+		} catch (e: unknown) {
+			logger.error(`Failed to upsert ${installation.key} ${e}`, e);
+			throw e;
+		}
 	};
 }
-
-export default new PostgresConnectInstallationRepository();

@@ -18,6 +18,7 @@ const config: Config = {
 		schema: readEnvVarString('PG_FIGMA_FOR_JIRA_DB_SCHEMA'),
 		role: readEnvVarString('PG_FIGMA_FOR_JIRA_DB_ROLE'),
 		password: readEnvVarString('PG_FIGMA_FOR_JIRA_DB_PASSWORD'),
+		url: readEnvVarString('DATABASE_URL'),
 	},
 };
 

@@ -14,5 +14,6 @@ export type Config = {
 		schema: string;
 		role: string;
 		password: string;
+		url: string;
 	};
 };

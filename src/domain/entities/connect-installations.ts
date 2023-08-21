@@ -1,7 +1,4 @@
-export type ConnectInstallation = {
-	key: string;
-	clientKey: string;
-	sharedSecret: string;
-	baseUrl: string;
-	displayUrl: string;
-};
+import { ConnectInstallation } from '@prisma/client';
+
+export type ConnectInstallationCreateParams = Omit<ConnectInstallation, 'id'>;
+export { ConnectInstallation } from '@prisma/client';
