@@ -1,7 +1,7 @@
 -- CreateTable
 CREATE TABLE "OAuthUserCredential" (
     "id" SERIAL NOT NULL,
-    "userId" TEXT NOT NULL,
+    "atlassianUserId" TEXT NOT NULL,
     "accessToken" TEXT NOT NULL,
     "refreshToken" TEXT NOT NULL,
     "expiresIn" TEXT NOT NULL,
@@ -10,4 +10,4 @@ CREATE TABLE "OAuthUserCredential" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "OAuthUserCredential_userId_key" ON "OAuthUserCredential"("userId");
+CREATE UNIQUE INDEX "OAuthUserCredential_atlassianUserId_key" ON "OAuthUserCredential"("atlassianUserId");

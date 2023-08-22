@@ -9,7 +9,7 @@ export const authRouter = Router();
 const AUTH_RESOURCE_BASE_PATH = '/public/index.html';
 
 type AuthCallbackRequestBody = {
-	readonly userId: string;
+	readonly atlassianUserId: string;
 	readonly accessToken: string;
 	readonly refreshToken: string;
 	readonly expiresIn: string;

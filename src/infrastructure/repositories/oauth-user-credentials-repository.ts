@@ -14,15 +14,15 @@ export class OAuthUserCredentialsRepositoryImpl
 		this.prisma = prismaClient;
 	}
 
-	getOAuthToken = async (userId: string): Promise<string | null> => {
+	getOAuthToken = async (atlassianUserId: string): Promise<string | null> => {
 		try {
 			const credentials = await this.prisma.oAuthUserCredential.findFirst({
-				where: { userId },
+				where: { atlassianUserId },
 			});
 			return credentials?.accessToken ?? null;
 		} catch (err) {
 			logger.error(
-				`Failed to retrieve credentials for userId: ${userId} ${err}`,
+				`Failed to retrieve credentials for atlassianUserId: ${atlassianUserId} ${err}`,
 				err,
 			);
 			throw err;
@@ -36,11 +36,11 @@ export class OAuthUserCredentialsRepositoryImpl
 			return await this.prisma.oAuthUserCredential.upsert({
 				create: credentials,
 				update: credentials,
-				where: { userId: credentials.userId },
+				where: { atlassianUserId: credentials.atlassianUserId },
 			});
 		} catch (err) {
 			logger.error(
-				`Failed to upsert credentials for user ${credentials.userId} ${err}`,
+				`Failed to upsert credentials for user ${credentials.atlassianUserId} ${err}`,
 				err,
 			);
 			throw err;
@@ -48,15 +48,15 @@ export class OAuthUserCredentialsRepositoryImpl
 	};
 
 	deleteOAuthUserCredentials = async (
-		userId: string,
+		atlassianUserId: string,
 	): Promise<OAuthUserCredentials> => {
 		try {
 			return await this.prisma.oAuthUserCredential.delete({
-				where: { userId },
+				where: { atlassianUserId },
 			});
 		} catch (err) {
 			logger.error(
-				`Failed to delete credentials for user ${userId} ${err}`,
+				`Failed to delete credentials for user ${atlassianUserId} ${err}`,
 				err,
 			);
 			throw err;

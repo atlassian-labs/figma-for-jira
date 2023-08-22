@@ -17,9 +17,9 @@ model ConnectInstallation {
 }
 
 model OAuthUserCredential {
-  id           Int    @id @default(autoincrement())
-  userId       String @unique
-  accessToken  String
-  refreshToken String
-  expiresIn    String
+  id              Int    @id @default(autoincrement())
+  atlassianUserId String @unique
+  accessToken     String
+  refreshToken    String
+  expiresIn       String
 }
