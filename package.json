@@ -7,8 +7,8 @@
 	"scripts": {
 		"build": "tsc",
 		"createEnvFile": "ts-node ./scripts/create-env-file.ts",
-		"db:migrate": "yarn prisma migrate dev",
-		"db:generate": "yarn prisma generate",
+		"db:migrate": "prisma migrate dev",
+		"db:generate": "prisma generate",
 		"installApp": "./scripts/app-install.sh",
 		"makeTunnel": "./scripts/make-tunnel.sh",
 		"postinstall": "run-p createEnvFile db:generate",
