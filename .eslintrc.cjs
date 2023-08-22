@@ -1,50 +1,62 @@
 /* eslint-env node */
 module.exports = {
   root: true,
-  parser: "@typescript-eslint/parser",
-  plugins: ["@typescript-eslint"],
+  parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint'],
   extends: [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended-type-checked",
-    "plugin:import/recommended",
-    "plugin:import/typescript",
-    "prettier"
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended-type-checked',
+    'plugin:import/recommended',
+    'plugin:import/typescript',
+    'prettier',
   ],
   parserOptions: {
     project: true,
-    tsconfigRootDir: __dirname
+    tsconfigRootDir: __dirname,
   },
   rules: {
-    "sort-imports": [
-      "error",
+    'sort-imports': [
+      'error',
       {
         ignoreCase: true,
-        ignoreDeclarationSort: true
-      }
+        ignoreDeclarationSort: true,
+      },
     ],
-    "import/order": [
-      "error",
+    'import/order': [
+      'error',
       {
         groups: [
-          "external",
-          "builtin",
-          "internal",
-          "sibling",
-          "parent",
-          "index"
+          'external',
+          'builtin',
+          'internal',
+          'sibling',
+          'parent',
+          'index',
         ],
         alphabetize: {
-          order: "asc"
+          order: 'asc',
         },
-        "newlines-between": "always"
-      }
+        'newlines-between': 'always',
+      },
     ],
-    "import/no-unassigned-import": "error"
+    'import/no-unassigned-import': 'error',
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            group: ['src/*'],
+            message:
+              '\nImporting from src/ is not allowed. Use relative imports instead.',
+          },
+        ],
+      },
+    ],
   },
   settings: {
-    "import/resolver": {
+    'import/resolver': {
       typescript: true,
-      node: true
-    }
-  }
-}
+      node: true,
+    },
+  },
+};

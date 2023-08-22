@@ -1,7 +1,5 @@
 import { Router } from 'express';
 
-import { resolve } from 'path';
-
 export const authRouter = Router();
 
 authRouter.get('/callback', function (req, res) {

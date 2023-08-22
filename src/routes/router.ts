@@ -2,11 +2,11 @@ import { Router, static as Static } from 'express';
 
 import { join } from 'path';
 
-import { InstalledUseCase } from 'src/usecases/installed';
-
 import { connectDescriptorGet } from './atlassian-connect';
 import { authRouter } from './auth';
 import { makeLifecycleRouter } from './lifecycle-events';
+
+import { InstalledUseCase } from '../usecases/installed';
 
 export const makeRootRouter = (installedUseCase: InstalledUseCase): Router => {
 	const RootRouter = Router();

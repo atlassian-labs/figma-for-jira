@@ -32,15 +32,15 @@ class PinoLoggerImpl implements Logger {
 		});
 	}
 
-	info(message: string, ...args: any[]) {
+	info(message: string, ...args: unknown[]) {
 		this.logger.info(message, args);
 	}
 
-	debug(message: string, ...args: any[]) {
+	debug(message: string, ...args: unknown[]) {
 		this.logger.debug(message, args);
 	}
 
-	error(message: string, ...args: any[]) {
+	error(message: string, ...args: unknown[]) {
 		this.logger.error(message, args);
 	}
 }

@@ -2,10 +2,7 @@ import { Request, Response } from 'express';
 
 import config from '../config';
 
-export const connectDescriptorGet = async (
-	_: Request,
-	res: Response,
-): Promise<void> => {
+export const connectDescriptorGet = (_: Request, res: Response) => {
 	res.status(200).json(connectAppDescriptor);
 };
 

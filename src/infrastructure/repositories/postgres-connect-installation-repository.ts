@@ -3,9 +3,8 @@ import { PrismaClient } from '@prisma/client';
 import {
 	ConnectInstallation,
 	ConnectInstallationCreateParams,
-} from 'src/domain/entities/connect-installation';
-import { ConnectInstallationRepository } from 'src/domain/repositories/connect-installation-repository';
-
+} from '../../domain/entities/connect-installation';
+import { ConnectInstallationRepository } from '../../domain/repositories/connect-installation-repository';
 import logger from '../logger';
 
 export class PostgresConnectInstallationRepository
@@ -33,7 +32,7 @@ export class PostgresConnectInstallationRepository
 				where: { key: installation.key },
 			});
 		} catch (e: unknown) {
-			logger.error(`Failed to upsert ${installation.key} ${e}`, e);
+			logger.error(`Failed to upsert ${installation.key}`, e);
 			throw e;
 		}
 	};

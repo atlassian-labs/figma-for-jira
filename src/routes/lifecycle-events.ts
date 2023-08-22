@@ -1,9 +1,8 @@
-import { RequestHandler, Router } from 'express';
+import { Router } from 'express';
 
 import type { TypedRequest } from './types';
 
 import { ConnectInstallationCreateParams } from '../domain/entities/connect-installation';
-import { ConnectInstallationRepository } from '../domain/repositories/connect-installation-repository';
 import {
 	authHeaderAsymmetricJwtMiddleware,
 	authHeaderSymmetricJwtMiddleware,
@@ -25,7 +24,9 @@ export function makeLifecycleRouter(
 
 	lifecycleEventsRouter.post(
 		'/installed',
-		authHeaderAsymmetricJwtMiddleware,
+		(req: TypedRequest<ConnectLifecycleEventRequestBody>, res, next) => {
+			authHeaderAsymmetricJwtMiddleware(req, res, next).then(next).catch(next);
+		},
 		(req: TypedRequest<ConnectLifecycleEventRequestBody>, res, next) => {
 			const installation: ConnectInstallationCreateParams = {
 				key: req.body.key,
@@ -45,7 +46,9 @@ export function makeLifecycleRouter(
 
 	lifecycleEventsRouter.post(
 		'/enabled',
-		authHeaderSymmetricJwtMiddleware as RequestHandler,
+		(req: TypedRequest<ConnectLifecycleEventRequestBody>, res, next) => {
+			authHeaderSymmetricJwtMiddleware(req, res, next).then(next).catch(next);
+		},
 		(req, res) => {
 			// await database.enableJiraTenant(req.body.clientKey);
 			res.sendStatus(204);
@@ -54,7 +57,9 @@ export function makeLifecycleRouter(
 
 	lifecycleEventsRouter.post(
 		'/disabled',
-		authHeaderSymmetricJwtMiddleware,
+		(req: TypedRequest<ConnectLifecycleEventRequestBody>, res, next) => {
+			authHeaderSymmetricJwtMiddleware(req, res, next).then(next).catch(next);
+		},
 		(req, res) => {
 			// await database.disableJiraTenant(req.body.clientKey);
 			res.sendStatus(204);
@@ -63,7 +68,9 @@ export function makeLifecycleRouter(
 
 	lifecycleEventsRouter.post(
 		'/uninstalled',
-		authHeaderAsymmetricJwtMiddleware,
+		(req: TypedRequest<ConnectLifecycleEventRequestBody>, res, next) => {
+			authHeaderAsymmetricJwtMiddleware(req, res, next).then(next).catch(next);
+		},
 		(req, res) => {
 			// const { clientKey } = req.body;
 			// await database.removeJiraTenant(clientKey);

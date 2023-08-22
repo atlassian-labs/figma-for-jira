@@ -1,5 +1,4 @@
-import { ConnectInstallationCreateParams } from 'src/domain/entities/connect-installation';
-
+import { ConnectInstallationCreateParams } from '../domain/entities/connect-installation';
 import { ConnectInstallationRepository } from '../domain/repositories/connect-installation-repository';
 
 export class InstalledUseCase {
