@@ -5,17 +5,20 @@
 	"license": "MIT",
 	"private": false,
 	"scripts": {
-		"start": "tsnd --watch='.env' --respawn src/server.ts",
-		"start:tunnel": "run-p makeTunnel updateAppUrl",
-		"start:sandbox": "docker-compose --env-file=.env up --detach",
-		"stop:sandbox": "docker-compose down",
-		"makeTunnel": "./scripts/make-tunnel.sh",
-		"updateAppUrl": "ts-node ./scripts/update-app-url.ts",
-		"installApp": "./scripts/app-install.sh",
 		"build": "tsc",
+		"createEnvFile": "ts-node ./scripts/create-env-file.ts",
+		"generate:prisma": "prisma generate",
+		"installApp": "./scripts/app-install.sh",
+		"makeTunnel": "./scripts/make-tunnel.sh",
+		"postinstall": "run-p createEnvFile generate:prisma",
+		"start": "tsnd --watch='.env' --respawn src/server.ts",
+		"start:sandbox": "docker-compose --env-file=.env up --detach",
+		"start:tunnel": "run-p makeTunnel updateAppUrl",
+		"stop:sandbox": "docker-compose down",
 		"test": "jest",
+		"test:it": "jest --roots test",
 		"test:unit": "jest --roots src",
-		"test:it": "jest --roots test"
+		"updateAppUrl": "ts-node ./scripts/update-app-url.ts"
 	},
 	"dependencies": {
 		"@prisma/client": "^5.1.1",
