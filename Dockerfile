@@ -1,4 +1,4 @@
-FROM node:lts-alpine as build
+FROM node:18-bookworm-slim as build
 
 # Compile TS
 WORKDIR /app
@@ -9,7 +9,7 @@ RUN npm ci
 RUN npm run db:generate
 RUN npm run build
 
-FROM node:lts-alpine as app
+FROM node:18-bookworm-slim as app
 
 RUN mkdir -p /opt/service/ && chown -R node: /opt/service
 WORKDIR /opt/service
