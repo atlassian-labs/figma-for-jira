@@ -2,9 +2,12 @@ import { Router } from 'express';
 
 import type { TypedRequest } from './types';
 
+import { figmaClient, logger } from '../../infrastructure';
 import { addOAuthCredentialsUseCase } from '../../usecases/add-oauth-credentials';
 
 const AUTH_RESOURCE_BASE_PATH = '/public/index.html';
+const SUCCESS_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=true`;
+const FAILURE_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=false`;
 
 type AuthCallbackRequestBody = {
 	readonly atlassianUserId: string;
@@ -18,18 +21,30 @@ export const authRouter = Router();
 authRouter.get(
 	'/callback',
 	function (req: TypedRequest<AuthCallbackRequestBody>, res) {
-		// MDTZ-905 - TODO:
-		// 1. parse url and validate `state`
-		// 2. exchange `code` for `access_token`
-		// 3. pass any errors from the Figma auth flow as an `errorMessage` query param in the catch block
-		req.log.info('Received auth callback');
-		addOAuthCredentialsUseCase
-			.execute(req.body)
-			.then(() => {
-				res.redirect(`${AUTH_RESOURCE_BASE_PATH}?success=true`);
+		const { code, state } = req.query;
+		if (typeof code !== 'string' || typeof state !== 'string') {
+			res.statusMessage = 'Did not receive valid code or state in query params';
+			res.sendStatus(500);
+			return;
+		}
+		figmaClient
+			.exchangeCodeForAccessToken(code, state)
+			.then((oauthCredentials) => {
+				addOAuthCredentialsUseCase
+					.execute(oauthCredentials)
+					.then(() => {
+						res.redirect(SUCCESS_PAGE_URL);
+					})
+					.catch(() => {
+						res.redirect(FAILURE_PAGE_URL);
+					});
 			})
-			.catch(() => {
-				res.redirect(`${AUTH_RESOURCE_BASE_PATH}?success=false`);
+			.catch((error) => {
+				logger.error(
+					`Error exchanging code for access token via Figma client ${error}`,
+					error,
+				);
+				res.redirect(FAILURE_PAGE_URL);
 			});
 	},
 );

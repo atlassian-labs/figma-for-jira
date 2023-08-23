@@ -3,8 +3,6 @@ import { oauthUserCredentialsRepository } from '../infrastructure/repositories';
 
 export const addOAuthCredentialsUseCase = {
 	execute: async (credentials: OAuthUserCredentialsCreateParams) => {
-		await oauthUserCredentialsRepository.upsert(
-			credentials,
-		);
+		await oauthUserCredentialsRepository.upsert(credentials);
 	},
 };

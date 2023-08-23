@@ -19,6 +19,10 @@ const config: Config = {
 		password: readEnvVarString('PG_FIGMA_FOR_JIRA_DB_PASSWORD'),
 		url: readEnvVarString('DATABASE_URL'),
 	},
+	oauth: {
+		clientId: readEnvVarString('OAUTH_CLIENT_ID'),
+		clientSecret: readEnvVarString('OAUTH_CLIENT_SECRET'),
+	},
 };
 
 export default config;
