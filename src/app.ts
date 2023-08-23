@@ -1,3 +1,5 @@
+// eslint-disable-next-line import/no-unassigned-import
+import 'dotenv/config';
 import express, { json } from 'express';
 
 import { logger } from './infrastructure';
