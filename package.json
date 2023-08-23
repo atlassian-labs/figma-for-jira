@@ -6,6 +6,7 @@
 	"private": false,
 	"scripts": {
 		"build": "tsc",
+		"build:check": "tsc --noEmit",
 		"createEnvFile": "ts-node ./scripts/create-env-file.ts",
 		"db:migrate": "prisma migrate dev",
 		"db:generate": "prisma generate",
