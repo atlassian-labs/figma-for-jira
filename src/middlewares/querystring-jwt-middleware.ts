@@ -18,7 +18,7 @@ export const querystringJwtMiddleware = async (
 			req.query.jwt as string,
 		);
 		next();
-	} catch (e) {
+	} catch (e: any) { // TODO: Remove the `any` usage.
 		res.status(e.status).send(e.message);
 	}
 };

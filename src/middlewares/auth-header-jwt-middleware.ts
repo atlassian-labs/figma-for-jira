@@ -21,7 +21,7 @@ const validateAuthToken =
 					await verifyAsymmetricJWTToken(request, token);
 			}
 			next();
-		} catch (e) {
+		} catch (e: any) { // TODO: Remove the `any` usage.
 			res.status(e.status).send(e.message);
 		}
 	};
