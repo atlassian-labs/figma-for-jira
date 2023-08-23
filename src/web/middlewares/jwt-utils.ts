@@ -8,8 +8,8 @@ import {
 } from 'atlassian-jwt';
 import { Request } from 'atlassian-jwt/dist/lib/jwt';
 
-import config from '../config';
-import logger from '../infrastructure/logger';
+import config from '../../config';
+import { logger } from '../../infrastructure';
 
 const tenant = {
 	id: '123',

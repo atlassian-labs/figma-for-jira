@@ -1,7 +1,7 @@
 import { fromExpressRequest } from 'atlassian-jwt';
 import { NextFunction, Request, Response } from 'express';
 
-import { verifySymmetricJWTToken } from '../utils/jwt';
+import { verifySymmetricJWTToken } from './jwt-utils';
 
 /**
  * Takes JWT token from query and verifies it using jwt-middleware
