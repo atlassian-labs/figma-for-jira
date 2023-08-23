@@ -15,3 +15,11 @@ model ConnectInstallation {
   baseUrl      String
   displayUrl   String
 }
+
+model OAuthUserCredential {
+  id              Int    @id @default(autoincrement())
+  atlassianUserId String @unique
+  accessToken     String
+  refreshToken    String
+  expiresIn       Int
+}

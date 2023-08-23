@@ -10,7 +10,7 @@ This app is aimed to help you to easily add your integration in Jira.
 - [Pre-requisites](#pre-requisites)
 - [Getting started](#getting-started)
 - [Manual Install](#manually-installing-the-app)
-- [Running your application](#running-your-application)
+- [Database](#database)
 - [Testing](#testing)
 - [Getting help](#getting-help)
 - [License](#license)
@@ -63,6 +63,25 @@ the following steps:
   `/atlassian-connect.json`(`https://${APP_URL}/atlassian-connect.json`)
 - Click Upload.
 - That's it! You're done. 🎉
+
+## Database
+
+This repository uses [Prisma](https://www.prisma.io/) as an ORM for interacting with a Postgres database.
+
+### Running and inspecting the database locally
+
+1. Fill in `PG_*` variables in `.env` using samples from `.env.example` as a guide
+2. Spin up dependencies using `yarn start:sandbox`
+3. Using IntelliJ or whatever tool you use for inspecting databases, add a database using fields from from `.env`
+
+### Running migrations
+
+To run a database migration do the following:
+
+1. Make any schema additions in `prisma/schema.prisma`
+2. Spin up dependencies using `yarn start:sandbox`
+3. Run `yarn db:migrate --name <migration_name>` - this will create your migration in a new folder under `prisma/migrations`
+4. Run `yarn db:generate` to rebuild the `@prisma/client`, which provides type safety and utility functions for any newly added tables and fields
 
 ## Testing
 
