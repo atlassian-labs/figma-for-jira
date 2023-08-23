@@ -16,7 +16,7 @@ jobs:
         run: npm ci
 
       - name: Check type errors
-        run: npm run build:clean
+        run: npm run build:check
 
       - name: Check lint errors
         run: npm run lint
