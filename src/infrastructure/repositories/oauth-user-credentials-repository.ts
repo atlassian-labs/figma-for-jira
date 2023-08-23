@@ -1,23 +1,42 @@
-import { PrismaClient } from '@prisma/client';
+import type { OAuthUserCredential as PrismaOAuthUserCredentials } from '@prisma/client';
 
-import type { OAuthUserCredentials } from '../../domain/entities/oauth-user-credentials';
-import { OAuthUserCredentialsRepository } from '../../domain/repositories/oauth-user-credentials-repository';
-import logger from '../logger';
+import { logger } from '..';
+import type {
+	OAuthUserCredentials,
+	OAuthUserCredentialsCreateParams,
+} from '../../domain/entities';
+import { getPrismaClient } from '../../infrastructure/repositories/prisma-client';
 
-export class OAuthUserCredentialsRepositoryImpl
-	implements OAuthUserCredentialsRepository
-{
-	prisma: PrismaClient;
+const mapToDomainType = ({
+	id,
+	atlassianUserId,
+	accessToken,
+	refreshToken,
+	expiresIn,
+}: PrismaOAuthUserCredentials): OAuthUserCredentials => ({
+	id,
+	atlassianUserId,
+	accessToken,
+	refreshToken,
+	expiresIn,
+});
 
-	constructor(prismaClient: PrismaClient) {
-		this.prisma = prismaClient;
-	}
+export class OAuthUserCredentialsRepository {
+	getOAuthToken: (atlassianUserId: string) => Promise<string | null>;
+	upsertOAuthUserCredentials: (
+		credentials: OAuthUserCredentialsCreateParams,
+	) => Promise<OAuthUserCredentials>;
+	deleteOAuthUserCredentials: (
+		atlassianUserId: string,
+	) => Promise<OAuthUserCredentials>;
 
-	getOAuthToken = async (atlassianUserId: string): Promise<string | null> => {
+	findAccessToken = async (atlassianUserId: string): Promise<string | null> => {
 		try {
-			const credentials = await this.prisma.oAuthUserCredential.findFirst({
-				where: { atlassianUserId },
-			});
+			const credentials = await getPrismaClient().oAuthUserCredential.findFirst(
+				{
+					where: { atlassianUserId },
+				},
+			);
 			return credentials?.accessToken ?? null;
 		} catch (err) {
 			logger.error(
@@ -28,15 +47,16 @@ export class OAuthUserCredentialsRepositoryImpl
 		}
 	};
 
-	upsertOAuthUserCredentials = async (
-		credentials: OAuthUserCredentials,
+	upsert = async (
+		credentials: OAuthUserCredentialsCreateParams,
 	): Promise<OAuthUserCredentials> => {
 		try {
-			return await this.prisma.oAuthUserCredential.upsert({
+			const result = await getPrismaClient().oAuthUserCredential.upsert({
 				create: credentials,
 				update: credentials,
 				where: { atlassianUserId: credentials.atlassianUserId },
 			});
+			return mapToDomainType(result);
 		} catch (err) {
 			logger.error(
 				`Failed to upsert credentials for user ${credentials.atlassianUserId} ${err}`,
@@ -46,13 +66,12 @@ export class OAuthUserCredentialsRepositoryImpl
 		}
 	};
 
-	deleteOAuthUserCredentials = async (
-		atlassianUserId: string,
-	): Promise<OAuthUserCredentials> => {
+	delete = async (atlassianUserId: string): Promise<OAuthUserCredentials> => {
 		try {
-			return await this.prisma.oAuthUserCredential.delete({
+			const result = await getPrismaClient().oAuthUserCredential.delete({
 				where: { atlassianUserId },
 			});
+			return mapToDomainType(result);
 		} catch (err) {
 			logger.error(
 				`Failed to delete credentials for user ${atlassianUserId} ${err}`,
@@ -62,3 +81,6 @@ export class OAuthUserCredentialsRepositoryImpl
 		}
 	};
 }
+
+export const oauthUserCredentialsRepository =
+	new OAuthUserCredentialsRepository();

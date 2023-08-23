@@ -1,21 +1,17 @@
-import { InstalledUseCase } from './installed';
+import { installedUseCase } from './installed';
 
-import { ConnectInstallationRepository } from '../domain/repositories/connect-installation-repository';
+import { connectInstallationRepository } from '../infrastructure/repositories';
 
 describe('installedUseCase', () => {
-	let repositoryMock: jest.MockedObject<ConnectInstallationRepository>;
-	let sut: InstalledUseCase;
-
 	beforeEach(() => {
-		repositoryMock = {
-			getInstallation: jest.fn(),
-			upsertInstallation: jest.fn(),
-		};
-
-		sut = new InstalledUseCase(repositoryMock);
+		jest.clearAllMocks();
 	});
 
 	it('should call repository layer upsert', async () => {
+		const upsertSpy = jest
+			.spyOn(connectInstallationRepository, 'upsert')
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			.mockImplementation(() => Promise.resolve({} as any));
 		const installation = {
 			key: 'test-key',
 			clientKey: 'test-client-key',
@@ -24,10 +20,8 @@ describe('installedUseCase', () => {
 			displayUrl: 'http://display-url.com',
 		};
 
-		await sut.execute(installation);
+		await installedUseCase.execute(installation);
 
-		expect(repositoryMock.upsertInstallation).toHaveBeenCalledWith(
-			installation,
-		);
+		expect(upsertSpy).toHaveBeenCalledWith(installation);
 	});
 });

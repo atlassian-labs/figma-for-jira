@@ -1,16 +1,10 @@
-import { OAuthUserCredentials } from '../domain/entities/oauth-user-credentials';
-import { OAuthUserCredentialsRepository } from '../domain/repositories/oauth-user-credentials-repository';
+import { OAuthUserCredentialsCreateParams } from '../domain/entities/oauth-user-credentials';
+import { oauthUserCredentialsRepository } from '../infrastructure/repositories';
 
-export class AddOAuthCredentialsUseCase {
-	oauthUserCredentialsRepository: OAuthUserCredentialsRepository;
-
-	constructor(oauthUserCredentialsRepository: OAuthUserCredentialsRepository) {
-		this.oauthUserCredentialsRepository = oauthUserCredentialsRepository;
-	}
-
-	execute = async (credentials: OAuthUserCredentials) => {
-		await this.oauthUserCredentialsRepository.upsertOAuthUserCredentials(
+export const addOAuthCredentialsUseCase = {
+	execute: async (credentials: OAuthUserCredentialsCreateParams) => {
+		await oauthUserCredentialsRepository.upsertOAuthUserCredentials(
 			credentials,
 		);
-	};
-}
+	},
+};

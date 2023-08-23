@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-import config from '../config';
+import config from '../../config';
 
 export const connectDescriptorGet = (_: Request, res: Response) => {
 	res.status(200).json(connectAppDescriptor);
