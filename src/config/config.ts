@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-unassigned-import
 import 'dotenv/config';
 import { Config } from './types';
 import { readEnvVarInt, readEnvVarString } from './utils';

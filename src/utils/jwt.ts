@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-call */
 import {
 	createQueryStringHash,
 	decodeAsymmetric,
@@ -8,6 +9,7 @@ import {
 import { Request } from 'atlassian-jwt/dist/lib/jwt';
 
 import config from '../config';
+import logger from '../infrastructure/logger';
 
 const tenant = {
 	id: '123',
@@ -24,7 +26,8 @@ const tenant = {
 export const verifySymmetricJWTToken = async (
 	request: Request,
 	token?: string,
-): Promise<any> => {
+): Promise<typeof tenant> => {
+	logger.info('verifySymmetricJWTToken', request, token);
 	// // if JWT is missing, return a 401
 	// if (!token) {
 	// 	return Promise.reject({

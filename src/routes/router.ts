@@ -2,12 +2,12 @@ import { Router, static as Static } from 'express';
 
 import { join } from 'path';
 
-import { AddOAuthCredentialsUseCase } from 'src/usecases/add-oauth-credentials';
-import { InstalledUseCase } from 'src/usecases/installed';
-
 import { connectDescriptorGet } from './atlassian-connect';
 import { makeAuthRouter } from './auth';
 import { makeLifecycleRouter } from './lifecycle-events';
+
+import { AddOAuthCredentialsUseCase } from '../usecases/add-oauth-credentials';
+import { InstalledUseCase } from '../usecases/installed';
 
 export const makeRootRouter = (
 	installedUseCase: InstalledUseCase,

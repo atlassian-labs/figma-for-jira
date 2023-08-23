@@ -21,8 +21,10 @@ const validateAuthToken =
 					await verifyAsymmetricJWTToken(request, token);
 			}
 			next();
-		} catch (e) {
-			res.status(e.status).send(e.message);
+		} catch (e: unknown) {
+			// TODO: properly handle error from verifySymmetricJWTToken when we re-add the code
+			// res.status(e.status).send(e.message);
+			res.status(500);
 		}
 	};
 /**

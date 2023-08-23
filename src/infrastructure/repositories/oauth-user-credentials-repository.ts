@@ -1,8 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 
-import type { OAuthUserCredentials } from 'src/domain/entities/oauth-user-credentials';
-import { OAuthUserCredentialsRepository } from 'src/domain/repositories/oauth-user-credentials-repository';
-
+import type { OAuthUserCredentials } from '../../domain/entities/oauth-user-credentials';
+import { OAuthUserCredentialsRepository } from '../../domain/repositories/oauth-user-credentials-repository';
 import logger from '../logger';
 
 export class OAuthUserCredentialsRepositoryImpl

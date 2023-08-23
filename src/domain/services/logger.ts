@@ -1,5 +1,5 @@
 export interface Logger {
-	info: (message: string, ...args: any[]) => void;
-	debug: (message: string, ...ars: any[]) => void;
-	error: (message: string, ...args: any[]) => void;
+	info: (message: string, ...args: unknown[]) => void;
+	debug: (message: string, ...ars: unknown[]) => void;
+	error: (message: string, ...args: unknown[]) => void;
 }
