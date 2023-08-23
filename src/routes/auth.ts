@@ -12,7 +12,7 @@ type AuthCallbackRequestBody = {
 	readonly atlassianUserId: string;
 	readonly accessToken: string;
 	readonly refreshToken: string;
-	readonly expiresIn: string;
+	readonly expiresIn: number;
 };
 
 export const makeAuthRouter = (
