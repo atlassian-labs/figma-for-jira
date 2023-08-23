@@ -3,8 +3,8 @@ import * as path from 'path';
 
 const envFileName = '.env';
 const envExampleFileName = `${envFileName}.example`;
-const envFilePath = path.resolve(__dirname, envFileName);
-const envExampleFilePath = path.resolve(__dirname, envExampleFileName);
+const envFilePath = path.resolve(__dirname, '..', envFileName);
+const envExampleFilePath = path.resolve(__dirname, '..', envExampleFileName);
 
 /**
  * Creates the env file

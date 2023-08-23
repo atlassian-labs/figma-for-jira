@@ -1,5 +1,6 @@
 export type OAuthUserCredentials = {
-	userId: string;
+	atlassianUserId: string;
 	accessToken: string;
 	refreshToken: string;
+	expiresIn: number;
 };

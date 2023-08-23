@@ -10,7 +10,7 @@ This app is aimed to help you to easily add your integration in Jira.
 - [Pre-requisites](#pre-requisites)
 - [Getting started](#getting-started)
 - [Manual Install](#manually-installing-the-app)
-- [Running your application](#running-your-application)
+- [Database](#database)
 - [Testing](#testing)
 - [Getting help](#getting-help)
 - [License](#license)
@@ -24,8 +24,6 @@ This app is aimed to help you to easily add your integration in Jira.
 
 ## Getting started
 
-You can run this app in 3 simple steps:
-
 - **Installing dependencies**
 
   - Run `yarn install` (recommended) or `npm install` for installing all the dependencies for this app.
@@ -36,17 +34,24 @@ You can run this app in 3 simple steps:
     account to get access to the auth token.
   - Open your .env file and fill in _all the missing fields_
 
-- **Running docker compose**
-  - Then simply run `docker-compose up`.
-  - Please be patient as it will take a few minutes for everything to be setup. When everything is setup, you should see the URL in the terminal as in the picture below. ![img.png](static/images/tunnel-output.png)
+- **Running the sandbox**
 
-> **Note:** _If you are using a free version of ngrok, please open the tunneled URL first. This needs to be done to bypass the ngrok browser warning. Just visit the ngrok warning page and just click on the Visit button._
+  - Run `yarn start:sandbox` to bring up a Postgres for the app in Docker
 
-At the very end, you can see the URL the index page of your app. Just open the URL and that's it, you're ready!
+- **Starting the tunnel**
 
-## Manually Installing the App
+  - Run `yarn start:tunnel` to create an ngrok tunnel
 
-The above steps automatically installs the app, however you can only install one app at a time.
+> **Note:** _If you are using a free version of ngrok, please open the tunneled URL first. This needs to be done to bypass the ngrok browser warning. Just visit your ngrok tunnel URL in a browser and click on the Visit button._
+
+- **Running the app**
+  - Run `yarn start` to begin running the app in development mode
+
+## Installing the App
+
+To install the app, first ensure both the ngrok tunnel and the app are running, and you've filled out the required
+values in the your `.env` file. Then run `yarn installApp`. The app will be installed to the Jira instance specified by
+the `ATLASSIAN_URL` environment variable.
 
 If you want to install the app in multiple Jira instances, please do it manually. Go to your Jira instances and do
 the following steps:
@@ -58,6 +63,25 @@ the following steps:
   `/atlassian-connect.json`(`https://${APP_URL}/atlassian-connect.json`)
 - Click Upload.
 - That's it! You're done. 🎉
+
+## Database
+
+This repository uses [Prisma](https://www.prisma.io/) as an ORM for interacting with a Postgres database.
+
+### Running and inspecting the database locally
+
+1. Fill in `PG_*` variables in `.env` using samples from `.env.example` as a guide
+2. Spin up dependencies using `yarn start:sandbox`
+3. Using IntelliJ or whatever tool you use for inspecting databases, add a database using fields from from `.env`
+
+### Running migrations
+
+To run a database migration do the following:
+
+1. Make any schema additions in `prisma/schema.prisma`
+2. Spin up dependencies using `yarn start:sandbox`
+3. Run `yarn db:migrate --name <migration_name>` - this will create your migration in a new folder under `prisma/migrations`
+4. Run `yarn db:generate` to rebuild the `@prisma/client`, which provides type safety and utility functions for any newly added tables and fields
 
 ## Testing
 

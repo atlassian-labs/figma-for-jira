@@ -3,12 +3,16 @@ import { Router, static as Static } from 'express';
 import { join } from 'path';
 
 import { connectDescriptorGet } from './atlassian-connect';
-import { authRouter } from './auth';
+import { makeAuthRouter } from './auth';
 import { makeLifecycleRouter } from './lifecycle-events';
 
+import { AddOAuthCredentialsUseCase } from '../usecases/add-oauth-credentials';
 import { InstalledUseCase } from '../usecases/installed';
 
-export const makeRootRouter = (installedUseCase: InstalledUseCase): Router => {
+export const makeRootRouter = (
+	installedUseCase: InstalledUseCase,
+	addOAuthCredentialsUseCase: AddOAuthCredentialsUseCase,
+): Router => {
 	const RootRouter = Router();
 
 	// Healthcheck
@@ -25,7 +29,7 @@ export const makeRootRouter = (installedUseCase: InstalledUseCase): Router => {
 	// Connect lifecycle events
 	RootRouter.use('/lifecycleEvents', makeLifecycleRouter(installedUseCase));
 
-	RootRouter.use('/auth', authRouter);
+	RootRouter.use('/auth', makeAuthRouter(addOAuthCredentialsUseCase));
 
 	return RootRouter;
 };
