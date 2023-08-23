@@ -1,10 +1,7 @@
 import { fromExpressRequest } from 'atlassian-jwt';
 import { NextFunction, Request, Response } from 'express';
 
-import {
-	verifyAsymmetricJWTToken,
-	verifySymmetricJWTToken,
-} from '../utils/jwt';
+import { verifyAsymmetricJWTToken, verifySymmetricJWTToken } from './jwt-utils';
 
 const validateAuthToken =
 	(type: 'symmetric' | 'asymmetric') =>
