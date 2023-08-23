@@ -19,6 +19,10 @@
 		"test": "jest",
 		"test:it": "jest --roots test",
 		"test:unit": "jest --roots src",
+		"lint": "eslint .",
+		"lint:fix": "eslint . --fix",
+		"format": "prettier . --write",
+		"format:check": "prettier . --check",
 		"updateAppUrl": "ts-node ./scripts/update-app-url.ts"
 	},
 	"dependencies": {

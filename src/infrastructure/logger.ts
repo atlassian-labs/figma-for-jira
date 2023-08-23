@@ -2,7 +2,6 @@ import { pino, type Logger as PinoLogger } from 'pino';
 import { type HttpLogger, pinoHttp } from 'pino-http';
 
 import config from '../config';
-import { Logger } from '../domain/services/logger';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isTest = process.env.NODE_ENV === 'test';
@@ -18,7 +17,7 @@ const devOptions = {
 	},
 };
 
-class PinoLoggerImpl implements Logger {
+class Logger {
 	logger: PinoLogger;
 	httpLogger: HttpLogger;
 	constructor() {
@@ -32,17 +31,17 @@ class PinoLoggerImpl implements Logger {
 		});
 	}
 
-	info(message: string, ...args: any[]) {
+	info(message: string, ...args: unknown[]) {
 		this.logger.info(message, args);
 	}
 
-	debug(message: string, ...args: any[]) {
+	debug(message: string, ...args: unknown[]) {
 		this.logger.debug(message, args);
 	}
 
-	error(message: string, ...args: any[]) {
+	error(message: string, ...args: unknown[]) {
 		this.logger.error(message, args);
 	}
 }
 
-export default new PinoLoggerImpl();
+export const logger = new Logger();

@@ -1,10 +1,7 @@
 import { fromExpressRequest } from 'atlassian-jwt';
 import { NextFunction, Request, Response } from 'express';
 
-import {
-	verifyAsymmetricJWTToken,
-	verifySymmetricJWTToken,
-} from '../utils/jwt';
+import { verifyAsymmetricJWTToken, verifySymmetricJWTToken } from './jwt-utils';
 
 const validateAuthToken =
 	(type: 'symmetric' | 'asymmetric') =>
@@ -21,8 +18,10 @@ const validateAuthToken =
 					await verifyAsymmetricJWTToken(request, token);
 			}
 			next();
-		} catch (e: any) { // TODO: Remove the `any` usage.
-			res.status(e.status).send(e.message);
+		} catch (e: unknown) {
+			// TODO: properly handle error from verifySymmetricJWTToken when we re-add the code
+			// res.status(e.status).send(e.message);
+			res.status(500);
 		}
 	};
 /**

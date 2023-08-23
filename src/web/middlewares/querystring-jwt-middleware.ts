@@ -1,7 +1,7 @@
 import { fromExpressRequest } from 'atlassian-jwt';
 import { NextFunction, Request, Response } from 'express';
 
-import { verifySymmetricJWTToken } from '../utils/jwt';
+import { verifySymmetricJWTToken } from './jwt-utils';
 
 /**
  * Takes JWT token from query and verifies it using jwt-middleware
@@ -18,7 +18,9 @@ export const querystringJwtMiddleware = async (
 			req.query.jwt as string,
 		);
 		next();
-	} catch (e: any) { // TODO: Remove the `any` usage.
-		res.status(e.status).send(e.message);
+	} catch (e: unknown) {
+		// TODO: properly handle error from verifySymmetricJWTToken when we re-add the code
+		// res.status(e.status).send(e.message);
+		res.status(500);
 	}
 };
