@@ -18,7 +18,6 @@ This app is aimed to help you to easily add your integration in Jira.
 ## Pre-requisites
 
 - [Node](https://nodejs.org)
-- [yarn](https://yarnpkg.com/getting-started/install)(recommended) or npm
 - [docker & docker-compose](https://docs.docker.com/engine/install/)
 - [ngrok account](https://ngrok.com/)
 
@@ -26,31 +25,36 @@ This app is aimed to help you to easily add your integration in Jira.
 
 - **Installing dependencies**
 
-  - Run `yarn install` (recommended) or `npm install` for installing all the dependencies for this app.
+  - Run `npm ci` to install all the dependencies for this app.
 
 - **Configuration**
 
   - We are using [ngrok](https://ngrok.com/docs/getting-started) for tunnelling. You'll need to create an ngrok
     account to get access to the auth token.
-  - Open your .env file and fill in _all the missing fields_
+  - Create an `.env` file (based on `.env.example`) and fill in _all the missing fields_
 
 - **Running the sandbox**
 
-  - Run `yarn start:sandbox` to bring up a Postgres for the app in Docker
+  - Run `npm run start:sandbox` to bring up a Postgres for the app in Docker
 
 - **Starting the tunnel**
 
-  - Run `yarn start:tunnel` to create an ngrok tunnel
+  - Run `npm run start:tunnel` to create an ngrok tunnel
 
 > **Note:** _If you are using a free version of ngrok, please open the tunneled URL first. This needs to be done to bypass the ngrok browser warning. Just visit your ngrok tunnel URL in a browser and click on the Visit button._
 
+- **Generating Prisma client**
+
+  - Run `npm run db:generate` to generate Prisma client and database model.
+
 - **Running the app**
-  - Run `yarn start` to begin running the app in development mode
+
+  - Run `npm start` to begin running the app in development mode
 
 ## Installing the App
 
 To install the app, first ensure both the ngrok tunnel and the app are running, and you've filled out the required
-values in the your `.env` file. Then run `yarn installApp`. The app will be installed to the Jira instance specified by
+values in your `.env` file. Then run `npm run jira:installApp`. The app will be installed to the Jira instance specified by
 the `ATLASSIAN_URL` environment variable.
 
 If you want to install the app in multiple Jira instances, please do it manually. Go to your Jira instances and do
@@ -71,7 +75,7 @@ This repository uses [Prisma](https://www.prisma.io/) as an ORM for interacting 
 ### Running and inspecting the database locally
 
 1. Fill in `PG_*` variables in `.env` using samples from `.env.example` as a guide
-2. Spin up dependencies using `yarn start:sandbox`
+2. Spin up dependencies using `npm run start:sandbox`
 3. Using IntelliJ or whatever tool you use for inspecting databases, add a database using fields from from `.env`
 
 ### Running migrations
@@ -79,15 +83,15 @@ This repository uses [Prisma](https://www.prisma.io/) as an ORM for interacting 
 To run a database migration do the following:
 
 1. Make any schema additions in `prisma/schema.prisma`
-2. Spin up dependencies using `yarn start:sandbox`
-3. Run `yarn db:migrate --name <migration_name>` - this will create your migration in a new folder under `prisma/migrations`
-4. Run `yarn db:generate` to rebuild the `@prisma/client`, which provides type safety and utility functions for any newly added tables and fields
+2. Spin up dependencies using `npm run start:sandbox`
+3. Run `npm run db:migrate --name <migration_name>` - this will create your migration in a new folder under `prisma/migrations`
+4. Run `npm run db:generate` to rebuild the `@prisma/client`, which provides type safety and utility functions for any newly added tables and fields
 
 ## Testing
 
-We have added a basic end to end test for installing and uninstalling the app, using [playwright](https://playwright.dev/docs/intro). You can add your own test cases on top of it.
+We have added a basic end-to-end test for installing and uninstalling the app, using [playwright](https://playwright.dev/docs/intro). You can add your own test cases on top of it.
 
-To run the end to end test, please add the values for `ATLASSIAN_URL`, `JIRA_ADMIN_EMAIL` and `JIRA_ADMIN_API_TOKEN` in the `.env` file. Then simply run `yarn test:e2e` in the terminal.
+To run the end-to-end test, please add the values for `ATLASSIAN_URL`, `JIRA_ADMIN_EMAIL` and `JIRA_ADMIN_API_TOKEN` in the `.env` file. Then simply run `npm run test:e2e` in the terminal.
 
 ## Getting help
 

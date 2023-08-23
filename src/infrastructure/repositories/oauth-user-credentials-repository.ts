@@ -22,14 +22,6 @@ const mapToDomainType = ({
 });
 
 export class OAuthUserCredentialsRepository {
-	getOAuthToken: (atlassianUserId: string) => Promise<string | null>;
-	upsertOAuthUserCredentials: (
-		credentials: OAuthUserCredentialsCreateParams,
-	) => Promise<OAuthUserCredentials>;
-	deleteOAuthUserCredentials: (
-		atlassianUserId: string,
-	) => Promise<OAuthUserCredentials>;
-
 	findAccessToken = async (atlassianUserId: string): Promise<string | null> => {
 		try {
 			const credentials = await getPrismaClient().oAuthUserCredential.findFirst(

@@ -6,15 +6,12 @@
 	"private": false,
 	"scripts": {
 		"build": "rimraf build && tsc --project ./tsconfig.build.json",
-		"createEnvFile": "ts-node ./scripts/create-env-file.ts",
 		"db:migrate": "prisma migrate dev",
 		"db:generate": "prisma generate",
-		"installApp": "./scripts/app-install.sh",
-		"makeTunnel": "./scripts/make-tunnel.sh",
-		"postinstall": "run-p createEnvFile db:generate",
+		"jira:installApp": "./scripts/app-install.sh",
 		"start": "tsnd --inspect --watch='.env' --respawn src/server.ts",
 		"start:sandbox": "docker-compose --env-file=.env up --detach",
-		"start:tunnel": "run-p makeTunnel updateAppUrl",
+		"start:tunnel": "run-p util:makeTunnel util:updateAppUrl",
 		"stop:sandbox": "docker-compose down",
 		"test": "jest",
 		"test:it": "jest --roots test",
@@ -23,7 +20,8 @@
 		"lint:fix": "eslint . --fix",
 		"format": "prettier . --write",
 		"format:check": "prettier . --check",
-		"updateAppUrl": "ts-node ./scripts/update-app-url.ts"
+		"util:makeTunnel": "./scripts/make-tunnel.sh",
+		"util:updateAppUrl": "ts-node ./scripts/update-app-url.ts"
 	},
 	"dependencies": {
 		"@prisma/client": "^5.1.1",
@@ -37,7 +35,7 @@
 	"devDependencies": {
 		"@types/express": "^4.17.16",
 		"@types/jest": "^29.5.3",
-		"@types/node": "^18.17.8",
+		"@types/node": "^18.0.0",
 		"@types/supertest": "^2.0.12",
 		"@typescript-eslint/eslint-plugin": "^6.4.0",
 		"@typescript-eslint/parser": "^6.4.0",
@@ -64,11 +62,6 @@
 		}
 	},
 	"engines": {
-		"node": ">= 18",
-		"yarn": "^1.22.0"
-	},
-	"volta": {
-		"node": "18.17.0",
-		"yarn": "1.22.18"
+		"node": ">= 18"
 	}
 }
