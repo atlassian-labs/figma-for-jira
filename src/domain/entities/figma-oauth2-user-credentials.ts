@@ -1,6 +1,6 @@
 const TOKEN_EXPIRATION_OFFSET_MILLIS = 60 * 60 * 1000; // 1 hour
 
-export class OAuthUserCredentials {
+export class FigmaOAuth2UserCredentials {
 	constructor(
 		readonly id: number,
 		readonly atlassianUserId: string,
@@ -16,7 +16,7 @@ export class OAuthUserCredentials {
 	}
 }
 
-export type OAuthUserCredentialsCreateParams = {
+export type FigmaUserCredentialsCreateParams = {
 	readonly atlassianUserId: string;
 	readonly accessToken: string;
 	readonly refreshToken: string;

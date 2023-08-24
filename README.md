@@ -9,7 +9,7 @@ This app is aimed to help you to easily add your integration in Jira.
 
 - [Pre-requisites](#pre-requisites)
 - [Getting started](#getting-started)
-- [Manual Install](#manually-installing-the-app)
+- [Manual Install](#installing-the-app)
 - [Database](#database)
 - [Testing](#testing)
 - [Getting help](#getting-help)
@@ -31,6 +31,7 @@ This app is aimed to help you to easily add your integration in Jira.
 
   - We are using [ngrok](https://ngrok.com/docs/getting-started) for tunnelling. You'll need to create an ngrok
     account to get access to the auth token.
+  - [Register a Figma application](https://www.figma.com/developers/api#register-oauth2) via your Figma account and note Client ID and Secret.
   - Create an `.env` file (based on `.env.example`) and fill in _all the missing fields_
 
 - **Running the sandbox**
@@ -50,6 +51,23 @@ This app is aimed to help you to easily add your integration in Jira.
 - **Running the app**
 
   - Run `npm start` to begin running the app in development mode
+
+## Figma OAuth 2.0
+
+Ensure that you registered a Figma application and filled out env variables in `.env`.
+
+1. Start the app.
+2. Replace the placeholders with actual value and visit the following URL to initiate the OAuth flow.
+  ```
+  https://www.figma.com/oauth?
+    client_id=${CLIENT_ID}&
+    redirect_uri=${APP_URL}/auth/callback&
+    scope=files:read&
+    state=${ATTLASSIAN_USER_ID}&
+    response_type=code
+  ```
+
+You should see a created record in `FigmaUserCredential` table.
 
 ## Installing the App
 

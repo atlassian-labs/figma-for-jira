@@ -16,9 +16,9 @@ model ConnectInstallation {
   displayUrl   String
 }
 
-model OAuthUserCredential {
-  id              Int     @id @default(autoincrement())
-  atlassianUserId String  @unique
+model FigmaOAuth2UserCredentials {
+  id              Int      @id @default(autoincrement())
+  atlassianUserId String   @unique
   accessToken     String
   refreshToken    String
   expiresAt       DateTime @db.Timestamptz

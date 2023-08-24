@@ -16,7 +16,9 @@ export type Config = {
 		readonly password: string;
 		readonly url: string;
 	};
-	readonly oauth: {
+	readonly figma: {
+		readonly oauthApiBaseUrl: string;
+		readonly apiBaseUrl: string;
 		readonly clientId: string;
 		readonly clientSecret: string;
 	};

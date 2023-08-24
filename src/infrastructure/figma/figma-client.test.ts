@@ -20,7 +20,7 @@ describe('Figma Client', () => {
 			}));
 		});
 		it.only('should make a valid request to Figma to exchange code for access token', () => {
-			const test = figmaClient.exchangeCodeForAccessToken('code', 'state');
+			const test = figmaClient.getOAuth2Token('code');
 			console.log('test', test);
 		});
 		it('should return response mapped to domain type', () => {});

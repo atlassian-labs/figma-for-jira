@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
 
 import type { TypedRequest } from './types';
-import { figmaClient, logger } from '../../infrastructure';
 import { addOAuthCredentialsUseCase, check3loUseCase } from '../../usecases';
 import { isString } from '../../common/stringUtils';
 
@@ -29,30 +28,21 @@ export const authRouter = Router();
  */
 authRouter.get(
 	'/callback',
-	function (req: TypedRequest<AuthCallbackRequestBody>, res) {
+	function (req: TypedRequest<AuthCallbackRequestBody>, res, next) {
 		const { code, state } = req.query;
+
+		// TODO: Add error handler that maps exceptions to HTTP errors.
 		if (typeof code !== 'string' || typeof state !== 'string') {
-			res.statusMessage = 'Did not receive valid code or state in query params';
-			res.sendStatus(500);
-			return;
+			return next(
+				new Error('Did not receive valid code or state in query params'),
+			);
 		}
-		figmaClient
-			.exchangeCodeForAccessToken(code, state)
-			.then((oauthCredentials) => {
-				addOAuthCredentialsUseCase
-					.execute(oauthCredentials)
-					.then(() => {
-						res.redirect(SUCCESS_PAGE_URL);
-					})
-					.catch(() => {
-						res.redirect(FAILURE_PAGE_URL);
-					});
+		addOAuthCredentialsUseCase
+			.execute(code, state)
+			.then(() => {
+				res.redirect(SUCCESS_PAGE_URL);
 			})
-			.catch((error) => {
-				logger.error(
-					`Error exchanging code for access token via Figma client ${error}`,
-					error,
-				);
+			.catch(() => {
 				res.redirect(FAILURE_PAGE_URL);
 			});
 	},
@@ -66,12 +56,13 @@ authRouter.get(
  */
 authRouter.get(
 	'/check3LO',
-	function (req: Request, res: Response<Check3loResponseBody>) {
+	function (req: Request, res: Response<Check3loResponseBody>, next) {
 		const userId = req.query['userId'];
 
 		// TODO: Add error handler that maps exceptions to HTTP errors.
-		if (!userId || !isString(userId))
-			throw new Error('A "userId" query parameter is missing.');
+		if (!userId || !isString(userId)) {
+			return next(new Error('A "userId" query parameter is missing.'));
+		}
 
 		check3loUseCase
 			.execute(userId)
