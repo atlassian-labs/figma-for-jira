@@ -1,4 +1,4 @@
-import { installedUseCase } from './installed';
+import { installedUseCase } from './installed-use-case';
 
 import { connectInstallationRepository } from '../infrastructure/repositories';
 

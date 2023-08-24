@@ -1,35 +1,26 @@
 import type { OAuthUserCredential as PrismaOAuthUserCredentials } from '@prisma/client';
 
 import { logger } from '..';
-import type {
+import {
 	OAuthUserCredentials,
 	OAuthUserCredentialsCreateParams,
 } from '../../domain/entities';
-import { getPrismaClient } from '../../infrastructure/repositories/prisma-client';
-
-const mapToDomainType = ({
-	id,
-	atlassianUserId,
-	accessToken,
-	refreshToken,
-	expiresIn,
-}: PrismaOAuthUserCredentials): OAuthUserCredentials => ({
-	id,
-	atlassianUserId,
-	accessToken,
-	refreshToken,
-	expiresIn,
-});
+import { getPrismaClient } from './prisma-client';
 
 export class OAuthUserCredentialsRepository {
-	findAccessToken = async (atlassianUserId: string): Promise<string | null> => {
+	find = async (
+		atlassianUserId: string,
+	): Promise<OAuthUserCredentials | null> => {
 		try {
 			const credentials = await getPrismaClient().oAuthUserCredential.findFirst(
 				{
 					where: { atlassianUserId },
 				},
 			);
-			return credentials?.accessToken ?? null;
+
+			if (!credentials) return null;
+
+			return this.mapToDomainModel(credentials);
 		} catch (err) {
 			logger.error(
 				`Failed to retrieve credentials for atlassianUserId: ${atlassianUserId} ${err}`,
@@ -43,12 +34,13 @@ export class OAuthUserCredentialsRepository {
 		credentials: OAuthUserCredentialsCreateParams,
 	): Promise<OAuthUserCredentials> => {
 		try {
+			const params: Omit<PrismaOAuthUserCredentials, 'id'> = credentials;
 			const result = await getPrismaClient().oAuthUserCredential.upsert({
-				create: credentials,
-				update: credentials,
+				create: params,
+				update: params,
 				where: { atlassianUserId: credentials.atlassianUserId },
 			});
-			return mapToDomainType(result);
+			return this.mapToDomainModel(result);
 		} catch (err) {
 			logger.error(
 				`Failed to upsert credentials for user ${credentials.atlassianUserId} ${err}`,
@@ -63,7 +55,7 @@ export class OAuthUserCredentialsRepository {
 			const result = await getPrismaClient().oAuthUserCredential.delete({
 				where: { atlassianUserId },
 			});
-			return mapToDomainType(result);
+			return this.mapToDomainModel(result);
 		} catch (err) {
 			logger.error(
 				`Failed to delete credentials for user ${atlassianUserId} ${err}`,
@@ -71,6 +63,18 @@ export class OAuthUserCredentialsRepository {
 			);
 			throw err;
 		}
+	};
+
+	private mapToDomainModel = (
+		dbModel: PrismaOAuthUserCredentials,
+	): OAuthUserCredentials => {
+		return new OAuthUserCredentials(
+			dbModel.id,
+			dbModel.atlassianUserId,
+			dbModel.accessToken,
+			dbModel.refreshToken,
+			dbModel.expiresAt,
+		);
 	};
 }
 
