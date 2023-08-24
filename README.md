@@ -58,14 +58,15 @@ Ensure that you registered a Figma application and filled out env variables in `
 
 1. Start the app.
 2. Replace the placeholders with actual value and visit the following URL to initiate the OAuth flow.
-  ```
-  https://www.figma.com/oauth?
-    client_id=${CLIENT_ID}&
-    redirect_uri=${APP_URL}/auth/callback&
-    scope=files:read&
-    state=${ATTLASSIAN_USER_ID}&
-    response_type=code
-  ```
+
+```
+https://www.figma.com/oauth?
+  client_id=${CLIENT_ID}&
+  redirect_uri=${APP_URL}/auth/callback&
+  scope=files:read&
+  state=${ATTLASSIAN_USER_ID}&
+  response_type=code
+```
 
 You should see a created record in `FigmaUserCredential` table.
 

@@ -11,12 +11,12 @@ export type Config = {
 	readonly logging: {
 		readonly level: string;
 	};
-    readonly figma: {
-        readonly oauthApiBaseUrl: string;
-        readonly apiBaseUrl: string;
-        readonly clientId: string;
-        readonly clientSecret: string;
-    };
+	readonly figma: {
+		readonly oauthApiBaseUrl: string;
+		readonly apiBaseUrl: string;
+		readonly clientId: string;
+		readonly clientSecret: string;
+	};
 };
 
 let config: Config;
@@ -34,12 +34,12 @@ export const getConfig = (): Config => {
 			logging: {
 				level: readEnvVarString('LOG_LEVEL', ''),
 			},
-            figma: {
-                oauthApiBaseUrl: readEnvVarString('FIGMA_OAUTH_API_BASE_URL'),
-                apiBaseUrl: readEnvVarString('FIGMA_API_BASE_URL'),
-                clientId: readEnvVarString('FIGMA_OAUTH_CLIENT_ID'),
-                clientSecret: readEnvVarString('FIGMA_OAUTH_CLIENT_SECRET'),
-            },
+			figma: {
+				oauthApiBaseUrl: readEnvVarString('FIGMA_OAUTH_API_BASE_URL'),
+				apiBaseUrl: readEnvVarString('FIGMA_API_BASE_URL'),
+				clientId: readEnvVarString('FIGMA_OAUTH_CLIENT_ID'),
+				clientSecret: readEnvVarString('FIGMA_OAUTH_CLIENT_SECRET'),
+			},
 		};
 	}
 
