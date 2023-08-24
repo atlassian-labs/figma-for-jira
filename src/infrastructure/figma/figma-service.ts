@@ -1,6 +1,9 @@
-import axios from 'axios';
+import { AxiosError } from 'axios';
 
-import { figmaAuthService } from './figma-auth-service';
+import {
+	figmaAuthService,
+	NoFigmaCredentialsError,
+} from './figma-auth-service';
 import { figmaClient } from './figma-client';
 
 import { HttpStatus } from '../../common/http-status';
@@ -10,15 +13,16 @@ export class FigmaService {
 		try {
 			const credentials =
 				await figmaAuthService.getCredentials(atlassianUserId);
-
-			if (!credentials) return false;
-
 			await figmaClient.me(credentials.accessToken);
 
 			return true;
 		} catch (e: unknown) {
-			if (axios.isAxiosError(e) && e.status == HttpStatus.FORBIDDEN)
-				return false;
+			if (e instanceof NoFigmaCredentialsError) return false;
+
+			const forbidden =
+				e instanceof AxiosError && e?.response?.status == HttpStatus.FORBIDDEN;
+
+			if (forbidden) return false;
 
 			throw e;
 		}

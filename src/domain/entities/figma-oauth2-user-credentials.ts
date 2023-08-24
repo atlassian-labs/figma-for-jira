@@ -1,4 +1,6 @@
-const TOKEN_EXPIRATION_OFFSET_MILLIS = 60 * 60 * 1000; // 1 hour
+import { Duration } from '../../common/duration';
+
+const TOKEN_EXPIRATION_OFFSET = Duration.ofMinutes(60);
 
 export class FigmaOAuth2UserCredentials {
 	constructor(
@@ -9,9 +11,9 @@ export class FigmaOAuth2UserCredentials {
 		readonly expiresAt: Date,
 	) {}
 
-	get refreshRequired(): boolean {
+	isExpired(): boolean {
 		return (
-			Date.now() < this.expiresAt.getTime() - TOKEN_EXPIRATION_OFFSET_MILLIS
+			Date.now() > this.expiresAt.getTime() - TOKEN_EXPIRATION_OFFSET.toMillis()
 		);
 	}
 }

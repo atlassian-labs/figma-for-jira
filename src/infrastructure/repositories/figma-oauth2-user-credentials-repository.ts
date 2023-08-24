@@ -2,7 +2,7 @@ import type { FigmaOAuth2UserCredentials as PrismaFigmaOAuth2UserCredentials } f
 
 import { getPrismaClient } from './prisma-client';
 
-import { logger } from '..';
+import { getLogger } from '..';
 import {
 	FigmaOAuth2UserCredentials,
 	FigmaUserCredentialsCreateParams,
@@ -22,7 +22,7 @@ export class FigmaOAuth2UserCredentialsRepository {
 
 			return this.mapToDomainModel(credentials);
 		} catch (err) {
-			logger.error(
+			getLogger().error(
 				err,
 				'Failed to retrieve credentials for atlassianUserId: %s',
 				atlassianUserId,
@@ -43,7 +43,7 @@ export class FigmaOAuth2UserCredentialsRepository {
 			});
 			return this.mapToDomainModel(result);
 		} catch (err) {
-			logger.error(
+			getLogger().error(
 				err,
 				'Failed to upsert credentials for user %s',
 				credentials.atlassianUserId,
@@ -61,7 +61,7 @@ export class FigmaOAuth2UserCredentialsRepository {
 			});
 			return this.mapToDomainModel(result);
 		} catch (err) {
-			logger.error(
+			getLogger().error(
 				err,
 				'Failed to delete credentials for user %s',
 				atlassianUserId,

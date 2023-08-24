@@ -9,7 +9,7 @@ import {
 import { Request } from 'atlassian-jwt/dist/lib/jwt';
 
 import { getConfig } from '../../config';
-import { logger } from '../../infrastructure';
+import { getLogger } from '../../infrastructure';
 
 const tenant = {
 	id: '123',
@@ -27,7 +27,7 @@ export const verifySymmetricJWTToken = async (
 	request: Request,
 	token?: string,
 ): Promise<typeof tenant> => {
-	logger.info({ request, token }, 'verifySymmetricJWTToken');
+	getLogger().info({ request, token }, 'verifySymmetricJWTToken');
 	// // if JWT is missing, return a 401
 	// if (!token) {
 	// 	return Promise.reject({

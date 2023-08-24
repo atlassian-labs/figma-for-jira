@@ -1,21 +1,27 @@
 import axios from 'axios';
 
 import { getConfig } from '../../config';
-import { logger } from '../logger';
+import { getLogger } from '../logger';
 
-type GetOAuth2TokenResponse = {
+export type GetOAuth2TokenResponse = {
 	readonly access_token: string;
 	readonly refresh_token: string;
 	readonly expires_in: number;
 };
 
-type MeResponse = {
+export type MeResponse = {
 	readonly id: string;
 	readonly email: string;
 	readonly handle: string;
 	readonly img_url: string;
 };
 
+/**
+ * A generic Figma API client.
+ *
+ * @see https://www.figma.com/developers/api
+ * @internal
+ */
 export class FigmaClient {
 	/**
 	 * Returns the user's access token.
@@ -41,7 +47,7 @@ export class FigmaClient {
 
 			return response.data;
 		} catch (error: unknown) {
-			logger.error(`Failed to exchange code for access token.`, error);
+			getLogger().error(`Failed to exchange code for access token.`, error);
 			throw error;
 		}
 	};
