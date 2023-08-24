@@ -8,7 +8,7 @@ import {
 } from 'atlassian-jwt';
 import { Request } from 'atlassian-jwt/dist/lib/jwt';
 
-import config from '../../config';
+import { getConfig } from '../../config';
 import { logger } from '../../infrastructure';
 
 const tenant = {
@@ -27,7 +27,7 @@ export const verifySymmetricJWTToken = async (
 	request: Request,
 	token?: string,
 ): Promise<typeof tenant> => {
-	logger.info('verifySymmetricJWTToken', request, token);
+	logger.info({ request, token }, 'verifySymmetricJWTToken');
 	// // if JWT is missing, return a 401
 	// if (!token) {
 	// 	return Promise.reject({
@@ -99,7 +99,7 @@ export const verifyAsymmetricJWTToken = async (
 	}
 
 	// Make sure the AUD claim has the correct URL
-	if (!unverifiedClaims?.aud?.[0]?.includes(config.app.baseUrl)) {
+	if (!unverifiedClaims?.aud?.[0]?.includes(getConfig().app.baseUrl)) {
 		return Promise.reject({
 			status: 401,
 			message: 'JWT claim did not contain the correct audience (aud) claim',
