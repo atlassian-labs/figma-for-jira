@@ -16,12 +16,6 @@ export const getConfig = (): Config => {
 			logging: {
 				level: readEnvVarString('LOG_LEVEL', ''),
 			},
-			database: {
-				host: readEnvVarString('PG_FIGMA_FOR_JIRA_DB_HOST'),
-				schema: readEnvVarString('PG_FIGMA_FOR_JIRA_DB_SCHEMA'),
-				role: readEnvVarString('PG_FIGMA_FOR_JIRA_DB_ROLE'),
-				password: readEnvVarString('PG_FIGMA_FOR_JIRA_DB_PASSWORD'),
-			},
 		};
 	}
 

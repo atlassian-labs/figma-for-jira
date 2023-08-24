@@ -9,10 +9,4 @@ export type Config = {
 	readonly logging: {
 		readonly level: string;
 	};
-	readonly database: {
-		readonly host: string;
-		readonly schema: string;
-		readonly role: string;
-		readonly password: string;
-	};
 };
