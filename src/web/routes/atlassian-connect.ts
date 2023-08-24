@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-import config from '../../config';
+import { getConfig } from '../../config';
 
 export const connectDescriptorGet = (_: Request, res: Response) => {
 	res.status(200).json(connectAppDescriptor);
@@ -23,14 +23,14 @@ export const connectAppDescriptor = {
 	/**
 	 *  A unique key to identify your Connect app. This key must be <= 64 characters.
 	 */
-	key: config.app.key,
+	key: getConfig().app.key,
 
 	/**
 	 * The base url of the server, which is used for all communications between Connect and the app.
 	 *
 	 * The tunneled URL which is set in the `prestart.ts`
 	 */
-	baseUrl: config.app.baseUrl,
+	baseUrl: getConfig().app.baseUrl,
 
 	/**
 	 * The vendor who is offering this Connect app.

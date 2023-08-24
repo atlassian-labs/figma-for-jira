@@ -1,11 +1,11 @@
 import { pino } from 'pino';
 import pretty from 'pino-pretty';
 
-import config from '../config';
+import { getConfig } from '../config';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const defaultLogLevel =
-	config.logging.level || (isProduction ? 'info' : 'debug');
+	getConfig().logging.level || (isProduction ? 'info' : 'debug');
 
 const prettyStream = pretty({
 	colorize: true,

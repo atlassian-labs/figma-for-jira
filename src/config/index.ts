@@ -1,2 +1,3 @@
+export * from './config';
 export * from './types';
-export { default } from './config';
+export * from './utils';

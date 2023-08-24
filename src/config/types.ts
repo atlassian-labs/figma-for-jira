@@ -14,6 +14,5 @@ export type Config = {
 		readonly schema: string;
 		readonly role: string;
 		readonly password: string;
-		readonly url: string;
 	};
 };
