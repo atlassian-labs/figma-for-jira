@@ -25,7 +25,7 @@ jobs:
         run: npm run format:check
 
       - name: Start app sandbox
-        run: npm run start:sandbox
+        run: npm run start:sandbox:ci
 
       - name: Run tests
         run: npm test
