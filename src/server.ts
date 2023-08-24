@@ -1,8 +1,8 @@
 import app from './app';
-import config from './config';
+import { getConfig } from './config';
 import { logger } from './infrastructure';
 
-const port = config.server.port;
+const port = getConfig().server.port;
 app.listen(port, () => {
 	// App is now running
 	logger.info(`App listening on port %d`, port);
