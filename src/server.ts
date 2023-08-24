@@ -5,5 +5,5 @@ import { logger } from './infrastructure';
 const port = config.server.port;
 app.listen(port, () => {
 	// App is now running
-	logger.info(`App listening on port ${port}`);
+	logger.info(`App listening on port %d`, port);
 });

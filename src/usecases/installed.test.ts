@@ -1,5 +1,6 @@
 import { installedUseCase } from './installed';
 
+import { ConnectInstallation } from '../domain/entities';
 import { connectInstallationRepository } from '../infrastructure/repositories';
 
 describe('installedUseCase', () => {
@@ -10,8 +11,7 @@ describe('installedUseCase', () => {
 	it('should call repository layer upsert', async () => {
 		const upsertSpy = jest
 			.spyOn(connectInstallationRepository, 'upsert')
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			.mockImplementation(() => Promise.resolve({} as any));
+			.mockImplementation(() => Promise.resolve({} as ConnectInstallation));
 		const installation = {
 			key: 'test-key',
 			clientKey: 'test-client-key',

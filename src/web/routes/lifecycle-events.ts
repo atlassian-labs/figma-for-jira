@@ -7,7 +7,7 @@ import { installedUseCase } from '../../usecases';
 import {
 	authHeaderAsymmetricJwtMiddleware,
 	authHeaderSymmetricJwtMiddleware,
-} from '../middlewares/auth-header-jwt-middleware';
+} from '../middleware';
 
 type ConnectLifecycleEventRequestBody = {
 	readonly key: string;

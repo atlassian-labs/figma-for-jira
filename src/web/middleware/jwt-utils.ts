@@ -27,7 +27,7 @@ export const verifySymmetricJWTToken = async (
 	request: Request,
 	token?: string,
 ): Promise<typeof tenant> => {
-	logger.info('verifySymmetricJWTToken', request, token);
+	logger.info({ request, token }, 'verifySymmetricJWTToken');
 	// // if JWT is missing, return a 401
 	// if (!token) {
 	// 	return Promise.reject({

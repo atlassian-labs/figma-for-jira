@@ -45,7 +45,7 @@ export class ConnectInstallationRepository {
 			});
 			return mapToDomainType(result);
 		} catch (e: unknown) {
-			logger.error(`Failed to upsert ${installation.key}`, e);
+			logger.error(e, 'Failed to upsert %s', installation.key);
 			throw e;
 		}
 	};
