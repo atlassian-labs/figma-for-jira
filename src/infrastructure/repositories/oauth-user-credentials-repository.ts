@@ -32,8 +32,9 @@ export class OAuthUserCredentialsRepository {
 			return credentials?.accessToken ?? null;
 		} catch (err) {
 			logger.error(
-				`Failed to retrieve credentials for atlassianUserId: ${atlassianUserId} ${err}`,
 				err,
+				'Failed to retrieve credentials for atlassianUserId: %s',
+				atlassianUserId,
 			);
 			throw err;
 		}
@@ -51,8 +52,9 @@ export class OAuthUserCredentialsRepository {
 			return mapToDomainType(result);
 		} catch (err) {
 			logger.error(
-				`Failed to upsert credentials for user ${credentials.atlassianUserId} ${err}`,
 				err,
+				'Failed to upsert credentials for user %s',
+				credentials.atlassianUserId,
 			);
 			throw err;
 		}
@@ -66,8 +68,9 @@ export class OAuthUserCredentialsRepository {
 			return mapToDomainType(result);
 		} catch (err) {
 			logger.error(
-				`Failed to delete credentials for user ${atlassianUserId} ${err}`,
 				err,
+				'Failed to delete credentials for user %s',
+				atlassianUserId,
 			);
 			throw err;
 		}
