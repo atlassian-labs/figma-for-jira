@@ -1,35 +1,25 @@
-import type { OAuthUserCredential as PrismaOAuthUserCredentials } from '@prisma/client';
+import type { FigmaOAuth2UserCredentials as PrismaFigmaOAuth2UserCredentials } from '@prisma/client';
 
 import { logger } from '..';
-import type {
-	OAuthUserCredentials,
-	OAuthUserCredentialsCreateParams,
+import {
+	FigmaOAuth2UserCredentials,
+	FigmaUserCredentialsCreateParams,
 } from '../../domain/entities';
-import { getPrismaClient } from '../../infrastructure/repositories/prisma-client';
+import { getPrismaClient } from './prisma-client';
 
-const mapToDomainType = ({
-	id,
-	atlassianUserId,
-	accessToken,
-	refreshToken,
-	expiresIn,
-}: PrismaOAuthUserCredentials): OAuthUserCredentials => ({
-	id,
-	atlassianUserId,
-	accessToken,
-	refreshToken,
-	expiresIn,
-});
-
-export class OAuthUserCredentialsRepository {
-	findAccessToken = async (atlassianUserId: string): Promise<string | null> => {
+export class FigmaOAuth2UserCredentialsRepository {
+	find = async (
+		atlassianUserId: string,
+	): Promise<FigmaOAuth2UserCredentials | null> => {
 		try {
-			const credentials = await getPrismaClient().oAuthUserCredential.findFirst(
-				{
+			const credentials =
+				await getPrismaClient().figmaOAuth2UserCredentials.findFirst({
 					where: { atlassianUserId },
-				},
-			);
-			return credentials?.accessToken ?? null;
+				});
+
+			if (!credentials) return null;
+
+			return this.mapToDomainModel(credentials);
 		} catch (err) {
 			logger.error(
 				err,
@@ -41,15 +31,16 @@ export class OAuthUserCredentialsRepository {
 	};
 
 	upsert = async (
-		credentials: OAuthUserCredentialsCreateParams,
-	): Promise<OAuthUserCredentials> => {
+		credentials: FigmaUserCredentialsCreateParams,
+	): Promise<FigmaOAuth2UserCredentials> => {
 		try {
-			const result = await getPrismaClient().oAuthUserCredential.upsert({
-				create: credentials,
-				update: credentials,
+			const params: Omit<PrismaFigmaOAuth2UserCredentials, 'id'> = credentials;
+			const result = await getPrismaClient().figmaOAuth2UserCredentials.upsert({
+				create: params,
+				update: params,
 				where: { atlassianUserId: credentials.atlassianUserId },
 			});
-			return mapToDomainType(result);
+			return this.mapToDomainModel(result);
 		} catch (err) {
 			logger.error(
 				err,
@@ -60,12 +51,14 @@ export class OAuthUserCredentialsRepository {
 		}
 	};
 
-	delete = async (atlassianUserId: string): Promise<OAuthUserCredentials> => {
+	delete = async (
+		atlassianUserId: string,
+	): Promise<FigmaOAuth2UserCredentials> => {
 		try {
-			const result = await getPrismaClient().oAuthUserCredential.delete({
+			const result = await getPrismaClient().figmaOAuth2UserCredentials.delete({
 				where: { atlassianUserId },
 			});
-			return mapToDomainType(result);
+			return this.mapToDomainModel(result);
 		} catch (err) {
 			logger.error(
 				err,
@@ -75,7 +68,19 @@ export class OAuthUserCredentialsRepository {
 			throw err;
 		}
 	};
+
+	private mapToDomainModel = (
+		dbModel: PrismaFigmaOAuth2UserCredentials,
+	): FigmaOAuth2UserCredentials => {
+		return new FigmaOAuth2UserCredentials(
+			dbModel.id,
+			dbModel.atlassianUserId,
+			dbModel.accessToken,
+			dbModel.refreshToken,
+			dbModel.expiresAt,
+		);
+	};
 }
 
-export const oauthUserCredentialsRepository =
-	new OAuthUserCredentialsRepository();
+export const figmaOAuth2UserCredentialsRepository =
+	new FigmaOAuth2UserCredentialsRepository();
