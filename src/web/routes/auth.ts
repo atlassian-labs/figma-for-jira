@@ -1,8 +1,9 @@
-import { Router, Request, Response } from 'express';
+import { Request, Response, Router } from 'express';
 
 import type { TypedRequest } from './types';
-import { addOAuthCredentialsUseCase, check3loUseCase } from '../../usecases';
+
 import { isString } from '../../common/stringUtils';
+import { addOAuthCredentialsUseCase, check3loUseCase } from '../../usecases';
 
 const AUTH_RESOURCE_BASE_PATH = '/public/index.html';
 const SUCCESS_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=true`;
@@ -66,6 +67,7 @@ authRouter.get(
 
 		check3loUseCase
 			.execute(userId)
-			.then((authorised) => res.send({ authorised }));
+			.then((authorised) => res.send({ authorised }))
+			.catch((error) => next(error));
 	},
 );

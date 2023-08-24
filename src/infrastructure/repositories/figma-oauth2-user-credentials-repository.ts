@@ -1,11 +1,12 @@
 import type { FigmaOAuth2UserCredentials as PrismaFigmaOAuth2UserCredentials } from '@prisma/client';
 
+import { getPrismaClient } from './prisma-client';
+
 import { logger } from '..';
 import {
 	FigmaOAuth2UserCredentials,
 	FigmaUserCredentialsCreateParams,
 } from '../../domain/entities';
-import { getPrismaClient } from './prisma-client';
 
 export class FigmaOAuth2UserCredentialsRepository {
 	find = async (

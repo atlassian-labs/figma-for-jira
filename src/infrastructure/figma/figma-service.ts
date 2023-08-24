@@ -1,8 +1,9 @@
 import axios from 'axios';
 
-import { HttpStatus } from '../../common/http-status';
-import { figmaClient } from './figma-client';
 import { figmaAuthService } from './figma-auth-service';
+import { figmaClient } from './figma-client';
+
+import { HttpStatus } from '../../common/http-status';
 
 export class FigmaService {
 	validateAuth = async (atlassianUserId: string): Promise<boolean> => {

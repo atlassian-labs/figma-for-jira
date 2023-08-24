@@ -1,6 +1,7 @@
-import { FigmaOAuth2UserCredentials } from '../../domain/entities';
 import { figmaClient } from './figma-client';
-import { figmaOAuthUserCredentialsRepository } from '../repositories';
+
+import { FigmaOAuth2UserCredentials } from '../../domain/entities';
+import { figmaOAuth2UserCredentialsRepository } from '../repositories';
 
 export class FigmaAuthService {
 	createCredentials = async (
@@ -9,7 +10,7 @@ export class FigmaAuthService {
 	): Promise<FigmaOAuth2UserCredentials> => {
 		const response = await figmaClient.getOAuth2Token(code);
 
-		return await figmaOAuthUserCredentialsRepository.upsert({
+		return await figmaOAuth2UserCredentialsRepository.upsert({
 			accessToken: response.access_token,
 			refreshToken: response.refresh_token,
 			expiresAt: new Date(Date.now() + response.expires_in * 1000),
@@ -21,7 +22,7 @@ export class FigmaAuthService {
 		atlassianUserId: string,
 	): Promise<FigmaOAuth2UserCredentials | null> => {
 		let credentials =
-			await figmaOAuthUserCredentialsRepository.find(atlassianUserId);
+			await figmaOAuth2UserCredentialsRepository.find(atlassianUserId);
 
 		if (!credentials) return null;
 
@@ -35,8 +36,9 @@ export class FigmaAuthService {
 
 	private refreshCredentials = async (
 		credentials: FigmaOAuth2UserCredentials,
-	) => {
-		// TODO: Refresh the token here.
+		// eslint-disable-next-line @typescript-eslint/require-await
+	): Promise<FigmaOAuth2UserCredentials> => {
+		// TODO: Implement token refresh here.
 		return credentials;
 	};
 }

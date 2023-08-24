@@ -1,8 +1,7 @@
 import axios from 'axios';
 
+import { getConfig } from '../../config';
 import { logger } from '../logger';
-
-import config from '../../config';
 
 type GetOAuth2TokenResponse = {
 	readonly access_token: string;
@@ -26,14 +25,14 @@ export class FigmaClient {
 	getOAuth2Token = async (code: string): Promise<GetOAuth2TokenResponse> => {
 		try {
 			const params = new URLSearchParams();
-			params.append('client_id', config.figma.clientId);
-			params.append('client_secret', config.figma.clientSecret);
-			params.append('redirect_uri', `${config.app.baseUrl}/auth/callback`);
+			params.append('client_id', getConfig().figma.clientId);
+			params.append('client_secret', getConfig().figma.clientSecret);
+			params.append('redirect_uri', `${getConfig().app.baseUrl}/auth/callback`);
 			params.append('code', code);
 			params.append('grant_type', 'authorization_code');
 
 			const response = await axios.post<GetOAuth2TokenResponse>(
-				`${config.figma.oauthApiBaseUrl}/api/oauth/token`,
+				`${getConfig().figma.oauthApiBaseUrl}/api/oauth/token`,
 				null,
 				{
 					params,
@@ -41,8 +40,8 @@ export class FigmaClient {
 			);
 
 			return response.data;
-		} catch (error) {
-			logger.error(`Failed to exchange code for access token ${error}`, error);
+		} catch (error: unknown) {
+			logger.error(`Failed to exchange code for access token.`, error);
 			throw error;
 		}
 	};
@@ -54,7 +53,7 @@ export class FigmaClient {
 	 */
 	me = async (accessToken: string): Promise<MeResponse> => {
 		const response = await axios.get<MeResponse>(
-			`${config.figma.apiBaseUrl}/v1/me`,
+			`${getConfig().figma.apiBaseUrl}/v1/me`,
 			{
 				headers: {
 					['Authorization']: `Bearer ${accessToken}`,
