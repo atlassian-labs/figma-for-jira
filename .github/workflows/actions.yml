@@ -41,8 +41,11 @@ jobs:
       - name: Run Unit tests
         run: npm run test:unit
 
+      - name: Run prisma migration
+        run: npx prisma migrate reset -f && npx prisma generate
+
       - name: Run Integration tests
-        run: echo DATABASE_URL=blah_test > .env && npm run test:it
+        run: npm run test:it:ci
 
       - name: Build Docker image
         run: docker build .
