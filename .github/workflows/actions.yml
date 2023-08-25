@@ -42,7 +42,7 @@ jobs:
         run: npm run test:unit
 
       - name: Run prisma migration
-        run: npx prisma migrate reset -f && npx prisma generate
+        run: npm run db:ci
 
       - name: Run Integration tests
         run: npm run test:it:ci
