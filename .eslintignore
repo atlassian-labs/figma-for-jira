@@ -3,3 +3,4 @@ prestart.ts
 postinstall.ts
 node_modules
 scripts
+jest.config.**

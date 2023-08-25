@@ -1,9 +1,0 @@
-{
-	"preset": "ts-jest",
-	"testEnvironment": "node",
-	"maxWorkers": 4,
-	"rootDir": ".",
-	"roots": ["<rootDir>/src"],
-	"testRegex": "(\\.|/)(test|spec|it)\\.tsx?$",
-	"setupFiles": ["dotenv/config"]
-}
