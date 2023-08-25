@@ -2,6 +2,15 @@ on: [pull_request]
 jobs:
   verify-app:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14.8
+        env:
+          POSTGRES_USER: figma_for_jira_app
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: figma_for_jira
+        ports:
+          - 5432:5432
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -28,7 +37,7 @@ jobs:
         run: npm run test:unit
 
       - name: Run Integration tests
-        run: npm run start:sandbox:ci && npm run test:it
+        run: npm run test:it
 
       - name: Build Docker image
         run: docker build .
