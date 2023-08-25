@@ -1,8 +1,0 @@
-{
-	"preset": "ts-jest",
-	"testEnvironment": "node",
-	"maxWorkers": 4,
-	"rootDir": ".",
-	"roots": ["<rootDir>/src", "<rootDir>/test"],
-	"setupFiles": ["dotenv/config"]
-}

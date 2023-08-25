@@ -12,7 +12,9 @@ let logger: Logger | undefined;
 
 export function getLogger(): Logger {
 	if (!logger) {
-		const isProduction = process.env.NODE_ENV === 'production';
+		const env = process.env.NODE_ENV;
+		const isProduction = env === 'production';
+		const isTest = env === 'test';
 		const defaultLogLevel =
 			getConfig().logging.level || (isProduction ? 'info' : 'debug');
 
@@ -20,7 +22,7 @@ export function getLogger(): Logger {
 			? pino({
 					level: defaultLogLevel,
 			  })
-			: pino({ level: defaultLogLevel }, prettyStream);
+			: pino({ level: isTest ? 'silent' : defaultLogLevel }, prettyStream);
 	}
 
 	return logger;

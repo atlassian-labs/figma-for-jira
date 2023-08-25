@@ -1,6 +1,6 @@
 import request from 'supertest';
 
-import app from '../src/app';
+import app from '../../app';
 
 describe('/lifecycleEvents', () => {
 	it('should respond 500 when JWT token is missing', () => {

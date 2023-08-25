@@ -24,11 +24,20 @@ jobs:
       - name: Check formatting errors
         run: npm run format:check
 
-      - name: Start app sandbox
+      - name: Run Unit tests
+        run: npm run test:unit
+
+      - name: Start CI sandbox
         run: npm run start:sandbox:ci
 
-      - name: Run tests
-        run: npm test
+      - name: Wait for postgres
+        run: timeout 30s sh -c 'until docker ps | grep postgres | grep -q healthy; do echo "Waiting for container to be healthy..."; sleep 2; done'
+
+      - name: Run prisma migration
+        run: npm run db:ci
+
+      - name: Run Integration tests
+        run: npm run test:it:ci
 
       - name: Build Docker image
         run: docker build .

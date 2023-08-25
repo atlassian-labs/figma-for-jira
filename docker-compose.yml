@@ -9,3 +9,8 @@ services:
       POSTGRES_USER: ${PG_FIGMA_FOR_JIRA_DB_ROLE}
       POSTGRES_PASSWORD: ${PG_FIGMA_FOR_JIRA_DB_PASSWORD}
       POSTGRES_DB: ${PG_FIGMA_FOR_JIRA_DB_SCHEMA}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
