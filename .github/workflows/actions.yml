@@ -28,7 +28,10 @@ jobs:
         run: npm run test:unit
 
       - name: Start CI sandbox
-        run: docker --version && docker-compose --version && npm run start:sandbox:ci
+        run: npm run start:sandbox:ci
+
+      - name: Wait for postgres
+        run: timeout 60s sh -c 'until docker ps | grep postgres | grep -q healthy; do echo "Waiting for container to be healthy..."; sleep 2; done'
 
       - name: Run prisma migration
         run: npm run db:ci
