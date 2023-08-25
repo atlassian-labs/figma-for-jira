@@ -7,10 +7,7 @@ let prismaClient: PrismaClient;
  */
 export const getPrismaClient = (): PrismaClient => {
 	if (!prismaClient) {
-		console.log(
-			'!!!!!!!!!CTZ TEST!!!!! DATABASE_URL:',
-			process.env.DATABASE_URL,
-		);
+		console.log('!!!!!!!!!CTZ TEST!!!!! What is my env??:', process.env);
 		prismaClient = new PrismaClient();
 	}
 	return prismaClient;
