@@ -42,7 +42,7 @@ jobs:
         run: npm run test:unit
 
       - name: Run Integration tests
-        run: npm run test:it
+        run: echo DATABASE_URL=blah_test > .env && npm run test:it
 
       - name: Build Docker image
         run: docker build .
