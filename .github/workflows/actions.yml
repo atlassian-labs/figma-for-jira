@@ -9,6 +9,11 @@ jobs:
           POSTGRES_USER: figma_for_jira_app
           POSTGRES_PASSWORD: password
           POSTGRES_DB: figma_for_jira
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
         ports:
           - 5432:5432
     steps:
