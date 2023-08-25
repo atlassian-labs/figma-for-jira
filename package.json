@@ -14,7 +14,7 @@
 		"jira:installApp": "./scripts/app-install.sh",
 		"start": "tsnd -r dotenv-expand/config --inspect --watch='.env' --respawn -- src/server.ts",
 		"start:sandbox": "docker-compose --env-file=.env up --detach",
-		"start:sandbox:ci": "docker-compose --env-file=.env.test up --detach",
+		"start:sandbox:ci": "docker-compose --env-file=.env.test up --detach --wait",
 		"start:tunnel": "run-p util:makeTunnel util:updateAppUrl",
 		"stop:sandbox": "docker-compose down",
 		"test": "jest",
