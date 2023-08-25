@@ -5,7 +5,5 @@
 	"rootDir": ".",
 	"roots": ["<rootDir>/src"],
 	"testRegex": "(\\.|/)(test|spec|it)\\.tsx?$",
-	"setupFiles": [
-		"dotenv/config"
-	]
+	"setupFiles": ["dotenv/config"]
 }
