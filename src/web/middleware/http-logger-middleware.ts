@@ -1,9 +1,9 @@
 import { pinoHttp } from 'pino-http';
 
-import { logger } from '../../infrastructure';
+import { getLogger } from '../../infrastructure';
 
 const isTest = process.env.NODE_ENV === 'test';
 export const httpLoggerMiddleware = pinoHttp({
-	logger: logger,
+	logger: getLogger(),
 	...(isTest && { useLevel: 'silent' }),
 });

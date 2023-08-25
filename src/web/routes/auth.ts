@@ -1,10 +1,13 @@
-import { Router } from 'express';
+import { Request, Response, Router } from 'express';
 
 import type { TypedRequest } from './types';
 
-import { addOAuthCredentialsUseCase } from '../../usecases/add-oauth-credentials';
+import { isString } from '../../common/stringUtils';
+import { addOAuthCredentialsUseCase, check3loUseCase } from '../../usecases';
 
 const AUTH_RESOURCE_BASE_PATH = '/public/index.html';
+const SUCCESS_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=true`;
+const FAILURE_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=false`;
 
 type AuthCallbackRequestBody = {
 	readonly atlassianUserId: string;
@@ -13,23 +16,58 @@ type AuthCallbackRequestBody = {
 	readonly expiresIn: number;
 };
 
+type Check3loResponseBody = {
+	readonly authorised: boolean;
+};
+
 export const authRouter = Router();
 
+/**
+ * A callback called by Figma authentication server with the access token included.
+ *
+ * @see https://www.figma.com/developers/api#authentication
+ */
 authRouter.get(
 	'/callback',
-	function (req: TypedRequest<AuthCallbackRequestBody>, res) {
-		// MDTZ-905 - TODO:
-		// 1. parse url and validate `state`
-		// 2. exchange `code` for `access_token`
-		// 3. pass any errors from the Figma auth flow as an `errorMessage` query param in the catch block
-		req.log.info('Received auth callback');
+	function (req: TypedRequest<AuthCallbackRequestBody>, res, next) {
+		const { code, state } = req.query;
+
+		// TODO: Add error handler that maps exceptions to HTTP errors.
+		if (typeof code !== 'string' || typeof state !== 'string') {
+			return next(
+				new Error('Did not receive valid code or state in query params'),
+			);
+		}
 		addOAuthCredentialsUseCase
-			.execute(req.body)
+			.execute(code, state)
 			.then(() => {
-				res.redirect(`${AUTH_RESOURCE_BASE_PATH}?success=true`);
+				res.redirect(SUCCESS_PAGE_URL);
 			})
 			.catch(() => {
-				res.redirect(`${AUTH_RESOURCE_BASE_PATH}?success=false`);
+				res.redirect(FAILURE_PAGE_URL);
 			});
+	},
+);
+
+/**
+ * Checks whether the given Atlassian user is authorised to call Figma API.
+ *
+ * TODO: Replace with a link to public documentation.
+ * @see https://hello.atlassian.net/wiki/spaces/MDT/pages/2796005496/RFC+-+Extending+generic+containers+specification+for+entity+associations#New-Provider-Actions
+ */
+authRouter.get(
+	'/check3LO',
+	function (req: Request, res: Response<Check3loResponseBody>, next) {
+		const userId = req.query['userId'];
+
+		// TODO: Add error handler that maps exceptions to HTTP errors.
+		if (!userId || !isString(userId)) {
+			return next(new Error('A "userId" query parameter is missing.'));
+		}
+
+		check3loUseCase
+			.execute(userId)
+			.then((authorised) => res.send({ authorised }))
+			.catch((error) => next(error));
 	},
 );

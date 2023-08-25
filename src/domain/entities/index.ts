@@ -1,2 +1,2 @@
 export * from './connect-installation';
-export * from './oauth-user-credentials';
+export * from './figma-oauth2-user-credentials';

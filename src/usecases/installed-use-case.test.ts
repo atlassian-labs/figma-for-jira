@@ -1,4 +1,4 @@
-import { installedUseCase } from './installed';
+import { installedUseCase } from './installed-use-case';
 
 import { ConnectInstallation } from '../domain/entities';
 import { connectInstallationRepository } from '../infrastructure/repositories';
@@ -8,10 +8,14 @@ describe('installedUseCase', () => {
 		jest.clearAllMocks();
 	});
 
+	afterEach(() => {
+		jest.clearAllMocks();
+	});
+
 	it('should call repository layer upsert', async () => {
-		const upsertSpy = jest
+		jest
 			.spyOn(connectInstallationRepository, 'upsert')
-			.mockImplementation(() => Promise.resolve({} as ConnectInstallation));
+			.mockResolvedValue({} as ConnectInstallation);
 		const installation = {
 			key: 'test-key',
 			clientKey: 'test-client-key',
@@ -22,6 +26,8 @@ describe('installedUseCase', () => {
 
 		await installedUseCase.execute(installation);
 
-		expect(upsertSpy).toHaveBeenCalledWith(installation);
+		expect(connectInstallationRepository.upsert).toHaveBeenCalledWith(
+			installation,
+		);
 	});
 });

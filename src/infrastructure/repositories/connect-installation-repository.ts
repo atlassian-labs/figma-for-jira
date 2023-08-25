@@ -2,27 +2,11 @@ import type { ConnectInstallation as PrismaConnectInstallation } from '@prisma/c
 
 import { getPrismaClient } from './prisma-client';
 
-import { logger } from '..';
+import { getLogger } from '..';
 import {
 	ConnectInstallation,
 	ConnectInstallationCreateParams,
 } from '../../domain/entities';
-
-const mapToDomainType = ({
-	id,
-	key,
-	clientKey,
-	sharedSecret,
-	baseUrl,
-	displayUrl,
-}: PrismaConnectInstallation): ConnectInstallation => ({
-	id,
-	key,
-	clientKey,
-	sharedSecret,
-	baseUrl,
-	displayUrl,
-});
 
 export class ConnectInstallationRepository {
 	find = async (key: string): Promise<ConnectInstallation> => {
@@ -31,7 +15,7 @@ export class ConnectInstallationRepository {
 				where: { key },
 			},
 		);
-		return mapToDomainType(result);
+		return this.mapToDomainModel(result);
 	};
 
 	upsert = async (
@@ -43,12 +27,28 @@ export class ConnectInstallationRepository {
 				update: installation,
 				where: { key: installation.key },
 			});
-			return mapToDomainType(result);
+			return this.mapToDomainModel(result);
 		} catch (e: unknown) {
-			logger.error(e, 'Failed to upsert %s', installation.key);
+			getLogger().error(e, 'Failed to upsert %s', installation.key);
 			throw e;
 		}
 	};
+
+	private mapToDomainModel = ({
+		id,
+		key,
+		clientKey,
+		sharedSecret,
+		baseUrl,
+		displayUrl,
+	}: PrismaConnectInstallation): ConnectInstallation => ({
+		id,
+		key,
+		clientKey,
+		sharedSecret,
+		baseUrl,
+		displayUrl,
+	});
 }
 
 export const connectInstallationRepository =
