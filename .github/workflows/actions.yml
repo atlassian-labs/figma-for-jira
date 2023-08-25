@@ -28,7 +28,7 @@ jobs:
         run: npm run test:unit
 
       - name: Start CI sandbox
-        run: docker --version && npm run start:sandbox:ci
+        run: docker --version && docker-compose --version && npm run start:sandbox:ci
 
       - name: Run prisma migration
         run: npm run db:ci
