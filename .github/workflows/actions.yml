@@ -6,9 +6,9 @@ jobs:
       postgres:
         image: postgres:14.8
         env:
-          POSTGRES_USER: figma_for_jira_app
+          POSTGRES_USER: figma_for_jira_app_test
+          POSTGRES_DB: figma_for_jira_test
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: figma_for_jira
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
