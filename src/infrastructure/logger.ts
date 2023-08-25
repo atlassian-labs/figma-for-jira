@@ -14,7 +14,6 @@ export function getLogger(): Logger {
 	if (!logger) {
 		const env = process.env.NODE_ENV;
 		const isProduction = env === 'production';
-		const isTest = env === 'test';
 		const defaultLogLevel =
 			getConfig().logging.level || (isProduction ? 'info' : 'debug');
 
@@ -22,7 +21,7 @@ export function getLogger(): Logger {
 			? pino({
 					level: defaultLogLevel,
 			  })
-			: pino({ level: isTest ? 'silent' : defaultLogLevel }, prettyStream);
+			: pino({ level: defaultLogLevel }, prettyStream);
 	}
 
 	return logger;
