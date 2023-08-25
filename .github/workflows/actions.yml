@@ -28,7 +28,7 @@ jobs:
         run: npm run test:unit
 
       - name: Run Integration tests
-        run: npm run start:sandbox:ci && npm run test:ci
+        run: npm run start:sandbox:ci && npm run test:it
 
       - name: Build Docker image
         run: docker build .
