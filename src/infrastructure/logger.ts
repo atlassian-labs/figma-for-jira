@@ -4,6 +4,7 @@ import pretty from 'pino-pretty';
 import { getConfig } from '../config';
 
 const isProduction = process.env.NODE_ENV === 'production';
+const isTest = process.env.NODE_ENV === 'test';
 const defaultLogLevel =
 	getConfig().logging.level || (isProduction ? 'info' : 'debug');
 
@@ -16,4 +17,4 @@ export const logger = isProduction
 	? pino({
 			level: defaultLogLevel,
 	  })
-	: pino({ level: defaultLogLevel }, prettyStream);
+	: pino({ level: isTest ? 'silent' : defaultLogLevel }, prettyStream);

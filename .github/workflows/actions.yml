@@ -24,11 +24,11 @@ jobs:
       - name: Check formatting errors
         run: npm run format:check
 
-      - name: Start app sandbox
-        run: npm run start:sandbox:ci
+      - name: Run Unit tests
+        run: npm run test:unit
 
-      - name: Run tests
-        run: npm test
+      - name: Run Integration tests
+        run: npm run start:sandbox:ci && npm run test:ci
 
       - name: Build Docker image
         run: docker build .
