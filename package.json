@@ -18,7 +18,7 @@
 		"start:tunnel": "run-p util:makeTunnel util:updateAppUrl",
 		"stop:sandbox": "docker-compose down",
 		"test": "jest",
-		"test:it": "jest -c jest.config.it.ts",
+		"test:it": "jest -c jest.config.integration.ts",
 		"test:it:ci": "DOTENV_CONFIG_PATH=.env.test jest -c jest.config.integration.ts",
 		"test:unit": "jest -c jest.config.unit.ts",
 		"lint": "eslint .",
