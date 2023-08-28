@@ -11,11 +11,9 @@ import {
 
 import app from '../../../app';
 import { getConfig } from '../../../config';
-import { getPrismaClient } from '../../../infrastructure/repositories/prisma-client';
+import { figmaOAuth2UserCredentialsRepository } from '../../../infrastructure/repositories';
 
 import { FAILURE_PAGE_URL, SUCCESS_PAGE_URL } from './index';
-
-const prismaClient = getPrismaClient();
 
 const FIGMA_API_BASE_URL = getConfig().figma.apiBaseUrl;
 const FIGMA_OAUTH_API_BASE_URL = getConfig().figma.oauthApiBaseUrl;
@@ -25,15 +23,24 @@ const FIGMA_ME_ENDPOINT = '/v1/me';
 const CHECK_3LO_ENDPOINT = '/auth/check3LO';
 const AUTH_CALLBACK_ENDPOINT = '/auth/callback';
 
+// Delete any created credentials records between tests
+afterEach(async () => {
+	const res = await figmaOAuth2UserCredentialsRepository.find(
+		mockFigmaUserCredentialsCreatePayload.atlassianUserId,
+	);
+	if (res) {
+		await figmaOAuth2UserCredentialsRepository.delete(
+			mockFigmaUserCredentialsCreatePayload.atlassianUserId,
+		);
+	}
+});
+
 describe('/check3LO', () => {
 	describe('with valid database entry', () => {
 		beforeEach(async () => {
-			await prismaClient.figmaOAuth2UserCredentials.create({
-				data: mockFigmaUserCredentialsCreatePayload,
-			});
-		});
-		afterEach(async () => {
-			await prismaClient.figmaOAuth2UserCredentials.deleteMany();
+			await figmaOAuth2UserCredentialsRepository.upsert(
+				mockFigmaUserCredentialsCreatePayload,
+			);
 		});
 
 		it('should respond with "authorized: true" if the /me endpoint responds with a non-error response code', () => {
@@ -55,7 +62,7 @@ describe('/check3LO', () => {
 	});
 	describe('without database entry', () => {
 		it('should respond with "authorized: false" if no database entry exists', () => {
-			nock(`${getConfig().figma.apiBaseUrl}`).get('/v1/me').reply(403);
+			nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(403);
 
 			return request(app)
 				.get(`/auth/check3LO?userId=${mockUserId}`)
@@ -66,9 +73,6 @@ describe('/check3LO', () => {
 });
 
 describe('/callback', () => {
-	afterEach(async () => {
-		await prismaClient.figmaOAuth2UserCredentials.deleteMany();
-	});
 	it('should redirect to success page if auth callback to figma succeeds', () => {
 		nock(FIGMA_OAUTH_API_BASE_URL)
 			.post(FIGMA_OAUTH_TOKEN_ENDPOINT)
