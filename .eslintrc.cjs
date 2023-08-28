@@ -59,4 +59,13 @@ module.exports = {
       node: true,
     },
   },
+  overrides: [
+    {
+      files: ['*.test.ts'],
+      rules: {
+        '@typescript-eslint/no-unsafe-assignment': 'off',
+        '@typescript-eslint/no-unsafe-return': 'off',
+      },
+    },
+  ],
 };

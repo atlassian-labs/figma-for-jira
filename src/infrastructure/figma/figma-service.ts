@@ -3,6 +3,7 @@ import { AxiosError } from 'axios';
 import {
 	figmaAuthService,
 	NoFigmaCredentialsError,
+	RefreshFigmaCredentialsError,
 } from './figma-auth-service';
 import { figmaClient } from './figma-client';
 
@@ -17,7 +18,11 @@ export class FigmaService {
 
 			return true;
 		} catch (e: unknown) {
-			if (e instanceof NoFigmaCredentialsError) return false;
+			if (
+				e instanceof NoFigmaCredentialsError ||
+				e instanceof RefreshFigmaCredentialsError
+			)
+				return false;
 
 			const forbidden =
 				e instanceof AxiosError && e?.response?.status == HttpStatus.FORBIDDEN;

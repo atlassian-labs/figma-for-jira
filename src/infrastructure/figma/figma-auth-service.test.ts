@@ -1,7 +1,14 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { figmaAuthService } from './figma-auth-service';
-import { figmaClient, GetOAuth2TokenResponse } from './figma-client';
+import {
+	figmaAuthService,
+	RefreshFigmaCredentialsError,
+} from './figma-auth-service';
+import {
+	figmaClient,
+	GetOAuth2TokenResponse,
+	RefreshOAuth2TokenResponse,
+} from './figma-client';
 
 import { Duration } from '../../common/duration';
 import { FigmaOAuth2UserCredentials } from '../../domain/entities';
@@ -9,6 +16,21 @@ import { figmaOAuth2UserCredentialsRepository } from '../repositories';
 
 const FIGMA_OAUTH_CODE = uuidv4();
 const ATLASSIAN_USER_ID = uuidv4();
+
+jest.mock('../logger', () => {
+	const original = jest.requireActual('../logger');
+
+	return {
+		__esModule: true,
+		...original,
+		getLogger: () => ({
+			info: jest.fn(),
+			warn: jest.fn(),
+			error: jest.fn(),
+			debug: jest.fn(),
+		}),
+	};
+});
 
 // TODO: Move this code to the shared location.
 const generateFigmaOAuth2UserCredentials = ({
@@ -33,6 +55,14 @@ const generateGetOAuth2TokenResponse = ({
 } = {}): GetOAuth2TokenResponse => ({
 	access_token,
 	refresh_token,
+	expires_in,
+});
+
+const generateRefreshOAuth2TokenResponse = ({
+	access_token = uuidv4(),
+	expires_in = 90 * 60 * 60,
+} = {}): RefreshOAuth2TokenResponse => ({
+	access_token,
 	expires_in,
 });
 
@@ -93,8 +123,41 @@ describe('FigmaAuthService', () => {
 			);
 		});
 
-		it('should return refresh and store credentials when it is expired', async () => {
-			// TODO: Update the test to mock and assert token refresh.
+		it('should refresh, store and return credentials when it is expired', async () => {
+			const now = Date.now();
+			jest.setSystemTime(now);
+
+			const credentials = generateFigmaOAuth2UserCredentials({
+				expiresAt: new Date(now - Duration.ofMinutes(30).toMillis()),
+			});
+			const refreshOAuth2TokenResponse = generateRefreshOAuth2TokenResponse();
+			const refreshedCredentials = generateFigmaOAuth2UserCredentials({
+				id: credentials.id,
+				atlassianUserId: credentials.atlassianUserId,
+				accessToken: refreshOAuth2TokenResponse.access_token,
+				refreshToken: credentials.refreshToken,
+				expiresAt: new Date(now + refreshOAuth2TokenResponse.expires_in * 1000),
+			});
+
+			jest
+				.spyOn(figmaOAuth2UserCredentialsRepository, 'find')
+				.mockResolvedValue(credentials);
+			jest
+				.spyOn(figmaClient, 'refreshOAuth2Token')
+				.mockResolvedValue(refreshOAuth2TokenResponse);
+			jest
+				.spyOn(figmaOAuth2UserCredentialsRepository, 'upsert')
+				.mockResolvedValue(refreshedCredentials);
+
+			const result = await figmaAuthService.getCredentials(ATLASSIAN_USER_ID);
+
+			expect(result).toBe(refreshedCredentials);
+			expect(figmaOAuth2UserCredentialsRepository.upsert).toHaveBeenCalledWith({
+				atlassianUserId: refreshedCredentials.atlassianUserId,
+				accessToken: refreshedCredentials.accessToken,
+				refreshToken: refreshedCredentials.refreshToken,
+				expiresAt: refreshedCredentials.expiresAt,
+			});
 		});
 
 		it('should throw when no credentials', async () => {
@@ -105,6 +168,26 @@ describe('FigmaAuthService', () => {
 			await expect(() =>
 				figmaAuthService.getCredentials(ATLASSIAN_USER_ID),
 			).rejects.toThrowError();
+		});
+
+		it('should throw when refreshing expired credentials fails', async () => {
+			const now = Date.now();
+			jest.setSystemTime(now);
+
+			const credentials = generateFigmaOAuth2UserCredentials({
+				expiresAt: new Date(now - Duration.ofMinutes(30).toMillis()),
+			});
+
+			jest
+				.spyOn(figmaOAuth2UserCredentialsRepository, 'find')
+				.mockResolvedValue(credentials);
+			jest
+				.spyOn(figmaClient, 'refreshOAuth2Token')
+				.mockRejectedValue(new Error('error'));
+
+			await expect(
+				figmaAuthService.getCredentials(ATLASSIAN_USER_ID),
+			).rejects.toBeInstanceOf(RefreshFigmaCredentialsError);
 		});
 	});
 });
