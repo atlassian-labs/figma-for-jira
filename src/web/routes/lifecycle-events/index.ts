@@ -1,13 +1,12 @@
 import { Router } from 'express';
 
-import type { TypedRequest } from './types';
-
-import { ConnectInstallationCreateParams } from '../../domain/entities';
-import { installedUseCase } from '../../usecases';
+import { ConnectInstallationCreateParams } from '../../../domain/entities';
+import { installedUseCase } from '../../../usecases';
 import {
 	authHeaderAsymmetricJwtMiddleware,
 	authHeaderSymmetricJwtMiddleware,
-} from '../middleware';
+} from '../../middleware';
+import type { TypedRequest } from '../types';
 
 type ConnectLifecycleEventRequestBody = {
 	readonly key: string;
