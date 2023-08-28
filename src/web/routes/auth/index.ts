@@ -1,13 +1,12 @@
 import { Request, Response, Router } from 'express';
 
-import type { TypedRequest } from './types';
-
-import { isString } from '../../common/stringUtils';
-import { addOAuthCredentialsUseCase, check3loUseCase } from '../../usecases';
+import { isString } from '../../../common/stringUtils';
+import { addOAuthCredentialsUseCase, check3loUseCase } from '../../../usecases';
+import type { TypedRequest } from '../types';
 
 const AUTH_RESOURCE_BASE_PATH = '/public/index.html';
-const SUCCESS_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=true`;
-const FAILURE_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=false`;
+export const SUCCESS_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=true`;
+export const FAILURE_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=false`;
 
 type AuthCallbackRequestBody = {
 	readonly atlassianUserId: string;
@@ -17,7 +16,7 @@ type AuthCallbackRequestBody = {
 };
 
 type Check3loResponseBody = {
-	readonly authorised: boolean;
+	readonly authorized: boolean;
 };
 
 export const authRouter = Router();
@@ -50,7 +49,7 @@ authRouter.get(
 );
 
 /**
- * Checks whether the given Atlassian user is authorised to call Figma API.
+ * Checks whether the given Atlassian user is authorized to call Figma API.
  *
  * TODO: Replace with a link to public documentation.
  * @see https://hello.atlassian.net/wiki/spaces/MDT/pages/2796005496/RFC+-+Extending+generic+containers+specification+for+entity+associations#New-Provider-Actions
@@ -67,7 +66,7 @@ authRouter.get(
 
 		check3loUseCase
 			.execute(userId)
-			.then((authorised) => res.send({ authorised }))
+			.then((authorized) => res.send({ authorized }))
 			.catch((error) => next(error));
 	},
 );
