@@ -5,13 +5,13 @@ import {
 	RefreshFigmaCredentialsError,
 } from './figma-auth-service';
 import { figmaClient } from './figma-client';
-
-import { Duration } from '../../common/duration';
 import {
-	generateFigmaOAuth2UserCredentials,
 	generateGetOAuth2TokenResponse,
 	generateRefreshOAuth2TokenResponse,
-} from '../../common/mocks';
+} from './testing/mocks';
+
+import { Duration } from '../../common/duration';
+import { generateFigmaOAuth2UserCredentials } from '../../domain/entities/testing/mocks';
 import { figmaOAuth2UserCredentialsRepository } from '../repositories';
 
 const FIGMA_OAUTH_CODE = uuidv4();

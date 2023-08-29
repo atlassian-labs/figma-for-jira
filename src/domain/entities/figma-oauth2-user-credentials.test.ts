@@ -1,5 +1,6 @@
+import { generateFigmaOAuth2UserCredentials } from './testing/mocks';
+
 import { Duration } from '../../common/duration';
-import { generateFigmaOAuth2UserCredentials } from '../../common/mocks';
 
 describe('FigmaOAuth2UserCredentials', () => {
 	describe('isExpired', () => {

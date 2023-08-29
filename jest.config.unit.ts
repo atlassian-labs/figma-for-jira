@@ -5,7 +5,7 @@ const config = {
 	testRegex: '^(?!.*integration.*)(.*)(\\.|/)(test|spec)\\.tsx?$',
 	setupFiles: [
 		...(baseConfig.setupFiles ?? []),
-		'./src/common/mocks/mock-logger.ts',
+		'./src/infrastructure/testing/mock-logger.ts',
 	],
 };
 

@@ -1,41 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import {
-	FigmaOAuth2UserCredentials,
-	FigmaUserCredentialsCreateParams,
-} from '../../domain/entities';
+import { Duration } from '../../../common/duration';
 import {
 	GetOAuth2TokenResponse,
 	RefreshOAuth2TokenResponse,
-} from '../../infrastructure/figma/figma-client';
-import { Duration } from '../duration';
-
-export const generateFigmaOAuth2UserCredentials = ({
-	id = Date.now(),
-	atlassianUserId = uuidv4(),
-	accessToken = uuidv4(),
-	refreshToken = uuidv4(),
-	expiresAt = new Date(),
-} = {}): FigmaOAuth2UserCredentials =>
-	new FigmaOAuth2UserCredentials(
-		id,
-		atlassianUserId,
-		accessToken,
-		refreshToken,
-		expiresAt,
-	);
-
-export const generateFigmaUserCredentialsCreateParams = ({
-	atlassianUserId = uuidv4(),
-	accessToken = uuidv4(),
-	refreshToken = uuidv4(),
-	expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000),
-} = {}): FigmaUserCredentialsCreateParams => ({
-	atlassianUserId,
-	accessToken,
-	refreshToken,
-	expiresAt,
-});
+} from '../figma-client';
 
 export const generateGetOAuth2TokenResponse = ({
 	accessToken = uuidv4(),

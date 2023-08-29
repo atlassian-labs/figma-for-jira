@@ -2,14 +2,14 @@ import nock from 'nock';
 import request from 'supertest';
 
 import app from '../../../app';
+import { getConfig } from '../../../config';
+import { generateFigmaUserCredentialsCreateParams } from '../../../domain/entities/testing/mocks';
 import {
-	generateFigmaUserCredentialsCreateParams,
 	generateGetOAuth2TokenQueryParams,
 	generateGetOAuth2TokenResponse,
 	generateRefreshOAuth2TokenQueryParams,
 	generateRefreshOAuth2TokenResponse,
-} from '../../../common/mocks';
-import { getConfig } from '../../../config';
+} from '../../../infrastructure/figma/testing/mocks';
 import { figmaOAuth2UserCredentialsRepository } from '../../../infrastructure/repositories';
 
 import { FAILURE_PAGE_URL, SUCCESS_PAGE_URL } from './index';
