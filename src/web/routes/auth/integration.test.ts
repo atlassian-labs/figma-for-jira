@@ -4,13 +4,13 @@ import request from 'supertest';
 import app from '../../../app';
 import { Duration } from '../../../common/duration';
 import { getConfig } from '../../../config';
-import { generateFigmaUserCredentialsCreateParams } from '../../../domain/entities/testing/mocks';
+import { generateFigmaUserCredentialsCreateParams } from '../../../domain/entities/testing';
 import {
 	generateGetOAuth2TokenQueryParams,
 	generateGetOAuth2TokenResponse,
 	generateRefreshOAuth2TokenQueryParams,
 	generateRefreshOAuth2TokenResponse,
-} from '../../../infrastructure/figma/testing/mocks';
+} from '../../../infrastructure/figma/testing';
 import { figmaOAuth2UserCredentialsRepository } from '../../../infrastructure/repositories';
 
 import { FAILURE_PAGE_URL, SUCCESS_PAGE_URL } from './index';

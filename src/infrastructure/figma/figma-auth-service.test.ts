@@ -8,10 +8,10 @@ import { figmaClient } from './figma-client';
 import {
 	generateGetOAuth2TokenResponse,
 	generateRefreshOAuth2TokenResponse,
-} from './testing/mocks';
+} from './testing';
 
 import { Duration } from '../../common/duration';
-import { generateFigmaOAuth2UserCredentials } from '../../domain/entities/testing/mocks';
+import { generateFigmaOAuth2UserCredentials } from '../../domain/entities/testing';
 import { figmaOAuth2UserCredentialsRepository } from '../repositories';
 
 const FIGMA_OAUTH_CODE = uuidv4();

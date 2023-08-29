@@ -8,7 +8,7 @@ import {
 import { figmaClient, MeResponse } from './figma-client';
 import { figmaService } from './figma-service';
 
-import { generateFigmaOAuth2UserCredentials } from '../../domain/entities/testing/mocks';
+import { generateFigmaOAuth2UserCredentials } from '../../domain/entities/testing';
 
 const ATLASSIAN_USER_ID = uuidv4();
 

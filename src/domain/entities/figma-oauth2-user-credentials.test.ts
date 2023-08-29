@@ -1,4 +1,4 @@
-import { generateFigmaOAuth2UserCredentials } from './testing/mocks';
+import { generateFigmaOAuth2UserCredentials } from './testing';
 
 import { Duration } from '../../common/duration';
 
