@@ -1,12 +1,6 @@
-import { Logger, pino } from 'pino';
-import pretty from 'pino-pretty';
+import { DestinationStream, Logger, pino } from 'pino';
 
 import { getConfig } from '../config';
-
-const prettyStream = pretty({
-	colorize: true,
-	sync: true,
-});
 
 let logger: Logger | undefined;
 
@@ -18,11 +12,25 @@ export function getLogger(): Logger {
 		const defaultLogLevel =
 			getConfig().logging.level || (isProduction ? 'info' : 'debug');
 
-		logger = isProduction
-			? pino({
-					level: defaultLogLevel,
-			  })
-			: pino({ level: isTest ? 'silent' : defaultLogLevel }, prettyStream);
+		if (isProduction) {
+			logger = pino({
+				level: defaultLogLevel,
+			});
+		} else {
+			/* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-call */
+			// This needs to be lazily required since 'pino-pretty' won't be available in production builds
+			const pretty = require('pino-pretty');
+			const prettyStream = pretty({
+				colorize: true,
+				sync: true,
+			});
+			/* eslint-enable */
+
+			logger = pino(
+				{ level: isTest ? 'silent' : defaultLogLevel },
+				prettyStream as DestinationStream,
+			);
+		}
 	}
 
 	return logger;
