@@ -4,6 +4,8 @@ import {
 	FigmaOAuth2UserCredentials,
 	FigmaUserCredentialsCreateParams,
 } from '..';
+import { Duration } from '../../../common/duration';
+
 
 export const generateFigmaOAuth2UserCredentials = ({
 	id = Date.now(),
@@ -24,7 +26,7 @@ export const generateFigmaUserCredentialsCreateParams = ({
 	atlassianUserId = uuidv4(),
 	accessToken = uuidv4(),
 	refreshToken = uuidv4(),
-	expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000),
+	expiresAt = new Date(Date.now() + Duration.ofMinutes(120).asMilliseconds),
 } = {}): FigmaUserCredentialsCreateParams => ({
 	atlassianUserId,
 	accessToken,

@@ -2,6 +2,7 @@ import nock from 'nock';
 import request from 'supertest';
 
 import app from '../../../app';
+import { Duration } from '../../../common/duration';
 import { getConfig } from '../../../config';
 import { generateFigmaUserCredentialsCreateParams } from '../../../domain/entities/testing/mocks';
 import {
@@ -63,7 +64,7 @@ describe('/check3LO', () => {
 	describe('with expired OAuth credentials stored', () => {
 		const expiredCredentialsParams = generateFigmaUserCredentialsCreateParams({
 			accessToken: 'expired-access-token',
-			expiresAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+			expiresAt: new Date(Date.now() - Duration.ofMinutes(120).asMilliseconds),
 		});
 		const refreshTokenQueryParams = generateRefreshOAuth2TokenQueryParams({
 			client_id: getConfig().figma.clientId,
