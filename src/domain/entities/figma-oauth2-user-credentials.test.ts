@@ -1,24 +1,5 @@
-import { v4 as uuidv4 } from 'uuid';
-
-import { FigmaOAuth2UserCredentials } from './figma-oauth2-user-credentials';
-
 import { Duration } from '../../common/duration';
-
-// TODO: Move this code to the shared location.
-const generateFigmaOAuth2UserCredentials = ({
-	id = Date.now(),
-	atlassianUserId = uuidv4(),
-	accessToken = uuidv4(),
-	refreshToken = uuidv4(),
-	expiresAt = new Date(),
-} = {}) =>
-	new FigmaOAuth2UserCredentials(
-		id,
-		atlassianUserId,
-		accessToken,
-		refreshToken,
-		expiresAt,
-	);
+import { generateFigmaOAuth2UserCredentials } from '../../common/mocks';
 
 describe('FigmaOAuth2UserCredentials', () => {
 	describe('isExpired', () => {

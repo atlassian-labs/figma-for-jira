@@ -4,67 +4,18 @@ import {
 	figmaAuthService,
 	RefreshFigmaCredentialsError,
 } from './figma-auth-service';
-import {
-	figmaClient,
-	GetOAuth2TokenResponse,
-	RefreshOAuth2TokenResponse,
-} from './figma-client';
+import { figmaClient } from './figma-client';
 
 import { Duration } from '../../common/duration';
-import { FigmaOAuth2UserCredentials } from '../../domain/entities';
+import {
+	generateFigmaOAuth2UserCredentials,
+	generateGetOAuth2TokenResponse,
+	generateRefreshOAuth2TokenResponse,
+} from '../../common/mocks';
 import { figmaOAuth2UserCredentialsRepository } from '../repositories';
 
 const FIGMA_OAUTH_CODE = uuidv4();
 const ATLASSIAN_USER_ID = uuidv4();
-
-jest.mock('../logger', () => {
-	const original = jest.requireActual('../logger');
-
-	return {
-		__esModule: true,
-		...original,
-		getLogger: () => ({
-			info: jest.fn(),
-			warn: jest.fn(),
-			error: jest.fn(),
-			debug: jest.fn(),
-		}),
-	};
-});
-
-// TODO: Move this code to the shared location.
-const generateFigmaOAuth2UserCredentials = ({
-	id = Date.now(),
-	atlassianUserId = uuidv4(),
-	accessToken = uuidv4(),
-	refreshToken = uuidv4(),
-	expiresAt = new Date(),
-} = {}) =>
-	new FigmaOAuth2UserCredentials(
-		id,
-		atlassianUserId,
-		accessToken,
-		refreshToken,
-		expiresAt,
-	);
-
-const generateGetOAuth2TokenResponse = ({
-	access_token = uuidv4(),
-	refresh_token = uuidv4(),
-	expires_in = 90 * 60 * 60,
-} = {}): GetOAuth2TokenResponse => ({
-	access_token,
-	refresh_token,
-	expires_in,
-});
-
-const generateRefreshOAuth2TokenResponse = ({
-	access_token = uuidv4(),
-	expires_in = 90 * 60 * 60,
-} = {}): RefreshOAuth2TokenResponse => ({
-	access_token,
-	expires_in,
-});
 
 describe('FigmaAuthService', () => {
 	beforeEach(() => {
