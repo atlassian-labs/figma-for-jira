@@ -13,7 +13,8 @@ export class FigmaOAuth2UserCredentials {
 
 	isExpired(): boolean {
 		return (
-			Date.now() > this.expiresAt.getTime() - TOKEN_EXPIRATION_OFFSET.toMillis()
+			Date.now() >
+			this.expiresAt.getTime() - TOKEN_EXPIRATION_OFFSET.asMilliseconds
 		);
 	}
 }

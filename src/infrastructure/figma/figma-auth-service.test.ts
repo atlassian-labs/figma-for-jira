@@ -60,7 +60,9 @@ describe('FigmaAuthService', () => {
 	describe('getCredentials', () => {
 		it('should return credentials when it is not expired', async () => {
 			const credentials = generateFigmaOAuth2UserCredentials({
-				expiresAt: new Date(Date.now() + Duration.ofMinutes(10000).toMillis()),
+				expiresAt: new Date(
+					Date.now() + Duration.ofMinutes(10000).asMilliseconds,
+				),
 			});
 			jest
 				.spyOn(figmaOAuth2UserCredentialsRepository, 'find')
@@ -79,7 +81,7 @@ describe('FigmaAuthService', () => {
 			jest.setSystemTime(now);
 
 			const credentials = generateFigmaOAuth2UserCredentials({
-				expiresAt: new Date(now - Duration.ofMinutes(30).toMillis()),
+				expiresAt: new Date(now - Duration.ofMinutes(30).asMilliseconds),
 			});
 			const refreshOAuth2TokenResponse = generateRefreshOAuth2TokenResponse();
 			const refreshedCredentials = generateFigmaOAuth2UserCredentials({
@@ -126,7 +128,7 @@ describe('FigmaAuthService', () => {
 			jest.setSystemTime(now);
 
 			const credentials = generateFigmaOAuth2UserCredentials({
-				expiresAt: new Date(now - Duration.ofMinutes(30).toMillis()),
+				expiresAt: new Date(now - Duration.ofMinutes(30).asMilliseconds),
 			});
 
 			jest

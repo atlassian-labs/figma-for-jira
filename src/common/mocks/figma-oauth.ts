@@ -8,6 +8,7 @@ import {
 	GetOAuth2TokenResponse,
 	RefreshOAuth2TokenResponse,
 } from '../../infrastructure/figma/figma-client';
+import { Duration } from '../duration';
 
 export const generateFigmaOAuth2UserCredentials = ({
 	id = Date.now(),
@@ -37,21 +38,21 @@ export const generateFigmaUserCredentialsCreateParams = ({
 });
 
 export const generateGetOAuth2TokenResponse = ({
-	access_token = uuidv4(),
-	refresh_token = uuidv4(),
-	expires_in = 90 * 60 * 60,
+	accessToken = uuidv4(),
+	refreshToken = uuidv4(),
+	expiresIn = Duration.ofMinutes(90),
 } = {}): GetOAuth2TokenResponse => ({
-	access_token,
-	refresh_token,
-	expires_in,
+	access_token: accessToken,
+	refresh_token: refreshToken,
+	expires_in: expiresIn.asSeconds,
 });
 
 export const generateRefreshOAuth2TokenResponse = ({
-	access_token = uuidv4(),
-	expires_in = 90 * 60 * 60,
+	accessToken = uuidv4(),
+	expiresIn = Duration.ofMinutes(90),
 } = {}): RefreshOAuth2TokenResponse => ({
-	access_token,
-	expires_in,
+	access_token: accessToken,
+	expires_in: expiresIn.asSeconds,
 });
 
 export const generateGetOAuth2TokenQueryParams = ({

@@ -16,7 +16,7 @@ describe('FigmaOAuth2UserCredentials', () => {
 			jest.setSystemTime(now);
 
 			const credentials = generateFigmaOAuth2UserCredentials({
-				expiresAt: new Date(now + Duration.ofMinutes(60).toMillis() + 1),
+				expiresAt: new Date(now + Duration.ofMinutes(60).asMilliseconds + 1),
 			});
 
 			expect(credentials.isExpired()).toBe(false);
@@ -27,7 +27,7 @@ describe('FigmaOAuth2UserCredentials', () => {
 			jest.setSystemTime(now);
 
 			const credentials = generateFigmaOAuth2UserCredentials({
-				expiresAt: new Date(now + Duration.ofMinutes(60).toMillis() - 1),
+				expiresAt: new Date(now + Duration.ofMinutes(60).asMilliseconds - 1),
 			});
 
 			expect(credentials.isExpired()).toBe(true);
