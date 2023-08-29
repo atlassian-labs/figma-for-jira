@@ -1,6 +1,7 @@
 import { figmaClient } from './figma-client';
 
 import { FigmaOAuth2UserCredentials } from '../../domain/entities';
+import { getLogger } from '../logger';
 import { figmaOAuth2UserCredentialsRepository } from '../repositories';
 
 export class FigmaAuthService {
@@ -17,7 +18,7 @@ export class FigmaAuthService {
 			atlassianUserId,
 			accessToken: response.access_token,
 			refreshToken: response.refresh_token,
-			expiresAt: new Date(Date.now() + response.expires_in * 1000),
+			expiresAt: this.createExpiryDate(response.expires_in),
 		});
 	};
 
@@ -38,8 +39,17 @@ export class FigmaAuthService {
 			);
 
 		if (credentials.isExpired()) {
-			credentials = await this.refreshCredentials(credentials);
-			// TODO: Update credentials in the database.
+			try {
+				credentials = await this.refreshCredentials(credentials);
+			} catch (e: unknown) {
+				getLogger().error(
+					e,
+					`Failed to refresh OAuth credentials for ${atlassianUserId}`,
+				);
+				throw new RefreshFigmaCredentialsError(
+					'Failed to refresh credentials for the current user.',
+				);
+			}
 		}
 
 		return credentials;
@@ -47,14 +57,31 @@ export class FigmaAuthService {
 
 	private refreshCredentials = async (
 		credentials: FigmaOAuth2UserCredentials,
-		// eslint-disable-next-line @typescript-eslint/require-await
 	): Promise<FigmaOAuth2UserCredentials> => {
-		// TODO: Implement token refresh here.
-		return credentials;
+		const response = await figmaClient.refreshOAuth2Token(
+			credentials.refreshToken,
+		);
+
+		return figmaOAuth2UserCredentialsRepository.upsert({
+			atlassianUserId: credentials.atlassianUserId,
+			accessToken: response.access_token,
+			refreshToken: credentials.refreshToken,
+			expiresAt: this.createExpiryDate(response.expires_in),
+		});
 	};
+
+	private createExpiryDate(expiresInSeconds: number): Date {
+		return new Date(Date.now() + expiresInSeconds * 1000);
+	}
 }
 
 export class NoFigmaCredentialsError extends Error {
+	constructor(message: string) {
+		super(message);
+	}
+}
+
+export class RefreshFigmaCredentialsError extends Error {
 	constructor(message: string) {
 		super(message);
 	}

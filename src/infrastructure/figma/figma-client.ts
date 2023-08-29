@@ -9,6 +9,11 @@ export type GetOAuth2TokenResponse = {
 	readonly expires_in: number;
 };
 
+export type RefreshOAuth2TokenResponse = Omit<
+	GetOAuth2TokenResponse,
+	'refresh_token'
+>;
+
 export type MeResponse = {
 	readonly id: string;
 	readonly email: string;
@@ -48,6 +53,33 @@ export class FigmaClient {
 			return response.data;
 		} catch (error: unknown) {
 			getLogger().error(`Failed to exchange code for access token.`, error);
+			throw error;
+		}
+	};
+
+	/**
+	 * Request a new access token using a refresh token.
+	 *
+	 * @see https://www.figma.com/developers/api#refresh-oauth2
+	 */
+	refreshOAuth2Token = async (
+		refreshToken: string,
+	): Promise<RefreshOAuth2TokenResponse> => {
+		try {
+			const params = new URLSearchParams();
+			params.append('client_id', getConfig().figma.clientId);
+			params.append('client_secret', getConfig().figma.clientSecret);
+			params.append('refresh_token', refreshToken);
+
+			const response = await axios.post<RefreshOAuth2TokenResponse>(
+				`${getConfig().figma.oauthApiBaseUrl}/api/oauth/refresh`,
+				null,
+				{ params },
+			);
+
+			return response.data;
+		} catch (error: unknown) {
+			getLogger().error(`Failed to refresh access token.`, error);
 			throw error;
 		}
 	};

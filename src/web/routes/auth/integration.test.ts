@@ -4,8 +4,11 @@ import request from 'supertest';
 import {
 	mockAuthCode,
 	mockAuthQueryParams,
+	mockExpiredFigmaUserCredentialsCreatePayload,
 	mockFigmaAuthResponse,
+	mockFigmaRefreshAuthResponse,
 	mockFigmaUserCredentialsCreatePayload,
+	mockRefreshQueryParams,
 	mockUserId,
 } from './mocks';
 
@@ -19,6 +22,7 @@ const FIGMA_API_BASE_URL = getConfig().figma.apiBaseUrl;
 const FIGMA_OAUTH_API_BASE_URL = getConfig().figma.oauthApiBaseUrl;
 
 const FIGMA_OAUTH_TOKEN_ENDPOINT = '/api/oauth/token';
+const FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT = '/api/oauth/refresh';
 const FIGMA_ME_ENDPOINT = '/v1/me';
 const CHECK_3LO_ENDPOINT = '/auth/check3LO';
 const AUTH_CALLBACK_ENDPOINT = '/auth/callback';
@@ -36,7 +40,7 @@ afterEach(async () => {
 });
 
 describe('/check3LO', () => {
-	describe('with valid database entry', () => {
+	describe('with valid OAuth credentials stored', () => {
 		beforeEach(async () => {
 			await figmaOAuth2UserCredentialsRepository.upsert(
 				mockFigmaUserCredentialsCreatePayload,
@@ -51,6 +55,7 @@ describe('/check3LO', () => {
 				.expect(200)
 				.expect({ authorized: true });
 		});
+
 		it('should respond with "authorized: false" if the /me endpoint responds with a 403', () => {
 			nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(403);
 
@@ -60,7 +65,48 @@ describe('/check3LO', () => {
 				.expect({ authorized: false });
 		});
 	});
-	describe('without database entry', () => {
+
+	describe('with expired OAuth credentials stored', () => {
+		beforeEach(async () => {
+			await figmaOAuth2UserCredentialsRepository.upsert(
+				mockExpiredFigmaUserCredentialsCreatePayload,
+			);
+		});
+
+		it('should respond with "authorized: true" if the /me endpoint responds with a non-error response code', async () => {
+			nock(FIGMA_OAUTH_API_BASE_URL)
+				.post(FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT)
+				.query(mockRefreshQueryParams)
+				.reply(200, mockFigmaRefreshAuthResponse);
+			nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(200);
+
+			await request(app)
+				.get(`${CHECK_3LO_ENDPOINT}?userId=${mockUserId}`)
+				.expect(200)
+				.expect({ authorized: true });
+
+			const credentials = await figmaOAuth2UserCredentialsRepository.find(
+				mockExpiredFigmaUserCredentialsCreatePayload.atlassianUserId,
+			);
+			expect(credentials?.accessToken).toEqual('access-token');
+			expect(credentials?.isExpired()).toBeFalsy();
+		});
+
+		it('should respond with "authorized: false" if the credentials could not be refreshed', () => {
+			nock(FIGMA_OAUTH_API_BASE_URL)
+				.post(FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT)
+				.query(mockRefreshQueryParams)
+				.reply(500);
+			nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(200);
+
+			return request(app)
+				.get(`${CHECK_3LO_ENDPOINT}?userId=${mockUserId}`)
+				.expect(200)
+				.expect({ authorized: false });
+		});
+	});
+
+	describe('without OAuth credentials stored', () => {
 		it('should respond with "authorized: false" if no database entry exists', () => {
 			nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(403);
 
@@ -84,6 +130,7 @@ describe('/callback', () => {
 			.expect(302)
 			.expect('Location', SUCCESS_PAGE_URL);
 	});
+
 	it('should redirect to failure page if auth callback to figma fails', () => {
 		nock(FIGMA_OAUTH_API_BASE_URL)
 			.post(FIGMA_OAUTH_TOKEN_ENDPOINT)
