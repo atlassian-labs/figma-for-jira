@@ -6,7 +6,6 @@ import {
 } from '..';
 import { Duration } from '../../../common/duration';
 
-
 export const generateFigmaOAuth2UserCredentials = ({
 	id = Date.now(),
 	atlassianUserId = uuidv4(),
