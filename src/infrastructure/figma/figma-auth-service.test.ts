@@ -4,67 +4,18 @@ import {
 	figmaAuthService,
 	RefreshFigmaCredentialsError,
 } from './figma-auth-service';
+import { figmaClient } from './figma-client';
 import {
-	figmaClient,
-	GetOAuth2TokenResponse,
-	RefreshOAuth2TokenResponse,
-} from './figma-client';
+	generateGetOAuth2TokenResponse,
+	generateRefreshOAuth2TokenResponse,
+} from './testing';
 
 import { Duration } from '../../common/duration';
-import { FigmaOAuth2UserCredentials } from '../../domain/entities';
+import { generateFigmaOAuth2UserCredentials } from '../../domain/entities/testing';
 import { figmaOAuth2UserCredentialsRepository } from '../repositories';
 
 const FIGMA_OAUTH_CODE = uuidv4();
 const ATLASSIAN_USER_ID = uuidv4();
-
-jest.mock('../logger', () => {
-	const original = jest.requireActual('../logger');
-
-	return {
-		__esModule: true,
-		...original,
-		getLogger: () => ({
-			info: jest.fn(),
-			warn: jest.fn(),
-			error: jest.fn(),
-			debug: jest.fn(),
-		}),
-	};
-});
-
-// TODO: Move this code to the shared location.
-const generateFigmaOAuth2UserCredentials = ({
-	id = Date.now(),
-	atlassianUserId = uuidv4(),
-	accessToken = uuidv4(),
-	refreshToken = uuidv4(),
-	expiresAt = new Date(),
-} = {}) =>
-	new FigmaOAuth2UserCredentials(
-		id,
-		atlassianUserId,
-		accessToken,
-		refreshToken,
-		expiresAt,
-	);
-
-const generateGetOAuth2TokenResponse = ({
-	access_token = uuidv4(),
-	refresh_token = uuidv4(),
-	expires_in = 90 * 60 * 60,
-} = {}): GetOAuth2TokenResponse => ({
-	access_token,
-	refresh_token,
-	expires_in,
-});
-
-const generateRefreshOAuth2TokenResponse = ({
-	access_token = uuidv4(),
-	expires_in = 90 * 60 * 60,
-} = {}): RefreshOAuth2TokenResponse => ({
-	access_token,
-	expires_in,
-});
 
 describe('FigmaAuthService', () => {
 	beforeEach(() => {
@@ -109,7 +60,9 @@ describe('FigmaAuthService', () => {
 	describe('getCredentials', () => {
 		it('should return credentials when it is not expired', async () => {
 			const credentials = generateFigmaOAuth2UserCredentials({
-				expiresAt: new Date(Date.now() + Duration.ofMinutes(10000).toMillis()),
+				expiresAt: new Date(
+					Date.now() + Duration.ofMinutes(10000).asMilliseconds,
+				),
 			});
 			jest
 				.spyOn(figmaOAuth2UserCredentialsRepository, 'find')
@@ -128,7 +81,7 @@ describe('FigmaAuthService', () => {
 			jest.setSystemTime(now);
 
 			const credentials = generateFigmaOAuth2UserCredentials({
-				expiresAt: new Date(now - Duration.ofMinutes(30).toMillis()),
+				expiresAt: new Date(now - Duration.ofMinutes(30).asMilliseconds),
 			});
 			const refreshOAuth2TokenResponse = generateRefreshOAuth2TokenResponse();
 			const refreshedCredentials = generateFigmaOAuth2UserCredentials({
@@ -175,7 +128,7 @@ describe('FigmaAuthService', () => {
 			jest.setSystemTime(now);
 
 			const credentials = generateFigmaOAuth2UserCredentials({
-				expiresAt: new Date(now - Duration.ofMinutes(30).toMillis()),
+				expiresAt: new Date(now - Duration.ofMinutes(30).asMilliseconds),
 			});
 
 			jest

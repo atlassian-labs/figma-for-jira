@@ -8,25 +8,9 @@ import {
 import { figmaClient, MeResponse } from './figma-client';
 import { figmaService } from './figma-service';
 
-import { FigmaOAuth2UserCredentials } from '../../domain/entities';
+import { generateFigmaOAuth2UserCredentials } from '../../domain/entities/testing';
 
 const ATLASSIAN_USER_ID = uuidv4();
-
-// TODO: Move this code to the shared location.
-const generateFigmaOAuth2UserCredentials = ({
-	id = Date.now(),
-	atlassianUserId = uuidv4(),
-	accessToken = uuidv4(),
-	refreshToken = uuidv4(),
-	expiresAt = new Date(),
-} = {}) =>
-	new FigmaOAuth2UserCredentials(
-		id,
-		atlassianUserId,
-		accessToken,
-		refreshToken,
-		expiresAt,
-	);
 
 describe('FigmaService', () => {
 	beforeEach(() => {

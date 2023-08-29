@@ -1,24 +1,6 @@
-import { v4 as uuidv4 } from 'uuid';
-
-import { FigmaOAuth2UserCredentials } from './figma-oauth2-user-credentials';
+import { generateFigmaOAuth2UserCredentials } from './testing';
 
 import { Duration } from '../../common/duration';
-
-// TODO: Move this code to the shared location.
-const generateFigmaOAuth2UserCredentials = ({
-	id = Date.now(),
-	atlassianUserId = uuidv4(),
-	accessToken = uuidv4(),
-	refreshToken = uuidv4(),
-	expiresAt = new Date(),
-} = {}) =>
-	new FigmaOAuth2UserCredentials(
-		id,
-		atlassianUserId,
-		accessToken,
-		refreshToken,
-		expiresAt,
-	);
 
 describe('FigmaOAuth2UserCredentials', () => {
 	describe('isExpired', () => {
@@ -35,7 +17,7 @@ describe('FigmaOAuth2UserCredentials', () => {
 			jest.setSystemTime(now);
 
 			const credentials = generateFigmaOAuth2UserCredentials({
-				expiresAt: new Date(now + Duration.ofMinutes(60).toMillis() + 1),
+				expiresAt: new Date(now + Duration.ofMinutes(60).asMilliseconds + 1),
 			});
 
 			expect(credentials.isExpired()).toBe(false);
@@ -46,7 +28,7 @@ describe('FigmaOAuth2UserCredentials', () => {
 			jest.setSystemTime(now);
 
 			const credentials = generateFigmaOAuth2UserCredentials({
-				expiresAt: new Date(now + Duration.ofMinutes(60).toMillis() - 1),
+				expiresAt: new Date(now + Duration.ofMinutes(60).asMilliseconds - 1),
 			});
 
 			expect(credentials.isExpired()).toBe(true);
