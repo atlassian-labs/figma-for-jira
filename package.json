@@ -23,7 +23,9 @@
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"format": "prettier . --write",
-		"format:check": "prettier . --check"
+		"format:check": "prettier . --check",
+		"util:makeTunnel": "./scripts/make-tunnel.sh",
+		"util:updateAppUrl": "ts-node ./scripts/update-app-url.ts"
 	},
 	"dependencies": {
 		"@prisma/client": "^5.1.1",
