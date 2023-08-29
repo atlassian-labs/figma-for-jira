@@ -55,6 +55,7 @@ describe('/check3LO', () => {
 				.expect(200)
 				.expect({ authorized: true });
 		});
+
 		it('should respond with "authorized: false" if the /me endpoint responds with a 403', () => {
 			nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(403);
 
@@ -90,6 +91,7 @@ describe('/check3LO', () => {
 			expect(credentials?.accessToken).toEqual('access-token');
 			expect(credentials?.isExpired()).toBeFalsy();
 		});
+
 		it('should respond with "authorized: false" if the credentials could not be refreshed', () => {
 			nock(FIGMA_OAUTH_API_BASE_URL)
 				.post(FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT)
@@ -128,6 +130,7 @@ describe('/callback', () => {
 			.expect(302)
 			.expect('Location', SUCCESS_PAGE_URL);
 	});
+
 	it('should redirect to failure page if auth callback to figma fails', () => {
 		nock(FIGMA_OAUTH_API_BASE_URL)
 			.post(FIGMA_OAUTH_TOKEN_ENDPOINT)
