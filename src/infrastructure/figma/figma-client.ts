@@ -21,6 +21,39 @@ export type MeResponse = {
 	readonly img_url: string;
 };
 
+export type FileResponse = {
+	readonly name: string;
+	readonly role: string;
+	readonly lastModified: string;
+	readonly editorType: string;
+	readonly thumbnailUrl: string;
+} & FileNode;
+
+type FileNode = {
+	readonly document: NodeDetails;
+};
+
+type NodeDetails = {
+	readonly id: string;
+	readonly name: string;
+	readonly type: string;
+	readonly devStatus?: NodeDevStatus;
+};
+
+export type NodeDevStatus = {
+	type: 'READY_FOR_DEV' | string;
+};
+
+export type FileNodesResponse = {
+	readonly name: string;
+	readonly role: string;
+	readonly lastModified: string;
+	readonly editorType: string;
+	readonly thumbnailUrl: string;
+	readonly err: string;
+	readonly nodes: Record<string, FileNode>;
+};
+
 /**
  * A generic Figma API client.
  *
@@ -93,6 +126,52 @@ export class FigmaClient {
 		const response = await axios.get<MeResponse>(
 			`${getConfig().figma.apiBaseUrl}/v1/me`,
 			{
+				headers: {
+					['Authorization']: `Bearer ${accessToken}`,
+				},
+			},
+		);
+
+		return response.data;
+	};
+
+	/**
+	 * Returns a JSON object representing a Figma file/document including metadata about that file.
+	 *
+	 * @see https://www.figma.com/developers/api#get-files-endpoint
+	 */
+	getFile = async (
+		fileKey: string,
+		accessToken: string,
+	): Promise<FileResponse> => {
+		const response = await axios.get<FileResponse>(
+			`${getConfig().figma.apiBaseUrl}/v1/files/${fileKey}`,
+			{
+				headers: {
+					['Authorization']: `Bearer ${accessToken}`,
+				},
+			},
+		);
+
+		return response.data;
+	};
+
+	/**
+	 * Returns nodes in a Figma file referenced by ids.
+	 *
+	 * @see https://www.figma.com/developers/api#get-file-nodes-endpoint
+	 */
+	getFileNodes = async (
+		fileKey: string,
+		nodeIds: string,
+		accessToken: string,
+	): Promise<FileNodesResponse> => {
+		const response = await axios.get<FileNodesResponse>(
+			`${getConfig().figma.apiBaseUrl}/v1/files/${fileKey}/nodes`,
+			{
+				params: {
+					ids: nodeIds,
+				},
 				headers: {
 					['Authorization']: `Bearer ${accessToken}`,
 				},
