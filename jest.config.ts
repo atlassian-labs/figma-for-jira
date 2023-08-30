@@ -8,6 +8,7 @@ const config: Config = {
 	roots: ['<rootDir>/src'],
 	testRegex: '(\\.|/)(test|spec|it)\\.tsx?$',
 	setupFiles: ['dotenv-expand/config'],
+	clearMocks: true,
 };
 
 export default config;

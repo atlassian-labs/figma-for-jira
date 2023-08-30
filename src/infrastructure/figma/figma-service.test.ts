@@ -13,14 +13,6 @@ import { generateFigmaOAuth2UserCredentials } from '../../domain/entities/testin
 const ATLASSIAN_USER_ID = uuidv4();
 
 describe('FigmaService', () => {
-	beforeEach(() => {
-		jest.clearAllMocks();
-	});
-
-	afterEach(() => {
-		jest.clearAllMocks();
-	});
-
 	describe('validateAuth', () => {
 		it('should return `true` when user is authorized to call Figma API', async () => {
 			const credentials = generateFigmaOAuth2UserCredentials();

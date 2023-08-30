@@ -4,14 +4,6 @@ import { ConnectInstallation } from '../domain/entities';
 import { connectInstallationRepository } from '../infrastructure/repositories';
 
 describe('installedUseCase', () => {
-	beforeEach(() => {
-		jest.clearAllMocks();
-	});
-
-	afterEach(() => {
-		jest.clearAllMocks();
-	});
-
 	it('should call repository layer upsert', async () => {
 		jest
 			.spyOn(connectInstallationRepository, 'upsert')
