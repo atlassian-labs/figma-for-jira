@@ -4,7 +4,7 @@ import { join } from 'path';
 
 import { connectDescriptorGet } from './atlassian-connect';
 import { authRouter } from './auth';
-import { entityRouter } from './entities';
+import { entitiesRouter } from './entities';
 import { lifecycleEventsRouter } from './lifecycle-events';
 
 export const rootRouter = Router();
@@ -25,4 +25,4 @@ rootRouter.use('/lifecycleEvents', lifecycleEventsRouter);
 
 rootRouter.use('/auth', authRouter);
 
-rootRouter.use('/entities', entityRouter);
+rootRouter.use('/entities', entitiesRouter);

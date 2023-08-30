@@ -41,7 +41,7 @@ type NodeDetails = {
 };
 
 export type NodeDevStatus = {
-	type: 'READY_FOR_DEV' | string;
+	type: string;
 };
 
 export type FileNodesResponse = {

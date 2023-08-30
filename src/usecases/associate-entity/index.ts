@@ -1,3 +1,4 @@
+import { getLogger } from '../../infrastructure';
 import { figmaService } from '../../infrastructure/figma';
 import { AssociateEntityPayload } from '../../web/routes/entities';
 
@@ -13,6 +14,7 @@ export const associateEntityUseCase = {
 			atlassianUserId,
 			associateWith,
 		);
+		getLogger().debug(designEntity, 'Successfully fetched design entity');
 		// 2. Call Data Depot to ingest entity
 		// 3. Phone home to Figma
 	},

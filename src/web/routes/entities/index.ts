@@ -19,14 +19,21 @@ export type AssociateEntityPayload = {
 
 export const entitiesRouter = Router();
 
-// TODO: type the User-Context header
 entitiesRouter.post(
 	'/associateEntity',
 	(req: TypedRequest<AssociateEntityPayload>, res, next: NextFunction) => {
-		// TODO: Does this endpoint need JWT middleware?
-		// TODO: Add utility to extract aaid from User-Context header. Fail if header or aaid not present.
+		// TODO: Add JWT middleware
+		// TODO: Determine how we'll get the Atlassian Account ID. Fail if unable to retrieve this.
+		// const userContextToken = req.get('User-Context');
+		// if (!userContextToken) {
+		// 	const missingUserContextTokenMessage =
+		// 		'Request missing User-Context header';
+		// 	getLogger().error(missingUserContextTokenMessage);
+		// 	res.status(400).send(missingUserContextTokenMessage);
+		// 	return;
+		// }
 		associateEntityUseCase
-			.execute({ ...req.body, atlassianUserId: 'TODO' })
+			.execute({ ...req.body, atlassianUserId: '61422f9dff23ba0071782bb7' })
 			// TODO: Response body should be Data Depot schema designs
 			.then((authorized) => res.send({ authorized }))
 			.catch((error) => next(error));
