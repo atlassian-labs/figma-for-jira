@@ -1,6 +1,6 @@
-import { DataDepotDesign } from '../../domain/entities/design';
-import { figmaService } from '../../infrastructure/figma';
-import { AssociateEntityPayload } from '../../web/routes/entities';
+import { DataDepotDesign } from '../domain/entities/design';
+import { figmaService } from '../infrastructure/figma';
+import { AssociateEntityPayload } from '../web/routes/entities';
 
 export const associateEntityUseCase = {
 	execute: async ({

@@ -33,7 +33,6 @@ entitiesRouter.post(
 		}
 		associateEntityUseCase
 			.execute({ ...req.body, atlassianUserId })
-			// TODO: Response body should be Data Depot schema designs
 			.then((design) => res.status(201).send({ design }))
 			.catch((error) => next(error));
 	},

@@ -5,10 +5,10 @@ export enum DesignStatus {
 }
 
 export enum DesignType {
-	FILE = 'FILE', // A collection of multiple design canvases
-	CANVAS = 'CANVAS', // A single page of various designs
-	GROUP = 'GROUP', // A specified group of frames
-	NODE = 'NODE', // A single frame or shape
+	FILE = 'FILE',
+	CANVAS = 'CANVAS',
+	GROUP = 'GROUP',
+	NODE = 'NODE',
 	PROTOTYPE = 'PROTOTYPE',
 	OTHER = 'OTHER',
 }
