@@ -1,6 +1,11 @@
 import { FileNodesResponse, FileResponse, NodeDevStatus } from './figma-client';
 
 import {
+	FIGMA_URL_REGEX,
+	ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
+} from '../../common/constants';
+import { getConfig } from '../../config';
+import {
 	DataDepotDesign,
 	DesignStatus,
 	DesignType,
@@ -36,14 +41,27 @@ export const extractDataFromFigmaUrl = (url: string): FigmaUrlData | null => {
 	};
 };
 
+/**
+ * Validates that a string is a valid Figma URL that will be handled by Figma's embed endpoint,
+ * then transforms that string into a live embed URL and returns it.
+ * @see https://www.figma.com/developers/embed
+ */
 export const buildLiveEmbedUrl = (url: string): string => {
-	// TODO: implement this function
-	return url;
+	if (!FIGMA_URL_REGEX.test(url)) {
+		throw new Error('Not a valid Figma URL');
+	}
+	const urlObject = new URL(`${getConfig().figma.baseUrl}/embed`);
+	urlObject.searchParams.append('embed_host', 'atlassian');
+	urlObject.searchParams.append('url', url);
+	return urlObject.toString();
 };
 
 export const buildInspectUrl = (url: string): string => {
-	// TODO: implement this function
-	return url;
+	const urlObject = new URL(url);
+	urlObject.searchParams.delete('type');
+	urlObject.searchParams.delete('t');
+	urlObject.searchParams.set('mode', 'dev');
+	return urlObject.toString();
 };
 
 export const transformNodeId = (nodeId: string): string => {
@@ -103,13 +121,14 @@ export const transformNodeToDataDepotDesign = ({
 			? mapNodeStatusToDevStatus(node.devStatus)
 			: DesignStatus.NONE,
 		type: mapNodeTypeToDesignType(node.type, isPrototype),
-		// TODO: need to get the last modified of the node once available in Figma's API
-		lastUpdated: fileNodesResponse.lastModified,
-		// TODO: How do we generate this?
-		updateSequenceNumber: '123',
-		// TODO: associationType should be a const
+		// TODO: lastUpdated should come from the app database once polling is added
+		lastUpdated: new Date().toISOString(),
+		updateSequenceNumber: fileNodesResponse.version,
 		addAssociations: [
-			{ associationType: 'issue-has-design', values: [associateWith.ari] },
+			{
+				associationType: ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
+				values: [associateWith.ari],
+			},
 		],
 		removeAssociations: [],
 	};
@@ -136,12 +155,14 @@ export const transformFileToDataDepotDesign = ({
 		inspectUrl: buildInspectUrl(url),
 		status: DesignStatus.NONE,
 		type: isPrototype ? DesignType.PROTOTYPE : DesignType.FILE,
-		lastUpdated: fileResponse.lastModified,
-		// TODO: How do we generate this?
-		updateSequenceNumber: '123',
-		// TODO: associationType should be a const
+		// TODO: lastUpdated should come from the app database once polling is added
+		lastUpdated: new Date().toISOString(),
+		updateSequenceNumber: fileResponse.version,
 		addAssociations: [
-			{ associationType: 'issue-has-design', values: [associateWith.ari] },
+			{
+				associationType: ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
+				values: [associateWith.ari],
+			},
 		],
 		removeAssociations: [],
 	};

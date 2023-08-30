@@ -24,6 +24,7 @@ export type MeResponse = {
 export type FileResponse = {
 	readonly name: string;
 	readonly role: string;
+	readonly version: string;
 	readonly lastModified: string;
 	readonly editorType: string;
 	readonly thumbnailUrl: string;
@@ -47,6 +48,7 @@ export type NodeDevStatus = {
 export type FileNodesResponse = {
 	readonly name: string;
 	readonly role: string;
+	readonly version: string;
 	readonly lastModified: string;
 	readonly editorType: string;
 	readonly thumbnailUrl: string;
