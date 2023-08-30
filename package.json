@@ -15,7 +15,7 @@
 		"start": "tsnd -r dotenv-expand/config --inspect --watch='.env' --respawn -- src/server.ts",
 		"start:sandbox": "./scripts/start-sandbox.sh",
 		"start:tunnel": "run-p util:makeTunnel util:updateAppUrl",
-		"stop:sandbox": "docker-compose down",
+		"stop:sandbox": "./scripts/stop-sandbox.sh",
 		"test": "run-s test:unit test:it",
 		"test:it": "DOTENV_CONFIG_PATH=.env.test jest -c jest.config.integration.ts",
 		"test:it:ci": "run-s start:sandbox db:it:prepare test:it stop:sandbox",
