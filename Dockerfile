@@ -11,6 +11,8 @@ RUN npm run build
 
 FROM node:18-bookworm-slim as app
 
+RUN apt-get update -y && apt-get install -y openssl
+
 RUN mkdir -p /opt/service/ && chown -R node: /opt/service
 WORKDIR /opt/service
 USER node
