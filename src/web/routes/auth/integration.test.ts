@@ -24,152 +24,163 @@ const FIGMA_ME_ENDPOINT = '/v1/me';
 const CHECK_3LO_ENDPOINT = '/auth/check3LO';
 const AUTH_CALLBACK_ENDPOINT = '/auth/callback';
 
-describe('/check3LO', () => {
-	describe('with valid OAuth credentials stored', () => {
-		const validCredentialsParams = generateFigmaUserCredentialsCreateParams();
+const cleanupToken = async (atlassianUserId: string) => {
+	await figmaOAuth2UserCredentialsRepository
+		.delete(atlassianUserId)
+		.catch(console.error);
+};
 
-		beforeEach(async () => {
-			await figmaOAuth2UserCredentialsRepository.upsert(validCredentialsParams);
+describe('/auth', () => {
+	describe('/check3LO', () => {
+		describe('with valid OAuth credentials stored', () => {
+			const validCredentialsParams = generateFigmaUserCredentialsCreateParams();
+
+			beforeEach(async () => {
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					validCredentialsParams,
+				);
+			});
+
+			afterEach(async () => {
+				await cleanupToken(validCredentialsParams.atlassianUserId);
+			});
+
+			it('should respond with "authorized: true" if the /me endpoint responds with a non-error response code', () => {
+				nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(200);
+
+				return request(app)
+					.get(
+						`${CHECK_3LO_ENDPOINT}?userId=${validCredentialsParams.atlassianUserId}`,
+					)
+					.expect(200)
+					.expect({ authorized: true });
+			});
+
+			it('should respond with "authorized: false" if the /me endpoint responds with a 403', () => {
+				nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(403);
+
+				return request(app)
+					.get(
+						`${CHECK_3LO_ENDPOINT}?userId=${validCredentialsParams.atlassianUserId}`,
+					)
+					.expect(200)
+					.expect({ authorized: false });
+			});
 		});
 
-		afterEach(async () => {
-			await figmaOAuth2UserCredentialsRepository
-				.delete(validCredentialsParams.atlassianUserId)
-				.catch(console.log);
+		describe('with expired OAuth credentials stored', () => {
+			const expiredCredentialsParams = generateFigmaUserCredentialsCreateParams(
+				{
+					accessToken: 'expired-access-token',
+					expiresAt: new Date(
+						Date.now() - Duration.ofMinutes(120).asMilliseconds,
+					),
+				},
+			);
+			const refreshTokenQueryParams = generateRefreshOAuth2TokenQueryParams({
+				client_id: getConfig().figma.clientId,
+				client_secret: getConfig().figma.clientSecret,
+				refresh_token: expiredCredentialsParams.refreshToken,
+			});
+
+			beforeEach(async () => {
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					expiredCredentialsParams,
+				);
+			});
+
+			afterEach(async () => {
+				await cleanupToken(expiredCredentialsParams.atlassianUserId);
+			});
+
+			it('should respond with "authorized: true" if the /me endpoint responds with a non-error response code', async () => {
+				const refreshTokenResponse = generateRefreshOAuth2TokenResponse();
+				nock(FIGMA_OAUTH_API_BASE_URL)
+					.post(FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT)
+					.query(refreshTokenQueryParams)
+					.reply(200, refreshTokenResponse);
+				nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(200);
+
+				await request(app)
+					.get(
+						`${CHECK_3LO_ENDPOINT}?userId=${expiredCredentialsParams.atlassianUserId}`,
+					)
+					.expect(200)
+					.expect({ authorized: true });
+
+				const credentials = await figmaOAuth2UserCredentialsRepository.find(
+					expiredCredentialsParams.atlassianUserId,
+				);
+				expect(credentials?.accessToken).toEqual(
+					refreshTokenResponse.access_token,
+				);
+				expect(credentials?.isExpired()).toBeFalsy();
+			});
+
+			it('should respond with "authorized: false" if the credentials could not be refreshed', () => {
+				nock(FIGMA_OAUTH_API_BASE_URL)
+					.post(FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT)
+					.query(refreshTokenQueryParams)
+					.reply(500);
+				nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(200);
+
+				return request(app)
+					.get(
+						`${CHECK_3LO_ENDPOINT}?userId=${expiredCredentialsParams.atlassianUserId}`,
+					)
+					.expect(200)
+					.expect({ authorized: false });
+			});
 		});
 
-		it('should respond with "authorized: true" if the /me endpoint responds with a non-error response code', () => {
-			nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(200);
+		describe('without OAuth credentials stored', () => {
+			it('should respond with "authorized: false" if no database entry exists', async () => {
+				const userId = 'unknown-user-id';
+				nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(403);
 
-			return request(app)
-				.get(
-					`${CHECK_3LO_ENDPOINT}?userId=${validCredentialsParams.atlassianUserId}`,
-				)
-				.expect(200)
-				.expect({ authorized: true });
-		});
-
-		it('should respond with "authorized: false" if the /me endpoint responds with a 403', () => {
-			nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(403);
-
-			return request(app)
-				.get(
-					`${CHECK_3LO_ENDPOINT}?userId=${validCredentialsParams.atlassianUserId}`,
-				)
-				.expect(200)
-				.expect({ authorized: false });
+				return request(app)
+					.get(`/auth/check3LO?userId=${userId}`)
+					.expect(200)
+					.expect({ authorized: false });
+			});
 		});
 	});
 
-	describe('with expired OAuth credentials stored', () => {
-		const expiredCredentialsParams = generateFigmaUserCredentialsCreateParams({
-			accessToken: 'expired-access-token',
-			expiresAt: new Date(Date.now() - Duration.ofMinutes(120).asMilliseconds),
-		});
-		const refreshTokenQueryParams = generateRefreshOAuth2TokenQueryParams({
+	describe('/callback', () => {
+		const userId = 'authorized-user-id';
+		const getTokenQueryParams = generateGetOAuth2TokenQueryParams({
 			client_id: getConfig().figma.clientId,
 			client_secret: getConfig().figma.clientSecret,
-			refresh_token: expiredCredentialsParams.refreshToken,
+			redirect_uri: `${getConfig().app.baseUrl}${AUTH_CALLBACK_ENDPOINT}`,
 		});
 
-		beforeEach(async () => {
-			await figmaOAuth2UserCredentialsRepository.upsert(
-				expiredCredentialsParams,
-			);
-		});
-
-		afterEach(async () => {
-			await figmaOAuth2UserCredentialsRepository
-				.delete(expiredCredentialsParams.atlassianUserId)
-				.catch(console.log);
-		});
-
-		it('should respond with "authorized: true" if the /me endpoint responds with a non-error response code', async () => {
-			const refreshTokenResponse = generateRefreshOAuth2TokenResponse();
+		it('should redirect to success page if auth callback to figma succeeds', () => {
 			nock(FIGMA_OAUTH_API_BASE_URL)
-				.post(FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT)
-				.query(refreshTokenQueryParams)
-				.reply(200, refreshTokenResponse);
-			nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(200);
-
-			await request(app)
-				.get(
-					`${CHECK_3LO_ENDPOINT}?userId=${expiredCredentialsParams.atlassianUserId}`,
-				)
-				.expect(200)
-				.expect({ authorized: true });
-
-			const credentials = await figmaOAuth2UserCredentialsRepository.find(
-				expiredCredentialsParams.atlassianUserId,
-			);
-			expect(credentials?.accessToken).toEqual(
-				refreshTokenResponse.access_token,
-			);
-			expect(credentials?.isExpired()).toBeFalsy();
-		});
-
-		it('should respond with "authorized: false" if the credentials could not be refreshed', () => {
-			nock(FIGMA_OAUTH_API_BASE_URL)
-				.post(FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT)
-				.query(refreshTokenQueryParams)
-				.reply(500);
-			nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(200);
+				.post(FIGMA_OAUTH_TOKEN_ENDPOINT)
+				.query(getTokenQueryParams)
+				.reply(200, generateGetOAuth2TokenResponse());
 
 			return request(app)
 				.get(
-					`${CHECK_3LO_ENDPOINT}?userId=${expiredCredentialsParams.atlassianUserId}`,
+					`${AUTH_CALLBACK_ENDPOINT}?state=${userId}&code=${getTokenQueryParams.code}`,
 				)
-				.expect(200)
-				.expect({ authorized: false });
+				.expect(302)
+				.expect('Location', SUCCESS_PAGE_URL)
+				.then(async () => await cleanupToken(userId));
 		});
-	});
 
-	describe('without OAuth credentials stored', () => {
-		it('should respond with "authorized: false" if no database entry exists', async () => {
-			const userId = 'unknown-user-id';
-			nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(403);
+		it('should redirect to failure page if auth callback to figma fails', () => {
+			nock(FIGMA_OAUTH_API_BASE_URL)
+				.post(FIGMA_OAUTH_TOKEN_ENDPOINT)
+				.query(getTokenQueryParams)
+				.reply(401);
 
 			return request(app)
-				.get(`/auth/check3LO?userId=${userId}`)
-				.expect(200)
-				.expect({ authorized: false });
+				.get(
+					`${AUTH_CALLBACK_ENDPOINT}?state=${userId}&code=${getTokenQueryParams.code}`,
+				)
+				.expect(302)
+				.expect('Location', FAILURE_PAGE_URL);
 		});
-	});
-});
-
-describe('/callback', () => {
-	const userId = 'authorized-user-id';
-	const getTokenQueryParams = generateGetOAuth2TokenQueryParams({
-		client_id: getConfig().figma.clientId,
-		client_secret: getConfig().figma.clientSecret,
-		redirect_uri: `${getConfig().app.baseUrl}${AUTH_CALLBACK_ENDPOINT}`,
-	});
-
-	it('should redirect to success page if auth callback to figma succeeds', () => {
-		nock(FIGMA_OAUTH_API_BASE_URL)
-			.post(FIGMA_OAUTH_TOKEN_ENDPOINT)
-			.query(getTokenQueryParams)
-			.reply(200, generateGetOAuth2TokenResponse());
-
-		return request(app)
-			.get(
-				`${AUTH_CALLBACK_ENDPOINT}?state=${userId}&code=${getTokenQueryParams.code}`,
-			)
-			.expect(302)
-			.expect('Location', SUCCESS_PAGE_URL);
-	});
-
-	it('should redirect to failure page if auth callback to figma fails', () => {
-		nock(FIGMA_OAUTH_API_BASE_URL)
-			.post(FIGMA_OAUTH_TOKEN_ENDPOINT)
-			.query(getTokenQueryParams)
-			.reply(401);
-
-		return request(app)
-			.get(
-				`${AUTH_CALLBACK_ENDPOINT}?state=${userId}&code=${getTokenQueryParams.code}`,
-			)
-			.expect(302)
-			.expect('Location', FAILURE_PAGE_URL);
 	});
 });
