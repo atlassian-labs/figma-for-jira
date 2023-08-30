@@ -46,25 +46,22 @@ export class FigmaService {
 		atlassianUserId: string,
 		associateWith: AssociateWith,
 	): Promise<DataDepotDesign> => {
-		// TODO: Move all validation steps to the top of this function
-		// 1. Validate URL
-		// 2. Validate associateWith ARI
-		// 3. Validate auth
-		const hasValidAuth = await this.validateAuth(atlassianUserId);
-		if (!hasValidAuth) {
-			// TODO: Is throwing the right course of action here?
-			throw new Error('Invalid auth');
-		}
-
-		const { accessToken } =
-			await figmaAuthService.getCredentials(atlassianUserId);
-
 		const urlData = extractDataFromFigmaUrl(url);
 		if (!urlData) {
 			const errorMessage = `Received invalid Figma URL: ${url}`;
 			getLogger().error(errorMessage);
 			throw new Error(errorMessage);
 		}
+
+		// TODO: Validate associateWith ARI shape
+
+		const hasValidAuth = await this.validateAuth(atlassianUserId);
+		if (!hasValidAuth) {
+			throw new Error('Invalid auth');
+		}
+
+		const { accessToken } =
+			await figmaAuthService.getCredentials(atlassianUserId);
 
 		const { fileKey, nodeId, isPrototype } = urlData;
 

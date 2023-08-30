@@ -8,14 +8,13 @@ export const associateEntityUseCase = {
 		associateWith,
 		atlassianUserId,
 	}: AssociateEntityPayload & { atlassianUserId: string }) => {
-		// 1. Fetch an entity from Figma, using figma service
 		const designEntity = await figmaService.fetchDesign(
 			url,
 			atlassianUserId,
 			associateWith,
 		);
 		getLogger().debug(designEntity, 'Successfully fetched design entity');
-		// 2. Call Data Depot to ingest entity
-		// 3. Phone home to Figma
+		// TODO: Call Jira to ingest entity to Data Depot
+		// TODO: Phone home to Figma /dev_resources endpoint
 	},
 };

@@ -26,9 +26,13 @@ entitiesRouter.post(
 		authHeaderAsymmetricJwtMiddleware(req, res, next).then(next).catch(next);
 	},
 	(req: TypedRequest<AssociateEntityPayload>, res, next: NextFunction) => {
-		// TODO: Get the Atlassian Account ID from JWT. Fail if not present.
+		const atlassianUserId = req.headers['User-Context'];
+		if (!atlassianUserId || typeof atlassianUserId !== 'string') {
+			res.status(500).send('Missing or invalid User-Context header');
+			return;
+		}
 		associateEntityUseCase
-			.execute({ ...req.body, atlassianUserId: '61422f9dff23ba0071782bb7' })
+			.execute({ ...req.body, atlassianUserId })
 			// TODO: Response body should be Data Depot schema designs
 			.then((authorized) => res.send({ authorized }))
 			.catch((error) => next(error));
