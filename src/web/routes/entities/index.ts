@@ -26,7 +26,7 @@ entitiesRouter.post(
 		authHeaderAsymmetricJwtMiddleware(req, res, next).then(next).catch(next);
 	},
 	(req: TypedRequest<AssociateEntityPayload>, res, next: NextFunction) => {
-		const atlassianUserId = req.headers['User-Context'];
+		const atlassianUserId = req.headers['user-context'];
 		if (!atlassianUserId || typeof atlassianUserId !== 'string') {
 			res.status(500).send('Missing or invalid User-Context header');
 			return;
@@ -34,8 +34,7 @@ entitiesRouter.post(
 		associateEntityUseCase
 			.execute({ ...req.body, atlassianUserId })
 			// TODO: Response body should be Data Depot schema designs
-			.then((authorized) => res.send({ authorized }))
+			.then((design) => res.status(201).send({ design }))
 			.catch((error) => next(error));
-		res.sendStatus(204);
 	},
 );

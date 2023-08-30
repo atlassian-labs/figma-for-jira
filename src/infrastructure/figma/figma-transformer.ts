@@ -123,7 +123,7 @@ export const transformNodeToDataDepotDesign = ({
 		type: mapNodeTypeToDesignType(node.type, isPrototype),
 		// TODO: lastUpdated should come from the app database once polling is added
 		lastUpdated: new Date().toISOString(),
-		updateSequenceNumber: fileNodesResponse.version,
+		updateSequenceNumber: parseInt(fileNodesResponse.version, 10),
 		addAssociations: [
 			{
 				associationType: ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
@@ -157,7 +157,7 @@ export const transformFileToDataDepotDesign = ({
 		type: isPrototype ? DesignType.PROTOTYPE : DesignType.FILE,
 		// TODO: lastUpdated should come from the app database once polling is added
 		lastUpdated: new Date().toISOString(),
-		updateSequenceNumber: fileResponse.version,
+		updateSequenceNumber: parseInt(fileResponse.version, 10),
 		addAssociations: [
 			{
 				associationType: ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,

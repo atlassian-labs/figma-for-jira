@@ -27,7 +27,7 @@ export type DataDepotDesign = {
 	status: DesignStatus;
 	type: DesignType;
 	lastUpdated: string;
-	updateSequenceNumber: string;
+	updateSequenceNumber: number;
 	addAssociations: Association[];
 	removeAssociations: Association[];
 };
