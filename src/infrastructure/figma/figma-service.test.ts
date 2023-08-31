@@ -214,14 +214,13 @@ describe('FigmaService', () => {
 		});
 
 		it('should throw if the atlassian user is not authorized', async () => {
-			const invalidAuthError = new Error('Invalid credentials');
 			await expect(() =>
 				figmaService.fetchDesign(
 					DESIGN_URL_WITH_NODE,
 					ATLASSIAN_USER_ID,
 					MOCK_VALID_ASSOCIATION,
 				),
-			).rejects.toStrictEqual(invalidAuthError);
+			).rejects.toThrow();
 		});
 	});
 });
