@@ -18,7 +18,7 @@ type Association = {
 	values: string[];
 };
 
-export type DataDepotDesign = {
+export type AtlassianDesign = {
 	id: string;
 	displayName: string;
 	url: string;

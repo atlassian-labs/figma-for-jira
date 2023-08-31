@@ -8,14 +8,25 @@ import {
 import { figmaClient } from './figma-client';
 import {
 	extractDataFromFigmaUrl,
-	transformFileToDataDepotDesign,
-	transformNodeToDataDepotDesign,
+	FigmaUrlData,
+	transformFileToAtlassianDesign,
+	transformNodeToAtlassianDesign,
 } from './figma-transformer';
 
 import { HttpStatus } from '../../common/http-status';
-import { DataDepotDesign } from '../../domain/entities/design';
+import { AtlassianDesign } from '../../domain/entities/design';
 import { AssociateWith } from '../../web/routes/entities';
 import { getLogger } from '../logger';
+
+const validateFigmaUrl = (url: string): FigmaUrlData => {
+	const urlData = extractDataFromFigmaUrl(url);
+	if (!urlData) {
+		const errorMessage = `Received invalid Figma URL: ${url}`;
+		getLogger().error(errorMessage);
+		throw new Error(errorMessage);
+	}
+	return urlData;
+};
 
 export class FigmaService {
 	validateAuth = async (atlassianUserId: string): Promise<boolean> => {
@@ -45,13 +56,8 @@ export class FigmaService {
 		url: string,
 		atlassianUserId: string,
 		associateWith: AssociateWith,
-	): Promise<DataDepotDesign> => {
-		const urlData = extractDataFromFigmaUrl(url);
-		if (!urlData) {
-			const errorMessage = `Received invalid Figma URL: ${url}`;
-			getLogger().error(errorMessage);
-			throw new Error(errorMessage);
-		}
+	): Promise<AtlassianDesign> => {
+		const { fileKey, nodeId, isPrototype } = validateFigmaUrl(url);
 
 		if (!associateWith.ari) {
 			throw new Error('No ARI to associate');
@@ -65,15 +71,13 @@ export class FigmaService {
 		const { accessToken } =
 			await figmaAuthService.getCredentials(atlassianUserId);
 
-		const { fileKey, nodeId, isPrototype } = urlData;
-
 		if (nodeId) {
 			const fileNodesResponse = await figmaClient.getFileNodes(
 				fileKey,
 				nodeId,
 				accessToken,
 			);
-			return transformNodeToDataDepotDesign({
+			return transformNodeToAtlassianDesign({
 				nodeId,
 				url,
 				isPrototype,
@@ -82,7 +86,7 @@ export class FigmaService {
 			});
 		} else {
 			const fileResponse = await figmaClient.getFile(fileKey, accessToken);
-			return transformFileToDataDepotDesign({
+			return transformFileToAtlassianDesign({
 				url,
 				fileKey,
 				isPrototype,

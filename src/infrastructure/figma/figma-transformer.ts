@@ -6,7 +6,7 @@ import {
 } from '../../common/constants';
 import { getConfig } from '../../config';
 import {
-	DataDepotDesign,
+	AtlassianDesign,
 	DesignStatus,
 	DesignType,
 } from '../../domain/entities/design';
@@ -44,7 +44,7 @@ export const extractDataFromFigmaUrl = (url: string): FigmaUrlData | null => {
 
 /**
  * Validates that a string is a valid Figma URL that will be handled by Figma's embed endpoint,
- * then transforms that string into a live embed URL and returns it.
+ * then transforms that string into a live embed URL.
  * @see https://www.figma.com/developers/embed
  */
 export const buildLiveEmbedUrl = (url: string): string => {
@@ -57,6 +57,9 @@ export const buildLiveEmbedUrl = (url: string): string => {
 	return urlObject.toString();
 };
 
+/**
+ * Transforms a regular Figma URL into an Inspect mode URL.
+ */
 export const buildInspectUrl = (url: string): string => {
 	const urlObject = new URL(url);
 	urlObject.searchParams.delete('type');
@@ -69,6 +72,11 @@ export const transformNodeId = (nodeId: string): string => {
 	return nodeId.replace('-', ':');
 };
 
+/**
+ * Maps a Figma devStatus to an Atlassian Design entity status.
+ * @see SECTION on https://www.figma.com/developers/api#node-types
+ * @returns
+ */
 export const mapNodeStatusToDevStatus = (
 	devStatus: NodeDevStatus,
 ): DesignStatus =>
@@ -76,6 +84,11 @@ export const mapNodeStatusToDevStatus = (
 		? DesignStatus.READY_FOR_DEVELOPMENT
 		: DesignStatus.UNKNOWN;
 
+/**
+ * Maps a Figma node type to an Atlassian Design entity type.
+ * @see https://www.figma.com/developers/api#node-types
+ * @returns
+ */
 export const mapNodeTypeToDesignType = (
 	type: string,
 	isPrototype: boolean,
@@ -98,7 +111,7 @@ export const mapNodeTypeToDesignType = (
 	return DesignType.OTHER;
 };
 
-type TransformNodeToDataDepotDesignArgs = {
+type TransformNodeToAtlassianDesignArgs = {
 	nodeId: string;
 	url: string;
 	isPrototype: boolean;
@@ -106,13 +119,13 @@ type TransformNodeToDataDepotDesignArgs = {
 	fileNodesResponse: FileNodesResponse;
 };
 
-export const transformNodeToDataDepotDesign = ({
+export const transformNodeToAtlassianDesign = ({
 	nodeId,
 	url,
 	isPrototype,
 	associateWith,
 	fileNodesResponse,
-}: TransformNodeToDataDepotDesignArgs): DataDepotDesign => {
+}: TransformNodeToAtlassianDesignArgs): AtlassianDesign => {
 	const node = fileNodesResponse.nodes[transformNodeId(nodeId)].document;
 	return {
 		id: node.id,
@@ -137,7 +150,7 @@ export const transformNodeToDataDepotDesign = ({
 	};
 };
 
-type TransformFileToDataDepotDesignArgs = {
+type TransformFileToAtlassianDesignArgs = {
 	url: string;
 	fileKey: string;
 	isPrototype: boolean;
@@ -145,13 +158,13 @@ type TransformFileToDataDepotDesignArgs = {
 	fileResponse: FileResponse;
 };
 
-export const transformFileToDataDepotDesign = ({
+export const transformFileToAtlassianDesign = ({
 	url,
 	fileKey,
 	isPrototype,
 	associateWith,
 	fileResponse,
-}: TransformFileToDataDepotDesignArgs): DataDepotDesign => {
+}: TransformFileToAtlassianDesignArgs): AtlassianDesign => {
 	return {
 		id: fileKey,
 		displayName: fileResponse.name,

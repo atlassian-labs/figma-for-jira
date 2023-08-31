@@ -4,8 +4,8 @@ import {
 	extractDataFromFigmaUrl,
 	mapNodeStatusToDevStatus,
 	mapNodeTypeToDesignType,
-	transformFileToDataDepotDesign,
-	transformNodeToDataDepotDesign,
+	transformFileToAtlassianDesign,
+	transformNodeToAtlassianDesign,
 } from './figma-transformer';
 import {
 	DESIGN_URL_WITH_NODE,
@@ -22,20 +22,20 @@ import {
 
 import { ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE } from '../../common/constants';
 import {
-	DataDepotDesign,
+	AtlassianDesign,
 	DesignStatus,
 	DesignType,
 } from '../../domain/entities/design';
 
 describe('FigmaTransformer', () => {
 	describe('extractDataFromFigmaUrl', () => {
-		it('should return fileKey only if node_id is not provided in the url', () => {
+		it('should return only fileKey and isPrototype if node_id is not provided in the url', () => {
 			expect(extractDataFromFigmaUrl(DESIGN_URL_WITHOUT_NODE)).toStrictEqual({
 				fileKey: MOCK_FILE_KEY,
 				isPrototype: false,
 			});
 		});
-		it('should return fileKey and nodeId if both are present in the url', () => {
+		it('should return fileKey, nodeId and isPrototype if both fileKey and nodeId are present in the url', () => {
 			expect(extractDataFromFigmaUrl(DESIGN_URL_WITH_NODE)).toStrictEqual({
 				fileKey: MOCK_FILE_KEY,
 				nodeId: MOCK_NODE_ID_URL,
@@ -70,12 +70,12 @@ describe('FigmaTransformer', () => {
 	});
 
 	describe('mapNodeStatusToDevStatus', () => {
-		it('should return READY_FOR_DEVELOPMENT if Figma status is "READY_FOR_DEV"', () => {
+		it('should return "READY_FOR_DEVELOPMENT" if Figma status is "READY_FOR_DEV"', () => {
 			expect(mapNodeStatusToDevStatus({ type: 'READY_FOR_DEV' })).toEqual(
 				DesignStatus.READY_FOR_DEVELOPMENT,
 			);
 		});
-		it('should return UNKNOWN for any other status', () => {
+		it('should return "UNKNOWN" for any other status', () => {
 			expect(mapNodeStatusToDevStatus({ type: 'OTHER_STATUS' })).toEqual(
 				DesignStatus.UNKNOWN,
 			);
@@ -99,16 +99,12 @@ describe('FigmaTransformer', () => {
 		);
 	});
 
-	describe('transformNodeToDataDepotDesign', () => {
-		beforeEach(() => {
-			jest.useFakeTimers();
-		});
-
-		it('should correctly map to data depot design', () => {
+	describe('transformNodeToAtlassianDesign', () => {
+		it('should correctly map to atlassian design', () => {
 			const mockApiResponse = mockGetFileNodesResponse({
 				nodeId: MOCK_NODE_ID,
 			});
-			const expected: DataDepotDesign = {
+			const expected: AtlassianDesign = {
 				id: MOCK_NODE_ID,
 				displayName: mockApiResponse.nodes[MOCK_NODE_ID].document.name,
 				url: DESIGN_URL_WITH_NODE,
@@ -127,7 +123,7 @@ describe('FigmaTransformer', () => {
 				removeAssociations: [],
 			};
 
-			const result = transformNodeToDataDepotDesign({
+			const result = transformNodeToAtlassianDesign({
 				nodeId: MOCK_NODE_ID,
 				url: DESIGN_URL_WITH_NODE,
 				isPrototype: false,
@@ -139,10 +135,10 @@ describe('FigmaTransformer', () => {
 		});
 	});
 
-	describe('transformFileToDataDepotDesign', () => {
-		it('should correctly map to data depot design', () => {
+	describe('transformFileToAtlassianDesign', () => {
+		it('should correctly map to atlassian design', () => {
 			const mockApiResponse = mockGetFileResponse({});
-			const expected: DataDepotDesign = {
+			const expected: AtlassianDesign = {
 				id: MOCK_FILE_KEY,
 				displayName: mockApiResponse.name,
 				url: DESIGN_URL_WITHOUT_NODE,
@@ -161,7 +157,7 @@ describe('FigmaTransformer', () => {
 				removeAssociations: [],
 			};
 
-			const result = transformFileToDataDepotDesign({
+			const result = transformFileToAtlassianDesign({
 				url: DESIGN_URL_WITHOUT_NODE,
 				fileKey: MOCK_FILE_KEY,
 				isPrototype: false,

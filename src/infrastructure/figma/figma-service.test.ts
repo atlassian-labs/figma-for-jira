@@ -8,8 +8,8 @@ import {
 import { figmaClient, MeResponse } from './figma-client';
 import { figmaService } from './figma-service';
 import {
-	transformFileToDataDepotDesign,
-	transformNodeToDataDepotDesign,
+	transformFileToAtlassianDesign,
+	transformNodeToAtlassianDesign,
 } from './figma-transformer';
 import {
 	DESIGN_URL_WITH_NODE,
@@ -127,7 +127,7 @@ describe('FigmaService', () => {
 				.mockResolvedValue(credentials);
 			jest.spyOn(figmaClient, 'getFileNodes').mockResolvedValue(mockResponse);
 
-			const expectedEntity = transformNodeToDataDepotDesign({
+			const expectedEntity = transformNodeToAtlassianDesign({
 				nodeId: MOCK_NODE_ID,
 				url: DESIGN_URL_WITH_NODE,
 				isPrototype: false,
@@ -157,7 +157,7 @@ describe('FigmaService', () => {
 				.mockResolvedValue(credentials);
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
 
-			const expectedEntity = transformFileToDataDepotDesign({
+			const expectedEntity = transformFileToAtlassianDesign({
 				url: DESIGN_URL_WITHOUT_NODE,
 				fileKey: MOCK_FILE_KEY,
 				isPrototype: false,

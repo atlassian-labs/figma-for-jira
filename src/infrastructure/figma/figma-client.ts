@@ -159,7 +159,7 @@ export class FigmaClient {
 	};
 
 	/**
-	 * Returns nodes in a Figma file referenced by ids.
+	 * Returns metadata about a Figma file and nodes in that file referenced by ids.
 	 *
 	 * @see https://www.figma.com/developers/api#get-file-nodes-endpoint
 	 */
