@@ -22,9 +22,7 @@ export const entitiesRouter = Router();
 
 entitiesRouter.post(
 	'/associateEntity',
-	(req: TypedRequest<AssociateEntityPayload>, res, next) => {
-		authHeaderSymmetricJwtMiddleware(req, res, next).then(next).catch(next);
-	},
+	authHeaderSymmetricJwtMiddleware,
 	(req: TypedRequest<AssociateEntityPayload>, res, next: NextFunction) => {
 		const atlassianUserId = req.headers['user-context'];
 		if (!atlassianUserId || typeof atlassianUserId !== 'string') {
