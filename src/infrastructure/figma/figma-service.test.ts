@@ -22,12 +22,24 @@ import {
 	MOCK_VALID_ASSOCIATION,
 } from './testing';
 
+import * as configModule from '../../config';
+import { mockConfig } from '../../config/testing';
 import { generateFigmaOAuth2UserCredentials } from '../../domain/entities/testing';
 
 const ATLASSIAN_USER_ID = uuidv4();
 
+jest.mock('../../config', () => {
+	return {
+		...jest.requireActual('../../config'),
+		getConfig: jest.fn(),
+	};
+});
+
 describe('FigmaService', () => {
 	beforeEach(() => {
+		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
+	});
+	afterEach(() => {
 		jest.restoreAllMocks();
 	});
 
