@@ -34,7 +34,7 @@ type FileNode = {
 	readonly document: NodeDetails;
 };
 
-type NodeDetails = {
+export type NodeDetails = {
 	readonly id: string;
 	readonly name: string;
 	readonly type: string;

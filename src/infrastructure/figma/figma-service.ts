@@ -53,7 +53,9 @@ export class FigmaService {
 			throw new Error(errorMessage);
 		}
 
-		// TODO: Validate associateWith ARI shape
+		if (!associateWith.ari) {
+			throw new Error('No ARI to associate');
+		}
 
 		const hasValidAuth = await this.validateAuth(atlassianUserId);
 		if (!hasValidAuth) {
@@ -82,6 +84,7 @@ export class FigmaService {
 			const fileResponse = await figmaClient.getFile(fileKey, accessToken);
 			return transformFileToDataDepotDesign({
 				url,
+				fileKey,
 				isPrototype,
 				associateWith,
 				fileResponse,

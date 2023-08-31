@@ -21,22 +21,23 @@ export type FigmaUrlData = {
 export const extractDataFromFigmaUrl = (url: string): FigmaUrlData | null => {
 	const fileKeyRegex = /file\/([a-zA-Z0-9]+)/;
 	const nodeIdRegex = /node-id=([a-zA-Z0-9-]+)/;
-	const prototypeRegex = /\/proto\//;
+	const prototypeRegex = /proto\/([a-zA-Z0-9]+)/;
 
 	const fileKeyMatch = url.match(fileKeyRegex);
 	const nodeIdMatch = url.match(nodeIdRegex);
+	const prototypeMatch = url.match(prototypeRegex);
 	const isPrototype = prototypeRegex.test(url);
 
-	if (!fileKeyMatch) {
+	if (!fileKeyMatch && !prototypeMatch) {
 		return null;
 	}
 
-	const fileKey = fileKeyMatch[1];
+	const fileKey = fileKeyMatch ? fileKeyMatch[1] : prototypeMatch![1];
 	const nodeId = nodeIdMatch ? nodeIdMatch[1] : undefined;
 
 	return {
 		fileKey,
-		nodeId,
+		...(nodeId && { nodeId }),
 		isPrototype,
 	};
 };
@@ -68,12 +69,14 @@ export const transformNodeId = (nodeId: string): string => {
 	return nodeId.replace('-', ':');
 };
 
-const mapNodeStatusToDevStatus = (devStatus: NodeDevStatus): DesignStatus =>
+export const mapNodeStatusToDevStatus = (
+	devStatus: NodeDevStatus,
+): DesignStatus =>
 	devStatus.type === 'READY_FOR_DEV'
 		? DesignStatus.READY_FOR_DEVELOPMENT
 		: DesignStatus.UNKNOWN;
 
-const mapNodeTypeToDesignType = (
+export const mapNodeTypeToDesignType = (
 	type: string,
 	isPrototype: boolean,
 ): DesignType => {
@@ -136,6 +139,7 @@ export const transformNodeToDataDepotDesign = ({
 
 type TransformFileToDataDepotDesignArgs = {
 	url: string;
+	fileKey: string;
 	isPrototype: boolean;
 	associateWith: AssociateWith;
 	fileResponse: FileResponse;
@@ -143,12 +147,13 @@ type TransformFileToDataDepotDesignArgs = {
 
 export const transformFileToDataDepotDesign = ({
 	url,
+	fileKey,
 	isPrototype,
 	associateWith,
 	fileResponse,
 }: TransformFileToDataDepotDesignArgs): DataDepotDesign => {
 	return {
-		id: fileResponse.document.id,
+		id: fileKey,
 		displayName: fileResponse.name,
 		url,
 		liveEmbedUrl: buildLiveEmbedUrl(url),
