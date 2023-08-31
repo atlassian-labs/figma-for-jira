@@ -85,7 +85,7 @@ export const generateGetFileNodesResponse = ({
 	version?: string;
 	nodeId?: string;
 	document?: NodeDetails;
-}) => ({
+} = {}) => ({
 	name,
 	lastModified,
 	version,
@@ -113,7 +113,7 @@ export const generateGetFileResponse = ({
 	name?: string;
 	lastModified?: string;
 	version?: string;
-}) => ({
+} = {}) => ({
 	name,
 	lastModified,
 	thumbnailUrl: '',

@@ -137,7 +137,7 @@ describe('FigmaTransformer', () => {
 
 	describe('transformFileToAtlassianDesign', () => {
 		it('should correctly map to atlassian design', () => {
-			const mockApiResponse = generateGetFileResponse({});
+			const mockApiResponse = generateGetFileResponse();
 			const expected: AtlassianDesign = {
 				id: MOCK_FILE_KEY,
 				displayName: mockApiResponse.name,
