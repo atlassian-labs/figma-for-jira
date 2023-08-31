@@ -10,15 +10,15 @@ import {
 import {
 	DESIGN_URL_WITH_NODE,
 	DESIGN_URL_WITHOUT_NODE,
+	generateGetFileNodesResponse,
+	generateGetFileResponse,
 	INVALID_DESIGN_URL,
 	MOCK_FILE_KEY,
 	MOCK_NODE_ID,
 	MOCK_NODE_ID_URL,
 	MOCK_VALID_ASSOCIATION,
-	mockGetFileNodesResponse,
-	mockGetFileResponse,
 	PROTOTYPE_URL,
-} from './mocks';
+} from './testing';
 
 import { ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE } from '../../common/constants';
 import {
@@ -101,7 +101,7 @@ describe('FigmaTransformer', () => {
 
 	describe('transformNodeToAtlassianDesign', () => {
 		it('should correctly map to atlassian design', () => {
-			const mockApiResponse = mockGetFileNodesResponse({
+			const mockApiResponse = generateGetFileNodesResponse({
 				nodeId: MOCK_NODE_ID,
 			});
 			const expected: AtlassianDesign = {
@@ -137,7 +137,7 @@ describe('FigmaTransformer', () => {
 
 	describe('transformFileToAtlassianDesign', () => {
 		it('should correctly map to atlassian design', () => {
-			const mockApiResponse = mockGetFileResponse({});
+			const mockApiResponse = generateGetFileResponse({});
 			const expected: AtlassianDesign = {
 				id: MOCK_FILE_KEY,
 				displayName: mockApiResponse.name,

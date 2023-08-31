@@ -14,13 +14,13 @@ import {
 import {
 	DESIGN_URL_WITH_NODE,
 	DESIGN_URL_WITHOUT_NODE,
+	generateGetFileNodesResponse,
+	generateGetFileResponse,
 	INVALID_DESIGN_URL,
 	MOCK_FILE_KEY,
 	MOCK_NODE_ID,
 	MOCK_VALID_ASSOCIATION,
-	mockGetFileNodesResponse,
-	mockGetFileResponse,
-} from './mocks';
+} from './testing';
 
 import { generateFigmaOAuth2UserCredentials } from '../../domain/entities/testing';
 
@@ -103,7 +103,9 @@ describe('FigmaService', () => {
 	describe('fetchDesign', () => {
 		it('should return a valid design entity if a url is provided with a node_id', async () => {
 			const credentials = generateFigmaOAuth2UserCredentials();
-			const mockResponse = mockGetFileNodesResponse({ nodeId: MOCK_NODE_ID });
+			const mockResponse = generateGetFileNodesResponse({
+				nodeId: MOCK_NODE_ID,
+			});
 
 			jest.spyOn(figmaService, 'validateAuth').mockResolvedValue(true);
 			jest
@@ -133,7 +135,7 @@ describe('FigmaService', () => {
 
 		it('should return a valid design entity if a file url is provided (without a node_id)', async () => {
 			const credentials = generateFigmaOAuth2UserCredentials();
-			const mockResponse = mockGetFileResponse({});
+			const mockResponse = generateGetFileResponse({});
 
 			jest.spyOn(figmaService, 'validateAuth').mockResolvedValue(true);
 			jest
