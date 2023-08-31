@@ -21,13 +21,28 @@ import {
 } from './testing';
 
 import { ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE } from '../../common/constants';
+import * as configModule from '../../config';
+import { mockConfig } from '../../config/testing';
 import {
 	AtlassianDesign,
 	DesignStatus,
 	DesignType,
 } from '../../domain/entities/design';
 
+jest.mock('../../config', () => {
+	return {
+		...jest.requireActual('../../config'),
+		getConfig: jest.fn(),
+	};
+});
+
 describe('FigmaTransformer', () => {
+	beforeEach(() => {
+		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
+	});
+	afterEach(() => {
+		jest.restoreAllMocks();
+	});
 	describe('extractDataFromFigmaUrl', () => {
 		it('should return only fileKey and isPrototype if node_id is not provided in the url', () => {
 			expect(extractDataFromFigmaUrl(DESIGN_URL_WITHOUT_NODE)).toStrictEqual({
