@@ -20,9 +20,7 @@ export const lifecycleEventsRouter = Router();
 
 lifecycleEventsRouter.post(
 	'/installed',
-	(req: TypedRequest<ConnectLifecycleEventRequestBody>, res, next) => {
-		authHeaderAsymmetricJwtMiddleware(req, res, next).then(next).catch(next);
-	},
+	authHeaderAsymmetricJwtMiddleware,
 	(req: TypedRequest<ConnectLifecycleEventRequestBody>, res, next) => {
 		const installation: ConnectInstallationCreateParams = {
 			key: req.body.key,
@@ -42,9 +40,7 @@ lifecycleEventsRouter.post(
 
 lifecycleEventsRouter.post(
 	'/enabled',
-	(req: TypedRequest<ConnectLifecycleEventRequestBody>, res, next) => {
-		authHeaderSymmetricJwtMiddleware(req, res, next).then(next).catch(next);
-	},
+	authHeaderSymmetricJwtMiddleware,
 	(req, res) => {
 		// await database.enableJiraTenant(req.body.clientKey);
 		res.sendStatus(204);
@@ -53,9 +49,7 @@ lifecycleEventsRouter.post(
 
 lifecycleEventsRouter.post(
 	'/disabled',
-	(req: TypedRequest<ConnectLifecycleEventRequestBody>, res, next) => {
-		authHeaderSymmetricJwtMiddleware(req, res, next).then(next).catch(next);
-	},
+	authHeaderSymmetricJwtMiddleware,
 	(req, res) => {
 		// await database.disableJiraTenant(req.body.clientKey);
 		res.sendStatus(204);
@@ -64,9 +58,7 @@ lifecycleEventsRouter.post(
 
 lifecycleEventsRouter.post(
 	'/uninstalled',
-	(req: TypedRequest<ConnectLifecycleEventRequestBody>, res, next) => {
-		authHeaderAsymmetricJwtMiddleware(req, res, next).then(next).catch(next);
-	},
+	authHeaderAsymmetricJwtMiddleware,
 	(req, res) => {
 		// const { clientKey } = req.body;
 		// await database.removeJiraTenant(clientKey);
