@@ -21,7 +21,7 @@ const validateAuthToken =
 		} catch (e: unknown) {
 			// TODO: properly handle error from verifySymmetricJWTToken when we re-add the code
 			// res.status(e.status).send(e.message);
-			res.status(500);
+			res.status(500).send();
 		}
 	};
 /**
@@ -29,6 +29,13 @@ const validateAuthToken =
  * Either specifies it as a symmetric (validated using shared secret given in installed lifecycle)
  * or asymmetric token (validated using connect public key based on key id)
  */
-export const authHeaderSymmetricJwtMiddleware = validateAuthToken('symmetric');
-export const authHeaderAsymmetricJwtMiddleware =
-	validateAuthToken('asymmetric');
+export const authHeaderSymmetricJwtMiddleware = (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) => void validateAuthToken('symmetric')(req, res, next);
+export const authHeaderAsymmetricJwtMiddleware = (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) => void validateAuthToken('asymmetric')(req, res, next);
