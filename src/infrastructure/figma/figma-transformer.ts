@@ -15,12 +15,12 @@ import {
 	DesignStatus,
 	DesignType,
 } from '../../domain/entities/design';
-import { AssociateWith } from '../../web/routes/entities';
+import type { AssociateWith } from '../../usecases';
 
 export type FigmaUrlData = {
-	fileKey: string;
-	nodeId?: string;
-	isPrototype: boolean;
+	readonly fileKey: string;
+	readonly nodeId?: string;
+	readonly isPrototype: boolean;
 };
 
 export const extractDataFromFigmaUrl = (url: string): FigmaUrlData | null => {

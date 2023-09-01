@@ -21,7 +21,7 @@ import {
 	AtlassianDesign,
 	FigmaOAuth2UserCredentials,
 } from '../../domain/entities';
-import { AssociateWith } from '../../web/routes/entities';
+import type { AssociateWith } from '../../usecases';
 import { getLogger } from '../logger';
 
 // TODO: Replace with call to Jira service to get issue details
@@ -32,7 +32,7 @@ const getIssueDetailsStub = () => {
 	};
 };
 
-const validateFigmaUrl = (url: string): FigmaUrlData => {
+const extractDataFromFigmaUrlOrThrow = (url: string): FigmaUrlData => {
 	const urlData = extractDataFromFigmaUrl(url);
 	if (!urlData) {
 		const errorMessage = `Received invalid Figma URL: ${url}`;
@@ -73,7 +73,8 @@ export class FigmaService {
 		atlassianUserId: string,
 		associateWith: AssociateWith,
 	): Promise<AtlassianDesign> => {
-		const { fileKey, nodeId, isPrototype } = validateFigmaUrl(url);
+		const { fileKey, nodeId, isPrototype } =
+			extractDataFromFigmaUrlOrThrow(url);
 
 		if (!associateWith.ari) {
 			throw new Error('No ARI to associate');
@@ -116,7 +117,7 @@ export class FigmaService {
 		atlassianUserId: string,
 	): Promise<CreateDevResourcesResponse> => {
 		try {
-			const { fileKey, nodeId } = validateFigmaUrl(url);
+			const { fileKey, nodeId } = extractDataFromFigmaUrlOrThrow(url);
 			const credentials = await this.getValidCredentials(atlassianUserId);
 			if (!credentials) {
 				throw new Error('Invalid auth');
