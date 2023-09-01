@@ -3,9 +3,10 @@ import type { FigmaOAuth2UserCredentials as PrismaFigmaOAuth2UserCredentials } f
 import { getPrismaClient } from './prisma-client';
 
 import { getLogger } from '..';
+import type {
+	FigmaUserCredentialsCreateParams} from '../../domain/entities';
 import {
-	FigmaOAuth2UserCredentials,
-	FigmaUserCredentialsCreateParams,
+	FigmaOAuth2UserCredentials
 } from '../../domain/entities';
 
 export class FigmaOAuth2UserCredentialsRepository {

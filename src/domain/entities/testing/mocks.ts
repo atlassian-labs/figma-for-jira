@@ -1,8 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import type {
+	FigmaUserCredentialsCreateParams} from '..';
 import {
-	FigmaOAuth2UserCredentials,
-	FigmaUserCredentialsCreateParams,
+	FigmaOAuth2UserCredentials
 } from '..';
 import { Duration } from '../../../common/duration';
 

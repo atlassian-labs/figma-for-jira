@@ -6,19 +6,20 @@ import {
 	RefreshFigmaCredentialsError,
 } from './figma-auth-service';
 import { figmaClient } from './figma-client';
+import type {
+	FigmaUrlData} from './figma-transformer';
 import {
 	extractDataFromFigmaUrl,
-	FigmaUrlData,
 	transformFileToAtlassianDesign,
 	transformNodeToAtlassianDesign,
 } from './figma-transformer';
 
 import { HttpStatus } from '../../common/http-status';
-import {
+import type {
 	AtlassianDesign,
 	FigmaOAuth2UserCredentials,
 } from '../../domain/entities';
-import { AssociateWith } from '../../web/routes/entities';
+import type { AssociateWith } from '../../web/routes/entities';
 import { getLogger } from '../logger';
 
 const validateFigmaUrl = (url: string): FigmaUrlData => {

@@ -1,4 +1,5 @@
-import { Request, Response, Router } from 'express';
+import type { Request, Response} from 'express';
+import { Router } from 'express';
 
 import { isString } from '../../../common/stringUtils';
 import { addOAuthCredentialsUseCase, check3loUseCase } from '../../../usecases';

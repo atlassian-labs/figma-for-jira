@@ -1,16 +1,17 @@
-import { FileNodesResponse, FileResponse, NodeDevStatus } from './figma-client';
+import type { FileNodesResponse, FileResponse, NodeDevStatus } from './figma-client';
 
 import {
 	FIGMA_URL_REGEX,
 	ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
 } from '../../common/constants';
 import { getConfig } from '../../config';
+import type {
+	AtlassianDesign} from '../../domain/entities/design';
 import {
-	AtlassianDesign,
 	DesignStatus,
 	DesignType,
 } from '../../domain/entities/design';
-import { AssociateWith } from '../../web/routes/entities';
+import type { AssociateWith } from '../../web/routes/entities';
 
 export type FigmaUrlData = {
 	fileKey: string;
