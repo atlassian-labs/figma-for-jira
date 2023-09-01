@@ -1,4 +1,4 @@
-import { AtlassianDesign } from '../domain/entities/design';
+import type { AtlassianDesign } from '../domain/entities/design';
 import { figmaService } from '../infrastructure/figma';
 
 type Entity = {

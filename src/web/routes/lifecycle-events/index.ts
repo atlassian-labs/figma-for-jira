@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { ConnectInstallationCreateParams } from '../../../domain/entities';
+import type { ConnectInstallationCreateParams } from '../../../domain/entities';
 import { installedUseCase } from '../../../usecases';
 import {
 	authHeaderAsymmetricJwtMiddleware,

@@ -5,11 +5,12 @@ import {
 	NoFigmaCredentialsError,
 	RefreshFigmaCredentialsError,
 } from './figma-auth-service';
-import { CreateDevResourcesResponse, figmaClient } from './figma-client';
+import { figmaClient } from './figma-client';
+import type { CreateDevResourcesResponse } from './figma-client';
+import type { FigmaUrlData } from './figma-transformer';
 import {
 	buildDevResource,
 	extractDataFromFigmaUrl,
-	FigmaUrlData,
 	transformFileToAtlassianDesign,
 	transformNodeId,
 	transformNodeToAtlassianDesign,
@@ -17,7 +18,7 @@ import {
 
 import { DEFAULT_FIGMA_FILE_NODE_ID } from '../../common/constants';
 import { HttpStatus } from '../../common/http-status';
-import {
+import type {
 	AtlassianDesign,
 	FigmaOAuth2UserCredentials,
 } from '../../domain/entities';

@@ -1,16 +1,17 @@
-import { AxiosError, AxiosResponse } from 'axios';
+import type { AxiosResponse } from 'axios';
+import { AxiosError } from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
 	figmaAuthService,
 	NoFigmaCredentialsError,
 } from './figma-auth-service';
-import {
+import type {
 	CreateDevResourcesResponse,
 	DevResourceCreateParams,
-	figmaClient,
 	MeResponse,
 } from './figma-client';
+import { figmaClient } from './figma-client';
 import { figmaService } from './figma-service';
 import {
 	transformFileToAtlassianDesign,

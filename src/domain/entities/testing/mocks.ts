@@ -1,9 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import {
-	FigmaOAuth2UserCredentials,
-	FigmaUserCredentialsCreateParams,
-} from '..';
+import type { FigmaUserCredentialsCreateParams } from '..';
+import { FigmaOAuth2UserCredentials } from '..';
 import { Duration } from '../../../common/duration';
 
 export const generateFigmaOAuth2UserCredentials = ({

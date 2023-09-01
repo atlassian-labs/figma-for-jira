@@ -2,9 +2,9 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { JIRA_ISSUE_ENTITY_TYPE } from '../../../common/constants';
 import { Duration } from '../../../common/duration';
-import type { NodeDetails } from '../figma-client';
-import {
+import type {
 	GetOAuth2TokenResponse,
+	NodeDetails,
 	RefreshOAuth2TokenResponse,
 } from '../figma-client';
 

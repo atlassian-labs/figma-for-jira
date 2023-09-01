@@ -1,4 +1,4 @@
-import {
+import type {
 	DevResourceCreateParams,
 	FileNodesResponse,
 	FileResponse,
@@ -10,11 +10,8 @@ import {
 	ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
 } from '../../common/constants';
 import { getConfig } from '../../config';
-import {
-	AtlassianDesign,
-	DesignStatus,
-	DesignType,
-} from '../../domain/entities/design';
+import type { AtlassianDesign } from '../../domain/entities';
+import { DesignStatus, DesignType } from '../../domain/entities';
 import type { AssociateWith } from '../../usecases';
 
 export type FigmaUrlData = {

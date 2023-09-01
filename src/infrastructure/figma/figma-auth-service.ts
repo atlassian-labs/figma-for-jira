@@ -1,6 +1,6 @@
 import { figmaClient } from './figma-client';
 
-import { FigmaOAuth2UserCredentials } from '../../domain/entities';
+import type { FigmaOAuth2UserCredentials } from '../../domain/entities';
 import { getLogger } from '../logger';
 import { figmaOAuth2UserCredentialsRepository } from '../repositories';
 
