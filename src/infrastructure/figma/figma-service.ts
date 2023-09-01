@@ -6,8 +6,7 @@ import {
 	RefreshFigmaCredentialsError,
 } from './figma-auth-service';
 import { figmaClient } from './figma-client';
-import type {
-	FigmaUrlData} from './figma-transformer';
+import type { FigmaUrlData } from './figma-transformer';
 import {
 	extractDataFromFigmaUrl,
 	transformFileToAtlassianDesign,
