@@ -9,11 +9,11 @@ import {
 	ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
 } from '../../common/constants';
 import { getConfig } from '../../config';
-import type { AtlassianDesign } from '../../domain/entities/design';
+import type { AtlassianDesign } from '../../domain/entities';
 import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
-} from '../../domain/entities/design';
+} from '../../domain/entities';
 import type { AssociateWith } from '../../web/routes/entities';
 
 export type FigmaUrlData = {

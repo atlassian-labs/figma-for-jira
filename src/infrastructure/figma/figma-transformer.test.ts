@@ -23,11 +23,11 @@ import {
 import { ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE } from '../../common/constants';
 import * as configModule from '../../config';
 import { mockConfig } from '../../config/testing';
-import type { AtlassianDesign } from '../../domain/entities/design';
+import type { AtlassianDesign } from '../../domain/entities';
 import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
-} from '../../domain/entities/design';
+} from '../../domain/entities';
 
 jest.mock('../../config', () => {
 	return {
