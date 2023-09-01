@@ -1,5 +1,6 @@
 import { createQueryStringHash, encodeSymmetric } from 'atlassian-jwt';
-import { Duration } from '../../../common/duration';
+
+import type { Duration } from '../../../common/duration';
 
 export type JwtTokenParams = {
 	readonly request: {

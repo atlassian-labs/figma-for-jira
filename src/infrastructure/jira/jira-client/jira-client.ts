@@ -1,17 +1,20 @@
-import axios from 'axios';
-import { createJwtToken } from './jwt-utils';
-import { Duration } from '../../../common/duration';
-import {
-	GetIssueResponse,
-	SubmitDesignsRequest,
-	SubmitDesignsResponse,
-} from './types';
 import Ajv from 'ajv';
-import { getLogger } from '../../logger';
+import axios from 'axios';
+
+import { createJwtToken } from './jwt-utils';
 import {
 	GET_ISSUE_RESPONSE_SCHEMA,
 	SUBMIT_DESIGNS_RESPONSE_SCHEMA,
 } from './schemas';
+import type {
+	GetIssueResponse,
+	SubmitDesignsRequest,
+	SubmitDesignsResponse,
+} from './types';
+
+import { Duration } from '../../../common/duration';
+import { getLogger } from '../../logger';
+
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
 

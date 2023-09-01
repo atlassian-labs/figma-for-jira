@@ -1,5 +1,6 @@
-import { JSONSchemaType } from 'ajv';
-import {
+import type { JSONSchemaType } from 'ajv';
+
+import type {
 	Association,
 	DesignKey,
 	GetIssueResponse,

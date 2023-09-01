@@ -1,5 +1,6 @@
 import { jiraClient } from './jira-client';
-import {
+
+import type {
 	AtlassianDesign,
 	ConnectInstallation,
 	JiraIssue,
@@ -10,7 +11,7 @@ export class JiraService {
 	submitDesign = async (
 		design: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
-	): Promise<any> => {
+	): Promise<void> => {
 		const response = await jiraClient.submitDesigns(
 			{
 				designs: [design],
