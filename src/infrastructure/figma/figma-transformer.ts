@@ -10,7 +10,10 @@ import {
 } from '../../common/constants';
 import { getConfig } from '../../config';
 import type { AtlassianDesign } from '../../domain/entities/design';
-import { DesignStatus, DesignType } from '../../domain/entities/design';
+import {
+	AtlassianDesignStatus,
+	AtlassianDesignType,
+} from '../../domain/entities/design';
 import type { AssociateWith } from '../../web/routes/entities';
 
 export type FigmaUrlData = {
@@ -80,10 +83,10 @@ export const transformNodeId = (nodeId: string): string => {
  */
 export const mapNodeStatusToDevStatus = (
 	devStatus: NodeDevStatus,
-): DesignStatus =>
+): AtlassianDesignStatus =>
 	devStatus.type === 'READY_FOR_DEV'
-		? DesignStatus.READY_FOR_DEVELOPMENT
-		: DesignStatus.UNKNOWN;
+		? AtlassianDesignStatus.READY_FOR_DEVELOPMENT
+		: AtlassianDesignStatus.UNKNOWN;
 
 /**
  * Maps a Figma node type to an Atlassian Design entity type.
@@ -93,23 +96,23 @@ export const mapNodeStatusToDevStatus = (
 export const mapNodeTypeToDesignType = (
 	type: string,
 	isPrototype: boolean,
-): DesignType => {
+): AtlassianDesignType => {
 	if (isPrototype) {
-		return DesignType.PROTOTYPE;
+		return AtlassianDesignType.PROTOTYPE;
 	}
 	if (type === 'DOCUMENT') {
-		return DesignType.FILE;
+		return AtlassianDesignType.FILE;
 	}
 	if (type === 'CANVAS') {
-		return DesignType.CANVAS;
+		return AtlassianDesignType.CANVAS;
 	}
 	if (type === 'SECTION' || type === 'GROUP') {
-		return DesignType.GROUP;
+		return AtlassianDesignType.GROUP;
 	}
 	if (type === 'FRAME') {
-		return DesignType.NODE;
+		return AtlassianDesignType.NODE;
 	}
-	return DesignType.OTHER;
+	return AtlassianDesignType.OTHER;
 };
 
 const getUpdateSequenceNumber = (input: string): number => {
@@ -144,7 +147,7 @@ export const transformNodeToAtlassianDesign = ({
 		inspectUrl: buildInspectUrl(url),
 		status: node.devStatus
 			? mapNodeStatusToDevStatus(node.devStatus)
-			: DesignStatus.NONE,
+			: AtlassianDesignStatus.NONE,
 		type: mapNodeTypeToDesignType(node.type, isPrototype),
 		// TODO: lastUpdated should come from the app database once polling is added
 		lastUpdated: new Date().toISOString(),
@@ -180,8 +183,10 @@ export const transformFileToAtlassianDesign = ({
 		url,
 		liveEmbedUrl: buildLiveEmbedUrl(url),
 		inspectUrl: buildInspectUrl(url),
-		status: DesignStatus.NONE,
-		type: isPrototype ? DesignType.PROTOTYPE : DesignType.FILE,
+		status: AtlassianDesignStatus.NONE,
+		type: isPrototype
+			? AtlassianDesignType.PROTOTYPE
+			: AtlassianDesignType.FILE,
 		// TODO: lastUpdated should come from the app database once polling is added
 		lastUpdated: new Date().toISOString(),
 		updateSequenceNumber: getUpdateSequenceNumber(fileResponse.version),
