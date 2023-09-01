@@ -3,7 +3,7 @@ import type { ConnectInstallation as PrismaConnectInstallation } from '@prisma/c
 import { getPrismaClient } from './prisma-client';
 
 import { getLogger } from '..';
-import {
+import type {
 	ConnectInstallation,
 	ConnectInstallationCreateParams,
 } from '../../domain/entities';

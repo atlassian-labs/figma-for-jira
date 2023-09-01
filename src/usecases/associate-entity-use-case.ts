@@ -1,6 +1,6 @@
-import { AtlassianDesign } from '../domain/entities/design';
+import type { AtlassianDesign } from '../domain/entities/design';
 import { figmaService } from '../infrastructure/figma';
-import { AssociateEntityPayload } from '../web/routes/entities';
+import type { AssociateEntityPayload } from '../web/routes/entities';
 
 export const associateEntityUseCase = {
 	execute: async ({
