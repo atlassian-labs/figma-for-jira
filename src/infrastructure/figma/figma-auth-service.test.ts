@@ -12,7 +12,10 @@ import {
 
 import { Duration } from '../../common/duration';
 import { generateFigmaOAuth2UserCredentials } from '../../domain/entities/testing';
-import { figmaOAuth2UserCredentialsRepository } from '../repositories';
+import {
+	figmaOAuth2UserCredentialsRepository,
+	RepositoryRecordNotFoundError,
+} from '../repositories';
 
 const FIGMA_OAUTH_CODE = uuidv4();
 const ATLASSIAN_USER_ID = uuidv4();
@@ -116,7 +119,7 @@ describe('FigmaAuthService', () => {
 		it('should throw when no credentials', async () => {
 			jest
 				.spyOn(figmaOAuth2UserCredentialsRepository, 'find')
-				.mockResolvedValue(null);
+				.mockRejectedValue(new RepositoryRecordNotFoundError('error'));
 
 			await expect(() =>
 				figmaAuthService.getCredentials(ATLASSIAN_USER_ID),
