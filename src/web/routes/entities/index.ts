@@ -1,4 +1,4 @@
-import type { NextFunction} from 'express';
+import type { NextFunction } from 'express';
 import { Router } from 'express';
 
 import { associateEntityUseCase } from '../../../usecases';
