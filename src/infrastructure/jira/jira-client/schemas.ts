@@ -1,3 +1,7 @@
+/**
+ * Contains JSON schema definitions for Jira API responses. Used for validating the types of incoming data on the entry
+ * points to the application.
+ */
 import type { JSONSchemaType } from 'ajv';
 
 import type {
