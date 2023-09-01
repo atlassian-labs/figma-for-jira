@@ -20,4 +20,7 @@ done;
 if [ "$CI" != "true" ]; then
     echo 'Initialising test DB and user'
     docker exec --env-file "$SCRIPT_DIR"/../.env.test -i "$DB_CONTAINER_NAME" bash < "$SCRIPT_DIR"/init-db.sh
+
+		echo 'Running database migrations'
+		prisma migrate dev
 fi
