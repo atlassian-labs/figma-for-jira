@@ -120,7 +120,7 @@ export class FigmaService {
 			const { fileKey, nodeId } = extractDataFromFigmaUrlOrThrow(url);
 			const credentials = await this.getValidCredentials(atlassianUserId);
 			if (!credentials) {
-				throw new Error('Invalid auth');
+				throw new Error('Invalid credentials');
 			}
 
 			const { accessToken } = credentials;

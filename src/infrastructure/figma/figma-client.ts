@@ -61,7 +61,7 @@ export type DevResource = {
 	name: string;
 	url: string;
 	file_key: string;
-	node_id?: string;
+	node_id: string;
 };
 
 export type DevResourceCreateParams = Omit<DevResource, 'id'>;
@@ -204,6 +204,11 @@ export class FigmaClient {
 		return response.data;
 	};
 
+	/**
+	 * Creates Figma Dev Resources using the POST dev resources endpoint
+	 *
+	 * @see https://www.figma.com/developers/api#post-dev-resources-endpoint
+	 */
 	createDevResources = async (
 		devResources: DevResourceCreateParams[],
 		accessToken: string,

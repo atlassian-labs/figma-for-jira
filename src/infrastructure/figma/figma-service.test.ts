@@ -34,7 +34,6 @@ import * as configModule from '../../config';
 import { mockConfig } from '../../config/testing';
 import { generateFigmaOAuth2UserCredentials } from '../../domain/entities/testing';
 
-const MOCK_CREDENTIALS = generateFigmaOAuth2UserCredentials();
 const ATLASSIAN_USER_ID = uuidv4();
 
 jest.mock('../../config', () => {
@@ -234,6 +233,7 @@ describe('FigmaService', () => {
 	});
 
 	describe('createDevResource', () => {
+		const MOCK_CREDENTIALS = generateFigmaOAuth2UserCredentials();
 		beforeEach(() => {
 			jest
 				.spyOn(figmaService, 'getValidCredentials')
@@ -323,7 +323,7 @@ describe('FigmaService', () => {
 					MOCK_DESIGN_URL_WITH_NODE,
 					ATLASSIAN_USER_ID,
 				),
-			).rejects.toThrow('Invalid auth');
+			).rejects.toThrow('Invalid credentials');
 		});
 	});
 });
