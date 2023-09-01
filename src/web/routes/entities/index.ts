@@ -1,10 +1,8 @@
 import type { NextFunction } from 'express';
 import { Router } from 'express';
 
-import {
-	associateEntityUseCase,
-	AssociateEntityUseCaseParams,
-} from '../../../usecases';
+import type { AssociateEntityUseCaseParams } from '../../../usecases';
+import { associateEntityUseCase } from '../../../usecases';
 import { authHeaderSymmetricJwtMiddleware } from '../../middleware';
 import type { TypedRequest } from '../types';
 
