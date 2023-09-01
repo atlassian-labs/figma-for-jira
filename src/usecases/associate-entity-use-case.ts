@@ -1,4 +1,4 @@
-import type { AtlassianDesign } from '../domain/entities/design';
+import type { AtlassianDesign } from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
 import type { AssociateEntityPayload } from '../web/routes/entities';
 
