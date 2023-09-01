@@ -1,7 +1,6 @@
 import axios from 'axios';
 
 import { getConfig } from '../../config';
-import { getLogger } from '../logger';
 
 export type GetOAuth2TokenResponse = {
 	readonly access_token: string;
