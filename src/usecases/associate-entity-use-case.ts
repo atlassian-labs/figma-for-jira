@@ -1,5 +1,4 @@
 import { AtlassianDesign } from '../domain/entities/design';
-import { getLogger } from '../infrastructure';
 import { figmaService } from '../infrastructure/figma';
 import { AssociateEntityPayload } from '../web/routes/entities';
 
@@ -17,7 +16,7 @@ export const associateEntityUseCase = {
 			associateWith,
 		);
 		// TODO: Call Jira to ingest entity
-		await figmaService.createDevResource(url, atlassianUserId, associateWith);
+		await figmaService.createDevResource(url, atlassianUserId);
 		return designEntity;
 	},
 };

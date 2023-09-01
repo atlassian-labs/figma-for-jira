@@ -5,10 +5,16 @@ import {
 	figmaAuthService,
 	NoFigmaCredentialsError,
 } from './figma-auth-service';
-import { figmaClient, MeResponse } from './figma-client';
+import {
+	CreateDevResourcesResponse,
+	DevResourceCreateParams,
+	figmaClient,
+	MeResponse,
+} from './figma-client';
 import { figmaService } from './figma-service';
 import {
 	transformFileToAtlassianDesign,
+	transformNodeId,
 	transformNodeToAtlassianDesign,
 } from './figma-transformer';
 import {
@@ -19,13 +25,16 @@ import {
 	INVALID_DESIGN_URL,
 	MOCK_FILE_KEY,
 	MOCK_NODE_ID,
+	MOCK_NODE_ID_URL,
 	MOCK_VALID_ASSOCIATION,
 } from './testing';
 
+import { DEFAULT_FIGMA_FILE_NODE_ID } from '../../common/constants';
 import * as configModule from '../../config';
 import { mockConfig } from '../../config/testing';
 import { generateFigmaOAuth2UserCredentials } from '../../domain/entities/testing';
 
+const MOCK_CREDENTIALS = generateFigmaOAuth2UserCredentials();
 const ATLASSIAN_USER_ID = uuidv4();
 
 jest.mock('../../config', () => {
@@ -221,6 +230,91 @@ describe('FigmaService', () => {
 					MOCK_VALID_ASSOCIATION,
 				),
 			).rejects.toThrow();
+		});
+	});
+
+	describe('createDevResource', () => {
+		beforeEach(() => {
+			jest
+				.spyOn(figmaService, 'getValidCredentials')
+				.mockResolvedValue(MOCK_CREDENTIALS);
+			jest
+				.spyOn(figmaAuthService, 'getCredentials')
+				.mockResolvedValue(MOCK_CREDENTIALS);
+		});
+		it('should call figmaClient to create a dev_resource with default 0:0 node_id for a file link', async () => {
+			jest.spyOn(figmaClient, 'createDevResources').mockResolvedValue({
+				links_created: [],
+				errors: [],
+			} as CreateDevResourcesResponse);
+
+			const expectedDevResource: DevResourceCreateParams = {
+				name: 'Test Issue',
+				url: 'https://jira-issue.com/123',
+				file_key: MOCK_FILE_KEY,
+				node_id: DEFAULT_FIGMA_FILE_NODE_ID,
+			};
+
+			await figmaService.createDevResource(
+				DESIGN_URL_WITHOUT_NODE,
+				ATLASSIAN_USER_ID,
+			);
+
+			expect(figmaClient.createDevResources).toHaveBeenCalledWith(
+				[expectedDevResource],
+				MOCK_CREDENTIALS.accessToken,
+			);
+		});
+
+		it('should call figmaClient to create a dev_resource with node_id from URL for links with node_id', async () => {
+			jest.spyOn(figmaClient, 'createDevResources').mockResolvedValue({
+				links_created: [],
+				errors: [],
+			} as CreateDevResourcesResponse);
+
+			const expectedDevResource: DevResourceCreateParams = {
+				name: 'Test Issue',
+				url: 'https://jira-issue.com/123',
+				file_key: MOCK_FILE_KEY,
+				node_id: transformNodeId(MOCK_NODE_ID_URL),
+			};
+
+			await figmaService.createDevResource(
+				DESIGN_URL_WITH_NODE,
+				ATLASSIAN_USER_ID,
+			);
+
+			expect(figmaClient.createDevResources).toHaveBeenCalledWith(
+				[expectedDevResource],
+				MOCK_CREDENTIALS.accessToken,
+			);
+		});
+
+		it('should throw when dev_resource creation fails', async () => {
+			const expectedError = new Error('Dev resource create failed');
+			jest
+				.spyOn(figmaClient, 'createDevResources')
+				.mockRejectedValue(expectedError);
+
+			await expect(() =>
+				figmaService.createDevResource(DESIGN_URL_WITH_NODE, ATLASSIAN_USER_ID),
+			).rejects.toThrow(expectedError);
+		});
+
+		it('should throw if an invalid url is provided', async () => {
+			const invalidUrlError = new Error(
+				`Received invalid Figma URL: ${INVALID_DESIGN_URL}`,
+			);
+			await expect(() =>
+				figmaService.createDevResource(INVALID_DESIGN_URL, ATLASSIAN_USER_ID),
+			).rejects.toThrow(invalidUrlError);
+		});
+
+		it('should throw if the atlassian user is not authorized', async () => {
+			jest.spyOn(figmaService, 'getValidCredentials').mockResolvedValue(null);
+			await expect(() =>
+				figmaService.createDevResource(DESIGN_URL_WITH_NODE, ATLASSIAN_USER_ID),
+			).rejects.toThrow('Invalid auth');
 		});
 	});
 });

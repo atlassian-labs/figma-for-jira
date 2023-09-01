@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import { JIRA_ISSUE_ENTITY_TYPE } from '../../../common/constants';
 import { Duration } from '../../../common/duration';
 import type { NodeDetails } from '../figma-client';
 import {
@@ -23,6 +24,9 @@ export const INVALID_ISSUE_ARI = `ari:cloud:jira:123:issue/${ISSUE_ID}`;
 export const VALID_ISSUE_ARI = `ari:cloud:jira:${SITE_ID}:issue/${ISSUE_ID}`;
 export const MOCK_VALID_ASSOCIATION = {
 	ari: VALID_ISSUE_ARI,
+	id: ISSUE_ID,
+	type: JIRA_ISSUE_ENTITY_TYPE,
+	cloudId: SITE_ID,
 };
 
 export const MOCK_DOCUMENT: NodeDetails = {

@@ -10,10 +10,12 @@ type Entity = {
 
 export type AssociateWith = {
 	readonly ari: string;
+	readonly cloudId: string;
+	readonly type: string;
+	readonly id: string | number;
 };
 
 export type AssociateEntityPayload = {
-	readonly cloudId: string;
 	readonly entity: Entity;
 	readonly associateWith: AssociateWith;
 };

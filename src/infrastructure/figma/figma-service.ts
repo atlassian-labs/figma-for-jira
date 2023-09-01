@@ -24,6 +24,14 @@ import {
 import { AssociateWith } from '../../web/routes/entities';
 import { getLogger } from '../logger';
 
+// TODO: Replace with call to Jira service to get issue details
+const getIssueDetailsStub = () => {
+	return {
+		issueUrl: 'https://jira-issue.com/123',
+		issueTitle: 'Test Issue',
+	};
+};
+
 const validateFigmaUrl = (url: string): FigmaUrlData => {
 	const urlData = extractDataFromFigmaUrl(url);
 	if (!urlData) {
@@ -106,7 +114,6 @@ export class FigmaService {
 	createDevResource = async (
 		url: string,
 		atlassianUserId: string,
-		associateWith: AssociateWith,
 	): Promise<CreateDevResourcesResponse> => {
 		try {
 			const { fileKey, nodeId } = validateFigmaUrl(url);
@@ -117,9 +124,8 @@ export class FigmaService {
 
 			const { accessToken } = credentials;
 
-			// TODO: Call Jira service to get issue details
-			const issueUrl = `https://jira-issue.com/${associateWith.ari}`;
-			const issueTitle = `placeholder-issue-title-${associateWith.ari}`;
+			// TODO: Replace with call to Jira service to get issue details
+			const { issueUrl, issueTitle } = getIssueDetailsStub();
 
 			const devResource = buildDevResource({
 				name: issueTitle,
