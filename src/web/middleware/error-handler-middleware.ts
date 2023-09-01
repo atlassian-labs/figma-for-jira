@@ -10,8 +10,6 @@ export const errorHandlerMiddleware = (
 	res: Response,
 	next: NextFunction,
 ): void => {
-	req.log.error(err);
-
 	// Must delegate to default Express error handler if we've already started writing the response
 	if (res.headersSent) {
 		return next(err);
@@ -25,6 +23,7 @@ export const errorHandlerMiddleware = (
 		return void res.status(404).send(err.message);
 	}
 
+	req.log.error(err);
 	// Pass unhandled errors to default Express error handler
 	next(err);
 };
