@@ -19,12 +19,10 @@ USER node
 
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
-COPY prisma ./prisma
-COPY entrypoint.sh .
 # Copy the compiled JS from the build image
 COPY --from=build /app/build ./
-# Copy the generated Prisma client from build image
-COPY --from=build /app/node_modules/prisma/prisma-client ./node_modules/prisma/prisma-client
+COPY prisma ./prisma
+COPY entrypoint.sh .
 
 EXPOSE 8080
 ENTRYPOINT ["/opt/service/entrypoint.sh"]

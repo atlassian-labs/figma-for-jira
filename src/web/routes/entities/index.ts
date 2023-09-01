@@ -1,7 +1,7 @@
 import { NextFunction, Router } from 'express';
 
 import { associateEntityUseCase } from '../../../usecases';
-import { authHeaderAsymmetricJwtMiddleware } from '../../middleware';
+import { authHeaderSymmetricJwtMiddleware } from '../../middleware';
 import type { TypedRequest } from '../types';
 
 type Entity = {
@@ -22,13 +22,11 @@ export const entitiesRouter = Router();
 
 entitiesRouter.post(
 	'/associateEntity',
-	(req: TypedRequest<AssociateEntityPayload>, res, next) => {
-		authHeaderAsymmetricJwtMiddleware(req, res, next).then(next).catch(next);
-	},
+	authHeaderSymmetricJwtMiddleware,
 	(req: TypedRequest<AssociateEntityPayload>, res, next: NextFunction) => {
 		const atlassianUserId = req.headers['user-context'];
 		if (!atlassianUserId || typeof atlassianUserId !== 'string') {
-			res.status(500).send('Missing or invalid User-Context header');
+			res.status(401).send('Missing or invalid User-Context header');
 			return;
 		}
 		associateEntityUseCase

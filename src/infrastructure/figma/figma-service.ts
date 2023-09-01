@@ -14,7 +14,10 @@ import {
 } from './figma-transformer';
 
 import { HttpStatus } from '../../common/http-status';
-import { AtlassianDesign } from '../../domain/entities/design';
+import {
+	AtlassianDesign,
+	FigmaOAuth2UserCredentials,
+} from '../../domain/entities';
 import { AssociateWith } from '../../web/routes/entities';
 import { getLogger } from '../logger';
 
@@ -29,24 +32,26 @@ const validateFigmaUrl = (url: string): FigmaUrlData => {
 };
 
 export class FigmaService {
-	validateAuth = async (atlassianUserId: string): Promise<boolean> => {
+	getValidCredentials = async (
+		atlassianUserId: string,
+	): Promise<FigmaOAuth2UserCredentials | null> => {
 		try {
 			const credentials =
 				await figmaAuthService.getCredentials(atlassianUserId);
 			await figmaClient.me(credentials.accessToken);
 
-			return true;
+			return credentials;
 		} catch (e: unknown) {
 			if (
 				e instanceof NoFigmaCredentialsError ||
 				e instanceof RefreshFigmaCredentialsError
 			)
-				return false;
+				return null;
 
 			const forbidden =
 				e instanceof AxiosError && e?.response?.status == HttpStatus.FORBIDDEN;
 
-			if (forbidden) return false;
+			if (forbidden) return null;
 
 			throw e;
 		}
@@ -63,13 +68,12 @@ export class FigmaService {
 			throw new Error('No ARI to associate');
 		}
 
-		const hasValidAuth = await this.validateAuth(atlassianUserId);
-		if (!hasValidAuth) {
-			throw new Error('Invalid auth');
+		const credentials = await this.getValidCredentials(atlassianUserId);
+		if (!credentials) {
+			throw new Error('Invalid credentials');
 		}
 
-		const { accessToken } =
-			await figmaAuthService.getCredentials(atlassianUserId);
+		const { accessToken } = credentials;
 
 		if (nodeId) {
 			const fileNodesResponse = await figmaClient.getFileNodes(

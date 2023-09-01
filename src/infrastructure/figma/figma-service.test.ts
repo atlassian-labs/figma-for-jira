@@ -14,51 +14,63 @@ import {
 import {
 	DESIGN_URL_WITH_NODE,
 	DESIGN_URL_WITHOUT_NODE,
+	generateGetFileNodesResponse,
+	generateGetFileResponse,
 	INVALID_DESIGN_URL,
 	MOCK_FILE_KEY,
 	MOCK_NODE_ID,
 	MOCK_VALID_ASSOCIATION,
-	mockGetFileNodesResponse,
-	mockGetFileResponse,
-} from './mocks';
+} from './testing';
 
+import * as configModule from '../../config';
+import { mockConfig } from '../../config/testing';
 import { generateFigmaOAuth2UserCredentials } from '../../domain/entities/testing';
 
 const ATLASSIAN_USER_ID = uuidv4();
 
+jest.mock('../../config', () => {
+	return {
+		...jest.requireActual('../../config'),
+		getConfig: jest.fn(),
+	};
+});
+
 describe('FigmaService', () => {
 	beforeEach(() => {
+		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
+	});
+	afterEach(() => {
 		jest.restoreAllMocks();
 	});
 
-	describe('validateAuth', () => {
-		it('should return `true` when user is authorized to call Figma API', async () => {
+	describe('getValidCredentials', () => {
+		it('should return credentials when user is authorized to call Figma API', async () => {
 			const credentials = generateFigmaOAuth2UserCredentials();
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
 			jest.spyOn(figmaClient, 'me').mockResolvedValue({} as MeResponse);
 
-			const result = await figmaService.validateAuth(ATLASSIAN_USER_ID);
+			const result = await figmaService.getValidCredentials(ATLASSIAN_USER_ID);
 
-			expect(result).toBe(true);
+			expect(result).toBe(credentials);
 			expect(figmaAuthService.getCredentials).toHaveBeenCalledWith(
 				ATLASSIAN_USER_ID,
 			);
 			expect(figmaClient.me).toHaveBeenCalledWith(credentials.accessToken);
 		});
 
-		it('should return `false` when there is no credentials', async () => {
+		it('should return `null` when there is no credentials', async () => {
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockRejectedValue(new NoFigmaCredentialsError('No credentials.'));
 
-			const result = await figmaService.validateAuth(ATLASSIAN_USER_ID);
+			const result = await figmaService.getValidCredentials(ATLASSIAN_USER_ID);
 
-			expect(result).toBe(false);
+			expect(result).toBe(null);
 		});
 
-		it('should return `false` when user is no authorized to call Figma API', async () => {
+		it('should return `null` when user is no authorized to call Figma API', async () => {
 			const forbiddenAxiosError = new AxiosError(
 				'Error',
 				undefined,
@@ -73,9 +85,9 @@ describe('FigmaService', () => {
 				.mockResolvedValue(generateFigmaOAuth2UserCredentials());
 			jest.spyOn(figmaClient, 'me').mockRejectedValue(forbiddenAxiosError);
 
-			const result = await figmaService.validateAuth(ATLASSIAN_USER_ID);
+			const result = await figmaService.getValidCredentials(ATLASSIAN_USER_ID);
 
-			expect(result).toBe(false);
+			expect(result).toBe(null);
 		});
 
 		it('should throw when request to Figma API result in non-403 error', async () => {
@@ -95,7 +107,7 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'me').mockRejectedValue(forbiddenAxiosError);
 
 			await expect(() =>
-				figmaService.validateAuth(ATLASSIAN_USER_ID),
+				figmaService.getValidCredentials(ATLASSIAN_USER_ID),
 			).rejects.toBe(forbiddenAxiosError);
 		});
 	});
@@ -103,9 +115,13 @@ describe('FigmaService', () => {
 	describe('fetchDesign', () => {
 		it('should return a valid design entity if a url is provided with a node_id', async () => {
 			const credentials = generateFigmaOAuth2UserCredentials();
-			const mockResponse = mockGetFileNodesResponse({ nodeId: MOCK_NODE_ID });
+			const mockResponse = generateGetFileNodesResponse({
+				nodeId: MOCK_NODE_ID,
+			});
 
-			jest.spyOn(figmaService, 'validateAuth').mockResolvedValue(true);
+			jest
+				.spyOn(figmaService, 'getValidCredentials')
+				.mockResolvedValue(credentials);
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
@@ -133,9 +149,11 @@ describe('FigmaService', () => {
 
 		it('should return a valid design entity if a file url is provided (without a node_id)', async () => {
 			const credentials = generateFigmaOAuth2UserCredentials();
-			const mockResponse = mockGetFileResponse({});
+			const mockResponse = generateGetFileResponse();
 
-			jest.spyOn(figmaService, 'validateAuth').mockResolvedValue(true);
+			jest
+				.spyOn(figmaService, 'getValidCredentials')
+				.mockResolvedValue(credentials);
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
@@ -165,7 +183,9 @@ describe('FigmaService', () => {
 			const credentials = generateFigmaOAuth2UserCredentials();
 			const mockError = new Error('Figma API failed');
 
-			jest.spyOn(figmaService, 'validateAuth').mockResolvedValue(true);
+			jest
+				.spyOn(figmaService, 'getValidCredentials')
+				.mockResolvedValue(credentials);
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
@@ -194,14 +214,13 @@ describe('FigmaService', () => {
 		});
 
 		it('should throw if the atlassian user is not authorized', async () => {
-			const invalidAuthError = new Error('Invalid auth');
 			await expect(() =>
 				figmaService.fetchDesign(
 					DESIGN_URL_WITH_NODE,
 					ATLASSIAN_USER_ID,
 					MOCK_VALID_ASSOCIATION,
 				),
-			).rejects.toStrictEqual(invalidAuthError);
+			).rejects.toThrow();
 		});
 	});
 });

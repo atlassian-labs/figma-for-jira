@@ -111,6 +111,14 @@ export const mapNodeTypeToDesignType = (
 	return DesignType.OTHER;
 };
 
+const getUpdateSequenceNumber = (input: string): number => {
+	const updateSequenceNumber = parseInt(input, 10);
+	if (isNaN(updateSequenceNumber)) {
+		throw new Error('Could not convert version to update sequence number');
+	}
+	return updateSequenceNumber;
+};
+
 type TransformNodeToAtlassianDesignArgs = {
 	nodeId: string;
 	url: string;
@@ -139,7 +147,7 @@ export const transformNodeToAtlassianDesign = ({
 		type: mapNodeTypeToDesignType(node.type, isPrototype),
 		// TODO: lastUpdated should come from the app database once polling is added
 		lastUpdated: new Date().toISOString(),
-		updateSequenceNumber: parseInt(fileNodesResponse.version, 10),
+		updateSequenceNumber: getUpdateSequenceNumber(fileNodesResponse.version),
 		addAssociations: [
 			{
 				associationType: ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
@@ -175,7 +183,7 @@ export const transformFileToAtlassianDesign = ({
 		type: isPrototype ? DesignType.PROTOTYPE : DesignType.FILE,
 		// TODO: lastUpdated should come from the app database once polling is added
 		lastUpdated: new Date().toISOString(),
-		updateSequenceNumber: parseInt(fileResponse.version, 10),
+		updateSequenceNumber: getUpdateSequenceNumber(fileResponse.version),
 		addAssociations: [
 			{
 				associationType: ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
