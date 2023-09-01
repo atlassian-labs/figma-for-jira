@@ -14,7 +14,7 @@
 		"db:reset:test": "dotenv -e .env.test -- prisma migrate reset -f",
 		"jira:installApp": "./scripts/app-install.sh",
 		"start": "tsnd -r dotenv-expand/config --inspect --watch='.env' --respawn -- src/server.ts",
-		"start:sandbox": "run-s util:startSandbox db:migrate",
+		"start:sandbox": "run-s util:startSandbox db:reset:test",
 		"start:tunnel": "run-p util:makeTunnel util:updateAppUrl",
 		"stop:sandbox": "./scripts/stop-sandbox.sh",
 		"test": "run-s test:unit test:it",
