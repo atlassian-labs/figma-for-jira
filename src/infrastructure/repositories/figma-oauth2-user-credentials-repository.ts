@@ -1,8 +1,8 @@
 import type { FigmaOAuth2UserCredentials as PrismaFigmaOAuth2UserCredentials } from '@prisma/client';
 
+import { RepositoryRecordNotFoundError } from './errors';
 import { getPrismaClient } from './prisma-client';
 
-import { getLogger } from '..';
 import {
 	FigmaOAuth2UserCredentials,
 	FigmaUserCredentialsCreateParams,
@@ -11,63 +11,39 @@ import {
 export class FigmaOAuth2UserCredentialsRepository {
 	find = async (
 		atlassianUserId: string,
-	): Promise<FigmaOAuth2UserCredentials | null> => {
-		try {
-			const credentials =
-				await getPrismaClient().figmaOAuth2UserCredentials.findFirst({
-					where: { atlassianUserId },
-				});
-
-			if (!credentials) return null;
-
-			return this.mapToDomainModel(credentials);
-		} catch (err) {
-			getLogger().error(
-				err,
-				'Failed to retrieve credentials for atlassianUserId: %s',
-				atlassianUserId,
+	): Promise<FigmaOAuth2UserCredentials> => {
+		const credentials =
+			await getPrismaClient().figmaOAuth2UserCredentials.findFirst({
+				where: { atlassianUserId },
+			});
+		if (credentials === null) {
+			throw new RepositoryRecordNotFoundError(
+				`Failed to find FigmaOAuth2UserCredentials with atlassianUserId ${atlassianUserId}`,
 			);
-			throw err;
 		}
+
+		return this.mapToDomainModel(credentials);
 	};
 
 	upsert = async (
 		credentials: FigmaUserCredentialsCreateParams,
 	): Promise<FigmaOAuth2UserCredentials> => {
-		try {
-			const params: Omit<PrismaFigmaOAuth2UserCredentials, 'id'> = credentials;
-			const result = await getPrismaClient().figmaOAuth2UserCredentials.upsert({
-				create: params,
-				update: params,
-				where: { atlassianUserId: credentials.atlassianUserId },
-			});
-			return this.mapToDomainModel(result);
-		} catch (err) {
-			getLogger().error(
-				err,
-				'Failed to upsert credentials for user %s',
-				credentials.atlassianUserId,
-			);
-			throw err;
-		}
+		const params: Omit<PrismaFigmaOAuth2UserCredentials, 'id'> = credentials;
+		const result = await getPrismaClient().figmaOAuth2UserCredentials.upsert({
+			create: params,
+			update: params,
+			where: { atlassianUserId: credentials.atlassianUserId },
+		});
+		return this.mapToDomainModel(result);
 	};
 
 	delete = async (
 		atlassianUserId: string,
 	): Promise<FigmaOAuth2UserCredentials> => {
-		try {
-			const result = await getPrismaClient().figmaOAuth2UserCredentials.delete({
-				where: { atlassianUserId },
-			});
-			return this.mapToDomainModel(result);
-		} catch (err) {
-			getLogger().error(
-				err,
-				'Failed to delete credentials for user %s',
-				atlassianUserId,
-			);
-			throw err;
-		}
+		const result = await getPrismaClient().figmaOAuth2UserCredentials.delete({
+			where: { atlassianUserId },
+		});
+		return this.mapToDomainModel(result);
 	};
 
 	private mapToDomainModel = (

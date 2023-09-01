@@ -1,7 +1,7 @@
 import { fromExpressRequest } from 'atlassian-jwt';
 import { NextFunction, Request, Response } from 'express';
 
-import { verifyAsymmetricJWTToken, verifySymmetricJWTToken } from './jwt-utils';
+import { verifyAsymmetricJwtToken, verifySymmetricJwtToken } from './jwt-utils';
 
 const validateAuthToken =
 	(type: 'symmetric' | 'asymmetric') =>
@@ -12,16 +12,14 @@ const validateAuthToken =
 			const request = fromExpressRequest(req);
 			switch (type) {
 				case 'symmetric':
-					res.locals.jiraTenant = await verifySymmetricJWTToken(request, token);
+					res.locals.jiraTenant = await verifySymmetricJwtToken(request, token);
 					break;
 				case 'asymmetric':
-					await verifyAsymmetricJWTToken(request, token);
+					await verifyAsymmetricJwtToken(request, token);
 			}
 			next();
 		} catch (e: unknown) {
-			// TODO: properly handle error from verifySymmetricJWTToken when we re-add the code
-			// res.status(e.status).send(e.message);
-			res.status(500).send();
+			next(e);
 		}
 	};
 /**

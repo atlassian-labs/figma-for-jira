@@ -34,27 +34,22 @@ export class FigmaClient {
 	 * @see https://www.figma.com/developers/api#oauth2
 	 */
 	getOAuth2Token = async (code: string): Promise<GetOAuth2TokenResponse> => {
-		try {
-			const params = new URLSearchParams();
-			params.append('client_id', getConfig().figma.clientId);
-			params.append('client_secret', getConfig().figma.clientSecret);
-			params.append('redirect_uri', `${getConfig().app.baseUrl}/auth/callback`);
-			params.append('code', code);
-			params.append('grant_type', 'authorization_code');
+		const params = new URLSearchParams();
+		params.append('client_id', getConfig().figma.clientId);
+		params.append('client_secret', getConfig().figma.clientSecret);
+		params.append('redirect_uri', `${getConfig().app.baseUrl}/auth/callback`);
+		params.append('code', code);
+		params.append('grant_type', 'authorization_code');
 
-			const response = await axios.post<GetOAuth2TokenResponse>(
-				`${getConfig().figma.oauthApiBaseUrl}/api/oauth/token`,
-				null,
-				{
-					params,
-				},
-			);
+		const response = await axios.post<GetOAuth2TokenResponse>(
+			`${getConfig().figma.oauthApiBaseUrl}/api/oauth/token`,
+			null,
+			{
+				params,
+			},
+		);
 
-			return response.data;
-		} catch (error: unknown) {
-			getLogger().error(`Failed to exchange code for access token.`, error);
-			throw error;
-		}
+		return response.data;
 	};
 
 	/**
@@ -65,23 +60,18 @@ export class FigmaClient {
 	refreshOAuth2Token = async (
 		refreshToken: string,
 	): Promise<RefreshOAuth2TokenResponse> => {
-		try {
-			const params = new URLSearchParams();
-			params.append('client_id', getConfig().figma.clientId);
-			params.append('client_secret', getConfig().figma.clientSecret);
-			params.append('refresh_token', refreshToken);
+		const params = new URLSearchParams();
+		params.append('client_id', getConfig().figma.clientId);
+		params.append('client_secret', getConfig().figma.clientSecret);
+		params.append('refresh_token', refreshToken);
 
-			const response = await axios.post<RefreshOAuth2TokenResponse>(
-				`${getConfig().figma.oauthApiBaseUrl}/api/oauth/refresh`,
-				null,
-				{ params },
-			);
+		const response = await axios.post<RefreshOAuth2TokenResponse>(
+			`${getConfig().figma.oauthApiBaseUrl}/api/oauth/refresh`,
+			null,
+			{ params },
+		);
 
-			return response.data;
-		} catch (error: unknown) {
-			getLogger().error(`Failed to refresh access token.`, error);
-			throw error;
-		}
+		return response.data;
 	};
 
 	/**

@@ -1,8 +1,8 @@
 import type { ConnectInstallation as PrismaConnectInstallation } from '@prisma/client';
 
+import { RepositoryRecordNotFoundError } from './errors';
 import { getPrismaClient } from './prisma-client';
 
-import { getLogger } from '..';
 import {
 	ConnectInstallation,
 	ConnectInstallationCreateParams,
@@ -10,28 +10,26 @@ import {
 
 export class ConnectInstallationRepository {
 	find = async (key: string): Promise<ConnectInstallation> => {
-		const result = await getPrismaClient().connectInstallation.findFirstOrThrow(
-			{
-				where: { key },
-			},
-		);
+		const result = await getPrismaClient().connectInstallation.findFirst({
+			where: { key },
+		});
+		if (result === null) {
+			throw new RepositoryRecordNotFoundError(
+				`Failed to find ConnectInstallation with key ${key}`,
+			);
+		}
 		return this.mapToDomainModel(result);
 	};
 
 	upsert = async (
 		installation: ConnectInstallationCreateParams,
 	): Promise<ConnectInstallation> => {
-		try {
-			const result = await getPrismaClient().connectInstallation.upsert({
-				create: installation,
-				update: installation,
-				where: { key: installation.key },
-			});
-			return this.mapToDomainModel(result);
-		} catch (e: unknown) {
-			getLogger().error(e, 'Failed to upsert %s', installation.key);
-			throw e;
-		}
+		const result = await getPrismaClient().connectInstallation.upsert({
+			create: installation,
+			update: installation,
+			where: { key: installation.key },
+		});
+		return this.mapToDomainModel(result);
 	};
 
 	private mapToDomainModel = ({
