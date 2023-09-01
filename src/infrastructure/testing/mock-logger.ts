@@ -2,6 +2,7 @@
 
 jest.mock('../../infrastructure/logger', () => {
 	const original = jest.requireActual<
+		// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 		typeof import('../../infrastructure/logger')
 	>('../../infrastructure/logger');
 

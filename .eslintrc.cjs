@@ -52,6 +52,7 @@ module.exports = {
         ],
       },
     ],
+    '@typescript-eslint/consistent-type-imports': 'error',
   },
   settings: {
     'import/resolver': {

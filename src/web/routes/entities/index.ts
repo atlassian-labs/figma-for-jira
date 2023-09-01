@@ -1,4 +1,5 @@
-import { NextFunction, Router } from 'express';
+import type { NextFunction } from 'express';
+import { Router } from 'express';
 
 import { associateEntityUseCase } from '../../../usecases';
 import { authHeaderSymmetricJwtMiddleware } from '../../middleware';

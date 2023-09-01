@@ -1,4 +1,5 @@
-import { DestinationStream, Logger, pino } from 'pino';
+import type { DestinationStream, Logger } from 'pino';
+import { pino } from 'pino';
 
 import { getConfig } from '../config';
 
