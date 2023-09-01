@@ -10,10 +10,10 @@ import {
 
 export const MOCK_NODE_ID_URL = '1-2';
 export const MOCK_FILE_KEY = '5BnX6YnPJOvOHRdiB0seWx';
-export const PROTOTYPE_URL = `https://www.figma.com/proto/${MOCK_FILE_KEY}/Design?node-id=${MOCK_NODE_ID_URL}`;
-export const DESIGN_URL_WITH_NODE = `https://www.figma.com/file/${MOCK_FILE_KEY}/Design?node-id=${MOCK_NODE_ID_URL}&mode=dev`;
-export const DESIGN_URL_WITHOUT_NODE = `https://www.figma.com/file/${MOCK_FILE_KEY}/Design?mode=dev`;
-export const INVALID_DESIGN_URL = 'https://www.figma.com';
+export const MOCK_PROTOTYPE_URL = `https://www.figma.com/proto/${MOCK_FILE_KEY}/Design?node-id=${MOCK_NODE_ID_URL}`;
+export const MOCK_DESIGN_URL_WITH_NODE = `https://www.figma.com/file/${MOCK_FILE_KEY}/Design?node-id=${MOCK_NODE_ID_URL}&mode=dev`;
+export const MOCK_DESIGN_URL_WITHOUT_NODE = `https://www.figma.com/file/${MOCK_FILE_KEY}/Design?mode=dev`;
+export const MOCK_INVALID_DESIGN_URL = 'https://www.figma.com';
 export const MOCK_FILE_NAME = 'Test File';
 export const MOCK_NODE_ID = '1:2';
 export const MOCK_LAST_MODIFIED = '2023-08-29T03:17:29Z';

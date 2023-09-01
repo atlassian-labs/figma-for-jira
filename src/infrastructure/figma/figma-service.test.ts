@@ -18,12 +18,12 @@ import {
 	transformNodeToAtlassianDesign,
 } from './figma-transformer';
 import {
-	DESIGN_URL_WITH_NODE,
-	DESIGN_URL_WITHOUT_NODE,
 	generateGetFileNodesResponse,
 	generateGetFileResponse,
-	INVALID_DESIGN_URL,
+	MOCK_DESIGN_URL_WITH_NODE,
+	MOCK_DESIGN_URL_WITHOUT_NODE,
 	MOCK_FILE_KEY,
+	MOCK_INVALID_DESIGN_URL,
 	MOCK_NODE_ID,
 	MOCK_NODE_ID_URL,
 	MOCK_VALID_ASSOCIATION,
@@ -138,14 +138,14 @@ describe('FigmaService', () => {
 
 			const expectedEntity = transformNodeToAtlassianDesign({
 				nodeId: MOCK_NODE_ID,
-				url: DESIGN_URL_WITH_NODE,
+				url: MOCK_DESIGN_URL_WITH_NODE,
 				isPrototype: false,
 				associateWith: MOCK_VALID_ASSOCIATION,
 				fileNodesResponse: mockResponse,
 			});
 
 			const res = await figmaService.fetchDesign(
-				DESIGN_URL_WITH_NODE,
+				MOCK_DESIGN_URL_WITH_NODE,
 				ATLASSIAN_USER_ID,
 				MOCK_VALID_ASSOCIATION,
 			);
@@ -169,7 +169,7 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
 
 			const expectedEntity = transformFileToAtlassianDesign({
-				url: DESIGN_URL_WITHOUT_NODE,
+				url: MOCK_DESIGN_URL_WITHOUT_NODE,
 				fileKey: MOCK_FILE_KEY,
 				isPrototype: false,
 				associateWith: MOCK_VALID_ASSOCIATION,
@@ -177,7 +177,7 @@ describe('FigmaService', () => {
 			});
 
 			const res = await figmaService.fetchDesign(
-				DESIGN_URL_WITHOUT_NODE,
+				MOCK_DESIGN_URL_WITHOUT_NODE,
 				ATLASSIAN_USER_ID,
 				MOCK_VALID_ASSOCIATION,
 			);
@@ -202,7 +202,7 @@ describe('FigmaService', () => {
 
 			await expect(
 				figmaService.fetchDesign(
-					DESIGN_URL_WITHOUT_NODE,
+					MOCK_DESIGN_URL_WITHOUT_NODE,
 					ATLASSIAN_USER_ID,
 					MOCK_VALID_ASSOCIATION,
 				),
@@ -211,11 +211,11 @@ describe('FigmaService', () => {
 
 		it('should throw if an invalid url is provided', async () => {
 			const invalidUrlError = new Error(
-				`Received invalid Figma URL: ${INVALID_DESIGN_URL}`,
+				`Received invalid Figma URL: ${MOCK_INVALID_DESIGN_URL}`,
 			);
 			await expect(() =>
 				figmaService.fetchDesign(
-					INVALID_DESIGN_URL,
+					MOCK_INVALID_DESIGN_URL,
 					ATLASSIAN_USER_ID,
 					MOCK_VALID_ASSOCIATION,
 				),
@@ -225,7 +225,7 @@ describe('FigmaService', () => {
 		it('should throw if the atlassian user is not authorized', async () => {
 			await expect(() =>
 				figmaService.fetchDesign(
-					DESIGN_URL_WITH_NODE,
+					MOCK_DESIGN_URL_WITH_NODE,
 					ATLASSIAN_USER_ID,
 					MOCK_VALID_ASSOCIATION,
 				),
@@ -256,7 +256,7 @@ describe('FigmaService', () => {
 			};
 
 			await figmaService.createDevResource(
-				DESIGN_URL_WITHOUT_NODE,
+				MOCK_DESIGN_URL_WITHOUT_NODE,
 				ATLASSIAN_USER_ID,
 			);
 
@@ -280,7 +280,7 @@ describe('FigmaService', () => {
 			};
 
 			await figmaService.createDevResource(
-				DESIGN_URL_WITH_NODE,
+				MOCK_DESIGN_URL_WITH_NODE,
 				ATLASSIAN_USER_ID,
 			);
 
@@ -297,23 +297,32 @@ describe('FigmaService', () => {
 				.mockRejectedValue(expectedError);
 
 			await expect(() =>
-				figmaService.createDevResource(DESIGN_URL_WITH_NODE, ATLASSIAN_USER_ID),
+				figmaService.createDevResource(
+					MOCK_DESIGN_URL_WITH_NODE,
+					ATLASSIAN_USER_ID,
+				),
 			).rejects.toThrow(expectedError);
 		});
 
 		it('should throw if an invalid url is provided', async () => {
 			const invalidUrlError = new Error(
-				`Received invalid Figma URL: ${INVALID_DESIGN_URL}`,
+				`Received invalid Figma URL: ${MOCK_INVALID_DESIGN_URL}`,
 			);
 			await expect(() =>
-				figmaService.createDevResource(INVALID_DESIGN_URL, ATLASSIAN_USER_ID),
+				figmaService.createDevResource(
+					MOCK_INVALID_DESIGN_URL,
+					ATLASSIAN_USER_ID,
+				),
 			).rejects.toThrow(invalidUrlError);
 		});
 
 		it('should throw if the atlassian user is not authorized', async () => {
 			jest.spyOn(figmaService, 'getValidCredentials').mockResolvedValue(null);
 			await expect(() =>
-				figmaService.createDevResource(DESIGN_URL_WITH_NODE, ATLASSIAN_USER_ID),
+				figmaService.createDevResource(
+					MOCK_DESIGN_URL_WITH_NODE,
+					ATLASSIAN_USER_ID,
+				),
 			).rejects.toThrow('Invalid auth');
 		});
 	});
