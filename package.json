@@ -8,6 +8,7 @@
 		"build": "rimraf build && tsc --project ./tsconfig.build.json",
 		"build:check": "tsc --noEmit",
 		"createEnvFile": "ts-node ./scripts/create-env-file.ts",
+		"db:generate": "prisma generate",
 		"db:migrate": "run-p db:migrate:dev db:reset:test",
 		"db:migrate:dev": "prisma migrate dev",
 		"db:reset:dev": "prisma migrate reset",
