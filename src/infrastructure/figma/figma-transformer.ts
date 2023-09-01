@@ -1,4 +1,9 @@
-import { FileNodesResponse, FileResponse, NodeDevStatus } from './figma-client';
+import {
+	DevResourceCreateParams,
+	FileNodesResponse,
+	FileResponse,
+	NodeDevStatus,
+} from './figma-client';
 
 import {
 	FIGMA_URL_REGEX,
@@ -191,5 +196,19 @@ export const transformFileToAtlassianDesign = ({
 			},
 		],
 		removeAssociations: [],
+	};
+};
+
+export const buildDevResource = ({
+	name,
+	url,
+	file_key,
+	node_id,
+}: DevResourceCreateParams): DevResourceCreateParams => {
+	return {
+		name,
+		url,
+		node_id,
+		file_key,
 	};
 };

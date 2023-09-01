@@ -5,14 +5,17 @@ import {
 	NoFigmaCredentialsError,
 	RefreshFigmaCredentialsError,
 } from './figma-auth-service';
-import { figmaClient } from './figma-client';
+import { CreateDevResourcesResponse, figmaClient } from './figma-client';
 import {
+	buildDevResource,
 	extractDataFromFigmaUrl,
 	FigmaUrlData,
 	transformFileToAtlassianDesign,
+	transformNodeId,
 	transformNodeToAtlassianDesign,
 } from './figma-transformer';
 
+import { DEFAULT_FIGMA_FILE_NODE_ID } from '../../common/constants';
 import { HttpStatus } from '../../common/http-status';
 import {
 	AtlassianDesign,
@@ -97,6 +100,48 @@ export class FigmaService {
 				associateWith,
 				fileResponse,
 			});
+		}
+	};
+
+	createDevResource = async (
+		url: string,
+		atlassianUserId: string,
+		associateWith: AssociateWith,
+	): Promise<CreateDevResourcesResponse> => {
+		try {
+			const { fileKey, nodeId } = validateFigmaUrl(url);
+			const credentials = await this.getValidCredentials(atlassianUserId);
+			if (!credentials) {
+				throw new Error('Invalid auth');
+			}
+
+			const { accessToken } = credentials;
+
+			// TODO: Call Jira service to get issue details
+			const issueUrl = `https://jira-issue.com/${associateWith.ari}`;
+			const issueTitle = `placeholder-issue-title-${associateWith.ari}`;
+
+			const devResource = buildDevResource({
+				name: issueTitle,
+				url: issueUrl,
+				file_key: fileKey,
+				node_id: nodeId ? transformNodeId(nodeId) : DEFAULT_FIGMA_FILE_NODE_ID,
+			});
+
+			const response = await figmaClient.createDevResources(
+				[devResource],
+				accessToken,
+			);
+
+			if (response.errors.length > 0) {
+				const errorMessage = response.errors.map((err) => err.error).join('|');
+				getLogger().error(errorMessage, 'Created dev resources with errors');
+			}
+
+			return response;
+		} catch (err) {
+			getLogger().error(err, 'Failed to create dev resources');
+			throw err;
 		}
 	};
 }

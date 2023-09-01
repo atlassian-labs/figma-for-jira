@@ -56,6 +56,27 @@ export type FileNodesResponse = {
 	readonly nodes: Record<string, FileNode>;
 };
 
+export type DevResource = {
+	id: string;
+	name: string;
+	url: string;
+	file_key: string;
+	node_id?: string;
+};
+
+export type DevResourceCreateParams = Omit<DevResource, 'id'>;
+
+type CreateDevResourceError = {
+	file_key: string | null;
+	node_id: string | null;
+	error: string;
+};
+
+export type CreateDevResourcesResponse = {
+	links_created: DevResource[];
+	errors: CreateDevResourceError[];
+};
+
 /**
  * A generic Figma API client.
  *
@@ -174,6 +195,25 @@ export class FigmaClient {
 				params: {
 					ids: nodeIds,
 				},
+				headers: {
+					['Authorization']: `Bearer ${accessToken}`,
+				},
+			},
+		);
+
+		return response.data;
+	};
+
+	createDevResources = async (
+		devResources: DevResourceCreateParams[],
+		accessToken: string,
+	): Promise<CreateDevResourcesResponse> => {
+		const response = await axios.post<CreateDevResourcesResponse>(
+			`${getConfig().figma.apiBaseUrl}/v1/dev_resources`,
+			{
+				dev_resources: devResources,
+			},
+			{
 				headers: {
 					['Authorization']: `Bearer ${accessToken}`,
 				},
