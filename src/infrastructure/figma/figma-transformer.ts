@@ -56,7 +56,7 @@ export const buildLiveEmbedUrl = (url: string): string => {
 	if (!FIGMA_URL_REGEX.test(url)) {
 		throw new Error('Not a valid Figma URL');
 	}
-	const urlObject = new URL(`${getConfig().figma.baseUrl}/embed`);
+	const urlObject = new URL(`${getConfig().figma.liveEmbedBaseUrl}/embed`);
 	urlObject.searchParams.append('embed_host', 'atlassian');
 	urlObject.searchParams.append('url', url);
 	return urlObject.toString();
