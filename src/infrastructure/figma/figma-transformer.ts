@@ -1,14 +1,11 @@
 import type {
-	DevResourceCreateParams,
+	CreateDevResourcesRequest,
 	FileNodesResponse,
 	FileResponse,
 	NodeDevStatus,
 } from './figma-client';
 
-import {
-	FIGMA_URL_REGEX,
-	ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
-} from '../../common/constants';
+import { ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE } from '../../common/constants';
 import { getConfig } from '../../config';
 import type { AtlassianDesign } from '../../domain/entities';
 import { DesignStatus, DesignType } from '../../domain/entities';
@@ -43,6 +40,10 @@ export const extractDataFromFigmaUrl = (url: string): FigmaUrlData | null => {
 		isPrototype,
 	};
 };
+
+// Taken from https://www.figma.com/developers/embed
+const FIGMA_URL_REGEX =
+	/https:\/\/([\w.-]+\.)?figma.com\/(file|proto)\/([0-9a-zA-Z]{22,128})(?:\/.*)?$/;
 
 /**
  * Validates that a string is a valid Figma URL that will be handled by Figma's embed endpoint,
@@ -201,7 +202,7 @@ export const buildDevResource = ({
 	url,
 	file_key,
 	node_id,
-}: DevResourceCreateParams): DevResourceCreateParams => {
+}: CreateDevResourcesRequest): CreateDevResourcesRequest => {
 	return {
 		name,
 		url,

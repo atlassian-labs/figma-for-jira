@@ -15,23 +15,23 @@ export type AssociateWith = {
 export type AssociateEntityUseCaseParams = {
 	readonly entity: Entity;
 	readonly associateWith: AssociateWith;
+	readonly atlassianUserId: string;
 };
 
 export const associateEntityUseCase = {
 	execute: async ({
-		entity: { url },
+		entity,
 		associateWith,
 		atlassianUserId,
-	}: AssociateEntityUseCaseParams & {
-		atlassianUserId: string;
-	}): Promise<AtlassianDesign> => {
+	}: AssociateEntityUseCaseParams): Promise<AtlassianDesign> => {
 		const designEntity = await figmaService.fetchDesign(
-			url,
+			entity.url,
 			atlassianUserId,
 			associateWith,
 		);
+		// TODO: Call Jira to fetch issue details
+		await figmaService.createDevResource(entity.url, atlassianUserId);
 		// TODO: Call Jira to ingest entity
-		await figmaService.createDevResource(url, atlassianUserId);
 		return designEntity;
 	},
 };

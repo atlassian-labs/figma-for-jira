@@ -42,7 +42,7 @@ export type NodeDetails = {
 };
 
 export type NodeDevStatus = {
-	type: string;
+	readonly type: string;
 };
 
 export type FileNodesResponse = {
@@ -57,24 +57,24 @@ export type FileNodesResponse = {
 };
 
 export type DevResource = {
-	id: string;
-	name: string;
-	url: string;
-	file_key: string;
-	node_id: string;
+	readonly id: string;
+	readonly name: string;
+	readonly url: string;
+	readonly file_key: string;
+	readonly node_id: string;
 };
 
-export type DevResourceCreateParams = Omit<DevResource, 'id'>;
+export type CreateDevResourcesRequest = Omit<DevResource, 'id'>;
 
 type CreateDevResourceError = {
-	file_key: string | null;
-	node_id: string | null;
-	error: string;
+	readonly file_key: string | null;
+	readonly node_id: string | null;
+	readonly error: string;
 };
 
 export type CreateDevResourcesResponse = {
-	links_created: DevResource[];
-	errors: CreateDevResourceError[];
+	readonly links_created: DevResource[];
+	readonly errors: CreateDevResourceError[];
 };
 
 /**
@@ -210,7 +210,7 @@ export class FigmaClient {
 	 * @see https://www.figma.com/developers/api#post-dev-resources-endpoint
 	 */
 	createDevResources = async (
-		devResources: DevResourceCreateParams[],
+		devResources: CreateDevResourcesRequest[],
 		accessToken: string,
 	): Promise<CreateDevResourcesResponse> => {
 		const response = await axios.post<CreateDevResourcesResponse>(

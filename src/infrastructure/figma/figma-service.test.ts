@@ -7,8 +7,8 @@ import {
 	NoFigmaCredentialsError,
 } from './figma-auth-service';
 import type {
+	CreateDevResourcesRequest,
 	CreateDevResourcesResponse,
-	DevResourceCreateParams,
 	MeResponse,
 } from './figma-client';
 import { figmaClient } from './figma-client';
@@ -249,7 +249,7 @@ describe('FigmaService', () => {
 				errors: [],
 			} as CreateDevResourcesResponse);
 
-			const expectedDevResource: DevResourceCreateParams = {
+			const expectedDevResource: CreateDevResourcesRequest = {
 				name: 'Test Issue',
 				url: 'https://jira-issue.com/123',
 				file_key: MOCK_FILE_KEY,
@@ -273,7 +273,7 @@ describe('FigmaService', () => {
 				errors: [],
 			} as CreateDevResourcesResponse);
 
-			const expectedDevResource: DevResourceCreateParams = {
+			const expectedDevResource: CreateDevResourcesRequest = {
 				name: 'Test Issue',
 				url: 'https://jira-issue.com/123',
 				file_key: MOCK_FILE_KEY,
