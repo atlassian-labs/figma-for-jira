@@ -15,7 +15,7 @@ export type JwtTokenParams = {
 };
 
 /**
- * Creates a new symmetric JWT token using a Connect App shared secret.
+ * Creates a new symmetric JWT token using HS256 encoding with the Connect App shared secret.
  *
  * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/
  */

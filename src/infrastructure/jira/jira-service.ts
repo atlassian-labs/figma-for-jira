@@ -23,12 +23,29 @@ export class JiraService {
 			},
 		);
 
-		if (response.rejectedEntities.length > 0) {
+		if (response.rejectedEntities.length) {
 			getLogger().error(
 				response.rejectedEntities[0].errors,
 				'The design submission has been rejected.',
 			);
 			throw new Error('The design submission has been rejected.');
+		}
+
+		// TODO: Confirm whether we need to consider the use case below as a failure and throw or just leave a warning.
+		if (response.unknownIssueKeys?.length) {
+			getLogger().error(
+				response.unknownIssueKeys,
+				'The design has unknown issue keys.',
+			);
+			throw new Error('The design has unknown issue keys.');
+		}
+
+		if (response.unknownAssociations?.length) {
+			getLogger().error(
+				response.unknownAssociations,
+				'The design has unknown associations.',
+			);
+			throw new Error('The design has unknown associations.');
 		}
 	};
 

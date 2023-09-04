@@ -21,10 +21,10 @@ export const GET_ISSUE_RESPONSE_SCHEMA: JSONSchemaType<GetIssueResponse> = {
 			properties: {
 				summary: { type: 'string' },
 			},
-			required: [],
+			required: ['summary'],
 		},
 	},
-	required: [],
+	required: ['id', 'key'],
 } as const;
 
 const DESIGN_KEY_SCHEMA: JSONSchemaType<DesignKey> = {
@@ -53,13 +53,7 @@ export const SUBMIT_DESIGNS_RESPONSE_SCHEMA: JSONSchemaType<SubmitDesignsRespons
 		properties: {
 			acceptedEntities: {
 				type: 'array',
-				items: {
-					type: 'object',
-					properties: {
-						designId: { type: 'string' },
-					},
-					required: ['designId'],
-				},
+				items: DESIGN_KEY_SCHEMA,
 			},
 			rejectedEntities: {
 				type: 'array',
