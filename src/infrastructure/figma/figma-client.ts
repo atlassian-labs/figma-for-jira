@@ -42,7 +42,7 @@ export type NodeDetails = {
 };
 
 export type NodeDevStatus = {
-	type: string;
+	readonly type: string;
 };
 
 export type FileNodesResponse = {
@@ -54,6 +54,27 @@ export type FileNodesResponse = {
 	readonly thumbnailUrl: string;
 	readonly err: string;
 	readonly nodes: Record<string, FileNode>;
+};
+
+export type DevResource = {
+	readonly id: string;
+	readonly name: string;
+	readonly url: string;
+	readonly file_key: string;
+	readonly node_id: string;
+};
+
+export type CreateDevResourcesRequest = Omit<DevResource, 'id'>;
+
+type CreateDevResourceError = {
+	readonly file_key: string | null;
+	readonly node_id: string | null;
+	readonly error: string;
+};
+
+export type CreateDevResourcesResponse = {
+	readonly links_created: DevResource[];
+	readonly errors: CreateDevResourceError[];
 };
 
 /**
@@ -174,6 +195,30 @@ export class FigmaClient {
 				params: {
 					ids: nodeIds,
 				},
+				headers: {
+					['Authorization']: `Bearer ${accessToken}`,
+				},
+			},
+		);
+
+		return response.data;
+	};
+
+	/**
+	 * Creates Figma Dev Resources using the POST dev resources endpoint
+	 *
+	 * @see https://www.figma.com/developers/api#post-dev-resources-endpoint
+	 */
+	createDevResources = async (
+		devResources: CreateDevResourcesRequest[],
+		accessToken: string,
+	): Promise<CreateDevResourcesResponse> => {
+		const response = await axios.post<CreateDevResourcesResponse>(
+			`${getConfig().figma.apiBaseUrl}/v1/dev_resources`,
+			{
+				dev_resources: devResources,
+			},
+			{
 				headers: {
 					['Authorization']: `Bearer ${accessToken}`,
 				},

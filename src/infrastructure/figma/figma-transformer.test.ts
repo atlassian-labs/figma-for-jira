@@ -8,16 +8,16 @@ import {
 	transformNodeToAtlassianDesign,
 } from './figma-transformer';
 import {
-	DESIGN_URL_WITH_NODE,
-	DESIGN_URL_WITHOUT_NODE,
 	generateGetFileNodesResponse,
 	generateGetFileResponse,
-	INVALID_DESIGN_URL,
+	MOCK_DESIGN_URL_WITH_NODE,
+	MOCK_DESIGN_URL_WITHOUT_NODE,
 	MOCK_FILE_KEY,
+	MOCK_INVALID_DESIGN_URL,
 	MOCK_NODE_ID,
 	MOCK_NODE_ID_URL,
+	MOCK_PROTOTYPE_URL,
 	MOCK_VALID_ASSOCIATION,
-	PROTOTYPE_URL,
 } from './testing';
 
 import { ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE } from '../../common/constants';
@@ -45,35 +45,39 @@ describe('FigmaTransformer', () => {
 	});
 	describe('extractDataFromFigmaUrl', () => {
 		it('should return only fileKey and isPrototype if node_id is not provided in the url', () => {
-			expect(extractDataFromFigmaUrl(DESIGN_URL_WITHOUT_NODE)).toStrictEqual({
+			expect(
+				extractDataFromFigmaUrl(MOCK_DESIGN_URL_WITHOUT_NODE),
+			).toStrictEqual({
 				fileKey: MOCK_FILE_KEY,
 				isPrototype: false,
 			});
 		});
 		it('should return fileKey, nodeId and isPrototype if both fileKey and nodeId are present in the url', () => {
-			expect(extractDataFromFigmaUrl(DESIGN_URL_WITH_NODE)).toStrictEqual({
+			expect(extractDataFromFigmaUrl(MOCK_DESIGN_URL_WITH_NODE)).toStrictEqual({
 				fileKey: MOCK_FILE_KEY,
 				nodeId: MOCK_NODE_ID_URL,
 				isPrototype: false,
 			});
 		});
 		it('should return `isPrototype: true` if the url is for a prototype', () => {
-			expect(extractDataFromFigmaUrl(PROTOTYPE_URL)).toStrictEqual({
+			expect(extractDataFromFigmaUrl(MOCK_PROTOTYPE_URL)).toStrictEqual({
 				fileKey: MOCK_FILE_KEY,
 				nodeId: MOCK_NODE_ID_URL,
 				isPrototype: true,
 			});
 		});
 		it('should return null for an invalid url', () => {
-			expect(extractDataFromFigmaUrl(INVALID_DESIGN_URL)).toStrictEqual(null);
+			expect(extractDataFromFigmaUrl(MOCK_INVALID_DESIGN_URL)).toStrictEqual(
+				null,
+			);
 		});
 	});
 
 	describe('buildLiveEmbedUrl', () => {
 		it('should return a correctly formatted url', () => {
-			expect(buildLiveEmbedUrl(DESIGN_URL_WITH_NODE)).toStrictEqual(
+			expect(buildLiveEmbedUrl(MOCK_DESIGN_URL_WITH_NODE)).toStrictEqual(
 				`https://www.figma.com/embed?embed_host=atlassian&url=${encodeURIComponent(
-					DESIGN_URL_WITH_NODE,
+					MOCK_DESIGN_URL_WITH_NODE,
 				)}`,
 			);
 		});
@@ -122,9 +126,9 @@ describe('FigmaTransformer', () => {
 			const expected: AtlassianDesign = {
 				id: MOCK_NODE_ID,
 				displayName: mockApiResponse.nodes[MOCK_NODE_ID].document.name,
-				url: DESIGN_URL_WITH_NODE,
-				liveEmbedUrl: buildLiveEmbedUrl(DESIGN_URL_WITH_NODE),
-				inspectUrl: buildInspectUrl(DESIGN_URL_WITH_NODE),
+				url: MOCK_DESIGN_URL_WITH_NODE,
+				liveEmbedUrl: buildLiveEmbedUrl(MOCK_DESIGN_URL_WITH_NODE),
+				inspectUrl: buildInspectUrl(MOCK_DESIGN_URL_WITH_NODE),
 				status: AtlassianDesignStatus.NONE,
 				type: AtlassianDesignType.NODE,
 				lastUpdated: expect.anything(),
@@ -140,7 +144,7 @@ describe('FigmaTransformer', () => {
 
 			const result = transformNodeToAtlassianDesign({
 				nodeId: MOCK_NODE_ID,
-				url: DESIGN_URL_WITH_NODE,
+				url: MOCK_DESIGN_URL_WITH_NODE,
 				isPrototype: false,
 				associateWith: MOCK_VALID_ASSOCIATION,
 				fileNodesResponse: mockApiResponse,
@@ -156,9 +160,9 @@ describe('FigmaTransformer', () => {
 			const expected: AtlassianDesign = {
 				id: MOCK_FILE_KEY,
 				displayName: mockApiResponse.name,
-				url: DESIGN_URL_WITHOUT_NODE,
-				liveEmbedUrl: buildLiveEmbedUrl(DESIGN_URL_WITHOUT_NODE),
-				inspectUrl: buildInspectUrl(DESIGN_URL_WITHOUT_NODE),
+				url: MOCK_DESIGN_URL_WITHOUT_NODE,
+				liveEmbedUrl: buildLiveEmbedUrl(MOCK_DESIGN_URL_WITHOUT_NODE),
+				inspectUrl: buildInspectUrl(MOCK_DESIGN_URL_WITHOUT_NODE),
 				status: AtlassianDesignStatus.NONE,
 				type: AtlassianDesignType.FILE,
 				lastUpdated: expect.anything(),
@@ -173,7 +177,7 @@ describe('FigmaTransformer', () => {
 			};
 
 			const result = transformFileToAtlassianDesign({
-				url: DESIGN_URL_WITHOUT_NODE,
+				url: MOCK_DESIGN_URL_WITHOUT_NODE,
 				fileKey: MOCK_FILE_KEY,
 				isPrototype: false,
 				associateWith: MOCK_VALID_ASSOCIATION,

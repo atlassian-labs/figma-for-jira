@@ -12,7 +12,7 @@ export type Config = {
 		readonly level: string;
 	};
 	readonly figma: {
-		readonly baseUrl: string;
+		readonly liveEmbedBaseUrl: string;
 		readonly oauthApiBaseUrl: string;
 		readonly apiBaseUrl: string;
 		readonly clientId: string;
@@ -36,7 +36,7 @@ export const getConfig = (): Config => {
 				level: readEnvVarString('LOG_LEVEL', ''),
 			},
 			figma: {
-				baseUrl: readEnvVarString('FIGMA_BASE_URL'),
+				liveEmbedBaseUrl: readEnvVarString('FIGMA_LIVE_EMBED_BASE_URL'),
 				oauthApiBaseUrl: readEnvVarString('FIGMA_OAUTH_API_BASE_URL'),
 				apiBaseUrl: readEnvVarString('FIGMA_API_BASE_URL'),
 				clientId: readEnvVarString('FIGMA_OAUTH_CLIENT_ID'),
