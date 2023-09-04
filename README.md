@@ -46,7 +46,8 @@ This app is aimed to help you to easily add your integration in Jira.
 
 - **Generating Prisma client**
 
-  - Run `npm run db:generate` to generate Prisma client and database model.
+  - Run `npm run db:generate` to generate Prisma client and database model. This is done automatically as part of `npm
+run start:sandbox`, but should be re-run whenever DB schema changes are made (either explicity or via `npm run db:migrate`).
 
 - **Running the app**
 
@@ -102,15 +103,26 @@ This repository uses [Prisma](https://www.prisma.io/) as an ORM for interacting 
 To run a database migration do the following:
 
 1. Make any schema additions in `prisma/schema.prisma`
-2. Spin up dependencies using `npm run start:sandbox`
-3. Run `npm run db:migrate --name <migration_name>` - this will create your migration in a new folder under `prisma/migrations`
-4. Run `npm run db:generate` to rebuild the `@prisma/client`, which provides type safety and utility functions for any newly added tables and fields
+2. Spin up dependencies using `npm run start:sandbox`. This will also run the `prisma migrate dev` command, applying all
+   existing migrations. See [the docs](https://www.prisma.io/docs/concepts/components/prisma-migrate/migrate-development-production#development-environments)
+   for more info
+3. To create a new migration after making schema changes, with the sandbox already running, run `npm run db:migrate --name <migration_name>` - this will create your migration in a new folder under `prisma/migrations`. If you omit the `--name` option, you will be prompted to name the migration
+4. Running `prisma migrate dev` will trigger generation of artifacts automatically, but you can trigger these manually
+   by running `npm run db:generate` to rebuild the `@prisma/client`, which provides type safety and utility functions
+   for any newly added tables and fields
 
 ## Testing
 
-We have added a basic end-to-end test for installing and uninstalling the app, using [playwright](https://playwright.dev/docs/intro). You can add your own test cases on top of it.
+### Unit tests
 
-To run the end-to-end test, please add the values for `ATLASSIAN_URL`, `JIRA_ADMIN_EMAIL` and `JIRA_ADMIN_API_TOKEN` in the `.env` file. Then simply run `npm run test:e2e` in the terminal.
+Unit tests can be run with `npm run test:unit`.
+
+### Integration tests
+
+Integration tests require a test database. There are two options for running integration tests:
+
+1. Run `npm run test:it:ci`. This will spin up a test database Postgres container using configuration from `.env.test`, run the integration tests, then teardown the database.
+2. Alternatively, run `npm run start:sandbox:test`, then `npm run test:it`. This lets you forgo spinning up and tearing down the test database each run. `npm run test:it` will reset the database to its initial state before running integration tests, see the [prisma migrate docs](https://www.prisma.io/docs/concepts/components/prisma-migrate/migrate-development-production#reset-the-development-database) for more info.
 
 ## Getting help
 

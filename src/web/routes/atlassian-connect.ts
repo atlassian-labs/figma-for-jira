@@ -78,5 +78,22 @@ export const connectAppDescriptor = {
 	 * Extensions for the different parts of Jira
 	 * like links, panels, pages, permissions, workflows etc.
 	 */
-	modules: {},
+	modules: {
+		/**
+		 * This module allows third-party providers to send design information to Jira and associate it with an issue.
+		 *
+		 * https://developer.atlassian.com/cloud/jira/software/modules/design/
+		 */
+		jiraDesignInfoProvider: {
+			homeUrl: 'https://www.figma.com/',
+			name: {
+				value: 'Figma',
+			},
+			key: 'figma-integration',
+			handledDomainName: 'figma.com',
+			logoUrl: `${getConfig().app.baseUrl}/public/figma-logo.svg`,
+			documentationUrl:
+				'https://help.figma.com/hc/en-us/articles/360039827834-Jira-and-Figma',
+		},
+	},
 };

@@ -1,7 +1,17 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import type { FigmaUserCredentialsCreateParams } from '..';
-import { FigmaOAuth2UserCredentials } from '..';
+import type {
+	AtlassianDesign,
+	ConnectInstallation,
+	ConnectInstallationCreateParams,
+	FigmaUserCredentialsCreateParams,
+	JiraIssue,
+} from '..';
+import {
+	AtlassianDesignStatus,
+	AtlassianDesignType,
+	FigmaOAuth2UserCredentials,
+} from '..';
 import { Duration } from '../../../common/duration';
 
 export const generateFigmaOAuth2UserCredentials = ({
@@ -29,4 +39,70 @@ export const generateFigmaUserCredentialsCreateParams = ({
 	accessToken,
 	refreshToken,
 	expiresAt,
+});
+
+export const generateConnectInstallationCreateParams = ({
+	key = uuidv4(),
+	clientKey = uuidv4(),
+	sharedSecret = uuidv4(),
+	baseUrl = `https://${uuidv4()}.atlassian.com`,
+	displayUrl = `https://${uuidv4()}.atlassian.com`,
+} = {}): ConnectInstallationCreateParams => ({
+	key,
+	clientKey,
+	sharedSecret,
+	baseUrl,
+	displayUrl,
+});
+
+export const generateConnectInstallation = ({
+	id = Date.now(),
+	key = uuidv4(),
+	clientKey = uuidv4(),
+	sharedSecret = uuidv4(),
+	baseUrl = `https://${uuidv4()}.atlassian.com`,
+	displayUrl = `https://${uuidv4()}.atlassian.com`,
+} = {}): ConnectInstallation => ({
+	id,
+	key,
+	clientKey,
+	sharedSecret,
+	baseUrl,
+	displayUrl,
+});
+
+export const generateAtlassianDesign = ({
+	id = uuidv4(),
+	displayName = `Design ${uuidv4()}`,
+	url = `https://www.figma.com/file/UcmoEBi9SyNOX3SNhXqShY/${displayName}?type=design&node-id=0-1&mode=design`,
+	liveEmbedUrl = `https://www.figma.com/file/UcmoEBi9SyNOX3SNhXqShY/${displayName}?type=design&node-id=0-1&mode=design`,
+	status = AtlassianDesignStatus.UNKNOWN,
+	type = AtlassianDesignType.FILE,
+	lastUpdated = new Date().toISOString(),
+	updateSequenceNumber = Date.now(),
+	addAssociations = [],
+	removeAssociations = [],
+} = {}): AtlassianDesign => ({
+	id,
+	displayName,
+	url,
+	liveEmbedUrl,
+	status,
+	type,
+	lastUpdated,
+	updateSequenceNumber,
+	addAssociations,
+	removeAssociations,
+});
+
+export const generateJiraIssue = ({
+	id = uuidv4(),
+	key = uuidv4(),
+	fields = {
+		summary: `Issue ${uuidv4()}`,
+	},
+} = {}): JiraIssue => ({
+	id,
+	key,
+	fields,
 });

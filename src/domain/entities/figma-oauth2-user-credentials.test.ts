@@ -4,11 +4,12 @@ import { Duration } from '../../common/duration';
 
 describe('FigmaOAuth2UserCredentials', () => {
 	describe('isExpired', () => {
-		beforeAll(() => {
+		beforeEach(() => {
 			jest.useFakeTimers();
 		});
 
-		afterAll(() => {
+		afterEach(() => {
+			jest.runOnlyPendingTimers();
 			jest.useRealTimers();
 		});
 

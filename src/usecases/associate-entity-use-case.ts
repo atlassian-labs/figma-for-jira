@@ -22,14 +22,19 @@ export const associateEntityUseCase = {
 		associateWith,
 		atlassianUserId,
 	}: AssociateEntityUseCaseParams): Promise<AtlassianDesign> => {
-		const designEntity = await figmaService.fetchDesign(
+		const design = await figmaService.fetchDesign(
 			entity.url,
 			atlassianUserId,
 			associateWith,
 		);
-		// TODO: Call Jira to fetch issue details
-		await figmaService.createDevResource(entity.url, atlassianUserId);
 		// TODO: Call Jira to ingest entity
-		return designEntity;
+		// const connectInstallation =
+		// 	await connectInstallationRepository.getByClientKey('CLIENT_KEY');
+		// await jiraService.submitDesign(design);
+
+		// TODO: Phone home to Figma /dev_resources endpoint
+		// const jiraIssue = await jiraService.getIssue('ISSUE_KEY');
+
+		return design;
 	},
 };

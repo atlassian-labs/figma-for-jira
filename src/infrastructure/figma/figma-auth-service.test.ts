@@ -28,6 +28,7 @@ describe('FigmaAuthService', () => {
 
 	afterEach(() => {
 		jest.clearAllMocks();
+		jest.runOnlyPendingTimers();
 		jest.useRealTimers();
 	});
 

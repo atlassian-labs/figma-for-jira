@@ -1,23 +1,25 @@
 #!/usr/bin/env bash
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-DB_CONTAINER_NAME=figma-for-jira-db
+set -eu
 
-if [ "$CI" = "true" ]; then
-		ENV_FILE="$SCRIPT_DIR"/../.env.test
+COMPOSE_FILE=$1
+
+if [[ "$COMPOSE_FILE" == *.integration.yml ]]; then
+	ENV_FILE=.env.test
+	DB_CONTAINER_NAME=figma-for-jira-db-test
+	COMPOSE_PROJECT=test
 else
-		ENV_FILE="$SCRIPT_DIR"/../.env
+	ENV_FILE=.env
+	DB_CONTAINER_NAME=figma-for-jira-db
+	COMPOSE_PROJECT=development
 fi
 
-echo 'Starting app sandbox'
-docker-compose --env-file="$ENV_FILE" up --detach
+docker-compose --project-name "$COMPOSE_PROJECT" --file "$COMPOSE_FILE" --env-file "$ENV_FILE" up --detach
 
 echo 'Waiting for Postgres...'
 until [ "$(docker inspect -f '{{.State.Health.Status}}' "$DB_CONTAINER_NAME")" == "healthy" ]; do
     sleep 1;
 done;
 
-if [ "$CI" != "true" ]; then
-    echo 'Initialising test DB and user'
-    docker exec --env-file "$SCRIPT_DIR"/../.env.test -i "$DB_CONTAINER_NAME" bash < "$SCRIPT_DIR"/init-db.sh
-fi
+echo 'Running DB migrations...'
+dotenv -e "$ENV_FILE" -- prisma migrate dev
