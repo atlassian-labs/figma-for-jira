@@ -36,7 +36,6 @@ describe('JiraClient', () => {
 			);
 
 			expect(result).toBe(response);
-			// eslint-disable-next-line @typescript-eslint/unbound-method
 			expect(axios.post).toHaveBeenCalledWith(
 				`${MOCK_JIRA_CLIENT_PARAMS.baseUrl}/rest/designs/1.0/bulk`,
 				request,
@@ -84,7 +83,6 @@ describe('JiraClient', () => {
 			);
 
 			expect(result).toBe(response);
-			// eslint-disable-next-line @typescript-eslint/unbound-method
 			expect(axios.get).toHaveBeenCalledWith(
 				`${MOCK_JIRA_CLIENT_PARAMS.baseUrl}/rest/agile/1.0/issue/${issueKey}`,
 				{
