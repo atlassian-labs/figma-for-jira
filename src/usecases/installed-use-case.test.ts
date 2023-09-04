@@ -1,6 +1,6 @@
 import { installedUseCase } from './installed-use-case';
 
-import type { ConnectInstallation } from '../domain/entities';
+import { generateConnectInstallationCreateParams } from '../domain/entities/testing';
 import { connectInstallationRepository } from '../infrastructure/repositories';
 
 describe('installedUseCase', () => {
@@ -13,21 +13,15 @@ describe('installedUseCase', () => {
 	});
 
 	it('should call repository layer upsert', async () => {
+		const installationCreateParams = generateConnectInstallationCreateParams();
 		jest
 			.spyOn(connectInstallationRepository, 'upsert')
-			.mockResolvedValue({} as ConnectInstallation);
-		const installation = {
-			key: 'test-key',
-			clientKey: 'test-client-key',
-			sharedSecret: 'secret',
-			baseUrl: 'http://base-url.com',
-			displayUrl: 'http://display-url.com',
-		};
+			.mockResolvedValue({ ...installationCreateParams, id: 1 });
 
-		await installedUseCase.execute(installation);
+		await installedUseCase.execute(installationCreateParams);
 
 		expect(connectInstallationRepository.upsert).toHaveBeenCalledWith(
-			installation,
+			installationCreateParams,
 		);
 	});
 });
