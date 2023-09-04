@@ -3,15 +3,12 @@ import axios from 'axios';
 import { jiraClient } from './jira-client';
 import * as jwtUtils from './jwt-utils';
 import {
+	generateGetIssueResponse,
+	generateSubmitDesignsRequest,
 	generateSuccessfulSubmitDesignsResponse,
 	MOCK_JIRA_CLIENT_PARAMS,
 	MOCK_JWT_TOKEN,
 } from './testing';
-
-import {
-	generateAtlassianDesign,
-	generateJiraIssue,
-} from '../../../domain/entities/testing';
 
 describe('JiraClient', () => {
 	beforeEach(() => {
@@ -20,12 +17,9 @@ describe('JiraClient', () => {
 
 	describe('submitDesigns', () => {
 		it('should submit designs', async () => {
-			const atlassianDesign = generateAtlassianDesign();
-			const request = {
-				designs: [atlassianDesign],
-			};
+			const request = generateSubmitDesignsRequest();
 			const response = generateSuccessfulSubmitDesignsResponse(
-				atlassianDesign.id,
+				request.designs[0].id,
 			);
 			jest.spyOn(jwtUtils, 'createJwtToken').mockReturnValue(MOCK_JWT_TOKEN);
 			jest.spyOn(axios, 'post').mockResolvedValue({ data: response });
@@ -48,12 +42,9 @@ describe('JiraClient', () => {
 		});
 
 		it('should thrown when response has invalid schema', async () => {
-			const atlassianDesign = generateAtlassianDesign();
-			const request = {
-				designs: [atlassianDesign],
-			};
+			const request = generateSubmitDesignsRequest();
 			const unexpectedResponse = {
-				...generateSuccessfulSubmitDesignsResponse(atlassianDesign.id),
+				...generateSuccessfulSubmitDesignsResponse(),
 				acceptedEntities: null,
 			};
 			jest.spyOn(axios, 'post').mockResolvedValue({
@@ -71,7 +62,7 @@ describe('JiraClient', () => {
 	describe('getIssue', () => {
 		it('should return issue', async () => {
 			const issueKey = 'TEST-1';
-			const response = generateJiraIssue({ key: issueKey });
+			const response = generateGetIssueResponse({ key: issueKey });
 			jest.spyOn(jwtUtils, 'createJwtToken').mockReturnValue(MOCK_JWT_TOKEN);
 			jest.spyOn(axios, 'get').mockResolvedValue({
 				data: response,
@@ -96,7 +87,7 @@ describe('JiraClient', () => {
 		it('should thrown when response has invalid schema', async () => {
 			const issueKey = 'TEST-1';
 			const unexpectedResponse = {
-				...generateJiraIssue({ key: issueKey }),
+				...generateGetIssueResponse({ key: issueKey }),
 				id: null,
 			};
 			jest.spyOn(axios, 'get').mockResolvedValue({
