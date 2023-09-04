@@ -13,10 +13,6 @@ import {
 } from '../../domain/entities/testing';
 
 describe('JiraService', () => {
-	beforeEach(() => {
-		jest.clearAllMocks();
-	});
-
 	describe('submitDesign', () => {
 		it('should submit design', async () => {
 			const connectInstallation = generateConnectInstallation();

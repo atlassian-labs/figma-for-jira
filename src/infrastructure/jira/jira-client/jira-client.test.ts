@@ -14,10 +14,6 @@ import {
 } from '../../../domain/entities/testing';
 
 describe('JiraClient', () => {
-	beforeEach(() => {
-		jest.clearAllMocks();
-	});
-
 	describe('submitDesigns', () => {
 		it('should submit designs', async () => {
 			const atlassianDesign = generateAtlassianDesign();
