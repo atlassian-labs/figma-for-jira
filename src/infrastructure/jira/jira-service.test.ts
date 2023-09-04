@@ -12,7 +12,6 @@ import {
 	generateJiraIssue,
 } from '../../domain/entities/testing';
 
-
 describe('JiraService', () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
