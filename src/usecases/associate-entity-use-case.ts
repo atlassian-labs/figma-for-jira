@@ -1,10 +1,6 @@
 import type { AtlassianDesign } from '../domain/entities/design';
 import { figmaService } from '../infrastructure/figma';
 
-type Entity = {
-	readonly url: string;
-};
-
 export type AssociateWith = {
 	readonly ari: string;
 	readonly cloudId: string;
@@ -13,7 +9,9 @@ export type AssociateWith = {
 };
 
 export type AssociateEntityUseCaseParams = {
-	readonly entity: Entity;
+	readonly entity: {
+		readonly url: string;
+	};
 	readonly associateWith: AssociateWith;
 	readonly atlassianUserId: string;
 };
