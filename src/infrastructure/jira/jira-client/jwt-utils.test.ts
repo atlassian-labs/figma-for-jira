@@ -7,11 +7,12 @@ import { MOCK_JWT_TOKEN_PARAMS } from './testing';
 import { Duration } from '../../../common/duration';
 
 describe('createJwtToken', () => {
-	beforeAll(() => {
+	beforeEach(() => {
 		jest.useFakeTimers();
 	});
 
-	afterAll(() => {
+	afterEach(() => {
+		jest.runOnlyPendingTimers();
 		jest.useRealTimers();
 	});
 
