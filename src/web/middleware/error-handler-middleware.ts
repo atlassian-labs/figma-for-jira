@@ -15,15 +15,16 @@ export const errorHandlerMiddleware = (
 		return next(err);
 	}
 
+	// Setting `err` on the response so it can be picked up by the `pino-http` logger
+	res.err = err;
+
 	if (err instanceof JwtVerificationError) {
-		return void res.status(401).send(err.message);
+		res.status(401).send(err.message);
+	} else if (err instanceof RepositoryRecordNotFoundError) {
+		res.status(404).send(err.message);
+	} else {
+		res.sendStatus(500);
 	}
 
-	if (err instanceof RepositoryRecordNotFoundError) {
-		return void res.status(404).send(err.message);
-	}
-
-	req.log.error(err);
-	// Pass unhandled errors to default Express error handler
-	next(err);
+	next();
 };
