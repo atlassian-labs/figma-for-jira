@@ -1,21 +1,23 @@
-import { FileNodesResponse, FileResponse, NodeDevStatus } from './figma-client';
+import type {
+	CreateDevResourcesRequest,
+	FileNodesResponse,
+	FileResponse,
+	NodeDevStatus,
+} from './figma-client';
 
-import {
-	FIGMA_URL_REGEX,
-	ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
-} from '../../common/constants';
+import { ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE } from '../../common/constants';
 import { getConfig } from '../../config';
+import type { AtlassianDesign } from '../../domain/entities';
 import {
-	AtlassianDesign,
-	DesignStatus,
-	DesignType,
-} from '../../domain/entities/design';
-import { AssociateWith } from '../../web/routes/entities';
+	AtlassianDesignStatus,
+	AtlassianDesignType,
+} from '../../domain/entities';
+import type { AssociateWith } from '../../usecases';
 
 export type FigmaUrlData = {
-	fileKey: string;
-	nodeId?: string;
-	isPrototype: boolean;
+	readonly fileKey: string;
+	readonly nodeId?: string;
+	readonly isPrototype: boolean;
 };
 
 export const extractDataFromFigmaUrl = (url: string): FigmaUrlData | null => {
@@ -42,6 +44,10 @@ export const extractDataFromFigmaUrl = (url: string): FigmaUrlData | null => {
 	};
 };
 
+// Taken from https://www.figma.com/developers/embed
+const FIGMA_URL_REGEX =
+	/https:\/\/([\w.-]+\.)?figma.com\/(file|proto)\/([0-9a-zA-Z]{22,128})(?:\/.*)?$/;
+
 /**
  * Validates that a string is a valid Figma URL that will be handled by Figma's embed endpoint,
  * then transforms that string into a live embed URL.
@@ -51,7 +57,7 @@ export const buildLiveEmbedUrl = (url: string): string => {
 	if (!FIGMA_URL_REGEX.test(url)) {
 		throw new Error('Not a valid Figma URL');
 	}
-	const urlObject = new URL(`${getConfig().figma.baseUrl}/embed`);
+	const urlObject = new URL(`${getConfig().figma.liveEmbedBaseUrl}/embed`);
 	urlObject.searchParams.append('embed_host', 'atlassian');
 	urlObject.searchParams.append('url', url);
 	return urlObject.toString();
@@ -79,10 +85,10 @@ export const transformNodeId = (nodeId: string): string => {
  */
 export const mapNodeStatusToDevStatus = (
 	devStatus: NodeDevStatus,
-): DesignStatus =>
+): AtlassianDesignStatus =>
 	devStatus.type === 'READY_FOR_DEV'
-		? DesignStatus.READY_FOR_DEVELOPMENT
-		: DesignStatus.UNKNOWN;
+		? AtlassianDesignStatus.READY_FOR_DEVELOPMENT
+		: AtlassianDesignStatus.UNKNOWN;
 
 /**
  * Maps a Figma node type to an Atlassian Design entity type.
@@ -92,23 +98,23 @@ export const mapNodeStatusToDevStatus = (
 export const mapNodeTypeToDesignType = (
 	type: string,
 	isPrototype: boolean,
-): DesignType => {
+): AtlassianDesignType => {
 	if (isPrototype) {
-		return DesignType.PROTOTYPE;
+		return AtlassianDesignType.PROTOTYPE;
 	}
 	if (type === 'DOCUMENT') {
-		return DesignType.FILE;
+		return AtlassianDesignType.FILE;
 	}
 	if (type === 'CANVAS') {
-		return DesignType.CANVAS;
+		return AtlassianDesignType.CANVAS;
 	}
 	if (type === 'SECTION' || type === 'GROUP') {
-		return DesignType.GROUP;
+		return AtlassianDesignType.GROUP;
 	}
 	if (type === 'FRAME') {
-		return DesignType.NODE;
+		return AtlassianDesignType.NODE;
 	}
-	return DesignType.OTHER;
+	return AtlassianDesignType.OTHER;
 };
 
 const getUpdateSequenceNumber = (input: string): number => {
@@ -143,7 +149,7 @@ export const transformNodeToAtlassianDesign = ({
 		inspectUrl: buildInspectUrl(url),
 		status: node.devStatus
 			? mapNodeStatusToDevStatus(node.devStatus)
-			: DesignStatus.NONE,
+			: AtlassianDesignStatus.NONE,
 		type: mapNodeTypeToDesignType(node.type, isPrototype),
 		// TODO: lastUpdated should come from the app database once polling is added
 		lastUpdated: new Date().toISOString(),
@@ -179,8 +185,10 @@ export const transformFileToAtlassianDesign = ({
 		url,
 		liveEmbedUrl: buildLiveEmbedUrl(url),
 		inspectUrl: buildInspectUrl(url),
-		status: DesignStatus.NONE,
-		type: isPrototype ? DesignType.PROTOTYPE : DesignType.FILE,
+		status: AtlassianDesignStatus.NONE,
+		type: isPrototype
+			? AtlassianDesignType.PROTOTYPE
+			: AtlassianDesignType.FILE,
 		// TODO: lastUpdated should come from the app database once polling is added
 		lastUpdated: new Date().toISOString(),
 		updateSequenceNumber: getUpdateSequenceNumber(fileResponse.version),
@@ -191,5 +199,19 @@ export const transformFileToAtlassianDesign = ({
 			},
 		],
 		removeAssociations: [],
+	};
+};
+
+export const buildDevResource = ({
+	name,
+	url,
+	file_key,
+	node_id,
+}: CreateDevResourcesRequest): CreateDevResourcesRequest => {
+	return {
+		name,
+		url,
+		node_id,
+		file_key,
 	};
 };

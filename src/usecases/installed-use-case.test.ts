@@ -1,6 +1,6 @@
 import { installedUseCase } from './installed-use-case';
 
-import { ConnectInstallation } from '../domain/entities';
+import type { ConnectInstallation } from '../domain/entities';
 import { connectInstallationRepository } from '../infrastructure/repositories';
 
 describe('installedUseCase', () => {

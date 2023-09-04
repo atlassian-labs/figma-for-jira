@@ -1,5 +1,5 @@
 import { fromExpressRequest } from 'atlassian-jwt';
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 
 import { verifyAsymmetricJWTToken, verifySymmetricJWTToken } from './jwt-utils';
 
