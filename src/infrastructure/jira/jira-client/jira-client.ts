@@ -1,4 +1,5 @@
 import Ajv from 'ajv';
+import type { RawAxiosRequestHeaders } from 'axios';
 import axios from 'axios';
 
 import { createJwtToken } from './jwt-utils';
@@ -47,17 +48,17 @@ export class JiraClient {
 	 */
 	submitDesigns = async (
 		request: SubmitDesignsRequest,
-		clientParams: JiraClientParams,
+		{ baseUrl, connectAppKey, connectSharedSecret }: JiraClientParams,
 	): Promise<SubmitDesignsResponse> => {
-		const url = new URL(`/rest/designs/1.0/bulk`, clientParams.baseUrl);
+		const url = new URL(`/rest/designs/1.0/bulk`, baseUrl);
 		const jwtToken = createJwtToken({
 			request: {
 				method: 'POST',
 				pathname: url.pathname,
 			},
 			expiresIn: TOKEN_EXPIRES_IN,
-			connectAppKey: clientParams.connectAppKey,
-			connectSharedSecret: clientParams.connectSharedSecret,
+			connectAppKey,
+			connectSharedSecret,
 		});
 
 		const response = await axios.post<SubmitDesignsResponse>(
@@ -65,7 +66,7 @@ export class JiraClient {
 			request,
 			{
 				headers: {
-					Authorization: `JWT ${jwtToken}`,
+					...this.buildAuthorizationHeader(jwtToken),
 				},
 			},
 		);
@@ -91,25 +92,22 @@ export class JiraClient {
 	// TODO: Delete the method if not required by the `/associateEntity` flow.
 	getIssue = async (
 		issueIdOrKey: string,
-		clientParams: JiraClientParams,
+		{ baseUrl, connectAppKey, connectSharedSecret }: JiraClientParams,
 	): Promise<GetIssueResponse> => {
-		const url = new URL(
-			`/rest/agile/1.0/issue/${issueIdOrKey}`,
-			clientParams.baseUrl,
-		);
+		const url = new URL(`/rest/agile/1.0/issue/${issueIdOrKey}`, baseUrl);
 		const jwtToken = createJwtToken({
 			request: {
 				method: 'GET',
 				pathname: url.pathname,
 			},
 			expiresIn: TOKEN_EXPIRES_IN,
-			connectAppKey: clientParams.connectAppKey,
-			connectSharedSecret: clientParams.connectSharedSecret,
+			connectAppKey,
+			connectSharedSecret,
 		});
 
 		const response = await axios.get<GetIssueResponse>(url.toString(), {
 			headers: {
-				Authorization: `JWT ${jwtToken}`,
+				...this.buildAuthorizationHeader(jwtToken),
 			},
 		});
 
@@ -125,6 +123,12 @@ export class JiraClient {
 
 		return response.data;
 	};
+
+	private buildAuthorizationHeader(jwtToken: string): RawAxiosRequestHeaders {
+		return {
+			Authorization: `JWT ${jwtToken}`,
+		};
+	}
 }
 
 export const jiraClient = new JiraClient();

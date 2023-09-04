@@ -24,28 +24,22 @@ export class JiraService {
 		);
 
 		if (response.rejectedEntities.length) {
-			getLogger().error(
-				response.rejectedEntities[0].errors,
-				'The design submission has been rejected.',
-			);
-			throw new Error('The design submission has been rejected.');
+			const errorMessage = 'The design submission has been rejected.';
+			getLogger().error(response.rejectedEntities[0].errors, errorMessage);
+			throw new Error(errorMessage);
 		}
 
 		// TODO: Confirm whether we need to consider the use case below as a failure and throw or just leave a warning.
 		if (response.unknownIssueKeys?.length) {
-			getLogger().error(
-				response.unknownIssueKeys,
-				'The design has unknown issue keys.',
-			);
-			throw new Error('The design has unknown issue keys.');
+			const errorMessage = 'The design has unknown issue keys.';
+			getLogger().error(response.unknownIssueKeys, errorMessage);
+			throw new Error(errorMessage);
 		}
 
 		if (response.unknownAssociations?.length) {
-			getLogger().error(
-				response.unknownAssociations,
-				'The design has unknown associations.',
-			);
-			throw new Error('The design has unknown associations.');
+			const errorMessage = 'The design has unknown associations.';
+			getLogger().error(response.unknownAssociations, errorMessage);
+			throw new Error(errorMessage);
 		}
 	};
 
@@ -53,13 +47,11 @@ export class JiraService {
 		issueIdOrKey: string,
 		connectInstallation: ConnectInstallation,
 	): Promise<JiraIssue> => {
-		const response = await jiraClient.getIssue(issueIdOrKey, {
+		return await jiraClient.getIssue(issueIdOrKey, {
 			baseUrl: connectInstallation.baseUrl,
 			connectAppKey: connectInstallation.key,
 			connectSharedSecret: connectInstallation.sharedSecret,
 		});
-
-		return response;
 	};
 }
 
