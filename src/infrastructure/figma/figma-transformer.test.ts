@@ -23,8 +23,11 @@ import {
 import { ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE } from '../../common/constants';
 import * as configModule from '../../config';
 import { mockConfig } from '../../config/testing';
-import type { AtlassianDesign } from '../../domain/entities/design';
-import { DesignStatus, DesignType } from '../../domain/entities/design';
+import type { AtlassianDesign } from '../../domain/entities';
+import {
+	AtlassianDesignStatus,
+	AtlassianDesignType,
+} from '../../domain/entities';
 
 jest.mock('../../config', () => {
 	return {
@@ -88,25 +91,25 @@ describe('FigmaTransformer', () => {
 	describe('mapNodeStatusToDevStatus', () => {
 		it('should return "READY_FOR_DEVELOPMENT" if Figma status is "READY_FOR_DEV"', () => {
 			expect(mapNodeStatusToDevStatus({ type: 'READY_FOR_DEV' })).toEqual(
-				DesignStatus.READY_FOR_DEVELOPMENT,
+				AtlassianDesignStatus.READY_FOR_DEVELOPMENT,
 			);
 		});
 		it('should return "UNKNOWN" for any other status', () => {
 			expect(mapNodeStatusToDevStatus({ type: 'OTHER_STATUS' })).toEqual(
-				DesignStatus.UNKNOWN,
+				AtlassianDesignStatus.UNKNOWN,
 			);
 		});
 	});
 
 	describe('mapNodeTypeToDesignType', () => {
 		it.each([
-			[DesignType.PROTOTYPE, 'FRAME', true],
-			[DesignType.FILE, 'DOCUMENT', false],
-			[DesignType.CANVAS, 'CANVAS', false],
-			[DesignType.GROUP, 'SECTION', false],
-			[DesignType.GROUP, 'GROUP', false],
-			[DesignType.NODE, 'FRAME', false],
-			[DesignType.OTHER, 'SOMETHINGELSE', false],
+			[AtlassianDesignType.PROTOTYPE, 'FRAME', true],
+			[AtlassianDesignType.FILE, 'DOCUMENT', false],
+			[AtlassianDesignType.CANVAS, 'CANVAS', false],
+			[AtlassianDesignType.GROUP, 'SECTION', false],
+			[AtlassianDesignType.GROUP, 'GROUP', false],
+			[AtlassianDesignType.NODE, 'FRAME', false],
+			[AtlassianDesignType.OTHER, 'SOMETHINGELSE', false],
 		])(
 			'should return %s if Figma type is %s and isPrototype is %s',
 			(expected, type, isPrototype) => {
@@ -126,8 +129,8 @@ describe('FigmaTransformer', () => {
 				url: MOCK_DESIGN_URL_WITH_NODE,
 				liveEmbedUrl: buildLiveEmbedUrl(MOCK_DESIGN_URL_WITH_NODE),
 				inspectUrl: buildInspectUrl(MOCK_DESIGN_URL_WITH_NODE),
-				status: DesignStatus.NONE,
-				type: DesignType.NODE,
+				status: AtlassianDesignStatus.NONE,
+				type: AtlassianDesignType.NODE,
 				lastUpdated: expect.anything(),
 				updateSequenceNumber: parseInt(mockApiResponse.version, 10),
 				addAssociations: [
@@ -160,8 +163,8 @@ describe('FigmaTransformer', () => {
 				url: MOCK_DESIGN_URL_WITHOUT_NODE,
 				liveEmbedUrl: buildLiveEmbedUrl(MOCK_DESIGN_URL_WITHOUT_NODE),
 				inspectUrl: buildInspectUrl(MOCK_DESIGN_URL_WITHOUT_NODE),
-				status: DesignStatus.NONE,
-				type: DesignType.FILE,
+				status: AtlassianDesignStatus.NONE,
+				type: AtlassianDesignType.FILE,
 				lastUpdated: expect.anything(),
 				updateSequenceNumber: parseInt(mockApiResponse.version, 10),
 				addAssociations: [

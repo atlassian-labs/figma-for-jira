@@ -9,10 +9,10 @@ import type {
 } from '../../domain/entities';
 
 export class ConnectInstallationRepository {
-	find = async (key: string): Promise<ConnectInstallation> => {
+	getByClientKey = async (clientKey: string): Promise<ConnectInstallation> => {
 		const result = await getPrismaClient().connectInstallation.findFirstOrThrow(
 			{
-				where: { key },
+				where: { clientKey },
 			},
 		);
 		return this.mapToDomainModel(result);
@@ -25,7 +25,7 @@ export class ConnectInstallationRepository {
 			const result = await getPrismaClient().connectInstallation.upsert({
 				create: installation,
 				update: installation,
-				where: { key: installation.key },
+				where: { clientKey: installation.clientKey },
 			});
 			return this.mapToDomainModel(result);
 		} catch (e: unknown) {

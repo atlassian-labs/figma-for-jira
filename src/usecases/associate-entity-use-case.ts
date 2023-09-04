@@ -1,4 +1,4 @@
-import type { AtlassianDesign } from '../domain/entities/design';
+import type { AtlassianDesign } from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
 
 export type AssociateWith = {
