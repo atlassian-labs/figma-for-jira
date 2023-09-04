@@ -32,7 +32,7 @@ export class FigmaAuthService {
 		let credentials: FigmaOAuth2UserCredentials;
 		try {
 			credentials =
-				await figmaOAuth2UserCredentialsRepository.find(atlassianUserId);
+				await figmaOAuth2UserCredentialsRepository.get(atlassianUserId);
 		} catch (e: unknown) {
 			throw new NoFigmaCredentialsError(
 				`No credential available for user ${atlassianUserId}`,

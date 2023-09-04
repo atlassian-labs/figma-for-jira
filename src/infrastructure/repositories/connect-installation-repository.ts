@@ -9,7 +9,7 @@ import {
 } from '../../domain/entities';
 
 export class ConnectInstallationRepository {
-	find = async (key: string): Promise<ConnectInstallation> => {
+	get = async (key: string): Promise<ConnectInstallation> => {
 		const result = await getPrismaClient().connectInstallation.findFirst({
 			where: { key },
 		});

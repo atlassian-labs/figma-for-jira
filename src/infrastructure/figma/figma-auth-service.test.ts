@@ -68,13 +68,13 @@ describe('FigmaAuthService', () => {
 				),
 			});
 			jest
-				.spyOn(figmaOAuth2UserCredentialsRepository, 'find')
+				.spyOn(figmaOAuth2UserCredentialsRepository, 'get')
 				.mockResolvedValue(credentials);
 
 			const result = await figmaAuthService.getCredentials(ATLASSIAN_USER_ID);
 
 			expect(result).toBe(credentials);
-			expect(figmaOAuth2UserCredentialsRepository.find).toHaveBeenCalledWith(
+			expect(figmaOAuth2UserCredentialsRepository.get).toHaveBeenCalledWith(
 				ATLASSIAN_USER_ID,
 			);
 		});
@@ -96,7 +96,7 @@ describe('FigmaAuthService', () => {
 			});
 
 			jest
-				.spyOn(figmaOAuth2UserCredentialsRepository, 'find')
+				.spyOn(figmaOAuth2UserCredentialsRepository, 'get')
 				.mockResolvedValue(credentials);
 			jest
 				.spyOn(figmaClient, 'refreshOAuth2Token')
@@ -118,7 +118,7 @@ describe('FigmaAuthService', () => {
 
 		it('should throw when no credentials', async () => {
 			jest
-				.spyOn(figmaOAuth2UserCredentialsRepository, 'find')
+				.spyOn(figmaOAuth2UserCredentialsRepository, 'get')
 				.mockRejectedValue(new RepositoryRecordNotFoundError('error'));
 
 			await expect(() =>
@@ -135,7 +135,7 @@ describe('FigmaAuthService', () => {
 			});
 
 			jest
-				.spyOn(figmaOAuth2UserCredentialsRepository, 'find')
+				.spyOn(figmaOAuth2UserCredentialsRepository, 'get')
 				.mockResolvedValue(credentials);
 			jest
 				.spyOn(figmaClient, 'refreshOAuth2Token')

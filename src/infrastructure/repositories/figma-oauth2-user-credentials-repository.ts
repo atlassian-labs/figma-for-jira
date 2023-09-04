@@ -9,7 +9,7 @@ import {
 } from '../../domain/entities';
 
 export class FigmaOAuth2UserCredentialsRepository {
-	find = async (
+	get = async (
 		atlassianUserId: string,
 	): Promise<FigmaOAuth2UserCredentials> => {
 		const credentials =
