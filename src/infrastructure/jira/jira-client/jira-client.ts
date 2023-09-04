@@ -74,11 +74,14 @@ export class JiraClient {
 		const validate = this.ajv.compile(SUBMIT_DESIGNS_RESPONSE_SCHEMA);
 
 		if (!validate(response.data)) {
+			const error = new Error(`Unexpected response from ${url.pathname}.`);
 			getLogger().error(
+				error,
+				`Unexpected response from %s: %o`,
+				url.toString(),
 				validate.errors,
-				`Unexpected response from ${url.toString()}`,
 			);
-			throw new Error(`Unexpected response from ${url.pathname}.`);
+			throw error;
 		}
 
 		return response.data;
@@ -114,11 +117,14 @@ export class JiraClient {
 		const validate = this.ajv.compile(GET_ISSUE_RESPONSE_SCHEMA);
 
 		if (!validate(response.data)) {
+			const error = new Error(`Unexpected response from ${url.pathname}.`);
 			getLogger().error(
+				error,
+				`Unexpected response from %s: %o`,
+				url.toString(),
 				validate.errors,
-				`Unexpected response from ${url.toString()}`,
 			);
-			throw new Error(`Unexpected response from ${url.pathname}.`);
+			throw error;
 		}
 
 		return response.data;
