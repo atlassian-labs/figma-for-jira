@@ -1,4 +1,3 @@
-import Ajv from 'ajv';
 import type { RawAxiosRequestHeaders } from 'axios';
 import axios from 'axios';
 
@@ -14,6 +13,7 @@ import type {
 } from './types';
 
 import { Duration } from '../../../common/duration';
+import { getAjvSchema } from '../../ajv';
 import { getLogger } from '../../logger';
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
@@ -30,8 +30,6 @@ export type JiraClientParams = {
  * @see https://developer.atlassian.com/cloud/jira/software/rest/intro/#introduction
  */
 export class JiraClient {
-	private readonly ajv = new Ajv();
-
 	// TODO: This method has not been tested due to the issue on the Jira side. Therefore, issues in the contract
 	// 	definition and implementation are very likely. Test the method and address found issues.
 	/**
@@ -71,7 +69,7 @@ export class JiraClient {
 			},
 		);
 
-		const validate = this.ajv.compile(SUBMIT_DESIGNS_RESPONSE_SCHEMA);
+		const validate = getAjvSchema(SUBMIT_DESIGNS_RESPONSE_SCHEMA);
 
 		if (!validate(response.data)) {
 			const error = new Error(`Unexpected response from ${url.pathname}.`);
@@ -114,7 +112,7 @@ export class JiraClient {
 			},
 		});
 
-		const validate = this.ajv.compile(GET_ISSUE_RESPONSE_SCHEMA);
+		const validate = getAjvSchema(GET_ISSUE_RESPONSE_SCHEMA);
 
 		if (!validate(response.data)) {
 			const error = new Error(`Unexpected response from ${url.pathname}.`);

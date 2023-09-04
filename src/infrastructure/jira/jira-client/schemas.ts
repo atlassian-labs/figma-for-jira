@@ -11,21 +11,7 @@ import type {
 	SubmitDesignsResponse,
 } from './types';
 
-export const GET_ISSUE_RESPONSE_SCHEMA: JSONSchemaType<GetIssueResponse> = {
-	type: 'object',
-	properties: {
-		id: { type: 'string' },
-		key: { type: 'string' },
-		fields: {
-			type: 'object',
-			properties: {
-				summary: { type: 'string' },
-			},
-			required: ['summary'],
-		},
-	},
-	required: ['id', 'key'],
-} as const;
+import type { JSONSchemaTypeWithId } from '../../ajv';
 
 const DESIGN_KEY_SCHEMA: JSONSchemaType<DesignKey> = {
 	type: 'object',
@@ -47,8 +33,9 @@ const ASSOCIATION_SCHEMA: JSONSchemaType<Association> = {
 	required: ['associationType', 'values'],
 };
 
-export const SUBMIT_DESIGNS_RESPONSE_SCHEMA: JSONSchemaType<SubmitDesignsResponse> =
+export const SUBMIT_DESIGNS_RESPONSE_SCHEMA: JSONSchemaTypeWithId<SubmitDesignsResponse> =
 	{
+		$id: 'jira-software-cloud-api:submit-design-data:response',
 		type: 'object',
 		properties: {
 			acceptedEntities: {
@@ -87,4 +74,22 @@ export const SUBMIT_DESIGNS_RESPONSE_SCHEMA: JSONSchemaType<SubmitDesignsRespons
 			},
 		},
 		required: ['acceptedEntities', 'rejectedEntities'],
+	} as const;
+
+export const GET_ISSUE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetIssueResponse> =
+	{
+		$id: 'jira-software-cloud-api:get-issue:response',
+		type: 'object',
+		properties: {
+			id: { type: 'string' },
+			key: { type: 'string' },
+			fields: {
+				type: 'object',
+				properties: {
+					summary: { type: 'string' },
+				},
+				required: ['summary'],
+			},
+		},
+		required: ['id', 'key'],
 	} as const;
