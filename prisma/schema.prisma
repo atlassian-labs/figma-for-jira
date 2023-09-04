@@ -9,8 +9,8 @@ datasource db {
 
 model ConnectInstallation {
   id           Int    @id @default(autoincrement())
-  key          String @unique
-  clientKey    String
+  key          String
+  clientKey    String @unique
   sharedSecret String
   baseUrl      String
   displayUrl   String

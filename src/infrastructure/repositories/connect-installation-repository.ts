@@ -3,19 +3,19 @@ import type { ConnectInstallation as PrismaConnectInstallation } from '@prisma/c
 import { RepositoryRecordNotFoundError } from './errors';
 import { getPrismaClient } from './prisma-client';
 
-import {
+import type {
 	ConnectInstallation,
 	ConnectInstallationCreateParams,
 } from '../../domain/entities';
 
 export class ConnectInstallationRepository {
-	get = async (key: string): Promise<ConnectInstallation> => {
+	getByClientKey = async (clientKey: string): Promise<ConnectInstallation> => {
 		const result = await getPrismaClient().connectInstallation.findFirst({
-			where: { key },
+			where: { clientKey },
 		});
 		if (result === null) {
 			throw new RepositoryRecordNotFoundError(
-				`Failed to find ConnectInstallation with key ${key}`,
+				`Failed to find ConnectInstallation for clientKey ${clientKey}`,
 			);
 		}
 		return this.mapToDomainModel(result);
@@ -27,7 +27,7 @@ export class ConnectInstallationRepository {
 		const result = await getPrismaClient().connectInstallation.upsert({
 			create: installation,
 			update: installation,
-			where: { key: installation.key },
+			where: { clientKey: installation.clientKey },
 		});
 		return this.mapToDomainModel(result);
 	};

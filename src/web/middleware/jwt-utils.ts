@@ -6,7 +6,7 @@ import {
 	getAlgorithm,
 	getKeyId,
 } from 'atlassian-jwt';
-import { Request } from 'atlassian-jwt/dist/lib/jwt';
+import type { Request } from 'atlassian-jwt/dist/lib/jwt';
 
 import { getConfig } from '../../config';
 import { getLogger } from '../../infrastructure';

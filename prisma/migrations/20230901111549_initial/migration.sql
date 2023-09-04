@@ -22,7 +22,7 @@ CREATE TABLE "FigmaOAuth2UserCredentials" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ConnectInstallation_key_key" ON "ConnectInstallation"("key");
+CREATE UNIQUE INDEX "ConnectInstallation_clientKey_key" ON "ConnectInstallation"("clientKey");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "FigmaOAuth2UserCredentials_atlassianUserId_key" ON "FigmaOAuth2UserCredentials"("atlassianUserId");

@@ -3,10 +3,8 @@ import type { FigmaOAuth2UserCredentials as PrismaFigmaOAuth2UserCredentials } f
 import { RepositoryRecordNotFoundError } from './errors';
 import { getPrismaClient } from './prisma-client';
 
-import {
-	FigmaOAuth2UserCredentials,
-	FigmaUserCredentialsCreateParams,
-} from '../../domain/entities';
+import type { FigmaUserCredentialsCreateParams } from '../../domain/entities';
+import { FigmaOAuth2UserCredentials } from '../../domain/entities';
 
 export class FigmaOAuth2UserCredentialsRepository {
 	get = async (
