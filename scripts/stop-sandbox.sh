@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+set -eu
 
-if [ "$CI" = "true" ]; then
-		ENV_FILE="$SCRIPT_DIR"/../.env.test
+COMPOSE_FILE=$1
+
+if [[ "$COMPOSE_FILE" == *.integration.yml ]]; then
+	ENV_FILE=.env.test
+	COMPOSE_PROJECT=test
 else
-		ENV_FILE="$SCRIPT_DIR"/../.env
+	ENV_FILE=.env
+	COMPOSE_PROJECT=development
 fi
 
 echo 'Stopping app sandbox'
-docker-compose --env-file="$ENV_FILE" down
+docker-compose --project-name "$COMPOSE_PROJECT" --file "$COMPOSE_FILE" --env-file="$ENV_FILE" down
 

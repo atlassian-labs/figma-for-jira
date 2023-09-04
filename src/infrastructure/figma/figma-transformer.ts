@@ -1,25 +1,23 @@
 import type {
+	CreateDevResourcesRequest,
 	FileNodesResponse,
 	FileResponse,
 	NodeDevStatus,
 } from './figma-client';
 
-import {
-	FIGMA_URL_REGEX,
-	ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
-} from '../../common/constants';
+import { ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE } from '../../common/constants';
 import { getConfig } from '../../config';
 import type { AtlassianDesign } from '../../domain/entities';
 import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
 } from '../../domain/entities';
-import type { AssociateWith } from '../../web/routes/entities';
+import type { AssociateWith } from '../../usecases';
 
 export type FigmaUrlData = {
-	fileKey: string;
-	nodeId?: string;
-	isPrototype: boolean;
+	readonly fileKey: string;
+	readonly nodeId?: string;
+	readonly isPrototype: boolean;
 };
 
 export const extractDataFromFigmaUrl = (url: string): FigmaUrlData | null => {
@@ -46,6 +44,10 @@ export const extractDataFromFigmaUrl = (url: string): FigmaUrlData | null => {
 	};
 };
 
+// Taken from https://www.figma.com/developers/embed
+const FIGMA_URL_REGEX =
+	/https:\/\/([\w.-]+\.)?figma.com\/(file|proto)\/([0-9a-zA-Z]{22,128})(?:\/.*)?$/;
+
 /**
  * Validates that a string is a valid Figma URL that will be handled by Figma's embed endpoint,
  * then transforms that string into a live embed URL.
@@ -55,7 +57,7 @@ export const buildLiveEmbedUrl = (url: string): string => {
 	if (!FIGMA_URL_REGEX.test(url)) {
 		throw new Error('Not a valid Figma URL');
 	}
-	const urlObject = new URL(`${getConfig().figma.baseUrl}/embed`);
+	const urlObject = new URL(`${getConfig().figma.liveEmbedBaseUrl}/embed`);
 	urlObject.searchParams.append('embed_host', 'atlassian');
 	urlObject.searchParams.append('url', url);
 	return urlObject.toString();
@@ -197,5 +199,19 @@ export const transformFileToAtlassianDesign = ({
 			},
 		],
 		removeAssociations: [],
+	};
+};
+
+export const buildDevResource = ({
+	name,
+	url,
+	file_key,
+	node_id,
+}: CreateDevResourcesRequest): CreateDevResourcesRequest => {
+	return {
+		name,
+		url,
+		node_id,
+		file_key,
 	};
 };

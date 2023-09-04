@@ -1,17 +1,29 @@
 import type { AtlassianDesign } from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
-import type { AssociateEntityPayload } from '../web/routes/entities';
+
+export type AssociateWith = {
+	readonly ari: string;
+	readonly cloudId: string;
+	readonly type: string;
+	readonly id: string | number;
+};
+
+export type AssociateEntityUseCaseParams = {
+	readonly entity: {
+		readonly url: string;
+	};
+	readonly associateWith: AssociateWith;
+	readonly atlassianUserId: string;
+};
 
 export const associateEntityUseCase = {
 	execute: async ({
-		entity: { url },
+		entity,
 		associateWith,
 		atlassianUserId,
-	}: AssociateEntityPayload & {
-		atlassianUserId: string;
-	}): Promise<AtlassianDesign> => {
+	}: AssociateEntityUseCaseParams): Promise<AtlassianDesign> => {
 		const design = await figmaService.fetchDesign(
-			url,
+			entity.url,
 			atlassianUserId,
 			associateWith,
 		);

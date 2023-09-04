@@ -6,22 +6,34 @@ import {
 	RefreshFigmaCredentialsError,
 } from './figma-auth-service';
 import { figmaClient } from './figma-client';
+import type { CreateDevResourcesResponse } from './figma-client';
 import type { FigmaUrlData } from './figma-transformer';
 import {
+	buildDevResource,
 	extractDataFromFigmaUrl,
 	transformFileToAtlassianDesign,
+	transformNodeId,
 	transformNodeToAtlassianDesign,
 } from './figma-transformer';
 
+import { DEFAULT_FIGMA_FILE_NODE_ID } from '../../common/constants';
 import { HttpStatus } from '../../common/http-status';
 import type {
 	AtlassianDesign,
 	FigmaOAuth2UserCredentials,
 } from '../../domain/entities';
-import type { AssociateWith } from '../../web/routes/entities';
+import type { AssociateWith } from '../../usecases';
 import { getLogger } from '../logger';
 
-const validateFigmaUrl = (url: string): FigmaUrlData => {
+// TODO: Replace with call to Jira service to get issue details
+const getIssueDetailsStub = () => {
+	return {
+		issueUrl: 'https://jira-issue.com/123',
+		issueTitle: 'Test Issue',
+	};
+};
+
+const extractDataFromFigmaUrlOrThrow = (url: string): FigmaUrlData => {
 	const urlData = extractDataFromFigmaUrl(url);
 	if (!urlData) {
 		const errorMessage = `Received invalid Figma URL: ${url}`;
@@ -62,7 +74,8 @@ export class FigmaService {
 		atlassianUserId: string,
 		associateWith: AssociateWith,
 	): Promise<AtlassianDesign> => {
-		const { fileKey, nodeId, isPrototype } = validateFigmaUrl(url);
+		const { fileKey, nodeId, isPrototype } =
+			extractDataFromFigmaUrlOrThrow(url);
 
 		if (!associateWith.ari) {
 			throw new Error('No ARI to associate');
@@ -97,6 +110,46 @@ export class FigmaService {
 				associateWith,
 				fileResponse,
 			});
+		}
+	};
+
+	createDevResource = async (
+		url: string,
+		atlassianUserId: string,
+	): Promise<CreateDevResourcesResponse> => {
+		try {
+			const { fileKey, nodeId } = extractDataFromFigmaUrlOrThrow(url);
+			const credentials = await this.getValidCredentials(atlassianUserId);
+			if (!credentials) {
+				throw new Error('Invalid credentials');
+			}
+
+			const { accessToken } = credentials;
+
+			// TODO: Replace with call to Jira service to get issue details
+			const { issueUrl, issueTitle } = getIssueDetailsStub();
+
+			const devResource = buildDevResource({
+				name: issueTitle,
+				url: issueUrl,
+				file_key: fileKey,
+				node_id: nodeId ? transformNodeId(nodeId) : DEFAULT_FIGMA_FILE_NODE_ID,
+			});
+
+			const response = await figmaClient.createDevResources(
+				[devResource],
+				accessToken,
+			);
+
+			if (response.errors.length > 0) {
+				const errorMessage = response.errors.map((err) => err.error).join('|');
+				getLogger().error(errorMessage, 'Created dev resources with errors');
+			}
+
+			return response;
+		} catch (err) {
+			getLogger().error(err, 'Failed to create dev resources');
+			throw err;
 		}
 	};
 }
