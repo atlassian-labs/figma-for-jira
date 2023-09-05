@@ -1,6 +1,7 @@
 import type { RawAxiosRequestHeaders } from 'axios';
 import axios from 'axios';
 
+import { JiraClientResponseValidationError } from './errors';
 import { createJwtToken } from './jwt-utils';
 import {
 	GET_ISSUE_RESPONSE_SCHEMA,
@@ -14,7 +15,6 @@ import type {
 
 import { Duration } from '../../../common/duration';
 import { getAjvSchema } from '../../ajv';
-import { getLogger } from '../../logger';
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
 
@@ -72,14 +72,7 @@ export class JiraClient {
 		const validate = getAjvSchema(SUBMIT_DESIGNS_RESPONSE_SCHEMA);
 
 		if (!validate(response.data)) {
-			const error = new Error(`Unexpected response from ${url.pathname}.`);
-			getLogger().error(
-				error,
-				`Unexpected response from %s: %o`,
-				url.toString(),
-				validate.errors,
-			);
-			throw error;
+			throw new JiraClientResponseValidationError(url, validate.errors);
 		}
 
 		return response.data;
@@ -115,14 +108,7 @@ export class JiraClient {
 		const validate = getAjvSchema(GET_ISSUE_RESPONSE_SCHEMA);
 
 		if (!validate(response.data)) {
-			const error = new Error(`Unexpected response from ${url.pathname}.`);
-			getLogger().error(
-				error,
-				`Unexpected response from %s: %o`,
-				url.toString(),
-				validate.errors,
-			);
-			throw error;
+			throw new JiraClientResponseValidationError(url, validate.errors);
 		}
 
 		return response.data;

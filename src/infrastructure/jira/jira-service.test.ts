@@ -1,3 +1,4 @@
+import { JiraServiceSubmitDesignError } from './errors';
 import { jiraClient } from './jira-client';
 import {
 	generateFailedSubmitDesignsResponse,
@@ -104,13 +105,17 @@ describe('JiraService', () => {
 			const submitDesignsResponse = generateFailedSubmitDesignsResponse(
 				design.id,
 			);
+			const expectedError = JiraServiceSubmitDesignError.designRejected(
+				submitDesignsResponse.rejectedEntities[0].key.designId,
+				submitDesignsResponse.rejectedEntities[0].errors,
+			);
 			jest
 				.spyOn(jiraClient, 'submitDesigns')
 				.mockResolvedValue(submitDesignsResponse);
 
 			await expect(() =>
 				jiraService.submitDesign({ design }, connectInstallation),
-			).rejects.toThrowError();
+			).rejects.toStrictEqual(expectedError);
 		});
 
 		it('should throw when there is unknown issue keys', async () => {
@@ -120,13 +125,16 @@ describe('JiraService', () => {
 				generateSubmitDesignsResponseWithUnknownData({
 					unknownAssociations: [],
 				});
+			const expectedError = JiraServiceSubmitDesignError.unknownIssueKeys(
+				submitDesignsResponse.unknownIssueKeys!,
+			);
 			jest
 				.spyOn(jiraClient, 'submitDesigns')
 				.mockResolvedValue(submitDesignsResponse);
 
 			await expect(() =>
 				jiraService.submitDesign({ design }, connectInstallation),
-			).rejects.toThrowError();
+			).rejects.toStrictEqual(expectedError);
 		});
 
 		it('should throw when there is unknown associations', async () => {
@@ -136,13 +144,16 @@ describe('JiraService', () => {
 				generateSubmitDesignsResponseWithUnknownData({
 					unknownIssueKeys: [],
 				});
+			const expectedError = JiraServiceSubmitDesignError.unknownAssociations(
+				submitDesignsResponse.unknownAssociations!,
+			);
 			jest
 				.spyOn(jiraClient, 'submitDesigns')
 				.mockResolvedValue(submitDesignsResponse);
 
 			await expect(() =>
 				jiraService.submitDesign({ design }, connectInstallation),
-			).rejects.toThrowError();
+			).rejects.toStrictEqual(expectedError);
 		});
 	});
 

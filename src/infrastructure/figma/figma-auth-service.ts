@@ -1,7 +1,6 @@
 import { figmaClient } from './figma-client';
 
 import type { FigmaOAuth2UserCredentials } from '../../domain/entities';
-import { getLogger } from '../logger';
 import { figmaOAuth2UserCredentialsRepository } from '../repositories';
 
 export class FigmaAuthService {
@@ -30,28 +29,25 @@ export class FigmaAuthService {
 	getCredentials = async (
 		atlassianUserId: string,
 	): Promise<FigmaOAuth2UserCredentials> => {
-		let credentials =
-			await figmaOAuth2UserCredentialsRepository.find(atlassianUserId);
-
-		if (!credentials)
+		let credentials: FigmaOAuth2UserCredentials;
+		try {
+			credentials =
+				await figmaOAuth2UserCredentialsRepository.get(atlassianUserId);
+		} catch (e: unknown) {
 			throw new NoFigmaCredentialsError(
-				'No credential available for the current user.',
+				`No credential available for user ${atlassianUserId}`,
 			);
+		}
 
 		if (credentials.isExpired()) {
 			try {
 				credentials = await this.refreshCredentials(credentials);
 			} catch (e: unknown) {
-				getLogger().error(
-					e,
-					`Failed to refresh OAuth credentials for ${atlassianUserId}`,
-				);
 				throw new RefreshFigmaCredentialsError(
-					'Failed to refresh credentials for the current user.',
+					`Failed to refresh credentials for user ${atlassianUserId}`,
 				);
 			}
 		}
-
 		return credentials;
 	};
 
@@ -75,16 +71,8 @@ export class FigmaAuthService {
 	}
 }
 
-export class NoFigmaCredentialsError extends Error {
-	constructor(message: string) {
-		super(message);
-	}
-}
+export class NoFigmaCredentialsError extends Error {}
 
-export class RefreshFigmaCredentialsError extends Error {
-	constructor(message: string) {
-		super(message);
-	}
-}
+export class RefreshFigmaCredentialsError extends Error {}
 
 export const figmaAuthService = new FigmaAuthService();

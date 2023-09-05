@@ -1,3 +1,4 @@
+import { JiraServiceSubmitDesignError } from './errors';
 import { jiraClient } from './jira-client';
 
 import type {
@@ -6,7 +7,6 @@ import type {
 	ConnectInstallation,
 	JiraIssue,
 } from '../../domain/entities';
-import { getLogger } from '../logger';
 
 type SubmitDesignParams = {
 	readonly design: AtlassianDesign;
@@ -37,34 +37,21 @@ export class JiraService {
 		);
 
 		if (response.rejectedEntities.length) {
-			const error = new Error('The design submission has been rejected.');
-			getLogger().error(
-				error,
-				'Rejected entities: %o',
-				response.rejectedEntities[0].errors,
-			);
-			throw error;
+			const { key, errors } = response.rejectedEntities[0];
+			throw JiraServiceSubmitDesignError.designRejected(key.designId, errors);
 		}
 
 		// TODO: Confirm whether we need to consider the use case below as a failure and throw or just leave a warning.
 		if (response.unknownIssueKeys?.length) {
-			const error = new Error('The design has unknown issue keys.');
-			getLogger().error(
-				error,
-				'Unknown issue keys: %o',
+			throw JiraServiceSubmitDesignError.unknownIssueKeys(
 				response.unknownIssueKeys,
 			);
-			throw error;
 		}
 
 		if (response.unknownAssociations?.length) {
-			const error = new Error('The design has unknown associations.');
-			getLogger().error(
-				error,
-				'Unknown associations: %o',
+			throw JiraServiceSubmitDesignError.unknownAssociations(
 				response.unknownAssociations,
 			);
-			throw error;
 		}
 	};
 
