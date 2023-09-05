@@ -2,7 +2,6 @@ import { AxiosError } from 'axios';
 
 import { FigmaServiceCredentialsError } from './errors';
 import { figmaAuthService } from './figma-auth-service';
-import { figmaClient } from './figma-client';
 import type { CreateDevResourcesResponse } from './figma-client';
 import { figmaClient } from './figma-client';
 import type { FigmaUrlData } from './figma-transformer';

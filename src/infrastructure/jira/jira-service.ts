@@ -3,10 +3,10 @@ import { jiraClient } from './jira-client';
 
 import type {
 	AtlassianDesign,
-	AtlassianDesignAssociation,
 	ConnectInstallation,
 	JiraIssue,
 } from '../../domain/entities';
+import { AtlassianDesignAssociation } from '../../domain/entities';
 
 type SubmitDesignParams = {
 	readonly design: AtlassianDesign;
@@ -50,7 +50,9 @@ export class JiraService {
 
 		if (response.unknownAssociations?.length) {
 			throw JiraServiceSubmitDesignError.unknownAssociations(
-				response.unknownAssociations,
+				response.unknownAssociations.map(
+					(x) => new AtlassianDesignAssociation(x.associationType, x.values),
+				),
 			);
 		}
 	};
