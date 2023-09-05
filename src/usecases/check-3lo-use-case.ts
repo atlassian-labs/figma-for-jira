@@ -1,4 +1,7 @@
-import { figmaService } from '../infrastructure/figma';
+import {
+	figmaService,
+	FigmaServiceCredentialsError,
+} from '../infrastructure/figma';
 
 export const check3loUseCase = {
 	execute: async (atlassianUserId: string): Promise<boolean> => {
@@ -6,7 +9,11 @@ export const check3loUseCase = {
 			await figmaService.getValidCredentialsOrThrow(atlassianUserId);
 			return true;
 		} catch (e: unknown) {
-			return false;
+			if (e instanceof FigmaServiceCredentialsError) {
+				return false;
+			}
+
+			throw e;
 		}
 	},
 };
