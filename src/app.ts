@@ -1,6 +1,6 @@
 import express, { json } from 'express';
 
-import { httpLoggerMiddleware } from './web/middleware';
+import { errorHandlerMiddleware, httpLoggerMiddleware } from './web/middleware';
 import { rootRouter } from './web/routes/router';
 
 const app = express();
@@ -12,5 +12,8 @@ app.use(json());
 
 // Setting the routes
 app.use(rootRouter);
+
+// Error handling
+app.use(errorHandlerMiddleware);
 
 export default app;
