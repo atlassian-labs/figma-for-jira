@@ -1,7 +1,12 @@
 import { fromExpressRequest } from 'atlassian-jwt';
 import type { NextFunction, Request, Response } from 'express';
 
-import { verifyAsymmetricJWTToken, verifySymmetricJWTToken } from './jwt-utils';
+import {
+	InstallationNotFoundError,
+	JwtVerificationError,
+	verifyAsymmetricJWTToken,
+	verifySymmetricJWTToken,
+} from './jwt-utils';
 
 const validateAuthToken =
 	(type: 'symmetric' | 'asymmetric') =>
@@ -12,15 +17,24 @@ const validateAuthToken =
 			const request = fromExpressRequest(req);
 			switch (type) {
 				case 'symmetric':
-					res.locals.jiraTenant = await verifySymmetricJWTToken(request, token);
+					res.locals.connectInstallation = await verifySymmetricJWTToken(
+						request,
+						token,
+					);
 					break;
 				case 'asymmetric':
 					await verifyAsymmetricJWTToken(request, token);
 			}
 			next();
 		} catch (e: unknown) {
-			// TODO: properly handle error from verifySymmetricJWTToken when we re-add the code
-			// res.status(e.status).send(e.message);
+			if (e instanceof JwtVerificationError) {
+				res.status(401).send(e.message);
+				return;
+			}
+			if (e instanceof InstallationNotFoundError) {
+				res.status(404).send(e.message);
+				return;
+			}
 			res.status(500).send();
 		}
 	};

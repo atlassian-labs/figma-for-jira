@@ -99,11 +99,13 @@ export const generateSubmitDesignsResponseWithUnknownData = ({
 export const generateGetIssueResponse = ({
 	id = uuidv4(),
 	key = uuidv4(),
+	self = 'https://myjirainstance.atlassian.net/browse/FIG-1',
 	fields = {
 		summary: `Issue ${uuidv4()}`,
 	},
 } = {}): GetIssueResponse => ({
 	id,
 	key,
+	self,
 	fields,
 });

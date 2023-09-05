@@ -25,14 +25,6 @@ import type {
 import type { AssociateWith } from '../../usecases';
 import { getLogger } from '../logger';
 
-// TODO: Replace with call to Jira service to get issue details
-const getIssueDetailsStub = () => {
-	return {
-		issueUrl: 'https://jira-issue.com/123',
-		issueTitle: 'Test Issue',
-	};
-};
-
 const extractDataFromFigmaUrlOrThrow = (url: string): FigmaUrlData => {
 	const urlData = extractDataFromFigmaUrl(url);
 	if (!urlData) {
@@ -113,21 +105,25 @@ export class FigmaService {
 		}
 	};
 
-	createDevResource = async (
-		url: string,
-		atlassianUserId: string,
-	): Promise<CreateDevResourcesResponse> => {
+	createDevResource = async ({
+		designUrl,
+		issueUrl,
+		issueTitle,
+		atlassianUserId,
+	}: {
+		designUrl: string;
+		issueUrl: string;
+		issueTitle: string;
+		atlassianUserId: string;
+	}): Promise<CreateDevResourcesResponse> => {
 		try {
-			const { fileKey, nodeId } = extractDataFromFigmaUrlOrThrow(url);
+			const { fileKey, nodeId } = extractDataFromFigmaUrlOrThrow(designUrl);
 			const credentials = await this.getValidCredentials(atlassianUserId);
 			if (!credentials) {
 				throw new Error('Invalid credentials');
 			}
 
 			const { accessToken } = credentials;
-
-			// TODO: Replace with call to Jira service to get issue details
-			const { issueUrl, issueTitle } = getIssueDetailsStub();
 
 			const devResource = buildDevResource({
 				name: issueTitle,

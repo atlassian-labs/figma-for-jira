@@ -2,22 +2,29 @@
 import {
 	createQueryStringHash,
 	decodeAsymmetric,
-	// decodeSymmetric,
+	decodeSymmetric,
 	getAlgorithm,
 	getKeyId,
 } from 'atlassian-jwt';
 import type { Request } from 'atlassian-jwt/dist/lib/jwt';
 
 import { getConfig } from '../../config';
+import type { ConnectInstallation } from '../../domain/entities';
 import { getLogger } from '../../infrastructure';
+import { connectInstallationRepository } from '../../infrastructure/repositories';
 
-const tenant = {
-	id: '123',
-	url: '',
-	sharedSecret: '',
-	clientKey: '',
-	enabled: true,
-};
+export class JwtVerificationError extends Error {
+	constructor(message: string) {
+		super(message);
+	}
+}
+
+export class InstallationNotFoundError extends Error {
+	constructor(message: string) {
+		super(message);
+	}
+}
+
 /**
  * This decodes the JWT token from Jira, verifies it against the jira tenant's shared secret
  * And returns the verified Jira tenant if it passes
@@ -26,44 +33,33 @@ const tenant = {
 export const verifySymmetricJWTToken = async (
 	request: Request,
 	token?: string,
-): Promise<typeof tenant> => {
-	getLogger().info({ request, token }, 'verifySymmetricJWTToken');
-	// // if JWT is missing, return a 401
-	// if (!token) {
-	// 	return Promise.reject({
-	// 		status: 401,
-	// 		message: 'Missing JWT token'
-	// 	});
-	// }
+): Promise<ConnectInstallation> => {
+	if (!token) {
+		throw new JwtVerificationError('Missing JWT token');
+	}
 
-	// // Decode jwt token without verification
-	// let data = decodeSymmetric(token, '', getAlgorithm(token), true);
-	// // Get the jira tenant associated with this url
-	// // const jiraTenant = await database.findJiraTenant({ clientKey: data.iss });
+	// Decode jwt token without verification
+	const data = decodeSymmetric(token, '', getAlgorithm(token), true);
+	const installation = await connectInstallationRepository.getByClientKey(
+		data.iss,
+	);
 
-	// // If tenant doesn't exist anymore, return a 404
-	// if (!tenant) {
-	// 	return Promise.reject({
-	// 		status: 404,
-	// 		message: "Jira Tenant doesn't exist"
-	// 	});
-	// }
+	if (!installation) {
+		throw new InstallationNotFoundError('Installation not found for tenant');
+	}
 
-	// try {
-	// 	// Try to verify the jwt token
-	// 	data = decodeSymmetric(token, tenant.sharedSecret, getAlgorithm(token));
-	// 	await validateQsh(data.qsh, request);
+	try {
+		const verifiedToken = decodeSymmetric(
+			token,
+			installation.sharedSecret,
+			getAlgorithm(token),
+		);
+		await validateQsh(verifiedToken.qsh, request);
 
-	// 	// If all verifications pass, save the jiraTenant to local to be used later
-	// 	return tenant;
-	// } catch (e) {
-	// 	// If verification doesn't work, show a 401 error
-	// 	return Promise.reject({
-	// 		status: 401,
-	// 		message: `JWT verification failed: ${e}`
-	// 	});
-	// }
-	return Promise.resolve(tenant);
+		return installation;
+	} catch (err) {
+		throw new JwtVerificationError('JWT verification failed');
+	}
 };
 
 /**
@@ -133,6 +129,7 @@ export const verifyAsymmetricJWTToken = async (
 
 // Check to see if QSH from token is the same as the request
 const validateQsh = async (qsh: string, request: Request): Promise<void> => {
+	getLogger().debug(request, 'request');
 	if (qsh !== 'context-qsh' && qsh !== createQueryStringHash(request, false)) {
 		return Promise.reject({
 			status: 401,

@@ -90,7 +90,6 @@ export class JiraClient {
 	 *
 	 * @see https://developer.atlassian.com/cloud/jira/software/rest/api-group-issue/#api-rest-agile-1-0-issue-issueidorkey-get
 	 */
-	// TODO: Delete the method if not required by the `/associateEntity` flow.
 	getIssue = async (
 		issueIdOrKey: string,
 		{ baseUrl, connectAppKey, connectSharedSecret }: JiraClientParams,

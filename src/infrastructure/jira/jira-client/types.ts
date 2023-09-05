@@ -1,5 +1,6 @@
 export type GetIssueResponse = {
 	readonly id: string;
+	readonly self: string;
 	readonly key: string;
 	readonly fields: {
 		readonly summary: string;
