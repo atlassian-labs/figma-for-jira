@@ -88,7 +88,7 @@ describe('FigmaService', () => {
 			).rejects.toStrictEqual(expectedServiceError);
 		});
 
-		it('should throw when user is no authorized to call Figma API', async () => {
+		it('should throw when user is not authorized to call Figma API', async () => {
 			const forbiddenAxiosError = new AxiosError(
 				'Error',
 				undefined,
@@ -114,7 +114,7 @@ describe('FigmaService', () => {
 
 		it('should throw when request to Figma API result in non-403 error', async () => {
 			const credentials = generateFigmaOAuth2UserCredentials();
-			const serverAxiosError = new AxiosError(
+			const expectedError = new AxiosError(
 				'Error',
 				undefined,
 				undefined,
@@ -123,18 +123,14 @@ describe('FigmaService', () => {
 					status: 500,
 				} as AxiosResponse,
 			);
-			const expectedServiceError = new FigmaServiceCredentialsError(
-				ATLASSIAN_USER_ID,
-				serverAxiosError,
-			);
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
-			jest.spyOn(figmaClient, 'me').mockRejectedValue(serverAxiosError);
+			jest.spyOn(figmaClient, 'me').mockRejectedValue(expectedError);
 
 			await expect(
 				figmaService.getValidCredentialsOrThrow(ATLASSIAN_USER_ID),
-			).rejects.toStrictEqual(expectedServiceError);
+			).rejects.toStrictEqual(expectedError);
 		});
 	});
 

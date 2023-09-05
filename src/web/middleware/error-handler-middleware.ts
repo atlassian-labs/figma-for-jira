@@ -1,4 +1,3 @@
-import { AxiosError } from 'axios';
 import type { NextFunction, Request, Response } from 'express';
 
 import { JwtVerificationError } from './jwt-utils';
@@ -26,14 +25,9 @@ export const errorHandlerMiddleware = (
 	} else if (err instanceof RepositoryRecordNotFoundError) {
 		res.status(HttpStatus.NOT_FOUND).send(err.message);
 	} else if (err instanceof FigmaServiceCredentialsError) {
-		const isForbidden =
-			err.cause instanceof AxiosError &&
-			err.cause.response?.status === HttpStatus.FORBIDDEN;
-		res
-			.status(isForbidden ? HttpStatus.FORBIDDEN : HttpStatus.UNAUTHORIZED)
-			.send(err.message);
+		res.status(HttpStatus.FORBIDDEN).send(err.message);
 	} else {
-		res.sendStatus(500);
+		res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 	next();

@@ -1,3 +1,5 @@
+import { AxiosError } from 'axios';
+
 import { FigmaServiceCredentialsError } from './errors';
 import { figmaAuthService } from './figma-auth-service';
 import { figmaClient } from './figma-client';
@@ -12,6 +14,7 @@ import {
 } from './figma-transformer';
 
 import { DEFAULT_FIGMA_FILE_NODE_ID } from '../../common/constants';
+import { HttpStatus } from '../../common/http-status';
 import type {
 	AtlassianDesign,
 	FigmaOAuth2UserCredentials,
@@ -46,6 +49,14 @@ export class FigmaService {
 
 			return credentials;
 		} catch (e: unknown) {
+			if (
+				e instanceof AxiosError &&
+				e.response?.status !== HttpStatus.UNAUTHORIZED &&
+				e.response?.status !== HttpStatus.FORBIDDEN
+			) {
+				throw e;
+			}
+
 			throw new FigmaServiceCredentialsError(
 				atlassianUserId,
 				e instanceof Error ? e : undefined,
