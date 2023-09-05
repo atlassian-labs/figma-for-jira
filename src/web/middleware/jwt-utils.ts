@@ -148,7 +148,7 @@ const queryAtlassianConnectPublicKey = async (
 	keyId: string,
 ): Promise<string> => {
 	const response = await fetch(
-		`https://connect-install-keys.atlassian.com/${keyId}`,
+		`${getConfig().jira.connectKeyServerUrl}/${keyId}`,
 	);
 	if (response.status !== 200) {
 		return Promise.reject({
