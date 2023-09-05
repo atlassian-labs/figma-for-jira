@@ -226,10 +226,7 @@ describe('FigmaService', () => {
 
 		it('should throw if the atlassian user is not authorized', async () => {
 			await expect(() =>
-				figmaService.fetchDesign(
-					MOCK_DESIGN_URL_WITH_NODE,
-					ATLASSIAN_USER_ID
-				),
+				figmaService.fetchDesign(MOCK_DESIGN_URL_WITH_NODE, ATLASSIAN_USER_ID),
 			).rejects.toBeInstanceOf(FigmaServiceCredentialsError);
 		});
 	});
