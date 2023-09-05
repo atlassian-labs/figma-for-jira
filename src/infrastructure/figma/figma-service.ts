@@ -5,8 +5,8 @@ import {
 	NoFigmaCredentialsError,
 	RefreshFigmaCredentialsError,
 } from './figma-auth-service';
-import { figmaClient } from './figma-client';
 import type { CreateDevResourcesResponse } from './figma-client';
+import { figmaClient } from './figma-client';
 import type { FigmaUrlData } from './figma-transformer';
 import {
 	buildDevResource,
@@ -16,14 +16,14 @@ import {
 	transformNodeToAtlassianDesign,
 } from './figma-transformer';
 
-import { DEFAULT_FIGMA_FILE_NODE_ID } from '../../common/constants';
 import { HttpStatus } from '../../common/http-status';
 import type {
 	AtlassianDesign,
 	FigmaOAuth2UserCredentials,
 } from '../../domain/entities';
-import type { AssociateWith } from '../../usecases';
 import { getLogger } from '../logger';
+
+export const DEFAULT_FIGMA_FILE_NODE_ID = '0:0';
 
 // TODO: Replace with call to Jira service to get issue details
 const getIssueDetailsStub = () => {
@@ -72,14 +72,9 @@ export class FigmaService {
 	fetchDesign = async (
 		url: string,
 		atlassianUserId: string,
-		associateWith: AssociateWith,
 	): Promise<AtlassianDesign> => {
 		const { fileKey, nodeId, isPrototype } =
 			extractDataFromFigmaUrlOrThrow(url);
-
-		if (!associateWith.ari) {
-			throw new Error('No ARI to associate');
-		}
 
 		const credentials = await this.getValidCredentials(atlassianUserId);
 		if (!credentials) {
@@ -98,7 +93,6 @@ export class FigmaService {
 				nodeId,
 				url,
 				isPrototype,
-				associateWith,
 				fileNodesResponse,
 			});
 		} else {
@@ -107,7 +101,6 @@ export class FigmaService {
 				url,
 				fileKey,
 				isPrototype,
-				associateWith,
 				fileResponse,
 			});
 		}

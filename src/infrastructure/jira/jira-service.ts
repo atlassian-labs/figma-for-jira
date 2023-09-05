@@ -2,19 +2,32 @@ import { jiraClient } from './jira-client';
 
 import type {
 	AtlassianDesign,
+	AtlassianDesignAssociation,
 	ConnectInstallation,
 	JiraIssue,
 } from '../../domain/entities';
 import { getLogger } from '../logger';
 
+type SubmitDesignParams = {
+	readonly design: AtlassianDesign;
+	readonly addAssociations?: AtlassianDesignAssociation[];
+	readonly removeAssociations?: AtlassianDesignAssociation[];
+};
+
 export class JiraService {
 	submitDesign = async (
-		design: AtlassianDesign,
+		{ design, addAssociations, removeAssociations }: SubmitDesignParams,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		const response = await jiraClient.submitDesigns(
 			{
-				designs: [design],
+				designs: [
+					{
+						...design,
+						addAssociations: addAssociations ?? [],
+						removeAssociations: removeAssociations ?? [],
+					},
+				],
 			},
 			{
 				baseUrl: connectInstallation.baseUrl,

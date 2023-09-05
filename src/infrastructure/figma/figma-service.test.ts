@@ -12,7 +12,7 @@ import type {
 	MeResponse,
 } from './figma-client';
 import { figmaClient } from './figma-client';
-import { figmaService } from './figma-service';
+import { DEFAULT_FIGMA_FILE_NODE_ID, figmaService } from './figma-service';
 import {
 	transformFileToAtlassianDesign,
 	transformNodeId,
@@ -27,10 +27,8 @@ import {
 	MOCK_INVALID_DESIGN_URL,
 	MOCK_NODE_ID,
 	MOCK_NODE_ID_URL,
-	MOCK_VALID_ASSOCIATION,
 } from './testing';
 
-import { DEFAULT_FIGMA_FILE_NODE_ID } from '../../common/constants';
 import * as configModule from '../../config';
 import { mockConfig } from '../../config/testing';
 import { generateFigmaOAuth2UserCredentials } from '../../domain/entities/testing';
@@ -140,14 +138,12 @@ describe('FigmaService', () => {
 				nodeId: MOCK_NODE_ID,
 				url: MOCK_DESIGN_URL_WITH_NODE,
 				isPrototype: false,
-				associateWith: MOCK_VALID_ASSOCIATION,
 				fileNodesResponse: mockResponse,
 			});
 
 			const res = await figmaService.fetchDesign(
 				MOCK_DESIGN_URL_WITH_NODE,
 				ATLASSIAN_USER_ID,
-				MOCK_VALID_ASSOCIATION,
 			);
 
 			expect(res).toStrictEqual({
@@ -172,14 +168,12 @@ describe('FigmaService', () => {
 				url: MOCK_DESIGN_URL_WITHOUT_NODE,
 				fileKey: MOCK_FILE_KEY,
 				isPrototype: false,
-				associateWith: MOCK_VALID_ASSOCIATION,
 				fileResponse: mockResponse,
 			});
 
 			const res = await figmaService.fetchDesign(
 				MOCK_DESIGN_URL_WITHOUT_NODE,
 				ATLASSIAN_USER_ID,
-				MOCK_VALID_ASSOCIATION,
 			);
 
 			expect(res).toStrictEqual({
@@ -204,7 +198,6 @@ describe('FigmaService', () => {
 				figmaService.fetchDesign(
 					MOCK_DESIGN_URL_WITHOUT_NODE,
 					ATLASSIAN_USER_ID,
-					MOCK_VALID_ASSOCIATION,
 				),
 			).rejects.toStrictEqual(mockError);
 		});
@@ -214,21 +207,13 @@ describe('FigmaService', () => {
 				`Received invalid Figma URL: ${MOCK_INVALID_DESIGN_URL}`,
 			);
 			await expect(() =>
-				figmaService.fetchDesign(
-					MOCK_INVALID_DESIGN_URL,
-					ATLASSIAN_USER_ID,
-					MOCK_VALID_ASSOCIATION,
-				),
+				figmaService.fetchDesign(MOCK_INVALID_DESIGN_URL, ATLASSIAN_USER_ID),
 			).rejects.toStrictEqual(invalidUrlError);
 		});
 
 		it('should throw if the atlassian user is not authorized', async () => {
 			await expect(() =>
-				figmaService.fetchDesign(
-					MOCK_DESIGN_URL_WITH_NODE,
-					ATLASSIAN_USER_ID,
-					MOCK_VALID_ASSOCIATION,
-				),
+				figmaService.fetchDesign(MOCK_DESIGN_URL_WITH_NODE, ATLASSIAN_USER_ID),
 			).rejects.toThrow();
 		});
 	});

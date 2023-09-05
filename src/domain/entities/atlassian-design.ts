@@ -1,3 +1,5 @@
+const ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE = 'issue-associated-design';
+
 export enum AtlassianDesignStatus {
 	READY_FOR_DEVELOPMENT = 'READY_FOR_DEVELOPMENT',
 	UNKNOWN = 'UNKNOWN',
@@ -13,10 +15,19 @@ export enum AtlassianDesignType {
 	OTHER = 'OTHER',
 }
 
-export type Association = {
-	readonly associationType: string;
-	readonly values: string[];
-};
+export class AtlassianDesignAssociation {
+	constructor(
+		readonly associationType: string,
+		readonly values: string[],
+	) {}
+
+	static withJiraIssue(issueAri: string): AtlassianDesignAssociation {
+		return new AtlassianDesignAssociation(
+			ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
+			[issueAri],
+		);
+	}
+}
 
 /**
  * An Atlassian representation of a Design from a provider.
@@ -34,6 +45,4 @@ export type AtlassianDesign = {
 	readonly type: AtlassianDesignType;
 	readonly lastUpdated: string;
 	readonly updateSequenceNumber: number;
-	readonly addAssociations: Association[];
-	readonly removeAssociations: Association[];
 };
