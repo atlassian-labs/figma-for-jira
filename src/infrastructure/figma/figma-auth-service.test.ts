@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import {
 	figmaAuthService,
+	NoFigmaCredentialsError,
 	RefreshFigmaCredentialsError,
 } from './figma-auth-service';
 import { figmaClient } from './figma-client';
@@ -124,7 +125,7 @@ describe('FigmaAuthService', () => {
 
 			await expect(() =>
 				figmaAuthService.getCredentials(ATLASSIAN_USER_ID),
-			).rejects.toThrowError();
+			).rejects.toBeInstanceOf(NoFigmaCredentialsError);
 		});
 
 		it('should throw when refreshing expired credentials fails', async () => {

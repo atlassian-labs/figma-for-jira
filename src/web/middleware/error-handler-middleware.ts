@@ -1,7 +1,10 @@
+import { AxiosError } from 'axios';
 import type { NextFunction, Request, Response } from 'express';
 
 import { JwtVerificationError } from './jwt-utils';
 
+import { HttpStatus } from '../../common/http-status';
+import { FigmaServiceCredentialsError } from '../../infrastructure/figma';
 import { RepositoryRecordNotFoundError } from '../../infrastructure/repositories';
 
 export const errorHandlerMiddleware = (
@@ -19,9 +22,16 @@ export const errorHandlerMiddleware = (
 	res.err = err;
 
 	if (err instanceof JwtVerificationError) {
-		res.status(401).send(err.message);
+		res.status(HttpStatus.UNAUTHORIZED).send(err.message);
 	} else if (err instanceof RepositoryRecordNotFoundError) {
-		res.status(404).send(err.message);
+		res.status(HttpStatus.NOT_FOUND).send(err.message);
+	} else if (err instanceof FigmaServiceCredentialsError) {
+		const isForbidden =
+			err.cause instanceof AxiosError &&
+			err.cause.response?.status === HttpStatus.FORBIDDEN;
+		res
+			.status(isForbidden ? HttpStatus.FORBIDDEN : HttpStatus.UNAUTHORIZED)
+			.send(err.message);
 	} else {
 		res.sendStatus(500);
 	}

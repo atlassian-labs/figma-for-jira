@@ -19,11 +19,7 @@ const tenant = {
 	enabled: true,
 };
 
-export class JwtVerificationError extends Error {
-	constructor(message: string) {
-		super(message);
-	}
-}
+export class JwtVerificationError extends Error {}
 
 /**
  * This decodes the JWT token from Jira, verifies it against the jira tenant's shared secret

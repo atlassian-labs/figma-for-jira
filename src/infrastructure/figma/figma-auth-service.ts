@@ -71,16 +71,8 @@ export class FigmaAuthService {
 	}
 }
 
-export class NoFigmaCredentialsError extends Error {
-	constructor(message: string) {
-		super(message);
-	}
-}
+export class NoFigmaCredentialsError extends Error {}
 
-export class RefreshFigmaCredentialsError extends Error {
-	constructor(message: string) {
-		super(message);
-	}
-}
+export class RefreshFigmaCredentialsError extends Error {}
 
 export const figmaAuthService = new FigmaAuthService();
