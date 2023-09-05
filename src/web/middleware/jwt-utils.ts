@@ -7,6 +7,7 @@ import {
 	getKeyId,
 } from 'atlassian-jwt';
 import type { Request } from 'atlassian-jwt/dist/lib/jwt';
+import axios from 'axios';
 
 import { getConfig } from '../../config';
 import { getLogger } from '../../infrastructure';
@@ -135,13 +136,14 @@ const validateQsh = (qsh: string, request: Request): void => {
 const queryAtlassianConnectPublicKey = async (
 	keyId: string,
 ): Promise<string> => {
-	const response = await fetch(
-		`https://connect-install-keys.atlassian.com/${keyId}`,
-	);
-	if (response.status !== 200) {
+	try {
+		const response = await axios.get<string>(
+			`${getConfig().jira.connectKeyServerUrl}/${keyId}`,
+		);
+		return response.data;
+	} catch (e: unknown) {
 		throw new JwtVerificationError(
 			`Unable to get public key for keyId ${keyId}`,
 		);
 	}
-	return response.text();
 };
