@@ -150,7 +150,7 @@ describe('/associateEntity', () => {
 		});
 
 		it('should respond with created design entity', async () => {
-			const credentials = await figmaOAuth2UserCredentialsRepository.find(
+			const credentials = await figmaOAuth2UserCredentialsRepository.get(
 				validCredentialsParams.atlassianUserId,
 			);
 			const mockFileNodesResponse = generateGetFileNodesResponse();
@@ -229,7 +229,7 @@ describe('/associateEntity', () => {
 			});
 
 			it('should respond with 500 if fetching design details fails', async () => {
-				const credentials = await figmaOAuth2UserCredentialsRepository.find(
+				const credentials = await figmaOAuth2UserCredentialsRepository.get(
 					validCredentialsParams.atlassianUserId,
 				);
 
@@ -250,7 +250,7 @@ describe('/associateEntity', () => {
 			});
 
 			it('should respond with 500 if fetching issue details fails', async () => {
-				const credentials = await figmaOAuth2UserCredentialsRepository.find(
+				const credentials = await figmaOAuth2UserCredentialsRepository.get(
 					validCredentialsParams.atlassianUserId,
 				);
 				const mockFileNodesResponse = generateGetFileNodesResponse();
@@ -272,7 +272,7 @@ describe('/associateEntity', () => {
 			});
 
 			it('should respond with 500 if design ingestion fails', async () => {
-				const credentials = await figmaOAuth2UserCredentialsRepository.find(
+				const credentials = await figmaOAuth2UserCredentialsRepository.get(
 					validCredentialsParams.atlassianUserId,
 				);
 				const mockFileNodesResponse = generateGetFileNodesResponse();
@@ -295,7 +295,7 @@ describe('/associateEntity', () => {
 			});
 
 			it('should respond with 500 if createDevResource request fails', async () => {
-				const credentials = await figmaOAuth2UserCredentialsRepository.find(
+				const credentials = await figmaOAuth2UserCredentialsRepository.get(
 					validCredentialsParams.atlassianUserId,
 				);
 				const mockFileNodesResponse = generateGetFileNodesResponse();
