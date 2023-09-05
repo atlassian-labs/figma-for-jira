@@ -18,4 +18,7 @@ export const mockConfig: Config = {
 		clientId: 'abc',
 		clientSecret: '123',
 	},
+	jira: {
+		connectKeyServerUrl: 'https://connect-install-keys.atlassian.com',
+	},
 };
