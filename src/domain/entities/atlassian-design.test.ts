@@ -3,7 +3,7 @@ import { generateIssueAri } from './testing';
 
 describe('AtlassianDesign', () => {
 	describe('withJiraIssue', () => {
-		test('should return design-to-issue association', () => {
+		test('should return issue-associated-design association', () => {
 			const issueAri = generateIssueAri();
 
 			const association = AtlassianDesignAssociation.withJiraIssue(issueAri);
