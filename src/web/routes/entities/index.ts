@@ -9,6 +9,11 @@ import type { TypedRequest } from '../types';
 
 export const entitiesRouter = Router();
 
+export type AssociateEntityRequestParams = Omit<
+	AssociateEntityUseCaseParams,
+	'atlassianUserId' | 'connectInstallation'
+>;
+
 interface AssociateEntityResponse extends Response {
 	locals: {
 		connectInstallation?: ConnectInstallation;
@@ -19,7 +24,7 @@ entitiesRouter.post(
 	'/associateEntity',
 	authHeaderSymmetricJwtMiddleware,
 	(
-		req: TypedRequest<AssociateEntityUseCaseParams>,
+		req: TypedRequest<AssociateEntityRequestParams>,
 		res: AssociateEntityResponse,
 		next: NextFunction,
 	) => {
@@ -27,7 +32,7 @@ entitiesRouter.post(
 		if (!atlassianUserId || typeof atlassianUserId !== 'string') {
 			const errorMessage = 'Missing or invalid User-Id header';
 			res.status(401).send(errorMessage);
-			throw new Error(errorMessage);
+			return;
 		}
 		associateEntityUseCase
 			.execute({

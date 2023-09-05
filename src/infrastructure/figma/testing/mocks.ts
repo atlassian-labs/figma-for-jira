@@ -22,13 +22,13 @@ export const MOCK_ISSUE_URL =
 	'https://myjirainstance.atlassian.net/browse/FIG-1';
 export const MOCK_ISSUE_TITLE = 'Test Jira Issue';
 const SITE_ID = uuidv4();
-const ISSUE_ID = '10000';
-export const INVALID_ISSUE_ARI = `ari:cloud:jira:123:issue/${ISSUE_ID}`;
-export const VALID_ISSUE_ARI = `ari:cloud:jira:${SITE_ID}:issue/${ISSUE_ID}`;
+export const MOCK_ISSUE_ID = '10000';
+export const INVALID_ISSUE_ARI = `ari:cloud:jira:123:issue/${MOCK_ISSUE_ID}`;
+export const VALID_ISSUE_ARI = `ari:cloud:jira:${SITE_ID}:issue/${MOCK_ISSUE_ID}`;
 export const MOCK_VALID_ASSOCIATION = {
 	ati: JIRA_ISSUE_ATI,
 	ari: VALID_ISSUE_ARI,
-	id: ISSUE_ID,
+	id: MOCK_ISSUE_ID,
 	cloudId: SITE_ID,
 };
 

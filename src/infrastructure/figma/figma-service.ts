@@ -16,7 +16,10 @@ import {
 	transformNodeToAtlassianDesign,
 } from './figma-transformer';
 
-import { DEFAULT_FIGMA_FILE_NODE_ID } from '../../common/constants';
+import {
+	DEFAULT_FIGMA_FILE_NODE_ID,
+	JIRA_ISSUE_ATI,
+} from '../../common/constants';
 import { HttpStatus } from '../../common/http-status';
 import type {
 	AtlassianDesign,
@@ -71,6 +74,10 @@ export class FigmaService {
 
 		if (!associateWith.ari) {
 			throw new Error('No ARI to associate');
+		}
+
+		if (associateWith.ati !== JIRA_ISSUE_ATI) {
+			throw new Error('Unrecognized ATI');
 		}
 
 		const credentials = await this.getValidCredentials(atlassianUserId);
@@ -137,7 +144,7 @@ export class FigmaService {
 				accessToken,
 			);
 
-			if (response.errors.length > 0) {
+			if (response.errors && response.errors.length > 0) {
 				const errorMessage = response.errors.map((err) => err.error).join('|');
 				getLogger().error(errorMessage, 'Created dev resources with errors');
 			}
