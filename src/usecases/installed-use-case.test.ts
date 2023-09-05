@@ -4,10 +4,6 @@ import { generateConnectInstallationCreateParams } from '../domain/entities/test
 import { connectInstallationRepository } from '../infrastructure/repositories';
 
 describe('installedUseCase', () => {
-	beforeEach(() => {
-		jest.clearAllMocks();
-	});
-
 	afterEach(() => {
 		jest.clearAllMocks();
 	});

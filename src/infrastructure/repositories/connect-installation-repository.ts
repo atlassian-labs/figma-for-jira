@@ -34,6 +34,15 @@ export class ConnectInstallationRepository {
 		}
 	};
 
+	deleteByClientKey = async (
+		clientKey: string,
+	): Promise<ConnectInstallation> => {
+		const result = await getPrismaClient().connectInstallation.delete({
+			where: { clientKey },
+		});
+		return this.mapToDomainModel(result);
+	};
+
 	private mapToDomainModel = ({
 		id,
 		key,
