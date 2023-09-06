@@ -26,6 +26,8 @@ import {
 	MOCK_DESIGN_URL_WITHOUT_NODE,
 	MOCK_FILE_KEY,
 	MOCK_INVALID_DESIGN_URL,
+	MOCK_ISSUE_TITLE,
+	MOCK_ISSUE_URL,
 	MOCK_NODE_ID,
 	MOCK_NODE_ID_URL,
 } from './testing';
@@ -248,16 +250,18 @@ describe('FigmaService', () => {
 			} as CreateDevResourcesResponse);
 
 			const expectedDevResource: CreateDevResourcesRequest = {
-				name: 'Test Issue',
-				url: 'https://jira-issue.com/123',
+				name: MOCK_ISSUE_TITLE,
+				url: MOCK_ISSUE_URL,
 				file_key: MOCK_FILE_KEY,
 				node_id: DEFAULT_FIGMA_FILE_NODE_ID,
 			};
 
-			await figmaService.createDevResource(
-				MOCK_DESIGN_URL_WITHOUT_NODE,
-				ATLASSIAN_USER_ID,
-			);
+			await figmaService.createDevResource({
+				designUrl: MOCK_DESIGN_URL_WITHOUT_NODE,
+				issueUrl: MOCK_ISSUE_URL,
+				issueTitle: MOCK_ISSUE_TITLE,
+				atlassianUserId: ATLASSIAN_USER_ID,
+			});
 
 			expect(figmaClient.createDevResources).toHaveBeenCalledWith(
 				[expectedDevResource],
@@ -272,16 +276,18 @@ describe('FigmaService', () => {
 			} as CreateDevResourcesResponse);
 
 			const expectedDevResource: CreateDevResourcesRequest = {
-				name: 'Test Issue',
-				url: 'https://jira-issue.com/123',
+				name: MOCK_ISSUE_TITLE,
+				url: MOCK_ISSUE_URL,
 				file_key: MOCK_FILE_KEY,
 				node_id: transformNodeId(MOCK_NODE_ID_URL),
 			};
 
-			await figmaService.createDevResource(
-				MOCK_DESIGN_URL_WITH_NODE,
-				ATLASSIAN_USER_ID,
-			);
+			await figmaService.createDevResource({
+				designUrl: MOCK_DESIGN_URL_WITH_NODE,
+				issueUrl: MOCK_ISSUE_URL,
+				issueTitle: MOCK_ISSUE_TITLE,
+				atlassianUserId: ATLASSIAN_USER_ID,
+			});
 
 			expect(figmaClient.createDevResources).toHaveBeenCalledWith(
 				[expectedDevResource],
@@ -296,10 +302,12 @@ describe('FigmaService', () => {
 				.mockRejectedValue(expectedError);
 
 			await expect(() =>
-				figmaService.createDevResource(
-					MOCK_DESIGN_URL_WITH_NODE,
-					ATLASSIAN_USER_ID,
-				),
+				figmaService.createDevResource({
+					designUrl: MOCK_DESIGN_URL_WITH_NODE,
+					issueUrl: MOCK_ISSUE_URL,
+					issueTitle: MOCK_ISSUE_TITLE,
+					atlassianUserId: ATLASSIAN_USER_ID,
+				}),
 			).rejects.toThrow(expectedError);
 		});
 
@@ -308,10 +316,12 @@ describe('FigmaService', () => {
 				`Received invalid Figma URL: ${MOCK_INVALID_DESIGN_URL}`,
 			);
 			await expect(() =>
-				figmaService.createDevResource(
-					MOCK_INVALID_DESIGN_URL,
-					ATLASSIAN_USER_ID,
-				),
+				figmaService.createDevResource({
+					designUrl: MOCK_INVALID_DESIGN_URL,
+					issueUrl: MOCK_ISSUE_URL,
+					issueTitle: MOCK_ISSUE_TITLE,
+					atlassianUserId: ATLASSIAN_USER_ID,
+				}),
 			).rejects.toThrow(invalidUrlError);
 		});
 
@@ -323,10 +333,12 @@ describe('FigmaService', () => {
 				.spyOn(figmaService, 'getValidCredentialsOrThrow')
 				.mockRejectedValue(credentialsError);
 			await expect(() =>
-				figmaService.createDevResource(
-					MOCK_DESIGN_URL_WITH_NODE,
-					ATLASSIAN_USER_ID,
-				),
+				figmaService.createDevResource({
+					designUrl: MOCK_DESIGN_URL_WITH_NODE,
+					issueUrl: MOCK_ISSUE_URL,
+					issueTitle: MOCK_ISSUE_TITLE,
+					atlassianUserId: ATLASSIAN_USER_ID,
+				}),
 			).rejects.toStrictEqual(credentialsError);
 		});
 	});

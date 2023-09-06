@@ -2,7 +2,7 @@
 import {
 	createQueryStringHash,
 	decodeAsymmetric,
-	// decodeSymmetric,
+	decodeSymmetric,
 	getAlgorithm,
 	getKeyId,
 } from 'atlassian-jwt';
@@ -10,15 +10,11 @@ import type { Request } from 'atlassian-jwt/dist/lib/jwt';
 import axios from 'axios';
 
 import { getConfig } from '../../config';
-import { getLogger } from '../../infrastructure';
-
-const tenant = {
-	id: '123',
-	url: '',
-	sharedSecret: '',
-	clientKey: '',
-	enabled: true,
-};
+import type { ConnectInstallation } from '../../domain/entities';
+import {
+	connectInstallationRepository,
+	RepositoryRecordNotFoundError,
+} from '../../infrastructure/repositories';
 
 export class JwtVerificationError extends Error {}
 
@@ -30,44 +26,35 @@ export class JwtVerificationError extends Error {}
 export const verifySymmetricJwtToken = async (
 	request: Request,
 	token?: string,
-): Promise<typeof tenant> => {
-	getLogger().info({ request, token }, 'verifySymmetricJWTToken');
-	// // if JWT is missing, return a 401
-	// if (!token) {
-	// 	return Promise.reject({
-	// 		status: 401,
-	// 		message: 'Missing JWT token'
-	// 	});
-	// }
+): Promise<ConnectInstallation> => {
+	if (!token) {
+		throw new JwtVerificationError('Missing JWT token');
+	}
 
-	// // Decode jwt token without verification
-	// let data = decodeSymmetric(token, '', getAlgorithm(token), true);
-	// // Get the jira tenant associated with this url
-	// // const jiraTenant = await database.findJiraTenant({ clientKey: data.iss });
+	// Decode jwt token without verification
+	const data = decodeSymmetric(token, '', getAlgorithm(token), true);
 
-	// // If tenant doesn't exist anymore, return a 404
-	// if (!tenant) {
-	// 	return Promise.reject({
-	// 		status: 404,
-	// 		message: "Jira Tenant doesn't exist"
-	// 	});
-	// }
+	let installation: ConnectInstallation;
+	try {
+		installation = await connectInstallationRepository.getByClientKey(data.iss);
+	} catch (e: unknown) {
+		if (e instanceof RepositoryRecordNotFoundError) {
+			throw new JwtVerificationError(
+				`ConnectInstallation not found for clientKey ${data.iss}`,
+			);
+		}
+		throw e;
+	}
 
-	// try {
-	// 	// Try to verify the jwt token
-	// 	data = decodeSymmetric(token, tenant.sharedSecret, getAlgorithm(token));
-	// 	await validateQsh(data.qsh, request);
+	const verifiedToken = decodeSymmetric(
+		token,
+		installation.sharedSecret,
+		getAlgorithm(token),
+	);
 
-	// 	// If all verifications pass, save the jiraTenant to local to be used later
-	// 	return tenant;
-	// } catch (e) {
-	// 	// If verification doesn't work, show a 401 error
-	// 	return Promise.reject({
-	// 		status: 401,
-	// 		message: `JWT verification failed: ${e}`
-	// 	});
-	// }
-	return Promise.resolve(tenant);
+	validateQsh(verifiedToken.qsh, request);
+
+	return installation;
 };
 
 /**

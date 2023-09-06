@@ -1,12 +1,13 @@
-import type { AtlassianDesign } from '../domain/entities';
-import { AtlassianDesignAssociation } from '../domain/entities';
+import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
+import { jiraService } from '../infrastructure/jira';
+import {AtlassianDesignAssociation} from "../domain/entities";
 
 export type AssociateWith = {
+	readonly ati: string;
 	readonly ari: string;
 	readonly cloudId: string;
-	readonly type: string;
-	readonly id: string | number;
+	readonly id: string;
 };
 
 export type AssociateEntityUseCaseParams = {
@@ -15,6 +16,7 @@ export type AssociateEntityUseCaseParams = {
 	};
 	readonly associateWith: AssociateWith;
 	readonly atlassianUserId: string;
+	readonly connectInstallation: ConnectInstallation;
 };
 
 export const associateEntityUseCase = {
@@ -22,27 +24,31 @@ export const associateEntityUseCase = {
 		entity,
 		associateWith,
 		atlassianUserId,
+		connectInstallation,
 	}: AssociateEntityUseCaseParams): Promise<AtlassianDesign> => {
-		const design = await figmaService.fetchDesign(entity.url, atlassianUserId);
+		const [design, issue] = await Promise.all([
+			figmaService.fetchDesign(entity.url, atlassianUserId, associateWith),
+			jiraService.getIssue(associateWith.id, connectInstallation),
+		]);
 
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const association = AtlassianDesignAssociation.withJiraIssue(
 			associateWith.ari,
 		);
 
-		// TODO: Call Jira to ingest entity
-		// const connectInstallation =
-		// 	await connectInstallationRepository.getByClientKey('CLIENT_KEY');
-		// await jiraService.submitDesign(
-		// 	{
-		// 		design,
-		// 		addAssociations: [association],
-		// 	},
-		// 	connectInstallation,
-		// );
+		const { self: issueUrl, fields } = issue;
 
-		// TODO: Phone home to Figma /dev_resources endpoint
-		// const jiraIssue = await jiraService.getIssue('ISSUE_KEY', connectInstallation);
+		await Promise.all([
+			jiraService.submitDesign({
+				design,
+				addAssociations: [association],
+			}, connectInstallation),
+			figmaService.createDevResource({
+				designUrl: entity.url,
+				issueUrl,
+				issueTitle: fields.summary,
+				atlassianUserId,
+			}),
+		]);
 
 		return design;
 	},

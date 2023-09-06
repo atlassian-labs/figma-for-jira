@@ -6,14 +6,16 @@ jest.mock('../../infrastructure/logger', () => {
 		typeof import('../../infrastructure/logger')
 	>('../../infrastructure/logger');
 
+	const mockLogger = {
+		info: jest.fn(),
+		warn: jest.fn(),
+		error: jest.fn(),
+		debug: jest.fn(),
+	};
+
 	return {
 		__esModule: true,
 		...original,
-		getLogger: () => ({
-			info: jest.fn(),
-			warn: jest.fn(),
-			error: jest.fn(),
-			debug: jest.fn(),
-		}),
+		getLogger: () => mockLogger,
 	};
 });

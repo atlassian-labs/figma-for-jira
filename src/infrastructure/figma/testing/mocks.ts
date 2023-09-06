@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import { JIRA_ISSUE_ATI } from '../../../common/constants';
 import { Duration } from '../../../common/duration';
 import type {
 	GetOAuth2TokenResponse,

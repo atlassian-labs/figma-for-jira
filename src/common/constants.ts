@@ -1,1 +1,1 @@
-export const JIRA_ISSUE_ENTITY_TYPE = 'JIRA_ISSUE';
+export const JIRA_ISSUE_ATI = 'ati:cloud:jira:issue';
