@@ -1,4 +1,5 @@
 import type { ConnectInstallation as PrismaConnectInstallation } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 import { RepositoryRecordNotFoundError } from './errors';
 import { getPrismaClient } from './prisma-client';
@@ -35,10 +36,17 @@ export class ConnectInstallationRepository {
 	deleteByClientKey = async (
 		clientKey: string,
 	): Promise<ConnectInstallation> => {
-		const result = await getPrismaClient().connectInstallation.delete({
-			where: { clientKey },
-		});
-		return this.mapToDomainModel(result);
+		try {
+			const result = await getPrismaClient().connectInstallation.delete({
+				where: { clientKey },
+			});
+			return this.mapToDomainModel(result);
+		} catch (e: unknown) {
+			if (e instanceof PrismaClientKnownRequestError && e.code === 'P2001') {
+				throw new RepositoryRecordNotFoundError(e.message);
+			}
+			throw e;
+		}
 	};
 
 	private mapToDomainModel = ({
