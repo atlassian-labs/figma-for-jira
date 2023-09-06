@@ -1,6 +1,9 @@
-import axios, { AxiosHeaders } from 'axios';
+import axios, { AxiosHeaders, HttpStatusCode } from 'axios';
 
-import { JiraClientResponseValidationError } from './errors';
+import {
+	JiraClientNotFoundError,
+	JiraClientResponseValidationError,
+} from './errors';
 import { createJwtToken } from './jwt-utils';
 import {
 	GET_ISSUE_PROPERTY_RESPONSE_SCHEMA,
@@ -15,15 +18,10 @@ import type {
 } from './types';
 
 import { Duration } from '../../../common/duration';
+import type { ConnectInstallation } from '../../../domain/entities';
 import { getAjvSchema } from '../../ajv';
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
-
-export type JiraClientParams = {
-	readonly baseUrl: string;
-	readonly connectAppKey: string;
-	readonly connectSharedSecret: string;
-};
 
 type SupportedHttpMethod = 'GET' | 'POST' | 'PUT';
 
@@ -32,7 +30,7 @@ type SupportedHttpMethod = 'GET' | 'POST' | 'PUT';
  *
  * @see https://developer.atlassian.com/cloud/jira/software/rest/intro/#introduction
  */
-export class JiraClient {
+class JiraClient {
 	// TODO: This method has not been tested due to the issue on the Jira side. Therefore, issues in the contract
 	// 	definition and implementation are very likely. Test the method and address found issues.
 	/**
@@ -123,10 +121,16 @@ export class JiraClient {
 			),
 		});
 
+		if (response.status === HttpStatusCode.NotFound.valueOf()) {
+			throw new JiraClientNotFoundError(
+				`Property ${propertyKey} does not exist.`,
+			);
+		}
+
 		const validate = getAjvSchema(GET_ISSUE_PROPERTY_RESPONSE_SCHEMA);
 
 		if (!validate(response.data)) {
-			throw new Error(`Unexpected response from ${url.pathname}.`);
+			throw new JiraClientResponseValidationError(url, validate.errors);
 		}
 
 		return response.data;
@@ -175,6 +179,22 @@ export class JiraClient {
 			connectSharedSecret,
 		});
 		return `JWT ${jwtToken}`;
+	}
+}
+
+export class JiraClientParams {
+	constructor(
+		readonly baseUrl: string,
+		readonly connectAppKey: string,
+		readonly connectSharedSecret: string,
+	) {}
+
+	static fromConnectInstallation({
+		baseUrl,
+		key,
+		sharedSecret,
+	}: ConnectInstallation) {
+		return new JiraClientParams(baseUrl, key, sharedSecret);
 	}
 }
 

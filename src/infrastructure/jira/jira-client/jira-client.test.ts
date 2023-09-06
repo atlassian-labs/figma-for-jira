@@ -1,6 +1,9 @@
 import axios, { AxiosHeaders, HttpStatusCode } from 'axios';
 
-import { JiraClientResponseValidationError } from './errors';
+import {
+	JiraClientNotFoundError,
+	JiraClientResponseValidationError,
+} from './errors';
 import { jiraClient } from './jira-client';
 import { createJwtToken } from './jwt-utils';
 import {
@@ -55,7 +58,7 @@ describe('JiraClient', () => {
 
 			await expect(() =>
 				jiraClient.submitDesigns(request, MOCK_JIRA_CLIENT_PARAMS),
-			).rejects.toBeInstanceOf(JiraClientResponseValidationError);
+			).rejects.toThrowError(JiraClientResponseValidationError);
 		});
 	});
 
@@ -90,7 +93,7 @@ describe('JiraClient', () => {
 
 			await expect(() =>
 				jiraClient.getIssue(issueKey, MOCK_JIRA_CLIENT_PARAMS),
-			).rejects.toBeInstanceOf(JiraClientResponseValidationError);
+			).rejects.toThrowError(JiraClientResponseValidationError);
 		});
 	});
 
@@ -131,9 +134,21 @@ describe('JiraClient', () => {
 					propertyKey,
 					MOCK_JIRA_CLIENT_PARAMS,
 				),
-			).rejects.toThrowError(
-				`Unexpected response from /rest/api/2/issue/${issueId}/properties/${propertyKey}`,
-			);
+			).rejects.toThrowError(JiraClientResponseValidationError);
+		});
+
+		it('should throw a JiraClientNotFoundError when an issue property is not found', async () => {
+			jest.spyOn(axios, 'get').mockResolvedValue({
+				status: 404,
+			});
+
+			await expect(() =>
+				jiraClient.getIssueProperty(
+					issueId,
+					propertyKey,
+					MOCK_JIRA_CLIENT_PARAMS,
+				),
+			).rejects.toThrowError(JiraClientNotFoundError);
 		});
 	});
 
