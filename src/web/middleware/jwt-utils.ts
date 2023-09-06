@@ -36,22 +36,15 @@ export const verifySymmetricJwtToken = async (
 		data.iss,
 	);
 
-	if (!installation) {
-		throw new InstallationNotFoundError('Installation not found for tenant');
-	}
+	const verifiedToken = decodeSymmetric(
+		token,
+		installation.sharedSecret,
+		getAlgorithm(token),
+	);
 
-	try {
-		const verifiedToken = decodeSymmetric(
-			token,
-			installation.sharedSecret,
-			getAlgorithm(token),
-		);
-		validateQsh(verifiedToken.qsh, request);
+	validateQsh(verifiedToken.qsh, request);
 
-		return installation;
-	} catch (err) {
-		throw new JwtVerificationError('JWT verification failed');
-	}
+	return installation;
 };
 
 /**
