@@ -46,14 +46,14 @@ class JiraClient {
 	 * @see https://developer.atlassian.com/cloud/jira/software/rest/api-group-design/#api-group-design
 	 */
 	submitDesigns = async (
-		request: SubmitDesignsRequest,
+		payload: SubmitDesignsRequest,
 		clientParams: JiraClientParams,
 	): Promise<SubmitDesignsResponse> => {
 		const url = new URL(`/rest/designs/1.0/bulk`, clientParams.baseUrl);
 
 		const response = await axios.post<SubmitDesignsResponse>(
 			url.toString(),
-			request,
+			payload,
 			{
 				headers: new AxiosHeaders().setAuthorization(
 					this.buildAuthorizationHeader(url, 'POST', clientParams),
@@ -75,7 +75,6 @@ class JiraClient {
 	 *
 	 * @see https://developer.atlassian.com/cloud/jira/software/rest/api-group-issue/#api-rest-agile-1-0-issue-issueidorkey-get
 	 */
-	// TODO: Delete the method if not required by the `/associateEntity` flow.
 	getIssue = async (
 		issueIdOrKey: string,
 		clientParams: JiraClientParams,
