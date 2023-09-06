@@ -4,6 +4,7 @@ import { Duration } from '../../../../common/duration';
 import type { JiraClientParams } from '../jira-client';
 import type { JwtTokenParams } from '../jwt-utils';
 import type {
+	GetIssuePropertyResponse,
 	GetIssueResponse,
 	SubmitDesignsRequest,
 	SubmitDesignsResponse,
@@ -106,4 +107,12 @@ export const generateGetIssueResponse = ({
 	id,
 	key,
 	fields,
+});
+
+export const generateGetIssuePropertyResponse = ({
+	key = 'property-key',
+	value = 'some value',
+} = {}): GetIssuePropertyResponse => ({
+	key,
+	value,
 });

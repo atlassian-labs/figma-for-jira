@@ -7,6 +7,7 @@ import type { JSONSchemaType } from 'ajv';
 import type {
 	Association,
 	DesignKey,
+	GetIssuePropertyResponse,
 	GetIssueResponse,
 	SubmitDesignsResponse,
 } from './types';
@@ -93,3 +94,14 @@ export const GET_ISSUE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetIssueResponse> =
 		},
 		required: ['id', 'key'],
 	} as const;
+
+export const GET_ISSUE_PROPERTY_RESPONSE_SCHEMA: JSONSchemaTypeWithId<
+	Omit<GetIssuePropertyResponse, 'value'>
+> = {
+	$id: 'jira-software-cloud-api:get-issue-property:response',
+	type: 'object',
+	properties: {
+		key: { type: 'string' },
+	},
+	required: ['key'],
+} as const;
