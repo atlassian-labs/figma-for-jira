@@ -34,19 +34,10 @@ export class ConnectInstallationRepository {
 	};
 
 	delete = async (clientKey: string): Promise<ConnectInstallation> => {
-		try {
-			const result = await getPrismaClient().connectInstallation.delete({
-				where: { clientKey },
-			});
-			return this.mapToDomainModel(result);
-		} catch (err) {
-			getLogger().error(
-				err,
-				'Failed to delete connect installation for clientKey %s',
-				clientKey,
-			);
-			throw err;
-		}
+		const result = await getPrismaClient().connectInstallation.delete({
+			where: { clientKey },
+		});
+		return this.mapToDomainModel(result);
 	};
 
 	private mapToDomainModel = ({
