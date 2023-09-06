@@ -142,7 +142,7 @@ describe('/associateEntity', () => {
 		afterEach(async () => {
 			jest.useRealTimers();
 			await connectInstallationRepository
-				.delete(MOCK_CLIENT_KEY)
+				.deleteByClientKey(MOCK_CLIENT_KEY)
 				.catch(console.log);
 			await figmaOAuth2UserCredentialsRepository
 				.delete(validCredentialsParams.atlassianUserId)
@@ -193,7 +193,7 @@ describe('/associateEntity', () => {
 
 		afterEach(async () => {
 			await connectInstallationRepository
-				.delete(MOCK_CLIENT_KEY)
+				.deleteByClientKey(MOCK_CLIENT_KEY)
 				.catch(console.log);
 		});
 
