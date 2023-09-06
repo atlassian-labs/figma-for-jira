@@ -9,6 +9,7 @@
 export type JiraIssue = {
 	readonly id: string;
 	readonly key: string;
+	readonly self: string;
 	readonly fields: {
 		readonly summary: string;
 	};

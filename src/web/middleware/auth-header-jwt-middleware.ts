@@ -12,7 +12,10 @@ const validateAuthToken =
 			const request = fromExpressRequest(req);
 			switch (type) {
 				case 'symmetric':
-					res.locals.jiraTenant = await verifySymmetricJwtToken(request, token);
+					res.locals.connectInstallation = await verifySymmetricJwtToken(
+						request,
+						token,
+					);
 					break;
 				case 'asymmetric':
 					await verifyAsymmetricJwtToken(request, token);

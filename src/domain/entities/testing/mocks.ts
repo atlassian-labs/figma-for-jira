@@ -98,11 +98,13 @@ export const generateAtlassianDesign = ({
 export const generateJiraIssue = ({
 	id = uuidv4(),
 	key = uuidv4(),
+	self = 'https://myjirainstance.atlassian.net/browse/FIG-1',
 	fields = {
 		summary: `Issue ${uuidv4()}`,
 	},
 } = {}): JiraIssue => ({
 	id,
 	key,
+	self,
 	fields,
 });

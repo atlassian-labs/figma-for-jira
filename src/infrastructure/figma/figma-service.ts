@@ -13,7 +13,10 @@ import {
 	transformNodeToAtlassianDesign,
 } from './figma-transformer';
 
-import { DEFAULT_FIGMA_FILE_NODE_ID } from '../../common/constants';
+import {
+	DEFAULT_FIGMA_FILE_NODE_ID,
+	JIRA_ISSUE_ATI,
+} from '../../common/constants';
 import { HttpStatus } from '../../common/http-status';
 import type {
 	AtlassianDesign,
@@ -21,14 +24,6 @@ import type {
 } from '../../domain/entities';
 import type { AssociateWith } from '../../usecases';
 import { getLogger } from '../logger';
-
-// TODO: Replace with call to Jira service to get issue details
-const getIssueDetailsStub = () => {
-	return {
-		issueUrl: 'https://jira-issue.com/123',
-		issueTitle: 'Test Issue',
-	};
-};
 
 const extractDataFromFigmaUrlOrThrow = (url: string): FigmaUrlData => {
 	const urlData = extractDataFromFigmaUrl(url);
@@ -76,6 +71,10 @@ export class FigmaService {
 			throw new Error('No ARI to associate');
 		}
 
+		if (associateWith.ati !== JIRA_ISSUE_ATI) {
+			throw new Error('Unrecognized ATI');
+		}
+
 		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
 
 		const { accessToken } = credentials;
@@ -105,17 +104,21 @@ export class FigmaService {
 		}
 	};
 
-	createDevResource = async (
-		url: string,
-		atlassianUserId: string,
-	): Promise<CreateDevResourcesResponse> => {
-		const { fileKey, nodeId } = extractDataFromFigmaUrlOrThrow(url);
+	createDevResource = async ({
+		designUrl,
+		issueUrl,
+		issueTitle,
+		atlassianUserId,
+	}: {
+		designUrl: string;
+		issueUrl: string;
+		issueTitle: string;
+		atlassianUserId: string;
+	}): Promise<CreateDevResourcesResponse> => {
+		const { fileKey, nodeId } = extractDataFromFigmaUrlOrThrow(designUrl);
 		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
 
 		const { accessToken } = credentials;
-
-		// TODO: Replace with call to Jira service to get issue details
-		const { issueUrl, issueTitle } = getIssueDetailsStub();
 
 		const devResource = buildDevResource({
 			name: issueTitle,
@@ -129,7 +132,7 @@ export class FigmaService {
 			accessToken,
 		);
 
-		if (response.errors.length > 0) {
+		if (response.errors?.length > 0) {
 			const errorMessage = response.errors.map((err) => err.error).join('|');
 			getLogger().error(errorMessage, 'Created dev resources with errors');
 		}
