@@ -94,6 +94,11 @@ export const connectAppDescriptor = {
 			logoUrl: `${getConfig().app.baseUrl}/public/figma-logo.svg`,
 			documentationUrl:
 				'https://help.figma.com/hc/en-us/articles/360039827834-Jira-and-Figma',
+			actions: {
+				grant3LO: {
+					templateUrl: `${getConfig().figma.apiBaseUrl}oauth?client_id=${getConfig().figma.clientId}&redirect_uri=${getConfig().app.baseUrl}/auth/callback&scope=[files:read,file_dev_resources:write]&state={state}&response_type=code`
+				}
+			}
 		},
 	},
 };
