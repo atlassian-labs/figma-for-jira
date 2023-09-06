@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+import { JiraClientResponseValidationError } from './errors';
 import { jiraClient } from './jira-client';
 import * as jwtUtils from './jwt-utils';
 import {
@@ -53,9 +54,7 @@ describe('JiraClient', () => {
 
 			await expect(() =>
 				jiraClient.submitDesigns(request, MOCK_JIRA_CLIENT_PARAMS),
-			).rejects.toThrowError(
-				`Unexpected response from /rest/designs/1.0/bulk.`,
-			);
+			).rejects.toBeInstanceOf(JiraClientResponseValidationError);
 		});
 	});
 
@@ -96,9 +95,7 @@ describe('JiraClient', () => {
 
 			await expect(() =>
 				jiraClient.getIssue(issueKey, MOCK_JIRA_CLIENT_PARAMS),
-			).rejects.toThrowError(
-				`Unexpected response from /rest/agile/1.0/issue/${issueKey}.`,
-			);
+			).rejects.toBeInstanceOf(JiraClientResponseValidationError);
 		});
 	});
 });

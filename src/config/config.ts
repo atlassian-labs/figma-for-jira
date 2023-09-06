@@ -18,6 +18,9 @@ export type Config = {
 		readonly clientId: string;
 		readonly clientSecret: string;
 	};
+	readonly jira: {
+		readonly connectKeyServerUrl: string;
+	};
 };
 
 let config: Config;
@@ -41,6 +44,9 @@ export const getConfig = (): Config => {
 				apiBaseUrl: readEnvVarString('FIGMA_API_BASE_URL'),
 				clientId: readEnvVarString('FIGMA_OAUTH_CLIENT_ID'),
 				clientSecret: readEnvVarString('FIGMA_OAUTH_CLIENT_SECRET'),
+			},
+			jira: {
+				connectKeyServerUrl: readEnvVarString('JIRA_CONNECT_KEY_SERVER_URL'),
 			},
 		};
 	}

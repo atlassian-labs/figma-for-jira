@@ -1,10 +1,7 @@
 import { AxiosError } from 'axios';
 
-import {
-	figmaAuthService,
-	NoFigmaCredentialsError,
-	RefreshFigmaCredentialsError,
-} from './figma-auth-service';
+import { FigmaServiceCredentialsError } from './errors';
+import { figmaAuthService } from './figma-auth-service';
 import { figmaClient } from './figma-client';
 import type { CreateDevResourcesResponse } from './figma-client';
 import type { FigmaUrlData } from './figma-transformer';
@@ -36,17 +33,15 @@ const getIssueDetailsStub = () => {
 const extractDataFromFigmaUrlOrThrow = (url: string): FigmaUrlData => {
 	const urlData = extractDataFromFigmaUrl(url);
 	if (!urlData) {
-		const errorMessage = `Received invalid Figma URL: ${url}`;
-		getLogger().error(errorMessage);
-		throw new Error(errorMessage);
+		throw new Error(`Received invalid Figma URL: ${url}`);
 	}
 	return urlData;
 };
 
 export class FigmaService {
-	getValidCredentials = async (
+	getValidCredentialsOrThrow = async (
 		atlassianUserId: string,
-	): Promise<FigmaOAuth2UserCredentials | null> => {
+	): Promise<FigmaOAuth2UserCredentials> => {
 		try {
 			const credentials =
 				await figmaAuthService.getCredentials(atlassianUserId);
@@ -55,17 +50,17 @@ export class FigmaService {
 			return credentials;
 		} catch (e: unknown) {
 			if (
-				e instanceof NoFigmaCredentialsError ||
-				e instanceof RefreshFigmaCredentialsError
-			)
-				return null;
+				e instanceof AxiosError &&
+				e.response?.status !== HttpStatus.UNAUTHORIZED &&
+				e.response?.status !== HttpStatus.FORBIDDEN
+			) {
+				throw e;
+			}
 
-			const forbidden =
-				e instanceof AxiosError && e?.response?.status == HttpStatus.FORBIDDEN;
-
-			if (forbidden) return null;
-
-			throw e;
+			throw new FigmaServiceCredentialsError(
+				atlassianUserId,
+				e instanceof Error ? e : undefined,
+			);
 		}
 	};
 
@@ -81,10 +76,7 @@ export class FigmaService {
 			throw new Error('No ARI to associate');
 		}
 
-		const credentials = await this.getValidCredentials(atlassianUserId);
-		if (!credentials) {
-			throw new Error('Invalid credentials');
-		}
+		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
 
 		const { accessToken } = credentials;
 
@@ -117,40 +109,32 @@ export class FigmaService {
 		url: string,
 		atlassianUserId: string,
 	): Promise<CreateDevResourcesResponse> => {
-		try {
-			const { fileKey, nodeId } = extractDataFromFigmaUrlOrThrow(url);
-			const credentials = await this.getValidCredentials(atlassianUserId);
-			if (!credentials) {
-				throw new Error('Invalid credentials');
-			}
+		const { fileKey, nodeId } = extractDataFromFigmaUrlOrThrow(url);
+		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
 
-			const { accessToken } = credentials;
+		const { accessToken } = credentials;
 
-			// TODO: Replace with call to Jira service to get issue details
-			const { issueUrl, issueTitle } = getIssueDetailsStub();
+		// TODO: Replace with call to Jira service to get issue details
+		const { issueUrl, issueTitle } = getIssueDetailsStub();
 
-			const devResource = buildDevResource({
-				name: issueTitle,
-				url: issueUrl,
-				file_key: fileKey,
-				node_id: nodeId ? transformNodeId(nodeId) : DEFAULT_FIGMA_FILE_NODE_ID,
-			});
+		const devResource = buildDevResource({
+			name: issueTitle,
+			url: issueUrl,
+			file_key: fileKey,
+			node_id: nodeId ? transformNodeId(nodeId) : DEFAULT_FIGMA_FILE_NODE_ID,
+		});
 
-			const response = await figmaClient.createDevResources(
-				[devResource],
-				accessToken,
-			);
+		const response = await figmaClient.createDevResources(
+			[devResource],
+			accessToken,
+		);
 
-			if (response.errors.length > 0) {
-				const errorMessage = response.errors.map((err) => err.error).join('|');
-				getLogger().error(errorMessage, 'Created dev resources with errors');
-			}
-
-			return response;
-		} catch (err) {
-			getLogger().error(err, 'Failed to create dev resources');
-			throw err;
+		if (response.errors.length > 0) {
+			const errorMessage = response.errors.map((err) => err.error).join('|');
+			getLogger().error(errorMessage, 'Created dev resources with errors');
 		}
+
+		return response;
 	};
 }
 
