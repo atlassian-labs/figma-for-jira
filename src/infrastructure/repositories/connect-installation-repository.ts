@@ -42,7 +42,7 @@ export class ConnectInstallationRepository {
 			});
 			return this.mapToDomainModel(result);
 		} catch (e: unknown) {
-			if (e instanceof PrismaClientKnownRequestError && e.code === 'P2001') {
+			if (e instanceof PrismaClientKnownRequestError && e.code === 'P2025') {
 				throw new RepositoryRecordNotFoundError(e.message);
 			}
 			throw e;
