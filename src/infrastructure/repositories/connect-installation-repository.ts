@@ -7,7 +7,6 @@ import type {
 	ConnectInstallation,
 	ConnectInstallationCreateParams,
 } from '../../domain/entities';
-import { getLogger } from '../logger';
 
 export class ConnectInstallationRepository {
 	getByClientKey = async (clientKey: string): Promise<ConnectInstallation> => {
