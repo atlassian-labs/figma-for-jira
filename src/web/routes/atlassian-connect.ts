@@ -95,7 +95,9 @@ export const connectAppDescriptor = {
 			documentationUrl:
 				'https://help.figma.com/hc/en-us/articles/360039827834-Jira-and-Figma',
 			actions: {
-				associateEntity: `${getConfig().app.baseUrl}/entities/associateEntity`,
+				associateEntity: {
+					templateUrl: `${getConfig().app.baseUrl}/entities/associateEntity`,
+				},
 			},
 		},
 	},
