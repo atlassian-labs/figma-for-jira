@@ -1,7 +1,10 @@
 import { Router } from 'express';
 import type { NextFunction, Response } from 'express';
 
-import type { ConnectInstallation } from '../../../domain/entities';
+import type {
+	AtlassianDesign,
+	ConnectInstallation,
+} from '../../../domain/entities';
 import type { AssociateEntityUseCaseParams } from '../../../usecases';
 import { associateEntityUseCase } from '../../../usecases';
 import { authHeaderSymmetricJwtMiddleware } from '../../middleware';
@@ -14,11 +17,10 @@ export type AssociateEntityRequestParams = Omit<
 	'atlassianUserId' | 'connectInstallation'
 >;
 
-interface AssociateEntityResponse extends Response {
-	locals: {
-		connectInstallation?: ConnectInstallation;
-	};
-}
+type AssociateEntityResponse = Response<
+	{ design: AtlassianDesign } | string,
+	{ connectInstallation: ConnectInstallation }
+>;
 
 entitiesRouter.post(
 	'/associateEntity',
@@ -38,8 +40,7 @@ entitiesRouter.post(
 			.execute({
 				...req.body,
 				atlassianUserId,
-				// Non-null assertion is safe as `authHeaderSymmetricJwtMiddleware` will throw if `res.locals.connectInstallation` is undefined
-				connectInstallation: res.locals.connectInstallation!,
+				connectInstallation: res.locals.connectInstallation,
 			})
 			.then((design) => res.status(201).send({ design }))
 			.catch((error) => next(error));

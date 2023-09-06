@@ -132,7 +132,7 @@ export class FigmaService {
 			accessToken,
 		);
 
-		if (response.errors && response.errors.length > 0) {
+		if (response.errors?.length > 0) {
 			const errorMessage = response.errors.map((err) => err.error).join('|');
 			getLogger().error(errorMessage, 'Created dev resources with errors');
 		}

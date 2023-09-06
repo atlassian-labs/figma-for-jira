@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 
-import { InstallationNotFoundError, JwtVerificationError } from './jwt-utils';
+import { JwtVerificationError } from './jwt-utils';
 
 import { HttpStatus } from '../../common/http-status';
 import { FigmaServiceCredentialsError } from '../../infrastructure/figma';
@@ -22,10 +22,7 @@ export const errorHandlerMiddleware = (
 
 	if (err instanceof JwtVerificationError) {
 		res.status(HttpStatus.UNAUTHORIZED).send(err.message);
-	} else if (
-		err instanceof RepositoryRecordNotFoundError ||
-		err instanceof InstallationNotFoundError
-	) {
+	} else if (err instanceof RepositoryRecordNotFoundError) {
 		res.status(HttpStatus.NOT_FOUND).send(err.message);
 	} else if (err instanceof FigmaServiceCredentialsError) {
 		res.status(HttpStatus.FORBIDDEN).send(err.message);

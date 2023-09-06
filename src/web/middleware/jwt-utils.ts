@@ -11,9 +11,10 @@ import axios from 'axios';
 
 import { getConfig } from '../../config';
 import type { ConnectInstallation } from '../../domain/entities';
-import { connectInstallationRepository } from '../../infrastructure/repositories';
-
-export class InstallationNotFoundError extends Error {}
+import {
+	connectInstallationRepository,
+	RepositoryRecordNotFoundError,
+} from '../../infrastructure/repositories';
 
 export class JwtVerificationError extends Error {}
 
@@ -32,9 +33,18 @@ export const verifySymmetricJwtToken = async (
 
 	// Decode jwt token without verification
 	const data = decodeSymmetric(token, '', getAlgorithm(token), true);
-	const installation = await connectInstallationRepository.getByClientKey(
-		data.iss,
-	);
+
+	let installation: ConnectInstallation;
+	try {
+		installation = await connectInstallationRepository.getByClientKey(data.iss);
+	} catch (e: unknown) {
+		if (e instanceof RepositoryRecordNotFoundError) {
+			throw new JwtVerificationError(
+				`ConnectInstallation not found for clientKey ${data.iss}`,
+			);
+		}
+		throw e;
+	}
 
 	const verifiedToken = decodeSymmetric(
 		token,
