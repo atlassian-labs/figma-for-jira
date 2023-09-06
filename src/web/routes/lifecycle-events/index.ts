@@ -1,11 +1,9 @@
 import { Router } from 'express';
 
+import { HttpStatus } from '../../../common/http-status';
 import type { ConnectInstallationCreateParams } from '../../../domain/entities';
-import { installedUseCase } from '../../../usecases';
-import {
-	authHeaderAsymmetricJwtMiddleware,
-	authHeaderSymmetricJwtMiddleware,
-} from '../../middleware';
+import { installedUseCase, uninstalledUseCase } from '../../../usecases';
+import { authHeaderAsymmetricJwtMiddleware } from '../../middleware';
 import type { TypedRequest } from '../types';
 
 type ConnectLifecycleEventRequestBody = {
@@ -39,29 +37,13 @@ lifecycleEventsRouter.post(
 );
 
 lifecycleEventsRouter.post(
-	'/enabled',
-	authHeaderSymmetricJwtMiddleware,
-	(req, res) => {
-		// await database.enableJiraTenant(req.body.clientKey);
-		res.sendStatus(204);
-	},
-);
-
-lifecycleEventsRouter.post(
-	'/disabled',
-	authHeaderSymmetricJwtMiddleware,
-	(req, res) => {
-		// await database.disableJiraTenant(req.body.clientKey);
-		res.sendStatus(204);
-	},
-);
-
-lifecycleEventsRouter.post(
 	'/uninstalled',
 	authHeaderAsymmetricJwtMiddleware,
-	(req, res) => {
-		// const { clientKey } = req.body;
-		// await database.removeJiraTenant(clientKey);
-		res.sendStatus(204);
+	(req: TypedRequest<ConnectLifecycleEventRequestBody>, res, next) => {
+		const { clientKey } = req.body;
+		uninstalledUseCase
+			.execute(clientKey)
+			.then(() => res.sendStatus(HttpStatus.NO_CONTENT))
+			.catch(next);
 	},
 );
