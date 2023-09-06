@@ -1,4 +1,4 @@
-import type { AtlassianDesignAssociation } from '../../domain/entities';
+import type { AtlassianAssociation } from '../../domain/entities';
 
 export class JiraServiceError extends Error {}
 
@@ -6,7 +6,7 @@ export class JiraServiceSubmitDesignError extends JiraServiceError {
 	designId?: string;
 	rejectionErrors?: { readonly message: string }[];
 	unknownIssueKeys?: string[];
-	unknownAssociations?: AtlassianDesignAssociation[];
+	unknownAssociations?: AtlassianAssociation[];
 
 	private constructor({
 		message,
@@ -19,7 +19,7 @@ export class JiraServiceSubmitDesignError extends JiraServiceError {
 		designId?: string;
 		rejectionErrors?: { readonly message: string }[];
 		unknownIssueKeys?: string[];
-		unknownAssociations?: AtlassianDesignAssociation[];
+		unknownAssociations?: AtlassianAssociation[];
 	}) {
 		super(message);
 		this.designId = designId;
@@ -46,9 +46,7 @@ export class JiraServiceSubmitDesignError extends JiraServiceError {
 		});
 	}
 
-	static unknownAssociations(
-		unknownAssociations: AtlassianDesignAssociation[],
-	) {
+	static unknownAssociations(unknownAssociations: AtlassianAssociation[]) {
 		return new JiraServiceSubmitDesignError({
 			message: 'The design has unknown associations',
 			unknownAssociations,

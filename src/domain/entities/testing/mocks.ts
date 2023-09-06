@@ -14,9 +14,9 @@ import {
 } from '..';
 import { Duration } from '../../../common/duration';
 
-export const ISSUE_ID = 10000;
+export const MOCK_ISSUE_ID = '10000';
 
-export const generateIssueAri = (issueId = Date.now()) =>
+export const generateIssueAri = (issueId = Date.now().toString()) =>
 	`ari:cloud:jira:${uuidv4()}:issue/${issueId}`;
 
 export const generateFigmaOAuth2UserCredentials = ({

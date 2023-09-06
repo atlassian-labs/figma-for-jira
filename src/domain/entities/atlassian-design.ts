@@ -15,17 +15,16 @@ export enum AtlassianDesignType {
 	OTHER = 'OTHER',
 }
 
-export class AtlassianDesignAssociation {
+export class AtlassianAssociation {
 	constructor(
 		readonly associationType: string,
 		readonly values: string[],
 	) {}
 
-	static withJiraIssue(issueAri: string): AtlassianDesignAssociation {
-		return new AtlassianDesignAssociation(
-			ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
-			[issueAri],
-		);
+	static createDesignIssueAssociation(issueAri: string): AtlassianAssociation {
+		return new AtlassianAssociation(ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE, [
+			issueAri,
+		]);
 	}
 }
 

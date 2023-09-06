@@ -13,9 +13,6 @@ import {
 	transformNodeToAtlassianDesign,
 } from './figma-transformer';
 
-import {
-	JIRA_ISSUE_ATI,
-} from '../../common/constants';
 import { HttpStatus } from '../../common/http-status';
 import type {
 	AtlassianDesign,

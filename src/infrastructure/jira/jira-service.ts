@@ -6,12 +6,12 @@ import type {
 	ConnectInstallation,
 	JiraIssue,
 } from '../../domain/entities';
-import { AtlassianDesignAssociation } from '../../domain/entities';
+import { AtlassianAssociation } from '../../domain/entities';
 
 type SubmitDesignParams = {
 	readonly design: AtlassianDesign;
-	readonly addAssociations?: AtlassianDesignAssociation[];
-	readonly removeAssociations?: AtlassianDesignAssociation[];
+	readonly addAssociations?: AtlassianAssociation[];
+	readonly removeAssociations?: AtlassianAssociation[];
 };
 
 export class JiraService {
@@ -51,7 +51,7 @@ export class JiraService {
 		if (response.unknownAssociations?.length) {
 			throw JiraServiceSubmitDesignError.unknownAssociations(
 				response.unknownAssociations.map(
-					(x) => new AtlassianDesignAssociation(x.associationType, x.values),
+					(x) => new AtlassianAssociation(x.associationType, x.values),
 				),
 			);
 		}

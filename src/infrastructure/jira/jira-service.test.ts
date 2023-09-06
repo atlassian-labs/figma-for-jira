@@ -7,7 +7,7 @@ import {
 } from './jira-client/testing';
 import { jiraService } from './jira-service';
 
-import { AtlassianDesignAssociation } from '../../domain/entities';
+import { AtlassianAssociation } from '../../domain/entities';
 import {
 	generateAtlassianDesign,
 	generateConnectInstallation,
@@ -60,10 +60,10 @@ describe('JiraService', () => {
 			const connectInstallation = generateConnectInstallation();
 			const design = generateAtlassianDesign();
 			const addAssociations = [
-				AtlassianDesignAssociation.withJiraIssue(generateIssueAri()),
+				AtlassianAssociation.createDesignIssueAssociation(generateIssueAri()),
 			];
 			const removeAssociations = [
-				AtlassianDesignAssociation.withJiraIssue(generateIssueAri()),
+				AtlassianAssociation.createDesignIssueAssociation(generateIssueAri()),
 			];
 			const submitDesignsResponse = generateSuccessfulSubmitDesignsResponse(
 				design.id,
