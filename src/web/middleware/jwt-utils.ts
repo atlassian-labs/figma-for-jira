@@ -13,11 +13,7 @@ import { getConfig } from '../../config';
 import type { ConnectInstallation } from '../../domain/entities';
 import { connectInstallationRepository } from '../../infrastructure/repositories';
 
-export class InstallationNotFoundError extends Error {
-	constructor(message: string) {
-		super(message);
-	}
-}
+export class InstallationNotFoundError extends Error {}
 
 export class JwtVerificationError extends Error {}
 
@@ -50,7 +46,7 @@ export const verifySymmetricJwtToken = async (
 			installation.sharedSecret,
 			getAlgorithm(token),
 		);
-		await validateQsh(verifiedToken.qsh, request);
+		validateQsh(verifiedToken.qsh, request);
 
 		return installation;
 	} catch (err) {
