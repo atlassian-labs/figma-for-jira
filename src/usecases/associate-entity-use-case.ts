@@ -1,6 +1,6 @@
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
-import { jiraClient } from '../infrastructure/jira/jira-client';
+import { jiraService } from '../infrastructure/jira';
 
 export type AssociateWith = {
 	readonly ati: string;
@@ -25,21 +25,15 @@ export const associateEntityUseCase = {
 		atlassianUserId,
 		connectInstallation,
 	}: AssociateEntityUseCaseParams): Promise<AtlassianDesign> => {
-		const jiraClientParams = {
-			baseUrl: connectInstallation.baseUrl,
-			connectAppKey: connectInstallation.key,
-			connectSharedSecret: connectInstallation.sharedSecret,
-		};
-
 		const [design, issue] = await Promise.all([
 			figmaService.fetchDesign(entity.url, atlassianUserId, associateWith),
-			jiraClient.getIssue(associateWith.id, jiraClientParams),
+			jiraService.getIssue(associateWith.id, connectInstallation),
 		]);
 
 		const { self: issueUrl, fields } = issue;
 
 		await Promise.all([
-			jiraClient.submitDesigns({ designs: [design] }, jiraClientParams),
+			jiraService.submitDesign(design, connectInstallation),
 			figmaService.createDevResource({
 				designUrl: entity.url,
 				issueUrl,
