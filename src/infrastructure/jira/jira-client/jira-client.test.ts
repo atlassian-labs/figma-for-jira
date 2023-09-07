@@ -139,7 +139,7 @@ describe('JiraClient', () => {
 
 		it('should throw a JiraClientNotFoundError when an issue property is not found', async () => {
 			jest.spyOn(axios, 'get').mockResolvedValue({
-				status: 404,
+				status: HttpStatusCode.NotFound,
 			});
 
 			await expect(() =>

@@ -1,3 +1,4 @@
+import { HttpStatusCode } from 'axios';
 import nock from 'nock';
 import request from 'supertest';
 
@@ -46,24 +47,28 @@ describe('/auth', () => {
 			});
 
 			it('should respond with "authorized: true" if the /me endpoint responds with a non-error response code', () => {
-				nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(200);
+				nock(FIGMA_API_BASE_URL)
+					.get(FIGMA_ME_ENDPOINT)
+					.reply(HttpStatusCode.Ok);
 
 				return request(app)
 					.get(
 						`${CHECK_3LO_ENDPOINT}?userId=${validCredentialsParams.atlassianUserId}`,
 					)
-					.expect(200)
+					.expect(HttpStatusCode.Ok)
 					.expect({ authorized: true });
 			});
 
 			it('should respond with "authorized: false" if the /me endpoint responds with a 403', () => {
-				nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(403);
+				nock(FIGMA_API_BASE_URL)
+					.get(FIGMA_ME_ENDPOINT)
+					.reply(HttpStatusCode.Forbidden);
 
 				return request(app)
 					.get(
 						`${CHECK_3LO_ENDPOINT}?userId=${validCredentialsParams.atlassianUserId}`,
 					)
-					.expect(200)
+					.expect(HttpStatusCode.Ok)
 					.expect({ authorized: false });
 			});
 		});
@@ -98,14 +103,16 @@ describe('/auth', () => {
 				nock(FIGMA_OAUTH_API_BASE_URL)
 					.post(FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT)
 					.query(refreshTokenQueryParams)
-					.reply(200, refreshTokenResponse);
-				nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(200);
+					.reply(HttpStatusCode.Ok, refreshTokenResponse);
+				nock(FIGMA_API_BASE_URL)
+					.get(FIGMA_ME_ENDPOINT)
+					.reply(HttpStatusCode.Ok);
 
 				await request(app)
 					.get(
 						`${CHECK_3LO_ENDPOINT}?userId=${expiredCredentialsParams.atlassianUserId}`,
 					)
-					.expect(200)
+					.expect(HttpStatusCode.Ok)
 					.expect({ authorized: true });
 
 				const credentials = await figmaOAuth2UserCredentialsRepository.get(
@@ -121,14 +128,16 @@ describe('/auth', () => {
 				nock(FIGMA_OAUTH_API_BASE_URL)
 					.post(FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT)
 					.query(refreshTokenQueryParams)
-					.reply(500);
-				nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(200);
+					.reply(HttpStatusCode.InternalServerError);
+				nock(FIGMA_API_BASE_URL)
+					.get(FIGMA_ME_ENDPOINT)
+					.reply(HttpStatusCode.Ok);
 
 				return request(app)
 					.get(
 						`${CHECK_3LO_ENDPOINT}?userId=${expiredCredentialsParams.atlassianUserId}`,
 					)
-					.expect(200)
+					.expect(HttpStatusCode.Ok)
 					.expect({ authorized: false });
 			});
 		});
@@ -136,11 +145,13 @@ describe('/auth', () => {
 		describe('without OAuth credentials stored', () => {
 			it('should respond with "authorized: false" if no database entry exists', async () => {
 				const userId = 'unknown-user-id';
-				nock(FIGMA_API_BASE_URL).get(FIGMA_ME_ENDPOINT).reply(403);
+				nock(FIGMA_API_BASE_URL)
+					.get(FIGMA_ME_ENDPOINT)
+					.reply(HttpStatusCode.Forbidden);
 
 				return request(app)
 					.get(`/auth/check3LO?userId=${userId}`)
-					.expect(200)
+					.expect(HttpStatusCode.Ok)
 					.expect({ authorized: false });
 			});
 		});
@@ -158,13 +169,13 @@ describe('/auth', () => {
 			nock(FIGMA_OAUTH_API_BASE_URL)
 				.post(FIGMA_OAUTH_TOKEN_ENDPOINT)
 				.query(getTokenQueryParams)
-				.reply(200, generateGetOAuth2TokenResponse());
+				.reply(HttpStatusCode.Ok, generateGetOAuth2TokenResponse());
 
 			return request(app)
 				.get(
 					`${AUTH_CALLBACK_ENDPOINT}?state=${userId}&code=${getTokenQueryParams.code}`,
 				)
-				.expect(302)
+				.expect(HttpStatusCode.Found)
 				.expect('Location', SUCCESS_PAGE_URL)
 				.then(async () => await cleanupToken(userId));
 		});
@@ -173,13 +184,13 @@ describe('/auth', () => {
 			nock(FIGMA_OAUTH_API_BASE_URL)
 				.post(FIGMA_OAUTH_TOKEN_ENDPOINT)
 				.query(getTokenQueryParams)
-				.reply(401);
+				.reply(HttpStatusCode.Unauthorized);
 
 			return request(app)
 				.get(
 					`${AUTH_CALLBACK_ENDPOINT}?state=${userId}&code=${getTokenQueryParams.code}`,
 				)
-				.expect(302)
+				.expect(HttpStatusCode.Found)
 				.expect('Location', FAILURE_PAGE_URL);
 		});
 	});

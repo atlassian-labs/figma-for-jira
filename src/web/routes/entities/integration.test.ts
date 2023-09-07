@@ -1,3 +1,4 @@
+import { HttpStatusCode } from 'axios';
 import nock from 'nock';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
@@ -53,7 +54,7 @@ const mockMeEndpoint = ({
 	success: boolean;
 	times?: number;
 }) => {
-	const statusCode = success ? 200 : 500;
+	const statusCode = success ? HttpStatusCode.Ok : HttpStatusCode.Forbidden;
 	nock(FIGMA_API_BASE_URL)
 		.get(FIGMA_ME_ENDPOINT)
 		.times(times)
@@ -69,7 +70,9 @@ const mockGetFileNodesEndpoint = ({
 	response?: Record<string, unknown>;
 	success?: boolean;
 }) => {
-	const statusCode = success ? 200 : 500;
+	const statusCode = success
+		? HttpStatusCode.Ok
+		: HttpStatusCode.InternalServerError;
 	nock(FIGMA_API_BASE_URL, {
 		reqheaders: {
 			Authorization: `Bearer ${accessToken}`,
@@ -84,7 +87,7 @@ const mockGetIssueEndpoint = ({
 	success = true,
 }: { success?: boolean } = {}) => {
 	const issue = generateJiraIssue();
-	const statusCode = success ? 200 : 404;
+	const statusCode = success ? HttpStatusCode.Ok : HttpStatusCode.NotFound;
 	const response = success ? issue : {};
 	nock(MOCK_CONNECT_INSTALLATION.baseUrl)
 		.get(`${GET_ISSUE_ENDPOINT}/${MOCK_ISSUE_ID}`)
@@ -96,7 +99,9 @@ const mockSubmitDesignsEndpoint = ({
 }: {
 	success?: boolean;
 } = {}) => {
-	const statusCode = success ? 200 : 500;
+	const statusCode = success
+		? HttpStatusCode.Ok
+		: HttpStatusCode.InternalServerError;
 	nock(MOCK_CONNECT_INSTALLATION.baseUrl)
 		.post(INGEST_DESIGN_ENDPOINT)
 		.reply(
@@ -110,7 +115,9 @@ const mockCreateDevResourcesEndpoint = ({
 }: {
 	success?: boolean;
 } = {}) => {
-	const statusCode = success ? 200 : 500;
+	const statusCode = success
+		? HttpStatusCode.Ok
+		: HttpStatusCode.InternalServerError;
 	nock(FIGMA_API_BASE_URL).post(FIGMA_DEV_RESOURCES_ENDPOINT).reply(statusCode);
 };
 
@@ -180,10 +187,11 @@ describe('/associateEntity', () => {
 				.set('Authorization', JWT_TOKEN)
 				.set('Content-Type', 'application/json')
 				.set('User-Id', validCredentialsParams.atlassianUserId)
-				.expect(201)
+				.expect(HttpStatusCode.Created)
 				.expect(expectedResponse);
 		});
 	});
+
 	describe('error scenarios', () => {
 		const validCredentialsParams = generateFigmaUserCredentialsCreateParams();
 
@@ -203,7 +211,7 @@ describe('/associateEntity', () => {
 				.send(MOCK_REQUEST)
 				.set('Authorization', JWT_TOKEN)
 				.set('Content-Type', 'application/json')
-				.expect(401);
+				.expect(HttpStatusCode.Unauthorized);
 		});
 
 		it('should respond with 401 if credentials are not found', () => {
@@ -212,7 +220,7 @@ describe('/associateEntity', () => {
 				.send(MOCK_REQUEST)
 				.set('Authorization', JWT_TOKEN)
 				.set('Content-Type', 'application/json')
-				.expect(401);
+				.expect(HttpStatusCode.Unauthorized);
 		});
 
 		describe('with valid auth and upstream errors', () => {
@@ -246,7 +254,7 @@ describe('/associateEntity', () => {
 					.set('Authorization', JWT_TOKEN)
 					.set('Content-Type', 'application/json')
 					.set('User-Id', validCredentialsParams.atlassianUserId)
-					.expect(500);
+					.expect(HttpStatusCode.InternalServerError);
 			});
 
 			it('should respond with 500 if fetching issue details fails', async () => {
@@ -268,7 +276,7 @@ describe('/associateEntity', () => {
 					.set('Authorization', JWT_TOKEN)
 					.set('Content-Type', 'application/json')
 					.set('User-Id', validCredentialsParams.atlassianUserId)
-					.expect(500);
+					.expect(HttpStatusCode.InternalServerError);
 			});
 
 			it('should respond with 500 if design ingestion fails', async () => {
@@ -291,7 +299,7 @@ describe('/associateEntity', () => {
 					.set('Authorization', JWT_TOKEN)
 					.set('Content-Type', 'application/json')
 					.set('User-Id', validCredentialsParams.atlassianUserId)
-					.expect(500);
+					.expect(HttpStatusCode.InternalServerError);
 			});
 
 			it('should respond with 500 if createDevResource request fails', async () => {
@@ -315,7 +323,7 @@ describe('/associateEntity', () => {
 					.set('Authorization', JWT_TOKEN)
 					.set('Content-Type', 'application/json')
 					.set('User-Id', validCredentialsParams.atlassianUserId)
-					.expect(500);
+					.expect(HttpStatusCode.InternalServerError);
 			});
 		});
 	});

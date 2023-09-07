@@ -1,5 +1,5 @@
 import type { AxiosResponse } from 'axios';
-import { AxiosError } from 'axios';
+import { AxiosError, HttpStatusCode } from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 
 import { FigmaServiceCredentialsError } from './errors';
@@ -97,7 +97,7 @@ describe('FigmaService', () => {
 				undefined,
 				undefined,
 				{
-					status: 403,
+					status: HttpStatusCode.Forbidden,
 				} as AxiosResponse,
 			);
 			const expectedServiceError = new FigmaServiceCredentialsError(
@@ -122,7 +122,7 @@ describe('FigmaService', () => {
 				undefined,
 				undefined,
 				{
-					status: 500,
+					status: HttpStatusCode.InternalServerError,
 				} as AxiosResponse,
 			);
 			jest
