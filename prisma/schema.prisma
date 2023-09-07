@@ -23,3 +23,20 @@ model FigmaOAuth2UserCredentials {
   refreshToken    String
   expiresAt       DateTime @db.Timestamptz
 }
+
+enum FigmaWebhookStatus {
+  PENDING
+  ACTIVE
+  PAUSED
+  ERROR
+}
+
+model FigmaWebhook {
+  id                        Int                @id @default(autoincrement())
+  webhookId                 String             @unique
+  teamId                    String             @unique
+  teamName                  String
+  // Atlassian user ID of the Figma admin that configured this webhook
+  figmaAdminAtlassianUserId String
+  status                    FigmaWebhookStatus
+}
