@@ -11,15 +11,28 @@ import type {
 	ConnectInstallation,
 	JiraIssue,
 } from '../../domain/entities';
+import { AtlassianAssociation } from '../../domain/entities';
+
+type SubmitDesignParams = {
+	readonly design: AtlassianDesign;
+	readonly addAssociations?: AtlassianAssociation[];
+	readonly removeAssociations?: AtlassianAssociation[];
+};
 
 export class JiraService {
 	submitDesign = async (
-		design: AtlassianDesign,
+		{ design, addAssociations, removeAssociations }: SubmitDesignParams,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		const response = await jiraClient.submitDesigns(
 			{
-				designs: [design],
+				designs: [
+					{
+						...design,
+						addAssociations: addAssociations ?? [],
+						removeAssociations: removeAssociations ?? [],
+					},
+				],
 			},
 			JiraClientParams.fromConnectInstallation(connectInstallation),
 		);
@@ -38,7 +51,9 @@ export class JiraService {
 
 		if (response.unknownAssociations?.length) {
 			throw JiraServiceSubmitDesignError.unknownAssociations(
-				response.unknownAssociations,
+				response.unknownAssociations.map(
+					(x) => new AtlassianAssociation(x.associationType, x.values),
+				),
 			);
 		}
 	};

@@ -7,16 +7,18 @@ import app from '../../../app';
 import { JIRA_ISSUE_ATI } from '../../../common/constants';
 import { getConfig } from '../../../config';
 import type { AttachedDesignUrlPropertyKey } from '../../../domain/entities';
-import { generateFigmaUserCredentialsCreateParams } from '../../../domain/entities/testing';
+import {
+	generateFigmaUserCredentialsCreateParams,
+	generateIssueAri,
+	MOCK_ISSUE_ID,
+} from '../../../domain/entities/testing';
 import { transformNodeToAtlassianDesign } from '../../../infrastructure/figma/figma-transformer';
 import {
 	generateGetFileNodesResponse,
 	MOCK_DESIGN_URL_WITH_NODE,
 	MOCK_FILE_KEY,
-	MOCK_ISSUE_ID,
 	MOCK_NODE_ID,
 	MOCK_NODE_ID_URL,
-	VALID_ISSUE_ARI,
 } from '../../../infrastructure/figma/testing';
 import type { GetIssuePropertyResponse } from '../../../infrastructure/jira/jira-client';
 import {
@@ -178,7 +180,7 @@ const MOCK_REQUEST: AssociateEntityRequestParams = {
 	},
 	associateWith: {
 		ati: JIRA_ISSUE_ATI,
-		ari: VALID_ISSUE_ARI,
+		ari: generateIssueAri(MOCK_ISSUE_ID),
 		cloudId: uuidv4(),
 		id: MOCK_ISSUE_ID,
 	},
@@ -243,7 +245,6 @@ describe('/associateEntity', () => {
 					nodeId: MOCK_NODE_ID,
 					url: MOCK_DESIGN_URL_WITH_NODE,
 					isPrototype: false,
-					associateWith: MOCK_REQUEST.associateWith,
 					fileNodesResponse: mockFileNodesResponse,
 				}),
 			};

@@ -5,14 +5,12 @@ import type {
 	NodeDevStatus,
 } from './figma-client';
 
-import { ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE } from '../../common/constants';
 import { getConfig } from '../../config';
 import type { AtlassianDesign } from '../../domain/entities';
 import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
 } from '../../domain/entities';
-import type { AssociateWith } from '../../usecases';
 
 export type FigmaUrlData = {
 	readonly fileKey: string;
@@ -125,21 +123,19 @@ const getUpdateSequenceNumber = (input: string): number => {
 	return updateSequenceNumber;
 };
 
-type TransformNodeToAtlassianDesignArgs = {
-	nodeId: string;
-	url: string;
-	isPrototype: boolean;
-	associateWith: AssociateWith;
-	fileNodesResponse: FileNodesResponse;
+type TransformNodeToAtlassianDesignParams = {
+	readonly nodeId: string;
+	readonly url: string;
+	readonly isPrototype: boolean;
+	readonly fileNodesResponse: FileNodesResponse;
 };
 
 export const transformNodeToAtlassianDesign = ({
 	nodeId,
 	url,
 	isPrototype,
-	associateWith,
 	fileNodesResponse,
-}: TransformNodeToAtlassianDesignArgs): AtlassianDesign => {
+}: TransformNodeToAtlassianDesignParams): AtlassianDesign => {
 	const node = fileNodesResponse.nodes[transformNodeId(nodeId)].document;
 	return {
 		id: node.id,
@@ -154,31 +150,22 @@ export const transformNodeToAtlassianDesign = ({
 		// TODO: lastUpdated should come from the app database once polling is added
 		lastUpdated: new Date().toISOString(),
 		updateSequenceNumber: getUpdateSequenceNumber(fileNodesResponse.version),
-		addAssociations: [
-			{
-				associationType: ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
-				values: [associateWith.ari],
-			},
-		],
-		removeAssociations: [],
 	};
 };
 
-type TransformFileToAtlassianDesignArgs = {
-	url: string;
-	fileKey: string;
-	isPrototype: boolean;
-	associateWith: AssociateWith;
-	fileResponse: FileResponse;
+type TransformFileToAtlassianDesignParams = {
+	readonly url: string;
+	readonly fileKey: string;
+	readonly isPrototype: boolean;
+	readonly fileResponse: FileResponse;
 };
 
 export const transformFileToAtlassianDesign = ({
 	url,
 	fileKey,
 	isPrototype,
-	associateWith,
 	fileResponse,
-}: TransformFileToAtlassianDesignArgs): AtlassianDesign => {
+}: TransformFileToAtlassianDesignParams): AtlassianDesign => {
 	return {
 		id: fileKey,
 		displayName: fileResponse.name,
@@ -192,13 +179,6 @@ export const transformFileToAtlassianDesign = ({
 		// TODO: lastUpdated should come from the app database once polling is added
 		lastUpdated: new Date().toISOString(),
 		updateSequenceNumber: getUpdateSequenceNumber(fileResponse.version),
-		addAssociations: [
-			{
-				associationType: ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
-				values: [associateWith.ari],
-			},
-		],
-		removeAssociations: [],
 	};
 };
 

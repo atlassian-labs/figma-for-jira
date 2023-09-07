@@ -14,6 +14,11 @@ import {
 } from '..';
 import { Duration } from '../../../common/duration';
 
+export const MOCK_ISSUE_ID = '10000';
+
+export const generateIssueAri = (issueId = Date.now().toString()) =>
+	`ari:cloud:jira:${uuidv4()}:issue/${issueId}`;
+
 export const generateFigmaOAuth2UserCredentials = ({
 	id = Date.now(),
 	atlassianUserId = uuidv4(),
@@ -80,8 +85,6 @@ export const generateAtlassianDesign = ({
 	type = AtlassianDesignType.FILE,
 	lastUpdated = new Date().toISOString(),
 	updateSequenceNumber = Date.now(),
-	addAssociations = [],
-	removeAssociations = [],
 } = {}): AtlassianDesign => ({
 	id,
 	displayName,
@@ -91,8 +94,6 @@ export const generateAtlassianDesign = ({
 	type,
 	lastUpdated,
 	updateSequenceNumber,
-	addAssociations,
-	removeAssociations,
 });
 
 export const generateJiraIssue = ({

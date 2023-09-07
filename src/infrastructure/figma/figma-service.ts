@@ -2,8 +2,8 @@ import { AxiosError, HttpStatusCode } from 'axios';
 
 import { FigmaServiceCredentialsError } from './errors';
 import { figmaAuthService } from './figma-auth-service';
-import { figmaClient } from './figma-client';
 import type { CreateDevResourcesResponse } from './figma-client';
+import { figmaClient } from './figma-client';
 import type { FigmaUrlData } from './figma-transformer';
 import {
 	buildDevResource,
@@ -13,16 +13,13 @@ import {
 	transformNodeToAtlassianDesign,
 } from './figma-transformer';
 
-import {
-	DEFAULT_FIGMA_FILE_NODE_ID,
-	JIRA_ISSUE_ATI,
-} from '../../common/constants';
 import type {
 	AtlassianDesign,
 	FigmaOAuth2UserCredentials,
 } from '../../domain/entities';
-import type { AssociateWith } from '../../usecases';
 import { getLogger } from '../logger';
+
+export const DEFAULT_FIGMA_FILE_NODE_ID = '0:0';
 
 const extractDataFromFigmaUrlOrThrow = (url: string): FigmaUrlData => {
 	const urlData = extractDataFromFigmaUrl(url);
@@ -61,18 +58,9 @@ export class FigmaService {
 	fetchDesign = async (
 		url: string,
 		atlassianUserId: string,
-		associateWith: AssociateWith,
 	): Promise<AtlassianDesign> => {
 		const { fileKey, nodeId, isPrototype } =
 			extractDataFromFigmaUrlOrThrow(url);
-
-		if (!associateWith.ari) {
-			throw new Error('No ARI to associate');
-		}
-
-		if (associateWith.ati !== JIRA_ISSUE_ATI) {
-			throw new Error('Unrecognized ATI');
-		}
 
 		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
 
@@ -88,7 +76,6 @@ export class FigmaService {
 				nodeId,
 				url,
 				isPrototype,
-				associateWith,
 				fileNodesResponse,
 			});
 		} else {
@@ -97,7 +84,6 @@ export class FigmaService {
 				url,
 				fileKey,
 				isPrototype,
-				associateWith,
 				fileResponse,
 			});
 		}
