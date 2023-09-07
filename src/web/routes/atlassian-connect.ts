@@ -2,6 +2,9 @@ import type { Request, Response } from 'express';
 
 import { getConfig } from '../../config';
 
+const fileReadScope = 'files:read'
+const fileDevWriteScope = 'file_dev_resources:write'
+
 export const connectDescriptorGet = (_: Request, res: Response) => {
 	res.status(200).json(connectAppDescriptor);
 };
@@ -100,7 +103,9 @@ export const connectAppDescriptor = {
 						getConfig().figma.clientId
 					}&redirect_uri=${
 						getConfig().app.baseUrl
-					}/auth/callback&scope=[files:read,file_dev_resources:write]&state={state}&response_type=code`,
+					}/auth/callback&scope=${
+						getConfig().app.baseUrl
+					}&state=${fileReadScope},${fileDevWriteScope}&response_type=code`,
 				},
 			},
 		},
