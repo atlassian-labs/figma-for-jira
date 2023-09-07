@@ -18,7 +18,8 @@ WORKDIR /opt/service
 USER node
 
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+# Ignore scripts to skip installing Husky
+RUN npm ci --omit=dev --ignore-scripts
 # Copy the compiled JS from the build image
 COPY --from=build /app/build ./
 COPY prisma ./prisma

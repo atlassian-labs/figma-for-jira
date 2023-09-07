@@ -99,7 +99,7 @@ describe('/check3LO', () => {
 				.expect(200)
 				.expect({ authorized: true });
 
-			const credentials = await figmaOAuth2UserCredentialsRepository.find(
+			const credentials = await figmaOAuth2UserCredentialsRepository.get(
 				expiredCredentialsParams.atlassianUserId,
 			);
 			expect(credentials?.accessToken).toEqual(

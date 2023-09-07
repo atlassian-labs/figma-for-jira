@@ -1,6 +1,7 @@
 import type { RawAxiosRequestHeaders } from 'axios';
 import axios from 'axios';
 
+import { JiraClientResponseValidationError } from './errors';
 import { createJwtToken } from './jwt-utils';
 import {
 	GET_ISSUE_RESPONSE_SCHEMA,
@@ -14,7 +15,6 @@ import type {
 
 import { Duration } from '../../../common/duration';
 import { getAjvSchema } from '../../ajv';
-import { getLogger } from '../../logger';
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
 
@@ -45,7 +45,7 @@ export class JiraClient {
 	 * @see https://developer.atlassian.com/cloud/jira/software/rest/api-group-design/#api-group-design
 	 */
 	submitDesigns = async (
-		request: SubmitDesignsRequest,
+		payload: SubmitDesignsRequest,
 		{ baseUrl, connectAppKey, connectSharedSecret }: JiraClientParams,
 	): Promise<SubmitDesignsResponse> => {
 		const url = new URL(`/rest/designs/1.0/bulk`, baseUrl);
@@ -61,7 +61,7 @@ export class JiraClient {
 
 		const response = await axios.post<SubmitDesignsResponse>(
 			url.toString(),
-			request,
+			payload,
 			{
 				headers: {
 					...this.buildAuthorizationHeader(jwtToken),
@@ -72,14 +72,7 @@ export class JiraClient {
 		const validate = getAjvSchema(SUBMIT_DESIGNS_RESPONSE_SCHEMA);
 
 		if (!validate(response.data)) {
-			const error = new Error(`Unexpected response from ${url.pathname}.`);
-			getLogger().error(
-				error,
-				`Unexpected response from %s: %o`,
-				url.toString(),
-				validate.errors,
-			);
-			throw error;
+			throw new JiraClientResponseValidationError(url, validate.errors);
 		}
 
 		return response.data;
@@ -90,7 +83,6 @@ export class JiraClient {
 	 *
 	 * @see https://developer.atlassian.com/cloud/jira/software/rest/api-group-issue/#api-rest-agile-1-0-issue-issueidorkey-get
 	 */
-	// TODO: Delete the method if not required by the `/associateEntity` flow.
 	getIssue = async (
 		issueIdOrKey: string,
 		{ baseUrl, connectAppKey, connectSharedSecret }: JiraClientParams,
@@ -115,14 +107,7 @@ export class JiraClient {
 		const validate = getAjvSchema(GET_ISSUE_RESPONSE_SCHEMA);
 
 		if (!validate(response.data)) {
-			const error = new Error(`Unexpected response from ${url.pathname}.`);
-			getLogger().error(
-				error,
-				`Unexpected response from %s: %o`,
-				url.toString(),
-				validate.errors,
-			);
-			throw error;
+			throw new JiraClientResponseValidationError(url, validate.errors);
 		}
 
 		return response.data;

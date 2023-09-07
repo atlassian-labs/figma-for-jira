@@ -83,6 +83,7 @@ export const GET_ISSUE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetIssueResponse> =
 		properties: {
 			id: { type: 'string' },
 			key: { type: 'string' },
+			self: { type: 'string' },
 			fields: {
 				type: 'object',
 				properties: {
@@ -91,5 +92,5 @@ export const GET_ISSUE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetIssueResponse> =
 				required: ['summary'],
 			},
 		},
-		required: ['id', 'key'],
+		required: ['id', 'key', 'self'],
 	} as const;

@@ -98,12 +98,15 @@ export const connectAppDescriptor = {
 			documentationUrl:
 				'https://help.figma.com/hc/en-us/articles/360039827834-Jira-and-Figma',
 			actions: {
+				associateEntity: {
+					templateUrl: `${getConfig().app.baseUrl}/entities/associateEntity`,
+				},
 				grant3LO: {
 					urlTemplate: `${getConfig().figma.apiBaseUrl}/oauth?client_id=${
 						getConfig().figma.clientId
-					}&redirect_uri=${getConfig().app.baseUrl}/auth/callback&scope=${
+					}&redirect_uri=${
 						getConfig().app.baseUrl
-					}&state=${fileReadScope},${fileDevWriteScope}&response_type=code`,
+					}/auth/callback&scope=${fileReadScope},${fileDevWriteScope}&state={state}&response_type=code`,
 				},
 			},
 		},
