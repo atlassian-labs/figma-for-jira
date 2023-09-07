@@ -17,10 +17,8 @@ import {
 	MOCK_NODE_ID,
 	MOCK_NODE_ID_URL,
 	MOCK_PROTOTYPE_URL,
-	MOCK_VALID_ASSOCIATION,
 } from './testing';
 
-import { ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE } from '../../common/constants';
 import * as configModule from '../../config';
 import { mockConfig } from '../../config/testing';
 import type { AtlassianDesign } from '../../domain/entities';
@@ -133,20 +131,12 @@ describe('FigmaTransformer', () => {
 				type: AtlassianDesignType.NODE,
 				lastUpdated: expect.anything(),
 				updateSequenceNumber: parseInt(mockApiResponse.version, 10),
-				addAssociations: [
-					{
-						associationType: ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
-						values: [MOCK_VALID_ASSOCIATION.ari],
-					},
-				],
-				removeAssociations: [],
 			};
 
 			const result = transformNodeToAtlassianDesign({
 				nodeId: MOCK_NODE_ID,
 				url: MOCK_DESIGN_URL_WITH_NODE,
 				isPrototype: false,
-				associateWith: MOCK_VALID_ASSOCIATION,
 				fileNodesResponse: mockApiResponse,
 			});
 
@@ -167,20 +157,12 @@ describe('FigmaTransformer', () => {
 				type: AtlassianDesignType.FILE,
 				lastUpdated: expect.anything(),
 				updateSequenceNumber: parseInt(mockApiResponse.version, 10),
-				addAssociations: [
-					{
-						associationType: ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE,
-						values: [MOCK_VALID_ASSOCIATION.ari],
-					},
-				],
-				removeAssociations: [],
 			};
 
 			const result = transformFileToAtlassianDesign({
 				url: MOCK_DESIGN_URL_WITHOUT_NODE,
 				fileKey: MOCK_FILE_KEY,
 				isPrototype: false,
-				associateWith: MOCK_VALID_ASSOCIATION,
 				fileResponse: mockApiResponse,
 			});
 

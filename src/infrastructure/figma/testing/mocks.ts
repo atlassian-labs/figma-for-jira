@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { JIRA_ISSUE_ATI } from '../../../common/constants';
 import { Duration } from '../../../common/duration';
 import type {
 	GetOAuth2TokenResponse,
@@ -21,17 +20,6 @@ export const MOCK_VERSION = '4067551197';
 export const MOCK_ISSUE_URL =
 	'https://myjirainstance.atlassian.net/browse/FIG-1';
 export const MOCK_ISSUE_TITLE = 'Test Jira Issue';
-const SITE_ID = uuidv4();
-export const MOCK_ISSUE_ID = '10000';
-export const INVALID_ISSUE_ARI = `ari:cloud:jira:123:issue/${MOCK_ISSUE_ID}`;
-export const VALID_ISSUE_ARI = `ari:cloud:jira:${SITE_ID}:issue/${MOCK_ISSUE_ID}`;
-export const MOCK_VALID_ASSOCIATION = {
-	ati: JIRA_ISSUE_ATI,
-	ari: VALID_ISSUE_ARI,
-	id: MOCK_ISSUE_ID,
-	cloudId: SITE_ID,
-};
-
 export const MOCK_DOCUMENT: NodeDetails = {
 	id: MOCK_NODE_ID,
 	name: 'Test Node',
