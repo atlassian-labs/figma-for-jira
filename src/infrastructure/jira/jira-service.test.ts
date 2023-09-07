@@ -1,9 +1,8 @@
+import type { AxiosResponse } from 'axios';
+import { AxiosError, HttpStatusCode } from 'axios';
+
 import { JiraServiceSubmitDesignError } from './errors';
-import {
-	jiraClient,
-	JiraClientNotFoundError,
-	JiraClientParams,
-} from './jira-client';
+import { jiraClient, JiraClientParams } from './jira-client';
 import {
 	generateFailedSubmitDesignsResponse,
 	generateGetIssuePropertyResponse,
@@ -134,7 +133,15 @@ describe('JiraService', () => {
 		it('should set the attached-design-url property if not present', async () => {
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
-				.mockRejectedValue(new JiraClientNotFoundError());
+				.mockRejectedValue(
+					new AxiosError(
+						'Not found.',
+						HttpStatusCode.NotFound.toString(),
+						undefined,
+						undefined,
+						{ status: HttpStatusCode.NotFound } as AxiosResponse,
+					),
+				);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
 			await jiraService.setAttachedDesignUrlInIssueProperties(
@@ -180,7 +187,15 @@ describe('JiraService', () => {
 		it('should set the attached-design-url-v2 property if not present', async () => {
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
-				.mockRejectedValue(new JiraClientNotFoundError());
+				.mockRejectedValue(
+					new AxiosError(
+						'Not found.',
+						HttpStatusCode.NotFound.toString(),
+						undefined,
+						undefined,
+						{ status: HttpStatusCode.NotFound } as AxiosResponse,
+					),
+				);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
 			await jiraService.setAttachedDesignUrlV2InIssueProperties(

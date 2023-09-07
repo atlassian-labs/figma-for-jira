@@ -1,11 +1,12 @@
+import { Config } from 'jest';
 import baseConfig from './jest.config';
 
-const config = {
+const config: Config = {
 	...baseConfig,
 	testRegex: '^(?!.*integration.*)(.*)(\\.|/)(test|spec)\\.tsx?$',
 	setupFiles: [
 		...(baseConfig.setupFiles ?? []),
-		'./src/infrastructure/testing/mock-logger.ts',
+		'<rootDir>/src/infrastructure/testing/mock-logger.ts',
 	],
 };
 

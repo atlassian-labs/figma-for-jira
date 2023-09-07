@@ -1,9 +1,6 @@
 import axios, { AxiosHeaders, HttpStatusCode } from 'axios';
 
-import {
-	JiraClientNotFoundError,
-	JiraClientResponseValidationError,
-} from './errors';
+import { JiraClientResponseValidationError } from './errors';
 import { jiraClient } from './jira-client';
 import { createJwtToken } from './jwt-utils';
 import {
@@ -135,20 +132,6 @@ describe('JiraClient', () => {
 					MOCK_JIRA_CLIENT_PARAMS,
 				),
 			).rejects.toThrowError(JiraClientResponseValidationError);
-		});
-
-		it('should throw a JiraClientNotFoundError when an issue property is not found', async () => {
-			jest.spyOn(axios, 'get').mockResolvedValue({
-				status: HttpStatusCode.NotFound,
-			});
-
-			await expect(() =>
-				jiraClient.getIssueProperty(
-					issueId,
-					propertyKey,
-					MOCK_JIRA_CLIENT_PARAMS,
-				),
-			).rejects.toThrowError(JiraClientNotFoundError);
 		});
 	});
 

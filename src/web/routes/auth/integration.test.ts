@@ -129,9 +129,6 @@ describe('/auth', () => {
 					.post(FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT)
 					.query(refreshTokenQueryParams)
 					.reply(HttpStatusCode.InternalServerError);
-				nock(FIGMA_API_BASE_URL)
-					.get(FIGMA_ME_ENDPOINT)
-					.reply(HttpStatusCode.Ok);
 
 				return request(app)
 					.get(
@@ -145,9 +142,6 @@ describe('/auth', () => {
 		describe('without OAuth credentials stored', () => {
 			it('should respond with "authorized: false" if no database entry exists', async () => {
 				const userId = 'unknown-user-id';
-				nock(FIGMA_API_BASE_URL)
-					.get(FIGMA_ME_ENDPOINT)
-					.reply(HttpStatusCode.Forbidden);
 
 				return request(app)
 					.get(`/auth/check3LO?userId=${userId}`)

@@ -30,10 +30,20 @@ export const associateEntityUseCase = {
 			jiraService.getIssue(associateWith.id, connectInstallation),
 		]);
 
-		const { self: issueUrl, fields } = issue;
+		const { self: issueUrl, fields, id: issueId } = issue;
 
 		await Promise.all([
 			jiraService.submitDesign(design, connectInstallation),
+			jiraService.setAttachedDesignUrlInIssueProperties(
+				issueId,
+				design,
+				connectInstallation,
+			),
+			jiraService.setAttachedDesignUrlV2InIssueProperties(
+				issueId,
+				design,
+				connectInstallation,
+			),
 			figmaService.createDevResource({
 				designUrl: entity.url,
 				issueUrl,

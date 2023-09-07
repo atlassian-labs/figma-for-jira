@@ -1,9 +1,6 @@
-import axios, { AxiosHeaders, HttpStatusCode } from 'axios';
+import axios, { AxiosHeaders } from 'axios';
 
-import {
-	JiraClientNotFoundError,
-	JiraClientResponseValidationError,
-} from './errors';
+import { JiraClientResponseValidationError } from './errors';
 import { createJwtToken } from './jwt-utils';
 import {
 	GET_ISSUE_PROPERTY_RESPONSE_SCHEMA,
@@ -119,12 +116,6 @@ class JiraClient {
 				this.buildAuthorizationHeader(url, 'GET', clientParams),
 			),
 		});
-
-		if (response.status === HttpStatusCode.NotFound.valueOf()) {
-			throw new JiraClientNotFoundError(
-				`Property ${propertyKey} does not exist.`,
-			);
-		}
 
 		const validate = getAjvSchema(GET_ISSUE_PROPERTY_RESPONSE_SCHEMA);
 
