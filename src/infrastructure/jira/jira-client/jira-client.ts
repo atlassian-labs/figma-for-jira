@@ -1,4 +1,4 @@
-import type { AxiosResponse } from 'axios';
+import type { AxiosResponse, Method } from 'axios';
 import axios, { AxiosHeaders, HttpStatusCode, isAxiosError } from 'axios';
 
 import {
@@ -23,8 +23,6 @@ import type { ConnectInstallation } from '../../../domain/entities';
 import { getAjvSchema } from '../../ajv';
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
-
-type SupportedHttpMethod = 'GET' | 'POST' | 'PUT';
 
 /**
  * A Jira API client.
@@ -171,7 +169,7 @@ class JiraClient {
 
 	private buildAuthorizationHeader(
 		url: URL,
-		method: SupportedHttpMethod,
+		method: Method,
 		{
 			key: connectAppKey,
 			sharedSecret: connectSharedSecret,
