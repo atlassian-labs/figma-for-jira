@@ -198,14 +198,14 @@ describe('/associateEntity', () => {
 		});
 
 		afterEach(async () => {
-			jest.runOnlyPendingTimers();
-			jest.useRealTimers();
 			await connectInstallationRepository
 				.deleteByClientKey(MOCK_CLIENT_KEY)
 				.catch(console.log);
 			await figmaOAuth2UserCredentialsRepository
 				.delete(validCredentialsParams.atlassianUserId)
 				.catch(console.log);
+			jest.runOnlyPendingTimers();
+			jest.useRealTimers();
 		});
 
 		it('should respond with created design entity', async () => {

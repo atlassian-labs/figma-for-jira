@@ -30,7 +30,7 @@
 		"test:it:ci": "run-s start:sandbox:test test:it stop:sandbox:test",
 		"test:unit": "jest -c jest.config.unit.ts",
 		"util:makeTunnel": "./scripts/make-tunnel.sh",
-		"util:runIntegrationTests": "DOTENV_CONFIG_PATH=.env.test jest -c jest.config.integration.ts",
+		"util:runIntegrationTests": "DOTENV_CONFIG_PATH=.env.test jest -c jest.config.integration.ts --runInBand",
 		"util:updateAppUrl": "ts-node ./scripts/update-app-url.ts"
 	},
 	"dependencies": {
