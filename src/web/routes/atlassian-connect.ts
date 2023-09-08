@@ -2,8 +2,7 @@ import type { Request, Response } from 'express';
 
 import { getConfig } from '../../config';
 
-const fileReadScope = 'files:read';
-const fileDevWriteScope = 'file_dev_resources:write';
+const figmaScope = 'files:read,file_dev_resources:write';
 
 export const connectDescriptorGet = (_: Request, res: Response) => {
 	res.status(200).json(connectAppDescriptor);
@@ -99,14 +98,20 @@ export const connectAppDescriptor = {
 				'https://help.figma.com/hc/en-us/articles/360039827834-Jira-and-Figma',
 			actions: {
 				associateEntity: {
-					templateUrl: `${getConfig().app.baseUrl}/entities/associateEntity`,
+					urlTemplate: `${getConfig().app.baseUrl}/entities/associateEntity`,
+				},
+				disassociateEntity: {
+					urlTemplate: `${getConfig().app.baseUrl}/entities/disassociateEntity`,
 				},
 				grant3LO: {
 					urlTemplate: `${getConfig().figma.apiBaseUrl}/oauth?client_id=${
 						getConfig().figma.clientId
 					}&redirect_uri=${
 						getConfig().app.baseUrl
-					}/auth/callback&scope=${fileReadScope},${fileDevWriteScope}&state={state}&response_type=code`,
+					}/auth/callback&scope=${figmaScope}&state={state}&response_type=code`,
+				},
+				check3LO: {
+					urlTemplate: `${getConfig().app.baseUrl}/auth/check3LO`,
 				},
 			},
 		},
