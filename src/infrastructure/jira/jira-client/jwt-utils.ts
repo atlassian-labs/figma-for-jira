@@ -21,7 +21,7 @@ export type JwtTokenParams = {
  */
 export const createJwtToken = (params: JwtTokenParams): string => {
 	const nowInSeconds = Math.floor(Date.now() / 1000);
-	const jwtToken = encodeSymmetric(
+	return encodeSymmetric(
 		{
 			iat: nowInSeconds,
 			exp: nowInSeconds + params.expiresIn.asSeconds,
@@ -30,6 +30,4 @@ export const createJwtToken = (params: JwtTokenParams): string => {
 		},
 		params.connectSharedSecret,
 	);
-
-	return jwtToken;
 };

@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { Duration } from '../../../../common/duration';
-import { JiraClientParams } from '../jira-client';
 import type { JwtTokenParams } from '../jwt-utils';
 import type {
 	GetIssuePropertyResponse,
@@ -9,12 +8,6 @@ import type {
 	SubmitDesignsRequest,
 	SubmitDesignsResponse,
 } from '../types';
-
-export const MOCK_JIRA_CLIENT_PARAMS = new JiraClientParams(
-	'https://test.atlassian.com',
-	uuidv4(),
-	uuidv4(),
-);
 
 export const MOCK_JWT_TOKEN_PARAMS: JwtTokenParams = {
 	request: {

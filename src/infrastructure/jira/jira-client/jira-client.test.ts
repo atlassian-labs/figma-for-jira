@@ -8,18 +8,25 @@ import {
 	generateGetIssueResponse,
 	generateSubmitDesignsRequest,
 	generateSuccessfulSubmitDesignsResponse,
-	MOCK_JIRA_CLIENT_PARAMS,
 	MOCK_JWT_TOKEN,
 } from './testing';
+
+import type { ConnectInstallation } from '../../../domain/entities';
+import { generateConnectInstallation } from '../../../domain/entities/testing';
 
 jest.mock('./jwt-utils');
 
 describe('JiraClient', () => {
+	let connectInstallation: ConnectInstallation;
 	const createJwtTokenMock = jest.mocked(createJwtToken);
 	createJwtTokenMock.mockReturnValue(MOCK_JWT_TOKEN);
 
 	const defaultExpectedRequestHeaders = () => ({
 		headers: new AxiosHeaders().setAuthorization(`JWT ${MOCK_JWT_TOKEN}`),
+	});
+
+	beforeEach(() => {
+		connectInstallation = generateConnectInstallation();
 	});
 
 	describe('submitDesigns', () => {
@@ -32,12 +39,12 @@ describe('JiraClient', () => {
 
 			const result = await jiraClient.submitDesigns(
 				request,
-				MOCK_JIRA_CLIENT_PARAMS,
+				connectInstallation,
 			);
 
 			expect(result).toBe(response);
 			expect(axios.post).toHaveBeenCalledWith(
-				`${MOCK_JIRA_CLIENT_PARAMS.baseUrl}/rest/designs/1.0/bulk`,
+				`${connectInstallation.baseUrl}/rest/designs/1.0/bulk`,
 				request,
 				defaultExpectedRequestHeaders(),
 			);
@@ -54,7 +61,7 @@ describe('JiraClient', () => {
 			});
 
 			await expect(() =>
-				jiraClient.submitDesigns(request, MOCK_JIRA_CLIENT_PARAMS),
+				jiraClient.submitDesigns(request, connectInstallation),
 			).rejects.toThrowError(JiraClientResponseValidationError);
 		});
 	});
@@ -67,14 +74,11 @@ describe('JiraClient', () => {
 				data: response,
 			});
 
-			const result = await jiraClient.getIssue(
-				issueKey,
-				MOCK_JIRA_CLIENT_PARAMS,
-			);
+			const result = await jiraClient.getIssue(issueKey, connectInstallation);
 
 			expect(result).toBe(response);
 			expect(axios.get).toHaveBeenCalledWith(
-				`${MOCK_JIRA_CLIENT_PARAMS.baseUrl}/rest/agile/1.0/issue/${issueKey}`,
+				`${connectInstallation.baseUrl}/rest/agile/1.0/issue/${issueKey}`,
 				defaultExpectedRequestHeaders(),
 			);
 		});
@@ -89,7 +93,7 @@ describe('JiraClient', () => {
 			});
 
 			await expect(() =>
-				jiraClient.getIssue(issueKey, MOCK_JIRA_CLIENT_PARAMS),
+				jiraClient.getIssue(issueKey, connectInstallation),
 			).rejects.toThrowError(JiraClientResponseValidationError);
 		});
 	});
@@ -106,11 +110,11 @@ describe('JiraClient', () => {
 			const result = await jiraClient.getIssueProperty(
 				issueId,
 				propertyKey,
-				MOCK_JIRA_CLIENT_PARAMS,
+				connectInstallation,
 			);
 
 			expect(axios.get).toHaveBeenCalledWith(
-				`${MOCK_JIRA_CLIENT_PARAMS.baseUrl}/rest/api/2/issue/TEST-1/properties/${propertyKey}`,
+				`${connectInstallation.baseUrl}/rest/api/2/issue/TEST-1/properties/${propertyKey}`,
 				defaultExpectedRequestHeaders(),
 			);
 			expect(result).toEqual(response);
@@ -126,11 +130,7 @@ describe('JiraClient', () => {
 			});
 
 			await expect(() =>
-				jiraClient.getIssueProperty(
-					issueId,
-					propertyKey,
-					MOCK_JIRA_CLIENT_PARAMS,
-				),
+				jiraClient.getIssueProperty(issueId, propertyKey, connectInstallation),
 			).rejects.toThrowError(JiraClientResponseValidationError);
 		});
 	});
@@ -147,7 +147,7 @@ describe('JiraClient', () => {
 				issueId,
 				propertyKey,
 				'some value',
-				MOCK_JIRA_CLIENT_PARAMS,
+				connectInstallation,
 			);
 
 			const headers = defaultExpectedRequestHeaders()
@@ -155,7 +155,7 @@ describe('JiraClient', () => {
 				.setContentType('application/json');
 
 			expect(axios.put).toHaveBeenCalledWith(
-				`${MOCK_JIRA_CLIENT_PARAMS.baseUrl}/rest/api/2/issue/${issueId}/properties/${propertyKey}`,
+				`${connectInstallation.baseUrl}/rest/api/2/issue/${issueId}/properties/${propertyKey}`,
 				'some value',
 				{ headers },
 			);

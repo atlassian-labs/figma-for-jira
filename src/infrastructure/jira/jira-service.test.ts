@@ -2,7 +2,7 @@ import type { AxiosResponse } from 'axios';
 import { AxiosError, HttpStatusCode } from 'axios';
 
 import { JiraServiceSubmitDesignError } from './errors';
-import { jiraClient, JiraClientParams } from './jira-client';
+import { jiraClient } from './jira-client';
 import {
 	generateFailedSubmitDesignsResponse,
 	generateGetIssuePropertyResponse,
@@ -52,11 +52,7 @@ describe('JiraService', () => {
 						},
 					],
 				},
-				{
-					baseUrl: connectInstallation.baseUrl,
-					connectAppKey: connectInstallation.key,
-					connectSharedSecret: connectInstallation.sharedSecret,
-				},
+				connectInstallation,
 			);
 		});
 
@@ -95,7 +91,7 @@ describe('JiraService', () => {
 						},
 					],
 				},
-				JiraClientParams.fromConnectInstallation(connectInstallation),
+				connectInstallation,
 			);
 		});
 
@@ -171,7 +167,7 @@ describe('JiraService', () => {
 			expect(result).toBe(jiraIssue);
 			expect(jiraClient.getIssue).toHaveBeenCalledWith(
 				jiraIssue.key,
-				JiraClientParams.fromConnectInstallation(connectInstallation),
+				connectInstallation,
 			);
 		});
 	});
@@ -210,7 +206,7 @@ describe('JiraService', () => {
 				issueId,
 				'attached-design-url',
 				design.url,
-				JiraClientParams.fromConnectInstallation(connectInstallation),
+				connectInstallation,
 			);
 		});
 
@@ -271,7 +267,7 @@ describe('JiraService', () => {
 				issueId,
 				'attached-design-url-v2',
 				expectedIssuePropertyValue,
-				JiraClientParams.fromConnectInstallation(connectInstallation),
+				connectInstallation,
 			);
 		});
 
@@ -308,7 +304,7 @@ describe('JiraService', () => {
 				issueId,
 				'attached-design-url-v2',
 				expectedIssuePropertyValue,
-				JiraClientParams.fromConnectInstallation(connectInstallation),
+				connectInstallation,
 			);
 		});
 	});

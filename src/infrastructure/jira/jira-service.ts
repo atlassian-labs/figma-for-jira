@@ -1,7 +1,7 @@
 import { AxiosError, HttpStatusCode } from 'axios';
 
 import { JiraServiceSubmitDesignError } from './errors';
-import { jiraClient, JiraClientParams } from './jira-client';
+import { jiraClient } from './jira-client';
 
 import type {
 	AtlassianDesign,
@@ -19,7 +19,7 @@ type SubmitDesignParams = {
 	readonly removeAssociations?: AtlassianAssociation[];
 };
 
-export class JiraService {
+class JiraService {
 	submitDesign = async (
 		{ design, addAssociations, removeAssociations }: SubmitDesignParams,
 		connectInstallation: ConnectInstallation,
@@ -34,7 +34,7 @@ export class JiraService {
 					},
 				],
 			},
-			JiraClientParams.fromConnectInstallation(connectInstallation),
+			connectInstallation,
 		);
 
 		if (response.rejectedEntities.length) {
@@ -62,10 +62,7 @@ export class JiraService {
 		issueIdOrKey: string,
 		connectInstallation: ConnectInstallation,
 	): Promise<JiraIssue> => {
-		return await jiraClient.getIssue(
-			issueIdOrKey,
-			JiraClientParams.fromConnectInstallation(connectInstallation),
-		);
+		return await jiraClient.getIssue(issueIdOrKey, connectInstallation);
 	};
 
 	setAttachedDesignUrlInIssueProperties = async (
@@ -73,14 +70,12 @@ export class JiraService {
 		design: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
-		const clientParams =
-			JiraClientParams.fromConnectInstallation(connectInstallation);
 		const propertyKey = 'attached-design-url';
 		try {
 			await this.getAttachedDesignUrlProperty(
 				issueIdOrKey,
 				propertyKey,
-				clientParams,
+				connectInstallation,
 			);
 		} catch (e) {
 			await this.handleAttachedDesignUrlErrors(
@@ -88,7 +83,7 @@ export class JiraService {
 				issueIdOrKey,
 				propertyKey,
 				design,
-				clientParams,
+				connectInstallation,
 			);
 		}
 	};
@@ -99,13 +94,11 @@ export class JiraService {
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		const propertyKey = 'attached-design-url-v2';
-		const clientParams =
-			JiraClientParams.fromConnectInstallation(connectInstallation);
 		try {
 			const response = await this.getAttachedDesignUrlProperty(
 				issueIdOrKey,
 				propertyKey,
-				clientParams,
+				connectInstallation,
 			);
 
 			const storedValue = JSON.parse(response.value) as AttachedDesignUrlV2[];
@@ -119,7 +112,7 @@ export class JiraService {
 				issueIdOrKey,
 				propertyKey,
 				JSON.stringify([...storedValue, newDesignUrl]),
-				clientParams,
+				connectInstallation,
 			);
 		} catch (e) {
 			await this.handleAttachedDesignUrlErrors(
@@ -127,7 +120,7 @@ export class JiraService {
 				issueIdOrKey,
 				propertyKey,
 				design,
-				clientParams,
+				connectInstallation,
 			);
 		}
 	};
@@ -137,12 +130,12 @@ export class JiraService {
 	>(
 		issueIdOrKey: string,
 		propertyKey: T,
-		clientParams: JiraClientParams,
+		connectInstallation: ConnectInstallation,
 	): Promise<AttachedDesignUrlProperty<T>> => {
 		const response = await jiraClient.getIssueProperty(
 			issueIdOrKey,
 			propertyKey,
-			clientParams,
+			connectInstallation,
 		);
 		return {
 			key: response.key as T,
@@ -155,7 +148,7 @@ export class JiraService {
 		issueIdOrKey: string,
 		propertyKey: AttachedDesignUrlPropertyKey,
 		{ url, displayName }: AtlassianDesign,
-		clientParams: JiraClientParams,
+		connectInstallation: ConnectInstallation,
 	) => {
 		if (
 			error instanceof AxiosError &&
@@ -175,7 +168,7 @@ export class JiraService {
 				issueIdOrKey,
 				propertyKey,
 				value,
-				clientParams,
+				connectInstallation,
 			);
 		} else {
 			throw error;
@@ -186,13 +179,13 @@ export class JiraService {
 		issueIdOrKey: string,
 		propertyKey: AttachedDesignUrlPropertyKey,
 		value: string,
-		clientParams: JiraClientParams,
+		connectInstallation: ConnectInstallation,
 	) => {
 		await jiraClient.setIssueProperty(
 			issueIdOrKey,
 			propertyKey,
 			value,
-			clientParams,
+			connectInstallation,
 		);
 	};
 }

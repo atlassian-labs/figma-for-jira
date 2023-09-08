@@ -44,16 +44,16 @@ class JiraClient {
 	 */
 	submitDesigns = async (
 		payload: SubmitDesignsRequest,
-		clientParams: JiraClientParams,
+		connectInstallation: ConnectInstallation,
 	): Promise<SubmitDesignsResponse> => {
-		const url = new URL(`/rest/designs/1.0/bulk`, clientParams.baseUrl);
+		const url = new URL(`/rest/designs/1.0/bulk`, connectInstallation.baseUrl);
 
 		const response = await axios.post<SubmitDesignsResponse>(
 			url.toString(),
 			payload,
 			{
 				headers: new AxiosHeaders().setAuthorization(
-					this.buildAuthorizationHeader(url, 'POST', clientParams),
+					this.buildAuthorizationHeader(url, 'POST', connectInstallation),
 				),
 			},
 		);
@@ -74,16 +74,16 @@ class JiraClient {
 	 */
 	getIssue = async (
 		issueIdOrKey: string,
-		clientParams: JiraClientParams,
+		connectInstallation: ConnectInstallation,
 	): Promise<GetIssueResponse> => {
 		const url = new URL(
 			`/rest/agile/1.0/issue/${issueIdOrKey}`,
-			clientParams.baseUrl,
+			connectInstallation.baseUrl,
 		);
 
 		const response = await axios.get<GetIssueResponse>(url.toString(), {
 			headers: new AxiosHeaders().setAuthorization(
-				this.buildAuthorizationHeader(url, 'GET', clientParams),
+				this.buildAuthorizationHeader(url, 'GET', connectInstallation),
 			),
 		});
 
@@ -104,16 +104,16 @@ class JiraClient {
 	getIssueProperty = async (
 		issueIdOrKey: string,
 		propertyKey: string,
-		clientParams: JiraClientParams,
+		connectInstallation: ConnectInstallation,
 	): Promise<GetIssuePropertyResponse> => {
 		const url = new URL(
 			`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
-			clientParams.baseUrl,
+			connectInstallation.baseUrl,
 		);
 
 		const response = await axios.get<GetIssuePropertyResponse>(url.toString(), {
 			headers: new AxiosHeaders().setAuthorization(
-				this.buildAuthorizationHeader(url, 'GET', clientParams),
+				this.buildAuthorizationHeader(url, 'GET', connectInstallation),
 			),
 		});
 
@@ -135,17 +135,17 @@ class JiraClient {
 		issueIdOrKey: string,
 		propertyKey: string,
 		value: unknown,
-		clientParams: JiraClientParams,
+		connectInstallation: ConnectInstallation,
 	): Promise<number> => {
 		const url = new URL(
 			`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
-			clientParams.baseUrl,
+			connectInstallation.baseUrl,
 		);
 
 		const response = await axios.put(url.toString(), value, {
 			headers: new AxiosHeaders()
 				.setAuthorization(
-					this.buildAuthorizationHeader(url, 'PUT', clientParams),
+					this.buildAuthorizationHeader(url, 'PUT', connectInstallation),
 				)
 				.setAccept('application/json')
 				.setContentType('application/json'),
@@ -157,7 +157,10 @@ class JiraClient {
 	private buildAuthorizationHeader(
 		url: URL,
 		method: SupportedHttpMethod,
-		{ connectAppKey, connectSharedSecret }: JiraClientParams,
+		{
+			key: connectAppKey,
+			sharedSecret: connectSharedSecret,
+		}: ConnectInstallation,
 	) {
 		const jwtToken = createJwtToken({
 			request: {
@@ -169,22 +172,6 @@ class JiraClient {
 			connectSharedSecret,
 		});
 		return `JWT ${jwtToken}`;
-	}
-}
-
-export class JiraClientParams {
-	constructor(
-		readonly baseUrl: string,
-		readonly connectAppKey: string,
-		readonly connectSharedSecret: string,
-	) {}
-
-	static fromConnectInstallation({
-		baseUrl,
-		key,
-		sharedSecret,
-	}: ConnectInstallation) {
-		return new JiraClientParams(baseUrl, key, sharedSecret);
 	}
 }
 
