@@ -9,3 +9,5 @@ export class JiraClientResponseValidationError extends JiraClientError {
 		this.errors = errors;
 	}
 }
+
+export class JiraClientNotFoundError extends JiraClientError {}

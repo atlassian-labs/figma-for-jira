@@ -1,6 +1,10 @@
-import axios, { AxiosHeaders, HttpStatusCode } from 'axios';
+import type { AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosHeaders, HttpStatusCode } from 'axios';
 
-import { JiraClientResponseValidationError } from './errors';
+import {
+	JiraClientNotFoundError,
+	JiraClientResponseValidationError,
+} from './errors';
 import { jiraClient } from './jira-client';
 import { createJwtToken } from './jwt-utils';
 import {
@@ -132,6 +136,24 @@ describe('JiraClient', () => {
 			await expect(() =>
 				jiraClient.getIssueProperty(issueId, propertyKey, connectInstallation),
 			).rejects.toThrowError(JiraClientResponseValidationError);
+		});
+
+		it('should throw a JiraClientNotFound exception when response status is 404', async () => {
+			jest
+				.spyOn(axios, 'get')
+				.mockRejectedValue(
+					new AxiosError(
+						'Not found.',
+						HttpStatusCode.NotFound.toString(),
+						undefined,
+						undefined,
+						{ status: HttpStatusCode.NotFound } as AxiosResponse,
+					),
+				);
+
+			await expect(() =>
+				jiraClient.getIssueProperty(issueId, propertyKey, connectInstallation),
+			).rejects.toThrowError(JiraClientNotFoundError);
 		});
 	});
 

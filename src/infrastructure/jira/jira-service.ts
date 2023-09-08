@@ -1,7 +1,5 @@
-import { AxiosError, HttpStatusCode } from 'axios';
-
 import { JiraServiceSubmitDesignError } from './errors';
-import { jiraClient } from './jira-client';
+import { jiraClient, JiraClientNotFoundError } from './jira-client';
 
 import type {
 	AtlassianDesign,
@@ -150,10 +148,7 @@ class JiraService {
 		{ url, displayName }: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	) => {
-		if (
-			error instanceof AxiosError &&
-			error.response?.status === HttpStatusCode.NotFound
-		) {
+		if (this.isJiraClientNotFoundError(error)) {
 			let value: string;
 			if (propertyKey === 'attached-design-url') {
 				value = url;
@@ -187,6 +182,12 @@ class JiraService {
 			value,
 			connectInstallation,
 		);
+	};
+
+	private isJiraClientNotFoundError = (
+		error: unknown,
+	): error is JiraClientNotFoundError => {
+		return error instanceof JiraClientNotFoundError;
 	};
 }
 

@@ -1,6 +1,10 @@
-import axios, { AxiosHeaders } from 'axios';
+import type { AxiosResponse } from 'axios';
+import axios, { AxiosHeaders, HttpStatusCode, isAxiosError } from 'axios';
 
-import { JiraClientResponseValidationError } from './errors';
+import {
+	JiraClientNotFoundError,
+	JiraClientResponseValidationError,
+} from './errors';
 import { createJwtToken } from './jwt-utils';
 import {
 	GET_ISSUE_PROPERTY_RESPONSE_SCHEMA,
@@ -110,12 +114,23 @@ class JiraClient {
 			`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
 			connectInstallation.baseUrl,
 		);
-
-		const response = await axios.get<GetIssuePropertyResponse>(url.toString(), {
-			headers: new AxiosHeaders().setAuthorization(
-				this.buildAuthorizationHeader(url, 'GET', connectInstallation),
-			),
-		});
+		let response: AxiosResponse<GetIssuePropertyResponse>;
+		try {
+			response = await axios.get<GetIssuePropertyResponse>(url.toString(), {
+				headers: new AxiosHeaders().setAuthorization(
+					this.buildAuthorizationHeader(url, 'GET', connectInstallation),
+				),
+			});
+		} catch (error) {
+			if (
+				isAxiosError(error) &&
+				error.response?.status === HttpStatusCode.NotFound
+			) {
+				throw new JiraClientNotFoundError();
+			} else {
+				throw error;
+			}
+		}
 
 		const validate = getAjvSchema(GET_ISSUE_PROPERTY_RESPONSE_SCHEMA);
 
