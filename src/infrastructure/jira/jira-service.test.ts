@@ -169,7 +169,7 @@ describe('JiraService', () => {
 		});
 	});
 
-	describe('setAttachedDesignUrlInIssueProperties', () => {
+	describe('setAttachedDesignUrlInIssuePropertiesIfMissing', () => {
 		const issueId = 'TEST-1';
 		let connectInstallation: ConnectInstallation;
 		let design: AtlassianDesign;
@@ -185,7 +185,7 @@ describe('JiraService', () => {
 				.mockRejectedValue(new JiraClientNotFoundError());
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
-			await jiraService.setAttachedDesignUrlInIssueProperties(
+			await jiraService.setAttachedDesignUrlInIssuePropertiesIfMissing(
 				issueId,
 				design,
 				connectInstallation,
@@ -205,7 +205,7 @@ describe('JiraService', () => {
 				.mockResolvedValue(generateGetIssuePropertyResponse());
 			jest.spyOn(jiraClient, 'setIssueProperty');
 
-			await jiraService.setAttachedDesignUrlInIssueProperties(
+			await jiraService.setAttachedDesignUrlInIssuePropertiesIfMissing(
 				issueId,
 				design,
 				connectInstallation,
@@ -215,7 +215,7 @@ describe('JiraService', () => {
 		});
 	});
 
-	describe('setAttachedDesignUrlV2InIssueProperties', () => {
+	describe('updateAttachedDesignUrlV2IssueProperty', () => {
 		const issueId = 'TEST-1';
 		let connectInstallation: ConnectInstallation;
 		let design: AtlassianDesign;
@@ -231,7 +231,7 @@ describe('JiraService', () => {
 				.mockRejectedValue(new JiraClientNotFoundError());
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
-			await jiraService.setAttachedDesignUrlV2InIssueProperties(
+			await jiraService.updateAttachedDesignUrlV2IssueProperty(
 				issueId,
 				design,
 				connectInstallation,
@@ -267,7 +267,7 @@ describe('JiraService', () => {
 			);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
-			await jiraService.setAttachedDesignUrlV2InIssueProperties(
+			await jiraService.updateAttachedDesignUrlV2IssueProperty(
 				issueId,
 				design,
 				connectInstallation,
@@ -287,6 +287,25 @@ describe('JiraService', () => {
 				expectedIssuePropertyValue,
 				connectInstallation,
 			);
+		});
+
+		it('should throw if the value received from jira is not a string', async () => {
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockResolvedValue(generateGetIssuePropertyResponse({ value: 1 }));
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await expect(
+				jiraService.updateAttachedDesignUrlV2IssueProperty(
+					issueId,
+					design,
+					connectInstallation,
+				),
+			).rejects.toThrowError(
+				'value is of the incorrect type. Expected string, but received: number',
+			);
+
+			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
 		});
 	});
 });

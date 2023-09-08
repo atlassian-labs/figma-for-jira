@@ -107,7 +107,7 @@ export const generateGetIssueResponse = ({
 export const generateGetIssuePropertyResponse = ({
 	key = 'property-key',
 	value = 'some value',
-} = {}): GetIssuePropertyResponse => ({
+}: Partial<GetIssuePropertyResponse> = {}): GetIssuePropertyResponse => ({
 	key,
 	value,
 });

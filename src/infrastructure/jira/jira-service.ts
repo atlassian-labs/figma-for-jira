@@ -3,9 +3,6 @@ import { jiraClient, JiraClientNotFoundError } from './jira-client';
 
 import type {
 	AtlassianDesign,
-	AttachedDesignUrlProperty,
-	AttachedDesignUrlPropertyKey,
-	AttachedDesignUrlV2,
 	ConnectInstallation,
 	JiraIssue,
 } from '../../domain/entities';
@@ -15,6 +12,16 @@ type SubmitDesignParams = {
 	readonly design: AtlassianDesign;
 	readonly addAssociations?: AtlassianAssociation[];
 	readonly removeAssociations?: AtlassianAssociation[];
+};
+
+type AttachedDesignUrlV2IssuePropertyValue = {
+	readonly url: string;
+	readonly name: string;
+};
+
+const propertyKeys = {
+	ATTACHED_DESIGN_URL: 'attached-design-url',
+	ATTACHED_DESIGN_URL_V2: 'attached-design-url-v2',
 };
 
 class JiraService {
@@ -63,125 +70,91 @@ class JiraService {
 		return await jiraClient.getIssue(issueIdOrKey, connectInstallation);
 	};
 
-	setAttachedDesignUrlInIssueProperties = async (
+	setAttachedDesignUrlInIssuePropertiesIfMissing = async (
 		issueIdOrKey: string,
 		design: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
-		const propertyKey = 'attached-design-url';
 		try {
-			await this.getAttachedDesignUrlProperty(
+			await jiraClient.getIssueProperty(
 				issueIdOrKey,
-				propertyKey,
+				propertyKeys.ATTACHED_DESIGN_URL,
 				connectInstallation,
 			);
-		} catch (e) {
-			await this.handleAttachedDesignUrlErrors(
-				e,
-				issueIdOrKey,
-				propertyKey,
-				design,
-				connectInstallation,
-			);
-		}
-	};
-
-	setAttachedDesignUrlV2InIssueProperties = async (
-		issueIdOrKey: string,
-		design: AtlassianDesign,
-		connectInstallation: ConnectInstallation,
-	): Promise<void> => {
-		const propertyKey = 'attached-design-url-v2';
-		try {
-			const response = await this.getAttachedDesignUrlProperty(
-				issueIdOrKey,
-				propertyKey,
-				connectInstallation,
-			);
-
-			const storedValue = JSON.parse(response.value) as AttachedDesignUrlV2[];
-
-			const newDesignUrl: AttachedDesignUrlV2 = {
-				url: design.url,
-				name: design.displayName,
-			};
-
-			await this.setAttachedDesignUrlProperty(
-				issueIdOrKey,
-				propertyKey,
-				JSON.stringify([...storedValue, newDesignUrl]),
-				connectInstallation,
-			);
-		} catch (e) {
-			await this.handleAttachedDesignUrlErrors(
-				e,
-				issueIdOrKey,
-				propertyKey,
-				design,
-				connectInstallation,
-			);
-		}
-	};
-
-	private getAttachedDesignUrlProperty = async <
-		T extends AttachedDesignUrlPropertyKey,
-	>(
-		issueIdOrKey: string,
-		propertyKey: T,
-		connectInstallation: ConnectInstallation,
-	): Promise<AttachedDesignUrlProperty<T>> => {
-		const response = await jiraClient.getIssueProperty(
-			issueIdOrKey,
-			propertyKey,
-			connectInstallation,
-		);
-		return {
-			key: response.key as T,
-			value: response.value as string,
-		};
-	};
-
-	private handleAttachedDesignUrlErrors = async (
-		error: unknown,
-		issueIdOrKey: string,
-		propertyKey: AttachedDesignUrlPropertyKey,
-		{ url, displayName }: AtlassianDesign,
-		connectInstallation: ConnectInstallation,
-	) => {
-		if (this.isJiraClientNotFoundError(error)) {
-			let value: string;
-			if (propertyKey === 'attached-design-url') {
-				value = url;
+		} catch (error) {
+			if (this.isJiraClientNotFoundError(error)) {
+				const value = design.url;
+				await jiraClient.setIssueProperty(
+					issueIdOrKey,
+					propertyKeys.ATTACHED_DESIGN_URL,
+					value,
+					connectInstallation,
+				);
 			} else {
-				const newDesignUrl: AttachedDesignUrlV2 = {
-					url: url,
-					name: displayName,
-				};
-				value = JSON.stringify([newDesignUrl]);
+				throw error;
 			}
-			await this.setAttachedDesignUrlProperty(
-				issueIdOrKey,
-				propertyKey,
-				value,
-				connectInstallation,
-			);
-		} else {
-			throw error;
 		}
 	};
 
-	private setAttachedDesignUrlProperty = async (
+	updateAttachedDesignUrlV2IssueProperty = async (
 		issueIdOrKey: string,
-		propertyKey: AttachedDesignUrlPropertyKey,
-		value: string,
+		design: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
-	) => {
-		await jiraClient.setIssueProperty(
-			issueIdOrKey,
-			propertyKey,
-			value,
-			connectInstallation,
-		);
+	): Promise<void> => {
+		try {
+			const response = await jiraClient.getIssueProperty(
+				issueIdOrKey,
+				propertyKeys.ATTACHED_DESIGN_URL_V2,
+				connectInstallation,
+			);
+
+			const storedAttachedDesignUrlIssuePropertyValues = JSON.parse(
+				this.checkAndThrowIfNotString(response.value),
+			) as AttachedDesignUrlV2IssuePropertyValue[];
+
+			const newAttachedDesignUrlIssuePropertyValue: AttachedDesignUrlV2IssuePropertyValue =
+				{
+					url: design.url,
+					name: design.displayName,
+				};
+
+			await jiraClient.setIssueProperty(
+				issueIdOrKey,
+				propertyKeys.ATTACHED_DESIGN_URL_V2,
+				JSON.stringify([
+					...storedAttachedDesignUrlIssuePropertyValues,
+					newAttachedDesignUrlIssuePropertyValue,
+				]),
+				connectInstallation,
+			);
+		} catch (error) {
+			if (this.isJiraClientNotFoundError(error)) {
+				const newAttachedDesignUrlIssuePropertyValue: AttachedDesignUrlV2IssuePropertyValue =
+					{
+						url: design.url,
+						name: design.displayName,
+					};
+				const value = JSON.stringify([newAttachedDesignUrlIssuePropertyValue]);
+				await jiraClient.setIssueProperty(
+					issueIdOrKey,
+					propertyKeys.ATTACHED_DESIGN_URL_V2,
+					value,
+					connectInstallation,
+				);
+			} else {
+				throw error;
+			}
+		}
+	};
+
+	private checkAndThrowIfNotString = (value: unknown): string => {
+		if (typeof value === 'string') {
+			return value;
+		} else {
+			throw new Error(
+				`value is of the incorrect type. Expected string, but received: ${typeof value}`,
+			);
+		}
 	};
 
 	private isJiraClientNotFoundError = (

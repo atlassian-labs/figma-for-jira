@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from 'uuid';
 import app from '../../../app';
 import { JIRA_ISSUE_ATI } from '../../../common/constants';
 import { getConfig } from '../../../config';
-import type { AttachedDesignUrlPropertyKey } from '../../../domain/entities';
 import {
 	generateFigmaUserCredentialsCreateParams,
 	generateIssueAri,
@@ -142,7 +141,7 @@ const mockGetIssuePropertyEndpoint = ({
 	errorCode = HttpStatusCode.InternalServerError,
 	response = generateGetIssuePropertyResponse(),
 }: {
-	propertyKey?: AttachedDesignUrlPropertyKey | '';
+	propertyKey?: string;
 	success?: boolean;
 	errorCode?: HttpStatusCode;
 	response?: GetIssuePropertyResponse;
@@ -161,7 +160,7 @@ const mockSetIssuePropertyEndpoint = ({
 	errorCode = HttpStatusCode.InternalServerError,
 	successCode = HttpStatusCode.Ok,
 }: {
-	propertyKey?: AttachedDesignUrlPropertyKey | '';
+	propertyKey?: string;
 	success?: boolean;
 	errorCode?: HttpStatusCode;
 	successCode?: HttpStatusCode;

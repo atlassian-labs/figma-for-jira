@@ -44,12 +44,12 @@ export const associateEntityUseCase = {
 				},
 				connectInstallation,
 			),
-			jiraService.setAttachedDesignUrlInIssueProperties(
+			jiraService.setAttachedDesignUrlInIssuePropertiesIfMissing(
 				issueId,
 				design,
 				connectInstallation,
 			),
-			jiraService.setAttachedDesignUrlV2InIssueProperties(
+			jiraService.updateAttachedDesignUrlV2IssueProperty(
 				issueId,
 				design,
 				connectInstallation,
