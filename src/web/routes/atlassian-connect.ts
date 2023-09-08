@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 
 import { getConfig } from '../../config';
 
-const figmaScope='files:read,file_dev_resources:write';
+const figmaScope = 'files:read,file_dev_resources:write';
 
 export const connectDescriptorGet = (_: Request, res: Response) => {
 	res.status(200).json(connectAppDescriptor);
