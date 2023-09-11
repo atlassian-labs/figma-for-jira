@@ -1,4 +1,4 @@
-import { AxiosError } from 'axios';
+import { AxiosError, HttpStatusCode } from 'axios';
 
 import { FigmaServiceCredentialsError } from './errors';
 import { figmaAuthService } from './figma-auth-service';
@@ -13,7 +13,6 @@ import {
 	transformNodeToAtlassianDesign,
 } from './figma-transformer';
 
-import { HttpStatus } from '../../common/http-status';
 import type {
 	AtlassianDesign,
 	FigmaOAuth2UserCredentials,
@@ -43,8 +42,8 @@ export class FigmaService {
 		} catch (e: unknown) {
 			if (
 				e instanceof AxiosError &&
-				e.response?.status !== HttpStatus.UNAUTHORIZED &&
-				e.response?.status !== HttpStatus.FORBIDDEN
+				e.response?.status !== HttpStatusCode.Unauthorized &&
+				e.response?.status !== HttpStatusCode.Forbidden
 			) {
 				throw e;
 			}

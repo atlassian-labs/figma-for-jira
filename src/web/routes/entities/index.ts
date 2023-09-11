@@ -1,3 +1,4 @@
+import { HttpStatusCode } from 'axios';
 import { Router } from 'express';
 import type { NextFunction, Response } from 'express';
 
@@ -33,7 +34,7 @@ entitiesRouter.post(
 		const atlassianUserId = req.headers['user-id'];
 		if (!atlassianUserId || typeof atlassianUserId !== 'string') {
 			const errorMessage = 'Missing or invalid User-Id header';
-			res.status(401).send(errorMessage);
+			res.status(HttpStatusCode.Unauthorized).send(errorMessage);
 			return;
 		}
 		associateEntityUseCase
@@ -42,7 +43,7 @@ entitiesRouter.post(
 				atlassianUserId,
 				connectInstallation: res.locals.connectInstallation,
 			})
-			.then((design) => res.status(201).send({ design }))
+			.then((design) => res.status(HttpStatusCode.Created).send({ design }))
 			.catch((error) => next(error));
 	},
 );

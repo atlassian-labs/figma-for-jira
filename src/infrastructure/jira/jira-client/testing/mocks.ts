@@ -1,19 +1,13 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { Duration } from '../../../../common/duration';
-import type { JiraClientParams } from '../jira-client';
 import type { JwtTokenParams } from '../jwt-utils';
 import type {
+	GetIssuePropertyResponse,
 	GetIssueResponse,
 	SubmitDesignsRequest,
 	SubmitDesignsResponse,
 } from '../types';
-
-export const MOCK_JIRA_CLIENT_PARAMS: JiraClientParams = {
-	baseUrl: 'https://test.atlassian.com',
-	connectAppKey: uuidv4(),
-	connectSharedSecret: uuidv4(),
-};
 
 export const MOCK_JWT_TOKEN_PARAMS: JwtTokenParams = {
 	request: {
@@ -108,4 +102,12 @@ export const generateGetIssueResponse = ({
 	key,
 	self,
 	fields,
+});
+
+export const generateGetIssuePropertyResponse = ({
+	key = 'property-key',
+	value = 'some value',
+}: Partial<GetIssuePropertyResponse> = {}): GetIssuePropertyResponse => ({
+	key,
+	value,
 });

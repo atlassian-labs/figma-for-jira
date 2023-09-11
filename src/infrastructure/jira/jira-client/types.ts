@@ -7,6 +7,11 @@ export type GetIssueResponse = {
 	};
 };
 
+export type GetIssuePropertyResponse = {
+	readonly key: string;
+	readonly value: unknown;
+};
+
 export type Association = {
 	readonly associationType: string;
 	readonly values: string[];

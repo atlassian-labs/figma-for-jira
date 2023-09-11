@@ -1,35 +1,35 @@
-import type { RawAxiosRequestHeaders } from 'axios';
-import axios from 'axios';
+import type { AxiosResponse, Method } from 'axios';
+import axios, { AxiosHeaders, HttpStatusCode, isAxiosError } from 'axios';
 
-import { JiraClientResponseValidationError } from './errors';
+import {
+	JiraClientNotFoundError,
+	JiraClientResponseValidationError,
+} from './errors';
 import { createJwtToken } from './jwt-utils';
 import {
+	GET_ISSUE_PROPERTY_RESPONSE_SCHEMA,
 	GET_ISSUE_RESPONSE_SCHEMA,
 	SUBMIT_DESIGNS_RESPONSE_SCHEMA,
 } from './schemas';
 import type {
+	GetIssuePropertyResponse,
 	GetIssueResponse,
 	SubmitDesignsRequest,
 	SubmitDesignsResponse,
 } from './types';
 
 import { Duration } from '../../../common/duration';
+import type { ConnectInstallation } from '../../../domain/entities';
 import { getAjvSchema } from '../../ajv';
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
-
-export type JiraClientParams = {
-	readonly baseUrl: string;
-	readonly connectAppKey: string;
-	readonly connectSharedSecret: string;
-};
 
 /**
  * A Jira API client.
  *
  * @see https://developer.atlassian.com/cloud/jira/software/rest/intro/#introduction
  */
-export class JiraClient {
+class JiraClient {
 	// TODO: This method has not been tested due to the issue on the Jira side. Therefore, issues in the contract
 	// 	definition and implementation are very likely. Test the method and address found issues.
 	/**
@@ -46,26 +46,17 @@ export class JiraClient {
 	 */
 	submitDesigns = async (
 		payload: SubmitDesignsRequest,
-		{ baseUrl, connectAppKey, connectSharedSecret }: JiraClientParams,
+		connectInstallation: ConnectInstallation,
 	): Promise<SubmitDesignsResponse> => {
-		const url = new URL(`/rest/designs/1.0/bulk`, baseUrl);
-		const jwtToken = createJwtToken({
-			request: {
-				method: 'POST',
-				pathname: url.pathname,
-			},
-			expiresIn: TOKEN_EXPIRES_IN,
-			connectAppKey,
-			connectSharedSecret,
-		});
+		const url = new URL(`/rest/designs/1.0/bulk`, connectInstallation.baseUrl);
 
 		const response = await axios.post<SubmitDesignsResponse>(
 			url.toString(),
 			payload,
 			{
-				headers: {
-					...this.buildAuthorizationHeader(jwtToken),
-				},
+				headers: new AxiosHeaders().setAuthorization(
+					this.buildAuthorizationHeader(url, 'POST', connectInstallation),
+				),
 			},
 		);
 
@@ -85,23 +76,17 @@ export class JiraClient {
 	 */
 	getIssue = async (
 		issueIdOrKey: string,
-		{ baseUrl, connectAppKey, connectSharedSecret }: JiraClientParams,
+		connectInstallation: ConnectInstallation,
 	): Promise<GetIssueResponse> => {
-		const url = new URL(`/rest/agile/1.0/issue/${issueIdOrKey}`, baseUrl);
-		const jwtToken = createJwtToken({
-			request: {
-				method: 'GET',
-				pathname: url.pathname,
-			},
-			expiresIn: TOKEN_EXPIRES_IN,
-			connectAppKey,
-			connectSharedSecret,
-		});
+		const url = new URL(
+			`/rest/agile/1.0/issue/${issueIdOrKey}`,
+			connectInstallation.baseUrl,
+		);
 
 		const response = await axios.get<GetIssueResponse>(url.toString(), {
-			headers: {
-				...this.buildAuthorizationHeader(jwtToken),
-			},
+			headers: new AxiosHeaders().setAuthorization(
+				this.buildAuthorizationHeader(url, 'GET', connectInstallation),
+			),
 		});
 
 		const validate = getAjvSchema(GET_ISSUE_RESPONSE_SCHEMA);
@@ -113,10 +98,93 @@ export class JiraClient {
 		return response.data;
 	};
 
-	private buildAuthorizationHeader(jwtToken: string): RawAxiosRequestHeaders {
-		return {
-			Authorization: `JWT ${jwtToken}`,
-		};
+	/**
+	 * Returns the key and value of an issue's property
+	 *
+	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-properties/#api-rest-api-2-issue-issueidorkey-properties-propertykey-get
+	 */
+	getIssueProperty = async (
+		issueIdOrKey: string,
+		propertyKey: string,
+		connectInstallation: ConnectInstallation,
+	): Promise<GetIssuePropertyResponse> => {
+		const url = new URL(
+			`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
+			connectInstallation.baseUrl,
+		);
+		let response: AxiosResponse<GetIssuePropertyResponse>;
+		try {
+			response = await axios.get<GetIssuePropertyResponse>(url.toString(), {
+				headers: new AxiosHeaders().setAuthorization(
+					this.buildAuthorizationHeader(url, 'GET', connectInstallation),
+				),
+			});
+		} catch (error) {
+			if (
+				isAxiosError(error) &&
+				error.response?.status === HttpStatusCode.NotFound
+			) {
+				throw new JiraClientNotFoundError();
+			} else {
+				throw error;
+			}
+		}
+
+		const validate = getAjvSchema(GET_ISSUE_PROPERTY_RESPONSE_SCHEMA);
+
+		if (!validate(response.data)) {
+			throw new JiraClientResponseValidationError(url, validate.errors);
+		}
+
+		return response.data;
+	};
+
+	/**
+	 * Sets the value of an issue's property. Use this resource to store custom data against an issue.
+	 *
+	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-properties/#api-rest-api-2-issue-issueidorkey-properties-propertykey-put
+	 */
+	setIssueProperty = async (
+		issueIdOrKey: string,
+		propertyKey: string,
+		value: unknown,
+		connectInstallation: ConnectInstallation,
+	): Promise<number> => {
+		const url = new URL(
+			`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
+			connectInstallation.baseUrl,
+		);
+
+		const response = await axios.put(url.toString(), value, {
+			headers: new AxiosHeaders()
+				.setAuthorization(
+					this.buildAuthorizationHeader(url, 'PUT', connectInstallation),
+				)
+				.setAccept('application/json')
+				.setContentType('application/json'),
+		});
+
+		return response.status;
+	};
+
+	private buildAuthorizationHeader(
+		url: URL,
+		method: Method,
+		{
+			key: connectAppKey,
+			sharedSecret: connectSharedSecret,
+		}: ConnectInstallation,
+	) {
+		const jwtToken = createJwtToken({
+			request: {
+				method,
+				pathname: url.pathname,
+			},
+			expiresIn: TOKEN_EXPIRES_IN,
+			connectAppKey,
+			connectSharedSecret,
+		});
+		return `JWT ${jwtToken}`;
 	}
 }
 

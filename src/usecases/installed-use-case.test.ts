@@ -4,10 +4,6 @@ import { generateConnectInstallationCreateParams } from '../domain/entities/test
 import { connectInstallationRepository } from '../infrastructure/repositories';
 
 describe('installedUseCase', () => {
-	afterEach(() => {
-		jest.clearAllMocks();
-	});
-
 	it('should call repository layer upsert', async () => {
 		const installationCreateParams = generateConnectInstallationCreateParams();
 		jest

@@ -1,7 +1,7 @@
 import type { FigmaOAuth2UserCredentials as PrismaFigmaOAuth2UserCredentials } from '@prisma/client';
 
 import { RepositoryRecordNotFoundError } from './errors';
-import { getPrismaClient } from './prisma-client';
+import { prismaClient } from './prisma-client';
 
 import type { FigmaUserCredentialsCreateParams } from '../../domain/entities';
 import { FigmaOAuth2UserCredentials } from '../../domain/entities';
@@ -10,8 +10,9 @@ export class FigmaOAuth2UserCredentialsRepository {
 	get = async (
 		atlassianUserId: string,
 	): Promise<FigmaOAuth2UserCredentials> => {
-		const credentials =
-			await getPrismaClient().figmaOAuth2UserCredentials.findFirst({
+		const credentials = await prismaClient
+			.get()
+			.figmaOAuth2UserCredentials.findFirst({
 				where: { atlassianUserId },
 			});
 		if (credentials === null) {
@@ -27,7 +28,7 @@ export class FigmaOAuth2UserCredentialsRepository {
 		credentials: FigmaUserCredentialsCreateParams,
 	): Promise<FigmaOAuth2UserCredentials> => {
 		const params: Omit<PrismaFigmaOAuth2UserCredentials, 'id'> = credentials;
-		const result = await getPrismaClient().figmaOAuth2UserCredentials.upsert({
+		const result = await prismaClient.get().figmaOAuth2UserCredentials.upsert({
 			create: params,
 			update: params,
 			where: { atlassianUserId: credentials.atlassianUserId },
@@ -38,7 +39,7 @@ export class FigmaOAuth2UserCredentialsRepository {
 	delete = async (
 		atlassianUserId: string,
 	): Promise<FigmaOAuth2UserCredentials> => {
-		const result = await getPrismaClient().figmaOAuth2UserCredentials.delete({
+		const result = await prismaClient.get().figmaOAuth2UserCredentials.delete({
 			where: { atlassianUserId },
 		});
 		return this.mapToDomainModel(result);

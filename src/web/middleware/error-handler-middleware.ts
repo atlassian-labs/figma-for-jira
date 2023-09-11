@@ -1,8 +1,8 @@
+import { HttpStatusCode } from 'axios';
 import type { NextFunction, Request, Response } from 'express';
 
 import { JwtVerificationError } from './jwt-utils';
 
-import { HttpStatus } from '../../common/http-status';
 import { FigmaServiceCredentialsError } from '../../infrastructure/figma';
 import { RepositoryRecordNotFoundError } from '../../infrastructure/repositories';
 
@@ -21,13 +21,13 @@ export const errorHandlerMiddleware = (
 	res.err = err;
 
 	if (err instanceof JwtVerificationError) {
-		res.status(HttpStatus.UNAUTHORIZED).send(err.message);
+		res.status(HttpStatusCode.Unauthorized).send(err.message);
 	} else if (err instanceof RepositoryRecordNotFoundError) {
-		res.status(HttpStatus.NOT_FOUND).send(err.message);
+		res.status(HttpStatusCode.NotFound).send(err.message);
 	} else if (err instanceof FigmaServiceCredentialsError) {
-		res.status(HttpStatus.FORBIDDEN).send(err.message);
+		res.status(HttpStatusCode.Forbidden).send(err.message);
 	} else {
-		res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+		res.sendStatus(HttpStatusCode.InternalServerError);
 	}
 
 	next();

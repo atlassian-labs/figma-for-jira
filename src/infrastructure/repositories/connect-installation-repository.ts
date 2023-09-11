@@ -2,7 +2,7 @@ import type { ConnectInstallation as PrismaConnectInstallation } from '@prisma/c
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 import { RepositoryRecordNotFoundError } from './errors';
-import { getPrismaClient } from './prisma-client';
+import { prismaClient } from './prisma-client';
 
 import type {
 	ConnectInstallation,
@@ -11,7 +11,7 @@ import type {
 
 export class ConnectInstallationRepository {
 	getByClientKey = async (clientKey: string): Promise<ConnectInstallation> => {
-		const result = await getPrismaClient().connectInstallation.findFirst({
+		const result = await prismaClient.get().connectInstallation.findFirst({
 			where: { clientKey },
 		});
 		if (result === null) {
@@ -25,7 +25,7 @@ export class ConnectInstallationRepository {
 	upsert = async (
 		installation: ConnectInstallationCreateParams,
 	): Promise<ConnectInstallation> => {
-		const result = await getPrismaClient().connectInstallation.upsert({
+		const result = await prismaClient.get().connectInstallation.upsert({
 			create: installation,
 			update: installation,
 			where: { clientKey: installation.clientKey },
@@ -37,7 +37,7 @@ export class ConnectInstallationRepository {
 		clientKey: string,
 	): Promise<ConnectInstallation> => {
 		try {
-			const result = await getPrismaClient().connectInstallation.delete({
+			const result = await prismaClient.get().connectInstallation.delete({
 				where: { clientKey },
 			});
 			return this.mapToDomainModel(result);

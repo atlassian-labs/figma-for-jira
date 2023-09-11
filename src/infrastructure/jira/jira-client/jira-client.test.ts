@@ -1,19 +1,36 @@
-import axios from 'axios';
+import type { AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosHeaders, HttpStatusCode } from 'axios';
 
-import { JiraClientResponseValidationError } from './errors';
-import { jiraClient } from './jira-client';
-import * as jwtUtils from './jwt-utils';
 import {
+	JiraClientNotFoundError,
+	JiraClientResponseValidationError,
+} from './errors';
+import { jiraClient } from './jira-client';
+import { createJwtToken } from './jwt-utils';
+import {
+	generateGetIssuePropertyResponse,
 	generateGetIssueResponse,
 	generateSubmitDesignsRequest,
 	generateSuccessfulSubmitDesignsResponse,
-	MOCK_JIRA_CLIENT_PARAMS,
 	MOCK_JWT_TOKEN,
 } from './testing';
 
+import type { ConnectInstallation } from '../../../domain/entities';
+import { generateConnectInstallation } from '../../../domain/entities/testing';
+
+jest.mock('./jwt-utils');
+
 describe('JiraClient', () => {
+	let connectInstallation: ConnectInstallation;
+	const createJwtTokenMock = jest.mocked(createJwtToken);
+	createJwtTokenMock.mockReturnValue(MOCK_JWT_TOKEN);
+
+	const defaultExpectedRequestHeaders = () => ({
+		headers: new AxiosHeaders().setAuthorization(`JWT ${MOCK_JWT_TOKEN}`),
+	});
+
 	beforeEach(() => {
-		jest.clearAllMocks();
+		connectInstallation = generateConnectInstallation();
 	});
 
 	describe('submitDesigns', () => {
@@ -22,27 +39,22 @@ describe('JiraClient', () => {
 			const response = generateSuccessfulSubmitDesignsResponse(
 				request.designs[0].id,
 			);
-			jest.spyOn(jwtUtils, 'createJwtToken').mockReturnValue(MOCK_JWT_TOKEN);
 			jest.spyOn(axios, 'post').mockResolvedValue({ data: response });
 
 			const result = await jiraClient.submitDesigns(
 				request,
-				MOCK_JIRA_CLIENT_PARAMS,
+				connectInstallation,
 			);
 
 			expect(result).toBe(response);
 			expect(axios.post).toHaveBeenCalledWith(
-				`${MOCK_JIRA_CLIENT_PARAMS.baseUrl}/rest/designs/1.0/bulk`,
+				`${connectInstallation.baseUrl}/rest/designs/1.0/bulk`,
 				request,
-				{
-					headers: {
-						Authorization: `JWT ${MOCK_JWT_TOKEN}`,
-					},
-				},
+				defaultExpectedRequestHeaders(),
 			);
 		});
 
-		it('should thrown when response has invalid schema', async () => {
+		it('should throw when response has invalid schema', async () => {
 			const request = generateSubmitDesignsRequest();
 			const unexpectedResponse = {
 				...generateSuccessfulSubmitDesignsResponse(),
@@ -53,38 +65,29 @@ describe('JiraClient', () => {
 			});
 
 			await expect(() =>
-				jiraClient.submitDesigns(request, MOCK_JIRA_CLIENT_PARAMS),
-			).rejects.toBeInstanceOf(JiraClientResponseValidationError);
+				jiraClient.submitDesigns(request, connectInstallation),
+			).rejects.toThrowError(JiraClientResponseValidationError);
 		});
 	});
 
 	describe('getIssue', () => {
+		const issueKey = 'TEST-1';
 		it('should return issue', async () => {
-			const issueKey = 'TEST-1';
 			const response = generateGetIssueResponse({ key: issueKey });
-			jest.spyOn(jwtUtils, 'createJwtToken').mockReturnValue(MOCK_JWT_TOKEN);
 			jest.spyOn(axios, 'get').mockResolvedValue({
 				data: response,
 			});
 
-			const result = await jiraClient.getIssue(
-				issueKey,
-				MOCK_JIRA_CLIENT_PARAMS,
-			);
+			const result = await jiraClient.getIssue(issueKey, connectInstallation);
 
 			expect(result).toBe(response);
 			expect(axios.get).toHaveBeenCalledWith(
-				`${MOCK_JIRA_CLIENT_PARAMS.baseUrl}/rest/agile/1.0/issue/${issueKey}`,
-				{
-					headers: {
-						Authorization: `JWT ${MOCK_JWT_TOKEN}`,
-					},
-				},
+				`${connectInstallation.baseUrl}/rest/agile/1.0/issue/${issueKey}`,
+				defaultExpectedRequestHeaders(),
 			);
 		});
 
-		it('should thrown when response has invalid schema', async () => {
-			const issueKey = 'TEST-1';
+		it('should throw when response has invalid schema', async () => {
 			const unexpectedResponse = {
 				...generateGetIssueResponse({ key: issueKey }),
 				id: null,
@@ -94,8 +97,91 @@ describe('JiraClient', () => {
 			});
 
 			await expect(() =>
-				jiraClient.getIssue(issueKey, MOCK_JIRA_CLIENT_PARAMS),
-			).rejects.toBeInstanceOf(JiraClientResponseValidationError);
+				jiraClient.getIssue(issueKey, connectInstallation),
+			).rejects.toThrowError(JiraClientResponseValidationError);
+		});
+	});
+
+	describe('getIssueProperty', () => {
+		const issueId = 'TEST-1';
+		const propertyKey = 'property-key';
+		it("should return an issue's properties", async () => {
+			const response = generateGetIssuePropertyResponse({ key: propertyKey });
+			jest.spyOn(axios, 'get').mockResolvedValue({
+				data: response,
+			});
+
+			const result = await jiraClient.getIssueProperty(
+				issueId,
+				propertyKey,
+				connectInstallation,
+			);
+
+			expect(axios.get).toHaveBeenCalledWith(
+				`${connectInstallation.baseUrl}/rest/api/2/issue/TEST-1/properties/${propertyKey}`,
+				defaultExpectedRequestHeaders(),
+			);
+			expect(result).toEqual(response);
+		});
+
+		it('should throw when a response has invalid schema', async () => {
+			const invalidResponse = {
+				...generateGetIssuePropertyResponse(),
+				key: null,
+			};
+			jest.spyOn(axios, 'get').mockResolvedValue({
+				data: invalidResponse,
+			});
+
+			await expect(() =>
+				jiraClient.getIssueProperty(issueId, propertyKey, connectInstallation),
+			).rejects.toThrowError(JiraClientResponseValidationError);
+		});
+
+		it('should throw a JiraClientNotFound exception when response status is 404', async () => {
+			jest
+				.spyOn(axios, 'get')
+				.mockRejectedValue(
+					new AxiosError(
+						'Not found.',
+						HttpStatusCode.NotFound.toString(),
+						undefined,
+						undefined,
+						{ status: HttpStatusCode.NotFound } as AxiosResponse,
+					),
+				);
+
+			await expect(() =>
+				jiraClient.getIssueProperty(issueId, propertyKey, connectInstallation),
+			).rejects.toThrowError(JiraClientNotFoundError);
+		});
+	});
+
+	describe('setIssueProperty', () => {
+		const issueId = 'TEST-1';
+		const propertyKey = 'property-key';
+		it("should set an issue's properties and respond with a status code", async () => {
+			jest.spyOn(axios, 'put').mockResolvedValue({
+				status: HttpStatusCode.Ok,
+			});
+
+			const response = await jiraClient.setIssueProperty(
+				issueId,
+				propertyKey,
+				'some value',
+				connectInstallation,
+			);
+
+			const headers = defaultExpectedRequestHeaders()
+				.headers.setAccept('application/json')
+				.setContentType('application/json');
+
+			expect(axios.put).toHaveBeenCalledWith(
+				`${connectInstallation.baseUrl}/rest/api/2/issue/${issueId}/properties/${propertyKey}`,
+				'some value',
+				{ headers },
+			);
+			expect(response).toBe(HttpStatusCode.Ok);
 		});
 	});
 });
