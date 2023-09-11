@@ -105,7 +105,7 @@ class JiraService {
 				connectInstallation,
 			);
 		} catch (error) {
-			if (this.isJiraClientNotFoundError(error)) {
+			if (error instanceof JiraClientNotFoundError) {
 				await jiraClient.setIssueProperty(
 					issueIdOrKey,
 					propertyKeys.ATTACHED_DESIGN_URL,
@@ -154,7 +154,7 @@ class JiraService {
 				connectInstallation,
 			);
 		} catch (error) {
-			if (this.isJiraClientNotFoundError(error)) {
+			if (error instanceof JiraClientNotFoundError) {
 				const newAttachedDesignUrlIssuePropertyValue: AttachedDesignUrlV2IssuePropertyValue =
 					{
 						url,
@@ -181,12 +181,6 @@ class JiraService {
 				`value is of the incorrect type. Expected string, but received: ${typeof value}`,
 			);
 		}
-	};
-
-	private isJiraClientNotFoundError = (
-		error: unknown,
-	): error is JiraClientNotFoundError => {
-		return error instanceof JiraClientNotFoundError;
 	};
 }
 
