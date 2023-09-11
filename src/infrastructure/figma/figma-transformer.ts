@@ -55,7 +55,6 @@ export const buildDesignUrl = ({
 	nodeId?: string;
 }): string => {
 	const url = new URL(
-		// TODO: liveEmbedBaseUrl is not the right value to use here
 		`${getConfig().figma.baseUrl}/file/${fileKey}/${fileName}`,
 	);
 	if (nodeId) {
