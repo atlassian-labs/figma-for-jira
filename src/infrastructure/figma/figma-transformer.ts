@@ -147,8 +147,8 @@ export const transformNodeToAtlassianDesign = ({
 			? mapNodeStatusToDevStatus(node.devStatus)
 			: AtlassianDesignStatus.NONE,
 		type: mapNodeTypeToDesignType(node.type, isPrototype),
-		// TODO: lastUpdated should come from the app database once polling is added
-		lastUpdated: new Date().toISOString(),
+		// TODO: lastUpdated should be determined by the nearest parent node's lastModified time once Figma have implemented lastModified
+		lastUpdated: fileNodesResponse.lastModified,
 		updateSequenceNumber: getUpdateSequenceNumber(fileNodesResponse.version),
 	};
 };
@@ -176,8 +176,7 @@ export const transformFileToAtlassianDesign = ({
 		type: isPrototype
 			? AtlassianDesignType.PROTOTYPE
 			: AtlassianDesignType.FILE,
-		// TODO: lastUpdated should come from the app database once polling is added
-		lastUpdated: new Date().toISOString(),
+		lastUpdated: fileResponse.lastModified,
 		updateSequenceNumber: getUpdateSequenceNumber(fileResponse.version),
 	};
 };

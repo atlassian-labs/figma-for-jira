@@ -189,9 +189,6 @@ describe('/associateEntity', () => {
 	const validCredentialsParams = generateFigmaUserCredentialsCreateParams();
 	describe('success case', () => {
 		beforeEach(async () => {
-			jest.useFakeTimers({
-				doNotFake: ['nextTick'],
-			});
 			await figmaOAuth2UserCredentialsRepository.upsert(validCredentialsParams);
 			await connectInstallationRepository.upsert(MOCK_CONNECT_INSTALLATION);
 		});
