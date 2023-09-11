@@ -9,8 +9,8 @@ import {
 	buildDevResource,
 	extractDataFromFigmaUrl,
 	transformFileToAtlassianDesign,
-	transformNodeId,
 	transformNodeToAtlassianDesign,
+	unprettifyNodeId,
 } from './figma-transformer';
 
 import { HttpStatus } from '../../common/http-status';
@@ -56,7 +56,7 @@ export class FigmaService {
 		}
 	};
 
-	fetchDesign = async (
+	fetchDesignByUrl = async (
 		url: string,
 		atlassianUserId: string,
 	): Promise<AtlassianDesign> => {
@@ -74,15 +74,14 @@ export class FigmaService {
 				accessToken,
 			);
 			return transformNodeToAtlassianDesign({
+				fileKey,
 				nodeId,
-				url,
 				isPrototype,
 				fileNodesResponse,
 			});
 		} else {
 			const fileResponse = await figmaClient.getFile(fileKey, accessToken);
 			return transformFileToAtlassianDesign({
-				url,
 				fileKey,
 				isPrototype,
 				fileResponse,
@@ -110,7 +109,7 @@ export class FigmaService {
 			name: issueTitle,
 			url: issueUrl,
 			file_key: fileKey,
-			node_id: nodeId ? transformNodeId(nodeId) : DEFAULT_FIGMA_FILE_NODE_ID,
+			node_id: nodeId ? unprettifyNodeId(nodeId) : DEFAULT_FIGMA_FILE_NODE_ID,
 		});
 
 		const response = await figmaClient.createDevResources(
