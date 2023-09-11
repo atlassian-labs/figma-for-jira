@@ -63,9 +63,9 @@ const mockMeEndpoint = ({
 	success = true,
 	times = 1,
 }: {
-	success: boolean;
+	success?: boolean;
 	times?: number;
-}) => {
+} = {}) => {
 	const statusCode = success ? HttpStatusCode.Ok : HttpStatusCode.Forbidden;
 	nock(endpoints.figma.API_BASE_URL)
 		.get(endpoints.figma.ME)
@@ -282,6 +282,8 @@ describe('/associateEntity', () => {
 		});
 
 		it('should respond with 403 if credentials are not found', () => {
+			mockGetIssueEndpoint();
+
 			return request(app)
 				.post(endpoints.ASSOCIATE_ENTITY)
 				.send(MOCK_REQUEST)
@@ -310,6 +312,7 @@ describe('/associateEntity', () => {
 				);
 
 				mockMeEndpoint({ success: true });
+				mockGetIssueEndpoint();
 				mockGetFileNodesEndpoint({
 					accessToken: credentials?.accessToken,
 					success: false,
@@ -325,6 +328,14 @@ describe('/associateEntity', () => {
 			});
 
 			it('should respond with 500 if fetching issue details fails', async () => {
+				const credentials = await figmaOAuth2UserCredentialsRepository.get(
+					validCredentialsParams.atlassianUserId,
+				);
+				mockGetFileNodesEndpoint({
+					accessToken: credentials?.accessToken,
+					success: false,
+				});
+				mockMeEndpoint();
 				mockGetIssueEndpoint({ success: false });
 
 				return request(app)
@@ -349,6 +360,13 @@ describe('/associateEntity', () => {
 				});
 				mockGetIssueEndpoint();
 
+				mockGetIssuePropertyEndpoint({
+					propertyKey: 'attached-design-url',
+				});
+				mockGetIssuePropertyEndpoint({
+					propertyKey: 'attached-design-url-v2',
+				});
+				mockCreateDevResourcesEndpoint();
 				mockSubmitDesignsEndpoint({ success: false });
 
 				return request(app)
@@ -373,6 +391,13 @@ describe('/associateEntity', () => {
 				});
 				mockGetIssueEndpoint();
 
+				mockGetIssuePropertyEndpoint({
+					propertyKey: 'attached-design-url',
+				});
+				mockGetIssuePropertyEndpoint({
+					propertyKey: 'attached-design-url-v2',
+				});
+				mockSubmitDesignsEndpoint();
 				mockCreateDevResourcesEndpoint({ success: false });
 
 				return request(app)
@@ -401,6 +426,11 @@ describe('/associateEntity', () => {
 					propertyKey: 'attached-design-url',
 					success: false,
 				});
+				mockGetIssuePropertyEndpoint({
+					propertyKey: 'attached-design-url-v2',
+				});
+				mockSubmitDesignsEndpoint();
+				mockCreateDevResourcesEndpoint();
 
 				return request(app)
 					.post(endpoints.ASSOCIATE_ENTITY)
