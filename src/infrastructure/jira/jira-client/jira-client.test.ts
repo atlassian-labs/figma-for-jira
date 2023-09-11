@@ -184,4 +184,47 @@ describe('JiraClient', () => {
 			expect(response).toBe(HttpStatusCode.Ok);
 		});
 	});
+
+	describe('deleteIssueProperty', () => {
+		const issueId = 'TEST-1';
+		const propertyKey = 'property-key';
+		it('should delete the issue property and respond with a status code', async () => {
+			jest.spyOn(axios, 'delete').mockResolvedValue({
+				status: HttpStatusCode.NoContent,
+			});
+
+			await jiraClient.deleteIssueProperty(
+				issueId,
+				propertyKey,
+				connectInstallation,
+			);
+
+			expect(axios.delete).toHaveBeenCalledWith(
+				`${connectInstallation.baseUrl}/rest/api/2/issue/${issueId}/properties/${propertyKey}`,
+				defaultExpectedRequestHeaders(),
+			);
+		});
+
+		it('should throw a JiraClientNotFound exception when response status is 404', async () => {
+			jest
+				.spyOn(axios, 'delete')
+				.mockRejectedValue(
+					new AxiosError(
+						'Not found.',
+						HttpStatusCode.NotFound.toString(),
+						undefined,
+						undefined,
+						{ status: HttpStatusCode.NotFound } as AxiosResponse,
+					),
+				);
+
+			await expect(() =>
+				jiraClient.deleteIssueProperty(
+					issueId,
+					propertyKey,
+					connectInstallation,
+				),
+			).rejects.toThrowError(JiraClientNotFoundError);
+		});
+	});
 });

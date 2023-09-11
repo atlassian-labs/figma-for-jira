@@ -1,3 +1,6 @@
+import type { AxiosResponse } from 'axios';
+import { AxiosError, HttpStatusCode } from 'axios';
+
 import { JiraServiceSubmitDesignError } from './errors';
 import { jiraClient, JiraClientNotFoundError } from './jira-client';
 import {
@@ -6,7 +9,8 @@ import {
 	generateSubmitDesignsResponseWithUnknownData,
 	generateSuccessfulSubmitDesignsResponse,
 } from './jira-client/testing';
-import { jiraService } from './jira-service';
+import type { AttachedDesignUrlV2IssuePropertyValue } from './jira-service';
+import { jiraService, propertyKeys } from './jira-service';
 
 import type {
 	AtlassianDesign,
@@ -179,7 +183,7 @@ describe('JiraService', () => {
 			design = generateAtlassianDesign();
 		});
 
-		it('should set the attached-design-url property if not present', async () => {
+		it('should set the issue property if not present', async () => {
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockRejectedValue(new JiraClientNotFoundError());
@@ -193,16 +197,18 @@ describe('JiraService', () => {
 
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
-				'attached-design-url',
+				propertyKeys.ATTACHED_DESIGN_URL,
 				design.url,
 				connectInstallation,
 			);
 		});
 
-		it('should not overwrite the attached-design-url property if present', async () => {
-			jest
-				.spyOn(jiraClient, 'getIssueProperty')
-				.mockResolvedValue(generateGetIssuePropertyResponse());
+		it('should not overwrite the issue property if present', async () => {
+			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+				generateGetIssuePropertyResponse({
+					key: propertyKeys.ATTACHED_DESIGN_URL,
+				}),
+			);
 			jest.spyOn(jiraClient, 'setIssueProperty');
 
 			await jiraService.setAttachedDesignUrlInIssuePropertiesIfMissing(
@@ -212,6 +218,29 @@ describe('JiraService', () => {
 			);
 
 			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
+		});
+
+		it('should rethrow unknown errors', async () => {
+			const unexpectedError = new AxiosError(
+				'Forbidden.',
+				HttpStatusCode.Forbidden.toString(),
+				undefined,
+				undefined,
+				{
+					status: HttpStatusCode.Forbidden,
+				} as AxiosResponse,
+			);
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockRejectedValue(unexpectedError);
+
+			await expect(
+				jiraService.setAttachedDesignUrlInIssuePropertiesIfMissing(
+					issueId,
+					design,
+					connectInstallation,
+				),
+			).rejects.toThrowError(unexpectedError);
 		});
 	});
 
@@ -225,7 +254,7 @@ describe('JiraService', () => {
 			design = generateAtlassianDesign();
 		});
 
-		it('should set the attached-design-url-v2 property if not present', async () => {
+		it('should set the issue property if not present', async () => {
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockRejectedValue(new JiraClientNotFoundError());
@@ -246,23 +275,24 @@ describe('JiraService', () => {
 
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
-				'attached-design-url-v2',
+				propertyKeys.ATTACHED_DESIGN_URL_V2,
 				expectedIssuePropertyValue,
 				connectInstallation,
 			);
 		});
 
-		it('should add to the attached-design-url-v2 property url array if more than one design is linked', async () => {
-			const attachedDesignPropertyValue = [
-				{
-					url: 'https://www.figma.com/file/UcmoEBi9SyNOX3SNhXqShY/test-file',
-					name: 'test-file',
-				},
-			];
+		it('should add to the issue property url array if more than one design is linked', async () => {
+			const attachedDesignPropertyValues: AttachedDesignUrlV2IssuePropertyValue[] =
+				[
+					{
+						url: 'https://www.figma.com/file/UcmoEBi9SyNOX3SNhXqShY/test-file',
+						name: 'test-file',
+					},
+				];
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
-					key: 'attached-design-url-v2',
-					value: JSON.stringify(attachedDesignPropertyValue),
+					key: propertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify(attachedDesignPropertyValues),
 				}),
 			);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
@@ -274,7 +304,7 @@ describe('JiraService', () => {
 			);
 
 			const expectedIssuePropertyValue = JSON.stringify([
-				...attachedDesignPropertyValue,
+				...attachedDesignPropertyValues,
 				{
 					url: design.url,
 					name: design.displayName,
@@ -283,13 +313,13 @@ describe('JiraService', () => {
 
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
-				'attached-design-url-v2',
+				propertyKeys.ATTACHED_DESIGN_URL_V2,
 				expectedIssuePropertyValue,
 				connectInstallation,
 			);
 		});
 
-		it('should throw if the value received from jira is not a string', async () => {
+		it('should throw if the issue property value received from jira is not a string', async () => {
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockResolvedValue(generateGetIssuePropertyResponse({ value: 1 }));
@@ -304,6 +334,233 @@ describe('JiraService', () => {
 			).rejects.toThrowError(
 				'The provided value is not of the correct type. Expected string, but received: number',
 			);
+
+			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
+		});
+
+		it('should rethrow unknown errors', async () => {
+			const unexpectedError = new AxiosError(
+				'Forbidden.',
+				HttpStatusCode.Forbidden.toString(),
+				undefined,
+				undefined,
+				{
+					status: HttpStatusCode.Forbidden,
+				} as AxiosResponse,
+			);
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockRejectedValue(unexpectedError);
+
+			await expect(
+				jiraService.updateAttachedDesignUrlV2IssueProperty(
+					issueId,
+					design,
+					connectInstallation,
+				),
+			).rejects.toThrowError(unexpectedError);
+		});
+	});
+
+	describe('deleteAttachedDesignUrlInIssuePropertiesIfPresent', () => {
+		const issueId = 'TEST-1';
+		let connectInstallation: ConnectInstallation;
+		let design: AtlassianDesign;
+
+		beforeEach(() => {
+			connectInstallation = generateConnectInstallation();
+		});
+
+		it('should delete the URL stored in issue properties if it is the one requested to be deleted', async () => {
+			const urlToDelete = 'https://test-url.com';
+			design = generateAtlassianDesign({ url: urlToDelete });
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockResolvedValue(
+					generateGetIssuePropertyResponse({ value: urlToDelete }),
+				);
+			jest
+				.spyOn(jiraClient, 'deleteIssueProperty')
+				.mockImplementation(jest.fn());
+
+			await jiraService.deleteAttachedDesignUrlInIssuePropertiesIfPresent(
+				issueId,
+				design,
+				connectInstallation,
+			);
+
+			expect(jiraClient.deleteIssueProperty).toHaveBeenCalledWith(
+				issueId,
+				propertyKeys.ATTACHED_DESIGN_URL,
+				connectInstallation,
+			);
+		});
+
+		it('should not delete the URL stored in issue properties if it does not match the one requested to be deleted', async () => {
+			design = generateAtlassianDesign();
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockResolvedValue(
+					generateGetIssuePropertyResponse({ value: 'https://random-url.com' }),
+				);
+			jest
+				.spyOn(jiraClient, 'deleteIssueProperty')
+				.mockImplementation(jest.fn());
+
+			await jiraService.deleteAttachedDesignUrlInIssuePropertiesIfPresent(
+				issueId,
+				design,
+				connectInstallation,
+			);
+
+			expect(jiraClient.deleteIssueProperty).not.toHaveBeenCalled();
+		});
+
+		it('should rethrow unknown errors', async () => {
+			const unexpectedError = new AxiosError(
+				'Forbidden.',
+				HttpStatusCode.Forbidden.toString(),
+				undefined,
+				undefined,
+				{
+					status: HttpStatusCode.Forbidden,
+				} as AxiosResponse,
+			);
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockRejectedValue(unexpectedError);
+
+			await expect(
+				jiraService.deleteAttachedDesignUrlInIssuePropertiesIfPresent(
+					issueId,
+					design,
+					connectInstallation,
+				),
+			).rejects.toThrowError(unexpectedError);
+		});
+
+		it('should not rethrow JiraClientNotFound errors', async () => {
+			const notFoundError = new JiraClientNotFoundError();
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockRejectedValue(notFoundError);
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await expect(
+				jiraService.deleteAttachedDesignUrlInIssuePropertiesIfPresent(
+					issueId,
+					design,
+					connectInstallation,
+				),
+			).resolves.not.toThrowError(notFoundError);
+
+			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
+		});
+	});
+
+	describe('deleteFromAttachedDesignUrlV2IssueProperties', () => {
+		const issueId = 'TEST-1';
+		let connectInstallation: ConnectInstallation;
+		let design: AtlassianDesign;
+
+		beforeEach(() => {
+			connectInstallation = generateConnectInstallation();
+			design = generateAtlassianDesign();
+		});
+
+		it('should delete the URL from the array stored in issue properties', async () => {
+			const designToDelete = generateAtlassianDesign();
+			const designPropertyValue: AttachedDesignUrlV2IssuePropertyValue = {
+				url: design.url,
+				name: design.displayName,
+			};
+			const designToDeletePropertyValue: AttachedDesignUrlV2IssuePropertyValue =
+				{ url: designToDelete.url, name: designToDelete.displayName };
+			const attachedDesignPropertyValues = [
+				designPropertyValue,
+				designToDeletePropertyValue,
+			];
+
+			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+				generateGetIssuePropertyResponse({
+					key: propertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify(attachedDesignPropertyValues),
+				}),
+			);
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await jiraService.deleteFromAttachedDesignUrlV2IssueProperties(
+				issueId,
+				designToDelete,
+				connectInstallation,
+			);
+
+			const expectedIssuePropertyValue = JSON.stringify([designPropertyValue]);
+
+			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
+				issueId,
+				propertyKeys.ATTACHED_DESIGN_URL_V2,
+				expectedIssuePropertyValue,
+				connectInstallation,
+			);
+		});
+
+		it('should throw if the issue property value received from jira is not a string', async () => {
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockResolvedValue(generateGetIssuePropertyResponse({ value: 1 }));
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await expect(
+				jiraService.deleteFromAttachedDesignUrlV2IssueProperties(
+					issueId,
+					design,
+					connectInstallation,
+				),
+			).rejects.toThrowError(
+				'The provided value is not of the correct type. Expected string, but received: number',
+			);
+
+			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
+		});
+
+		it('should rethrow unknown errors', async () => {
+			const unexpectedError = new AxiosError(
+				'Forbidden.',
+				HttpStatusCode.Forbidden.toString(),
+				undefined,
+				undefined,
+				{
+					status: HttpStatusCode.Forbidden,
+				} as AxiosResponse,
+			);
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockRejectedValue(unexpectedError);
+
+			await expect(
+				jiraService.deleteFromAttachedDesignUrlV2IssueProperties(
+					issueId,
+					design,
+					connectInstallation,
+				),
+			).rejects.toThrowError(unexpectedError);
+		});
+
+		it('should not rethrow JiraClientNotFound errors', async () => {
+			const notFoundError = new JiraClientNotFoundError();
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockRejectedValue(notFoundError);
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await expect(
+				jiraService.deleteFromAttachedDesignUrlV2IssueProperties(
+					issueId,
+					design,
+					connectInstallation,
+				),
+			).resolves.not.toThrowError(notFoundError);
 
 			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
 		});

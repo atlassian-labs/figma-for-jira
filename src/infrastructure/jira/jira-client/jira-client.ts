@@ -23,6 +23,7 @@ import type { ConnectInstallation } from '../../../domain/entities';
 import { getAjvSchema } from '../../ajv';
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
+const ISSUE_PROPERTY_BASE_URI = '/rest/api/2/issue';
 
 /**
  * A Jira API client.
@@ -109,7 +110,7 @@ class JiraClient {
 		connectInstallation: ConnectInstallation,
 	): Promise<GetIssuePropertyResponse> => {
 		const url = new URL(
-			`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
+			`${ISSUE_PROPERTY_BASE_URI}/${issueIdOrKey}/properties/${propertyKey}`,
 			connectInstallation.baseUrl,
 		);
 		let response: AxiosResponse<GetIssuePropertyResponse>;
@@ -151,7 +152,7 @@ class JiraClient {
 		connectInstallation: ConnectInstallation,
 	): Promise<number> => {
 		const url = new URL(
-			`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
+			`${ISSUE_PROPERTY_BASE_URI}/${issueIdOrKey}/properties/${propertyKey}`,
 			connectInstallation.baseUrl,
 		);
 
@@ -165,6 +166,39 @@ class JiraClient {
 		});
 
 		return response.status;
+	};
+
+	/**
+	 * Deletes an issue's property
+	 *
+	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-properties/#api-rest-api-2-issue-issueidorkey-properties-propertykey-delete
+	 */
+	deleteIssueProperty = async (
+		issueIdOrKey: string,
+		propertyKey: string,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> => {
+		const url = new URL(
+			`${ISSUE_PROPERTY_BASE_URI}/${issueIdOrKey}/properties/${propertyKey}`,
+			connectInstallation.baseUrl,
+		);
+
+		try {
+			await axios.delete(url.toString(), {
+				headers: new AxiosHeaders().setAuthorization(
+					this.buildAuthorizationHeader(url, 'DELETE', connectInstallation),
+				),
+			});
+		} catch (error) {
+			if (
+				isAxiosError(error) &&
+				error.response?.status === HttpStatusCode.NotFound
+			) {
+				throw new JiraClientNotFoundError();
+			} else {
+				throw error;
+			}
+		}
 	};
 
 	private buildAuthorizationHeader(

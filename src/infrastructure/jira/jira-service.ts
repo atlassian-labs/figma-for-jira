@@ -15,12 +15,12 @@ type SubmitDesignParams = {
 	readonly removeAssociations?: AtlassianAssociation[];
 };
 
-type AttachedDesignUrlV2IssuePropertyValue = {
+export type AttachedDesignUrlV2IssuePropertyValue = {
 	readonly url: string;
 	readonly name: string;
 };
 
-const propertyKeys = {
+export const propertyKeys = {
 	ATTACHED_DESIGN_URL: 'attached-design-url',
 	ATTACHED_DESIGN_URL_V2: 'attached-design-url-v2',
 };
@@ -171,6 +171,97 @@ class JiraService {
 			} else {
 				throw error;
 			}
+		}
+	};
+
+	deleteDesignUrlInIssueProperties = async (
+		issueIdOrKey: string,
+		design: AtlassianDesign,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> => {
+		await Promise.all([
+			await this.deleteAttachedDesignUrlInIssuePropertiesIfPresent(
+				issueIdOrKey,
+				design,
+				connectInstallation,
+			),
+			await this.deleteFromAttachedDesignUrlV2IssueProperties(
+				issueIdOrKey,
+				design,
+				connectInstallation,
+			),
+		]);
+	};
+
+	/**
+	 * @internal
+	 * Only visible for testing. Please use {@link deleteDesignUrlInIssueProperties}
+	 */
+	deleteAttachedDesignUrlInIssuePropertiesIfPresent = async (
+		issueIdOrKey: string,
+		design: AtlassianDesign,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> => {
+		try {
+			const response = await jiraClient.getIssueProperty(
+				issueIdOrKey,
+				propertyKeys.ATTACHED_DESIGN_URL,
+				connectInstallation,
+			);
+
+			if (response.value === design.url) {
+				await jiraClient.deleteIssueProperty(
+					issueIdOrKey,
+					propertyKeys.ATTACHED_DESIGN_URL,
+					connectInstallation,
+				);
+			}
+		} catch (error) {
+			if (error instanceof JiraClientNotFoundError) {
+				return; // Swallow not found errors
+			}
+			throw error;
+		}
+	};
+
+	deleteFromAttachedDesignUrlV2IssueProperties = async (
+		issueIdOrKey: string,
+		{ url, displayName }: AtlassianDesign,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> => {
+		try {
+			const response = await jiraClient.getIssueProperty(
+				issueIdOrKey,
+				propertyKeys.ATTACHED_DESIGN_URL_V2,
+				connectInstallation,
+			);
+
+			const storedAttachedDesignUrlIssuePropertyValues = JSON.parse(
+				ensureString(response.value),
+			) as AttachedDesignUrlV2IssuePropertyValue[];
+
+			const issuePropertyValueToRemove: AttachedDesignUrlV2IssuePropertyValue =
+				{
+					url,
+					name: displayName,
+				};
+
+			const newAttachedDesignUrlIssuePropertyValue =
+				storedAttachedDesignUrlIssuePropertyValues.filter(
+					({ url }) => url !== issuePropertyValueToRemove.url,
+				);
+
+			await jiraClient.setIssueProperty(
+				issueIdOrKey,
+				propertyKeys.ATTACHED_DESIGN_URL_V2,
+				JSON.stringify(newAttachedDesignUrlIssuePropertyValue),
+				connectInstallation,
+			);
+		} catch (error) {
+			if (error instanceof JiraClientNotFoundError) {
+				return; // Swallow not found errors
+			}
+			throw error;
 		}
 	};
 }
