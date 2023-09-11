@@ -29,7 +29,7 @@ export const associateEntityUseCase = {
 		const designIssueAssociation =
 			AtlassianAssociation.createDesignIssueAssociation(associateWith.ari);
 
-		const { self: issueUrl, fields } = issue;
+		const { self: issueUrl, fields, id: issueId } = issue;
 
 		await Promise.all([
 			jiraService.submitDesign(
@@ -37,6 +37,11 @@ export const associateEntityUseCase = {
 					design,
 					addAssociations: [designIssueAssociation],
 				},
+				connectInstallation,
+			),
+			jiraService.saveDesignUrlInIssueProperties(
+				issueId,
+				design,
 				connectInstallation,
 			),
 			figmaService.createDevResource({

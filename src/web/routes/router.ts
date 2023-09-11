@@ -1,3 +1,4 @@
+import { HttpStatusCode } from 'axios';
 import { Router, static as Static } from 'express';
 
 import { join } from 'path';
@@ -11,7 +12,7 @@ export const rootRouter = Router();
 
 // Healthcheck
 rootRouter.get('/healthcheck', (_req, res) =>
-	res.status(200).send('Server up and working.'),
+	res.status(HttpStatusCode.Ok).send('Server up and working.'),
 );
 
 // Static resources

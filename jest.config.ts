@@ -6,8 +6,10 @@ const config: Config = {
 	maxWorkers: 4,
 	rootDir: '.',
 	roots: ['<rootDir>/src'],
-	testRegex: '(\\.|/)(test|spec|it)\\.tsx?$',
+	testRegex: '(\\.|/)(test|spec)\\.tsx?$',
 	setupFiles: ['dotenv-expand/config'],
+	setupFilesAfterEnv: ['<rootDir>/scripts/setup-jest.ts'],
+	clearMocks: true,
 };
 
 export default config;

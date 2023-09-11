@@ -1,15 +1,23 @@
 import { PrismaClient } from '@prisma/client';
 
-let prismaClient: PrismaClient;
+let client: PrismaClient | undefined;
 
 /**
  * @internal
  */
-export const getPrismaClient = (): PrismaClient => {
-	if (!prismaClient) {
-		// By default, Prisma connects to the DB using the DATABASE_URL
-		// environment variable
-		prismaClient = new PrismaClient();
-	}
-	return prismaClient;
+export const prismaClient = {
+	get: () => {
+		if (!client) {
+			// By default, Prisma connects to the DB using the DATABASE_URL
+			// environment variable
+			client = new PrismaClient();
+		}
+		return client;
+	},
+	disconnect: async () => {
+		if (client) {
+			await client.$disconnect();
+			client = undefined;
+		}
+	},
 };

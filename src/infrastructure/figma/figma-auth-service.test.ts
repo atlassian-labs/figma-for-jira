@@ -23,12 +23,10 @@ const ATLASSIAN_USER_ID = uuidv4();
 
 describe('FigmaAuthService', () => {
 	beforeEach(() => {
-		jest.clearAllMocks();
 		jest.useFakeTimers();
 	});
 
 	afterEach(() => {
-		jest.clearAllMocks();
 		jest.runOnlyPendingTimers();
 		jest.useRealTimers();
 	});

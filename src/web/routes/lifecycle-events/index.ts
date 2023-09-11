@@ -1,6 +1,6 @@
+import { HttpStatusCode } from 'axios';
 import { Router } from 'express';
 
-import { HttpStatus } from '../../../common/http-status';
 import type { ConnectInstallationCreateParams } from '../../../domain/entities';
 import { installedUseCase, uninstalledUseCase } from '../../../usecases';
 import { authHeaderAsymmetricJwtMiddleware } from '../../middleware';
@@ -31,7 +31,7 @@ lifecycleEventsRouter.post(
 		};
 		installedUseCase
 			.execute(installation)
-			.then(() => res.sendStatus(204))
+			.then(() => res.sendStatus(HttpStatusCode.NoContent))
 			.catch(next);
 	},
 );
@@ -43,7 +43,7 @@ lifecycleEventsRouter.post(
 		const { clientKey } = req.body;
 		uninstalledUseCase
 			.execute(clientKey)
-			.then(() => res.sendStatus(HttpStatus.NO_CONTENT))
+			.then(() => res.sendStatus(HttpStatusCode.NoContent))
 			.catch(next);
 	},
 );

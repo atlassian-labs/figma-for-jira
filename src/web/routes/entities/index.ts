@@ -1,3 +1,4 @@
+import { HttpStatusCode } from 'axios';
 import { Router } from 'express';
 import type { NextFunction, Response } from 'express';
 
@@ -65,7 +66,7 @@ entitiesRouter.post(
 				atlassianUserId,
 				connectInstallation: res.locals.connectInstallation,
 			})
-			.then((design) => res.status(200).send({ design }))
+			.then((design) => res.status(HttpStatusCode.Created).send({ design }))
 			.catch((error) => next(error));
 	},
 );
@@ -85,7 +86,7 @@ entitiesRouter.post(
 				atlassianUserId,
 				connectInstallation: res.locals.connectInstallation,
 			})
-			.then((design) => res.status(200).send({ design }))
+			.then((design) => res.status(HttpStatusCode.Created).send({ design }))
 			.catch((error) => next(error));
 	},
 );
