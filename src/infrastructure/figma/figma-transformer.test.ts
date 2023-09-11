@@ -1,3 +1,4 @@
+import { DEFAULT_FIGMA_FILE_NODE_ID } from './figma-service';
 import {
 	buildDesignUrl,
 	buildInspectUrl,
@@ -78,7 +79,6 @@ describe('FigmaTransformer', () => {
 			const expected = new URL('https://www.figma.com/embed');
 			expected.searchParams.append('embed_host', 'atlassian');
 			expected.searchParams.append('url', MOCK_DESIGN_URL_WITH_NODE);
-			console.log('expected.toSTring', expected.toString());
 			expect(
 				buildLiveEmbedUrl({
 					fileKey: MOCK_FILE_KEY,
@@ -125,7 +125,7 @@ describe('FigmaTransformer', () => {
 				nodeId: MOCK_NODE_ID,
 			});
 			const expected: AtlassianDesign = {
-				id: MOCK_NODE_ID,
+				id: `${MOCK_FILE_KEY}/${MOCK_NODE_ID}`,
 				displayName: mockApiResponse.nodes[MOCK_NODE_ID].document.name,
 				url: buildDesignUrl({
 					fileKey: MOCK_FILE_KEY,
@@ -163,7 +163,7 @@ describe('FigmaTransformer', () => {
 		it('should correctly map to atlassian design', () => {
 			const mockApiResponse = generateGetFileResponse();
 			const expected: AtlassianDesign = {
-				id: MOCK_FILE_KEY,
+				id: `${MOCK_FILE_KEY}/${DEFAULT_FIGMA_FILE_NODE_ID}`,
 				displayName: mockApiResponse.name,
 				url: buildDesignUrl({
 					fileKey: MOCK_FILE_KEY,

@@ -5,8 +5,14 @@ import type {
 	AtlassianDesign,
 	ConnectInstallation,
 } from '../../../domain/entities';
-import type { AssociateEntityUseCaseParams } from '../../../usecases';
-import { associateEntityUseCase } from '../../../usecases';
+import type {
+	AssociateEntityUseCaseParams,
+	DisassociateEntityUseCaseParams,
+} from '../../../usecases';
+import {
+	associateEntityUseCase,
+	disassociateEntityUseCase,
+} from '../../../usecases';
 import { authHeaderSymmetricJwtMiddleware } from '../../middleware';
 import type { TypedRequest } from '../types';
 
@@ -22,6 +28,28 @@ type AssociateEntityResponse = Response<
 	{ connectInstallation: ConnectInstallation }
 >;
 
+export type DisassociateEntityRequestParams = Omit<
+	DisassociateEntityUseCaseParams,
+	'atlassianUserId' | 'connectInstallation'
+>;
+
+type DisassociateEntityResponse = Response<
+	{ design: AtlassianDesign } | string,
+	{ connectInstallation: ConnectInstallation }
+>;
+
+const getUserIdHeaderOrThrow = (
+	userId: string | string[] | undefined,
+	res: Response,
+): string => {
+	if (!userId || typeof userId !== 'string') {
+		const errorMessage = 'Missing or invalid User-Id header';
+		res.status(401).send(errorMessage);
+		throw errorMessage;
+	}
+	return userId;
+};
+
 entitiesRouter.post(
 	'/associateEntity',
 	authHeaderSymmetricJwtMiddleware,
@@ -30,19 +58,34 @@ entitiesRouter.post(
 		res: AssociateEntityResponse,
 		next: NextFunction,
 	) => {
-		const atlassianUserId = req.headers['user-id'];
-		if (!atlassianUserId || typeof atlassianUserId !== 'string') {
-			const errorMessage = 'Missing or invalid User-Id header';
-			res.status(401).send(errorMessage);
-			return;
-		}
+		const atlassianUserId = getUserIdHeaderOrThrow(req.headers['user-id'], res);
 		associateEntityUseCase
 			.execute({
 				...req.body,
 				atlassianUserId,
 				connectInstallation: res.locals.connectInstallation,
 			})
-			.then((design) => res.status(201).send({ design }))
+			.then((design) => res.status(200).send({ design }))
+			.catch((error) => next(error));
+	},
+);
+
+entitiesRouter.post(
+	'/disassociateEntity',
+	authHeaderSymmetricJwtMiddleware,
+	(
+		req: TypedRequest<DisassociateEntityRequestParams>,
+		res: DisassociateEntityResponse,
+		next: NextFunction,
+	) => {
+		const atlassianUserId = getUserIdHeaderOrThrow(req.headers['user-id'], res);
+		disassociateEntityUseCase
+			.execute({
+				...req.body,
+				atlassianUserId,
+				connectInstallation: res.locals.connectInstallation,
+			})
+			.then((design) => res.status(200).send({ design }))
 			.catch((error) => next(error));
 	},
 );

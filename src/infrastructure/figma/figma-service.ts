@@ -8,6 +8,7 @@ import type { FigmaUrlData } from './figma-transformer';
 import {
 	buildDevResource,
 	extractDataFromFigmaUrl,
+	parseDesignIdOrThrow,
 	transformFileToAtlassianDesign,
 	transformNodeToAtlassianDesign,
 	unprettifyNodeId,
@@ -89,6 +90,38 @@ export class FigmaService {
 		}
 	};
 
+	fetchDesignById = async (
+		id: string,
+		atlassianUserId: string,
+	): Promise<AtlassianDesign> => {
+		const [fileKey, nodeId] = parseDesignIdOrThrow(id);
+
+		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
+
+		const { accessToken } = credentials;
+
+		if (nodeId !== DEFAULT_FIGMA_FILE_NODE_ID) {
+			const fileNodesResponse = await figmaClient.getFileNodes(
+				fileKey,
+				nodeId,
+				accessToken,
+			);
+			return transformNodeToAtlassianDesign({
+				fileKey,
+				nodeId,
+				isPrototype: false,
+				fileNodesResponse,
+			});
+		} else {
+			const fileResponse = await figmaClient.getFile(fileKey, accessToken);
+			return transformFileToAtlassianDesign({
+				fileKey,
+				isPrototype: false,
+				fileResponse,
+			});
+		}
+	};
+
 	createDevResource = async ({
 		designUrl,
 		issueUrl,
@@ -123,6 +156,44 @@ export class FigmaService {
 		}
 
 		return response;
+	};
+
+	deleteDevResourceIfExists = async ({
+		designId,
+		issueUrl,
+		atlassianUserId,
+	}: {
+		designId: string;
+		issueUrl: string;
+		atlassianUserId: string;
+	}): Promise<void> => {
+		const [fileKey, nodeId] = parseDesignIdOrThrow(designId);
+		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
+
+		const { accessToken } = credentials;
+
+		const { dev_resources } = await figmaClient.getDevResources({
+			fileKey,
+			...(nodeId && { nodeIds: unprettifyNodeId(nodeId) }),
+			accessToken,
+		});
+
+		const devResourceToDelete = dev_resources.find(
+			(devResource) => devResource.url === issueUrl,
+		);
+
+		if (!devResourceToDelete) {
+			getLogger().error(
+				`No matching dev resource found to delete for file ${fileKey} and node ${nodeId}`,
+			);
+			return;
+		}
+
+		return await figmaClient.deleteDevResource({
+			fileKey,
+			devResourceId: devResourceToDelete.id,
+			accessToken,
+		});
 	};
 }
 
