@@ -56,7 +56,7 @@ export const buildDesignUrl = ({
 }): string => {
 	const url = new URL(
 		// TODO: liveEmbedBaseUrl is not the right value to use here
-		`${getConfig().figma.liveEmbedBaseUrl}/file/${fileKey}/${fileName}`,
+		`${getConfig().figma.baseUrl}/file/${fileKey}/${fileName}`,
 	);
 	if (nodeId) {
 		url.searchParams.append('node-id', prettifyNodeId(nodeId));
@@ -99,7 +99,7 @@ export const buildInspectUrl = ({
 	nodeId?: string;
 }): string => {
 	const url = new URL(
-		`${getConfig().figma.liveEmbedBaseUrl}/file/${fileKey}/${fileName}`,
+		`${getConfig().figma.baseUrl}/file/${fileKey}/${fileName}`,
 	);
 	if (nodeId) {
 		url.searchParams.append('node-id', prettifyNodeId(nodeId));
