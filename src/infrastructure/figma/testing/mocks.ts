@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { Duration } from '../../../common/duration';
 import type {
+	GetDevResourcesResponse,
 	GetOAuth2TokenResponse,
 	NodeDetails,
 	RefreshOAuth2TokenResponse,
@@ -20,6 +21,7 @@ export const MOCK_VERSION = '4067551197';
 export const MOCK_ISSUE_URL =
 	'https://myjirainstance.atlassian.net/browse/FIG-1';
 export const MOCK_ISSUE_TITLE = 'Test Jira Issue';
+export const MOCK_DEV_RESOURCE_ID = uuidv4();
 export const MOCK_DOCUMENT: NodeDetails = {
 	id: MOCK_NODE_ID,
 	name: 'Test Node',
@@ -118,3 +120,24 @@ export const generateGetFileResponse = ({
 	linkAccess: 'org_edit',
 	document: MOCK_DOCUMENT,
 });
+
+export const generateGetDevResourcesResponse = ({
+	id = MOCK_DEV_RESOURCE_ID,
+	name = 'Mock dev resource',
+	url = MOCK_ISSUE_URL,
+	file_key = MOCK_ISSUE_URL,
+	node_id = MOCK_ISSUE_URL,
+}: {
+	id?: string;
+	name?: string;
+	url?: string;
+	file_key?: string;
+	node_id?: string;
+} = {}): GetDevResourcesResponse => ({
+	dev_resources: [{ id, name, url, file_key, node_id }],
+});
+
+export const generateEmptyDevResourcesResponse =
+	(): GetDevResourcesResponse => ({
+		dev_resources: [],
+	});

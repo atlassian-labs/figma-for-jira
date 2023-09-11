@@ -82,7 +82,7 @@ type GetDevResourcesRequest = {
 	readonly accessToken: string;
 };
 
-type GetDevResourcesResponse = {
+export type GetDevResourcesResponse = {
 	readonly dev_resources: DevResource[];
 };
 

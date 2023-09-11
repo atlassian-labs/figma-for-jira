@@ -34,7 +34,7 @@ export const extractDataFromFigmaUrl = (url: string): FigmaUrlData | null => {
 	}
 
 	const fileKey = fileKeyMatch ? fileKeyMatch[1] : prototypeMatch![1];
-	const nodeId = nodeIdMatch ? nodeIdMatch[1] : undefined;
+	const nodeId = nodeIdMatch ? unprettifyNodeId(nodeIdMatch[1]) : undefined;
 
 	return {
 		fileKey,

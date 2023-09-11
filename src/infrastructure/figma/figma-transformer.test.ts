@@ -56,14 +56,14 @@ describe('FigmaTransformer', () => {
 		it('should return fileKey, nodeId and isPrototype if both fileKey and nodeId are present in the url', () => {
 			expect(extractDataFromFigmaUrl(MOCK_DESIGN_URL_WITH_NODE)).toStrictEqual({
 				fileKey: MOCK_FILE_KEY,
-				nodeId: MOCK_NODE_ID_URL,
+				nodeId: MOCK_NODE_ID,
 				isPrototype: false,
 			});
 		});
 		it('should return `isPrototype: true` if the url is for a prototype', () => {
 			expect(extractDataFromFigmaUrl(MOCK_PROTOTYPE_URL)).toStrictEqual({
 				fileKey: MOCK_FILE_KEY,
-				nodeId: MOCK_NODE_ID_URL,
+				nodeId: MOCK_NODE_ID,
 				isPrototype: true,
 			});
 		});
