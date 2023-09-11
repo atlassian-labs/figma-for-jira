@@ -70,9 +70,32 @@ class JiraService {
 		return await jiraClient.getIssue(issueIdOrKey, connectInstallation);
 	};
 
-	setAttachedDesignUrlInIssuePropertiesIfMissing = async (
+	saveDesignUrlInIssueProperties = async (
 		issueIdOrKey: string,
 		design: AtlassianDesign,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> => {
+		await Promise.all([
+			this.setAttachedDesignUrlInIssuePropertiesIfMissing(
+				issueIdOrKey,
+				design,
+				connectInstallation,
+			),
+			this.updateAttachedDesignUrlV2IssueProperty(
+				issueIdOrKey,
+				design,
+				connectInstallation,
+			),
+		]);
+	};
+
+	/**
+	 * @internal
+	 * Only visible for testing. Please use {@link saveDesignUrlInIssueProperties}
+	 */
+	setAttachedDesignUrlInIssuePropertiesIfMissing = async (
+		issueIdOrKey: string,
+		{ url }: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		try {
@@ -83,11 +106,10 @@ class JiraService {
 			);
 		} catch (error) {
 			if (this.isJiraClientNotFoundError(error)) {
-				const value = design.url;
 				await jiraClient.setIssueProperty(
 					issueIdOrKey,
 					propertyKeys.ATTACHED_DESIGN_URL,
-					value,
+					url,
 					connectInstallation,
 				);
 			} else {
@@ -96,9 +118,13 @@ class JiraService {
 		}
 	};
 
+	/**
+	 * @internal
+	 * Only visible for testing. Please use {@link saveDesignUrlInIssueProperties}
+	 */
 	updateAttachedDesignUrlV2IssueProperty = async (
 		issueIdOrKey: string,
-		design: AtlassianDesign,
+		{ url, displayName }: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		try {
@@ -114,8 +140,8 @@ class JiraService {
 
 			const newAttachedDesignUrlIssuePropertyValue: AttachedDesignUrlV2IssuePropertyValue =
 				{
-					url: design.url,
-					name: design.displayName,
+					url,
+					name: displayName,
 				};
 
 			await jiraClient.setIssueProperty(
@@ -131,8 +157,8 @@ class JiraService {
 			if (this.isJiraClientNotFoundError(error)) {
 				const newAttachedDesignUrlIssuePropertyValue: AttachedDesignUrlV2IssuePropertyValue =
 					{
-						url: design.url,
-						name: design.displayName,
+						url,
+						name: displayName,
 					};
 				const value = JSON.stringify([newAttachedDesignUrlIssuePropertyValue]);
 				await jiraClient.setIssueProperty(
