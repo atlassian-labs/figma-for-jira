@@ -333,7 +333,6 @@ describe('/associateEntity', () => {
 				);
 				mockGetFileNodesEndpoint({
 					accessToken: credentials?.accessToken,
-					success: false,
 				});
 				mockMeEndpoint();
 				mockGetIssueEndpoint({ success: false });
