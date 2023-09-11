@@ -1,6 +1,7 @@
 import { JiraServiceSubmitDesignError } from './errors';
 import { jiraClient, JiraClientNotFoundError } from './jira-client';
 
+import { ensureString } from '../../common/stringUtils';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
@@ -135,7 +136,7 @@ class JiraService {
 			);
 
 			const storedAttachedDesignUrlIssuePropertyValues = JSON.parse(
-				this.checkAndThrowIfNotString(response.value),
+				ensureString(response.value),
 			) as AttachedDesignUrlV2IssuePropertyValue[];
 
 			const newAttachedDesignUrlIssuePropertyValue: AttachedDesignUrlV2IssuePropertyValue =
@@ -170,16 +171,6 @@ class JiraService {
 			} else {
 				throw error;
 			}
-		}
-	};
-
-	private checkAndThrowIfNotString = (value: unknown): string => {
-		if (typeof value === 'string') {
-			return value;
-		} else {
-			throw new Error(
-				`value is of the incorrect type. Expected string, but received: ${typeof value}`,
-			);
 		}
 	};
 }

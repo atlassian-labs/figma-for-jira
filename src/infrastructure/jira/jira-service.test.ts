@@ -302,7 +302,7 @@ describe('JiraService', () => {
 					connectInstallation,
 				),
 			).rejects.toThrowError(
-				'value is of the incorrect type. Expected string, but received: number',
+				'The provided value is not of the correct type. Expected string, but received: number',
 			);
 
 			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
