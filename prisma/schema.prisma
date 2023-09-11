@@ -16,6 +16,12 @@ model ConnectInstallation {
   displayUrl   String
 }
 
+model AssociatedDesign {
+  id      Int    @id @default(autoincrement())
+  url     String @unique
+  fileKey String
+}
+
 model FigmaOAuth2UserCredentials {
   id              Int      @id @default(autoincrement())
   atlassianUserId String   @unique
