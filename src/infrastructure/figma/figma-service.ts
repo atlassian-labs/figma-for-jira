@@ -10,8 +10,8 @@ import {
 	extractDataFromFigmaUrl,
 	parseDesignIdOrThrow,
 	transformFileToAtlassianDesign,
+	transformNodeIdForStorage,
 	transformNodeToAtlassianDesign,
-	unprettifyNodeId,
 } from './figma-transformer';
 
 import type {
@@ -141,7 +141,9 @@ export class FigmaService {
 			name: issueTitle,
 			url: issueUrl,
 			file_key: fileKey,
-			node_id: nodeId ? unprettifyNodeId(nodeId) : DEFAULT_FIGMA_FILE_NODE_ID,
+			node_id: nodeId
+				? transformNodeIdForStorage(nodeId)
+				: DEFAULT_FIGMA_FILE_NODE_ID,
 		});
 
 		const response = await figmaClient.createDevResources(

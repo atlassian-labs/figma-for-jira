@@ -85,7 +85,7 @@ describe('FigmaTransformer', () => {
 					fileName: MOCK_FILE_NAME,
 					nodeId: MOCK_NODE_ID_URL,
 				}),
-			).toStrictEqual(expected.toString());
+			).toEqual(expected.toString());
 		});
 	});
 
@@ -130,17 +130,17 @@ describe('FigmaTransformer', () => {
 				url: buildDesignUrl({
 					fileKey: MOCK_FILE_KEY,
 					fileName: MOCK_FILE_NAME,
-					nodeId: MOCK_NODE_ID_URL,
+					nodeId: MOCK_NODE_ID,
 				}),
 				liveEmbedUrl: buildLiveEmbedUrl({
 					fileKey: MOCK_FILE_KEY,
 					fileName: MOCK_FILE_NAME,
-					nodeId: MOCK_NODE_ID_URL,
+					nodeId: MOCK_NODE_ID,
 				}),
 				inspectUrl: buildInspectUrl({
 					fileKey: MOCK_FILE_KEY,
 					fileName: MOCK_FILE_NAME,
-					nodeId: MOCK_NODE_ID_URL,
+					nodeId: MOCK_NODE_ID,
 				}),
 				status: AtlassianDesignStatus.NONE,
 				type: AtlassianDesignType.NODE,
