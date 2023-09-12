@@ -238,8 +238,8 @@ describe('/associateEntity', () => {
 
 			const expectedResponse = {
 				design: transformNodeToAtlassianDesign({
+					fileKey: MOCK_FILE_KEY,
 					nodeId: MOCK_NODE_ID,
-					url: MOCK_DESIGN_URL_WITH_NODE,
 					isPrototype: false,
 					fileNodesResponse: mockFileNodesResponse,
 				}),

@@ -27,7 +27,7 @@ export const associateEntityUseCase = {
 		connectInstallation,
 	}: AssociateEntityUseCaseParams): Promise<AtlassianDesign> => {
 		const [design, issue] = await Promise.all([
-			figmaService.fetchDesign(entity.url, atlassianUserId),
+			figmaService.fetchDesignByUrl(entity.url, atlassianUserId),
 			jiraService.getIssue(associateWith.id, connectInstallation),
 		]);
 

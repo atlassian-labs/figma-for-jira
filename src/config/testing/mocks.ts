@@ -12,7 +12,7 @@ export const mockConfig: Config = {
 		level: 'TEST',
 	},
 	figma: {
-		liveEmbedBaseUrl: 'https://www.figma.com',
+		webBaseUrl: 'https://www.figma.com',
 		oauthApiBaseUrl: 'https://www.figma.com',
 		apiBaseUrl: 'https://api.figma.com',
 		clientId: 'abc',

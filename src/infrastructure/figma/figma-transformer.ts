@@ -42,37 +42,71 @@ export const extractDataFromFigmaUrl = (url: string): FigmaUrlData | null => {
 	};
 };
 
-// Taken from https://www.figma.com/developers/embed
-const FIGMA_URL_REGEX =
-	/https:\/\/([\w.-]+\.)?figma.com\/(file|proto)\/([0-9a-zA-Z]{22,128})(?:\/.*)?$/;
+/**
+ * Builds a URL to a Figma design given Figma file/node metadata.
+ */
+export const buildDesignUrl = ({
+	fileKey,
+	fileName,
+	nodeId,
+}: {
+	fileKey: string;
+	fileName: string;
+	nodeId?: string;
+}): string => {
+	const url = new URL(
+		`${getConfig().figma.webBaseUrl}/file/${fileKey}/${fileName}`,
+	);
+	if (nodeId) {
+		url.searchParams.append('node-id', nodeId);
+	}
+	return url.toString();
+};
 
 /**
- * Validates that a string is a valid Figma URL that will be handled by Figma's embed endpoint,
- * then transforms that string into a live embed URL.
+ * Builds a Live Embed URL to a Figma design given Figma file/node metadata.
+ * Inspect URL is used as this is the preferred mode of display in Jira.
  * @see https://www.figma.com/developers/embed
  */
-export const buildLiveEmbedUrl = (url: string): string => {
-	if (!FIGMA_URL_REGEX.test(url)) {
-		throw new Error('Not a valid Figma URL');
-	}
-	const urlObject = new URL(`${getConfig().figma.liveEmbedBaseUrl}/embed`);
-	urlObject.searchParams.append('embed_host', 'atlassian');
-	urlObject.searchParams.append('url', url);
-	return urlObject.toString();
+export const buildLiveEmbedUrl = ({
+	fileKey,
+	fileName,
+	nodeId,
+}: {
+	fileKey: string;
+	fileName: string;
+	nodeId?: string;
+}): string => {
+	const inspectUrl = buildInspectUrl({ fileKey, fileName, nodeId });
+	const url = new URL(`${getConfig().figma.webBaseUrl}/embed`);
+	url.searchParams.append('embed_host', 'atlassian');
+	url.searchParams.append('url', inspectUrl);
+	return url.toString();
 };
 
 /**
- * Transforms a regular Figma URL into an Inspect mode URL.
+ * Builds an Inspect Mode URL to a Figma design given Figma file/node metadata.
  */
-export const buildInspectUrl = (url: string): string => {
-	const urlObject = new URL(url);
-	urlObject.searchParams.delete('type');
-	urlObject.searchParams.delete('t');
-	urlObject.searchParams.set('mode', 'dev');
-	return urlObject.toString();
+export const buildInspectUrl = ({
+	fileKey,
+	fileName,
+	nodeId,
+}: {
+	fileKey: string;
+	fileName: string;
+	nodeId?: string;
+}): string => {
+	const url = new URL(
+		`${getConfig().figma.webBaseUrl}/file/${fileKey}/${fileName}`,
+	);
+	if (nodeId) {
+		url.searchParams.append('node-id', nodeId);
+	}
+	url.searchParams.set('mode', 'dev');
+	return url.toString();
 };
 
-export const transformNodeId = (nodeId: string): string => {
+export const transformNodeIdForStorage = (nodeId: string): string => {
 	return nodeId.replace('-', ':');
 };
 
@@ -124,25 +158,27 @@ const getUpdateSequenceNumber = (input: string): number => {
 };
 
 type TransformNodeToAtlassianDesignParams = {
+	readonly fileKey: string;
 	readonly nodeId: string;
-	readonly url: string;
 	readonly isPrototype: boolean;
 	readonly fileNodesResponse: FileNodesResponse;
 };
 
 export const transformNodeToAtlassianDesign = ({
-	nodeId,
-	url,
+	fileKey,
+	nodeId: _nodeId,
 	isPrototype,
 	fileNodesResponse,
 }: TransformNodeToAtlassianDesignParams): AtlassianDesign => {
-	const node = fileNodesResponse.nodes[transformNodeId(nodeId)].document;
+	const nodeId = transformNodeIdForStorage(_nodeId);
+	const node = fileNodesResponse.nodes[nodeId].document;
+	const fileName = fileNodesResponse.name;
 	return {
-		id: node.id,
+		id: nodeId,
 		displayName: node.name,
-		url,
-		liveEmbedUrl: buildLiveEmbedUrl(url),
-		inspectUrl: buildInspectUrl(url),
+		url: buildDesignUrl({ fileKey, fileName, nodeId }),
+		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName, nodeId }),
+		inspectUrl: buildInspectUrl({ fileKey, fileName, nodeId }),
 		status: node.devStatus
 			? mapNodeStatusToDevStatus(node.devStatus)
 			: AtlassianDesignStatus.NONE,
@@ -154,24 +190,23 @@ export const transformNodeToAtlassianDesign = ({
 };
 
 type TransformFileToAtlassianDesignParams = {
-	readonly url: string;
 	readonly fileKey: string;
 	readonly isPrototype: boolean;
 	readonly fileResponse: FileResponse;
 };
 
 export const transformFileToAtlassianDesign = ({
-	url,
 	fileKey,
 	isPrototype,
 	fileResponse,
 }: TransformFileToAtlassianDesignParams): AtlassianDesign => {
+	const fileName = fileResponse.name;
 	return {
 		id: fileKey,
 		displayName: fileResponse.name,
-		url,
-		liveEmbedUrl: buildLiveEmbedUrl(url),
-		inspectUrl: buildInspectUrl(url),
+		url: buildDesignUrl({ fileKey, fileName }),
+		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName }),
+		inspectUrl: buildInspectUrl({ fileKey, fileName }),
 		status: AtlassianDesignStatus.NONE,
 		type: isPrototype
 			? AtlassianDesignType.PROTOTYPE

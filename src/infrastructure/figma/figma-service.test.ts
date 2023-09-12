@@ -16,7 +16,7 @@ import { figmaClient } from './figma-client';
 import { DEFAULT_FIGMA_FILE_NODE_ID, figmaService } from './figma-service';
 import {
 	transformFileToAtlassianDesign,
-	transformNodeId,
+	transformNodeIdForStorage,
 	transformNodeToAtlassianDesign,
 } from './figma-transformer';
 import {
@@ -150,13 +150,13 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'getFileNodes').mockResolvedValue(mockResponse);
 
 			const expectedEntity = transformNodeToAtlassianDesign({
+				fileKey: MOCK_FILE_KEY,
 				nodeId: MOCK_NODE_ID,
-				url: MOCK_DESIGN_URL_WITH_NODE,
 				isPrototype: false,
 				fileNodesResponse: mockResponse,
 			});
 
-			const res = await figmaService.fetchDesign(
+			const res = await figmaService.fetchDesignByUrl(
 				MOCK_DESIGN_URL_WITH_NODE,
 				ATLASSIAN_USER_ID,
 			);
@@ -180,13 +180,12 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
 
 			const expectedEntity = transformFileToAtlassianDesign({
-				url: MOCK_DESIGN_URL_WITHOUT_NODE,
 				fileKey: MOCK_FILE_KEY,
 				isPrototype: false,
 				fileResponse: mockResponse,
 			});
 
-			const res = await figmaService.fetchDesign(
+			const res = await figmaService.fetchDesignByUrl(
 				MOCK_DESIGN_URL_WITHOUT_NODE,
 				ATLASSIAN_USER_ID,
 			);
@@ -210,7 +209,7 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'getFile').mockRejectedValue(mockError);
 
 			await expect(
-				figmaService.fetchDesign(
+				figmaService.fetchDesignByUrl(
 					MOCK_DESIGN_URL_WITHOUT_NODE,
 					ATLASSIAN_USER_ID,
 				),
@@ -222,13 +221,19 @@ describe('FigmaService', () => {
 				`Received invalid Figma URL: ${MOCK_INVALID_DESIGN_URL}`,
 			);
 			await expect(() =>
-				figmaService.fetchDesign(MOCK_INVALID_DESIGN_URL, ATLASSIAN_USER_ID),
+				figmaService.fetchDesignByUrl(
+					MOCK_INVALID_DESIGN_URL,
+					ATLASSIAN_USER_ID,
+				),
 			).rejects.toStrictEqual(invalidUrlError);
 		});
 
 		it('should throw if the atlassian user is not authorized', async () => {
 			await expect(() =>
-				figmaService.fetchDesign(MOCK_DESIGN_URL_WITH_NODE, ATLASSIAN_USER_ID),
+				figmaService.fetchDesignByUrl(
+					MOCK_DESIGN_URL_WITH_NODE,
+					ATLASSIAN_USER_ID,
+				),
 			).rejects.toBeInstanceOf(FigmaServiceCredentialsError);
 		});
 	});
@@ -279,7 +284,7 @@ describe('FigmaService', () => {
 				name: MOCK_ISSUE_TITLE,
 				url: MOCK_ISSUE_URL,
 				file_key: MOCK_FILE_KEY,
-				node_id: transformNodeId(MOCK_NODE_ID_URL),
+				node_id: transformNodeIdForStorage(MOCK_NODE_ID_URL),
 			};
 
 			await figmaService.createDevResource({
