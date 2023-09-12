@@ -4,6 +4,7 @@ import type {
 	FileResponse,
 	NodeDevStatus,
 } from './figma-client';
+import { DEFAULT_FIGMA_FILE_NODE_ID } from './figma-service';
 
 import { getConfig } from '../../config';
 import type { AtlassianDesign } from '../../domain/entities';
@@ -33,7 +34,7 @@ export const extractDataFromFigmaUrl = (url: string): FigmaUrlData | null => {
 	}
 
 	const fileKey = fileKeyMatch ? fileKeyMatch[1] : prototypeMatch![1];
-	const nodeId = nodeIdMatch ? nodeIdMatch[1] : undefined;
+	const nodeId = nodeIdMatch ? unprettifyNodeId(nodeIdMatch[1]) : undefined;
 
 	return {
 		fileKey,
@@ -42,37 +43,97 @@ export const extractDataFromFigmaUrl = (url: string): FigmaUrlData | null => {
 	};
 };
 
-// Taken from https://www.figma.com/developers/embed
-const FIGMA_URL_REGEX =
-	/https:\/\/([\w.-]+\.)?figma.com\/(file|proto)\/([0-9a-zA-Z]{22,128})(?:\/.*)?$/;
+/**
+ * Builds a design identifier given a fileKey and optional nodeId.
+ * A design identifier is a composite of `<fileKey>/<nodeId>`
+ */
+export const buildDesignId = (fileKey: string, nodeId?: string) => {
+	return `${fileKey}/${
+		nodeId ? unprettifyNodeId(nodeId) : DEFAULT_FIGMA_FILE_NODE_ID
+	}`;
+};
 
 /**
- * Validates that a string is a valid Figma URL that will be handled by Figma's embed endpoint,
- * then transforms that string into a live embed URL.
+ * Parses a design identifier into a tuple of its parts: [fileKey, nodeId]
+ */
+export const parseDesignIdOrThrow = (id: string): [string, string] => {
+	const [fileKey, nodeId] = id.split('/');
+	if (!fileKey || !nodeId) {
+		throw new Error(`Received invalid Design ID: ${id}`);
+	}
+	return [fileKey, nodeId];
+};
+
+/**
+ * Builds a URL to a Figma design given Figma file/node metadata.
+ */
+export const buildDesignUrl = ({
+	fileKey,
+	fileName,
+	nodeId,
+}: {
+	fileKey: string;
+	fileName: string;
+	nodeId?: string;
+}): string => {
+	const url = new URL(
+		`${getConfig().figma.baseUrl}/file/${fileKey}/${fileName}`,
+	);
+	if (nodeId) {
+		url.searchParams.append('node-id', prettifyNodeId(nodeId));
+	}
+	return url.toString();
+};
+
+/**
+ * Builds a Live Embed URL to a Figma design given Figma file/node metadata.
+ * Inspect URL is used as this is the preferred mode of display in Jira.
  * @see https://www.figma.com/developers/embed
  */
-export const buildLiveEmbedUrl = (url: string): string => {
-	if (!FIGMA_URL_REGEX.test(url)) {
-		throw new Error('Not a valid Figma URL');
-	}
-	const urlObject = new URL(`${getConfig().figma.liveEmbedBaseUrl}/embed`);
-	urlObject.searchParams.append('embed_host', 'atlassian');
-	urlObject.searchParams.append('url', url);
-	return urlObject.toString();
+export const buildLiveEmbedUrl = ({
+	fileKey,
+	fileName,
+	nodeId,
+}: {
+	fileKey: string;
+	fileName: string;
+	nodeId?: string;
+}): string => {
+	const inspectUrl = buildInspectUrl({ fileKey, fileName, nodeId });
+	const decodedInspectUrl = decodeURIComponent(new URL(inspectUrl).toString());
+	const url = new URL(`${getConfig().figma.liveEmbedBaseUrl}/embed`);
+	url.searchParams.append('embed_host', 'atlassian');
+	url.searchParams.append('url', decodedInspectUrl);
+	return url.toString();
 };
 
 /**
- * Transforms a regular Figma URL into an Inspect mode URL.
+ * Builds an Inspect Mode URL to a Figma design given Figma file/node metadata.
  */
-export const buildInspectUrl = (url: string): string => {
-	const urlObject = new URL(url);
-	urlObject.searchParams.delete('type');
-	urlObject.searchParams.delete('t');
-	urlObject.searchParams.set('mode', 'dev');
-	return urlObject.toString();
+export const buildInspectUrl = ({
+	fileKey,
+	fileName,
+	nodeId,
+}: {
+	fileKey: string;
+	fileName: string;
+	nodeId?: string;
+}): string => {
+	const url = new URL(
+		`${getConfig().figma.baseUrl}/file/${fileKey}/${fileName}`,
+	);
+	if (nodeId) {
+		url.searchParams.append('node-id', prettifyNodeId(nodeId));
+	}
+	url.searchParams.set('mode', 'dev');
+	return url.toString();
 };
 
-export const transformNodeId = (nodeId: string): string => {
+export const prettifyNodeId = (nodeId: string): string => {
+	return nodeId.replace(':', '-');
+};
+
+export const unprettifyNodeId = (nodeId: string): string => {
 	return nodeId.replace('-', ':');
 };
 
@@ -124,60 +185,59 @@ const getUpdateSequenceNumber = (input: string): number => {
 };
 
 type TransformNodeToAtlassianDesignParams = {
+	readonly fileKey: string;
 	readonly nodeId: string;
-	readonly url: string;
 	readonly isPrototype: boolean;
 	readonly fileNodesResponse: FileNodesResponse;
 };
 
 export const transformNodeToAtlassianDesign = ({
+	fileKey,
 	nodeId,
-	url,
 	isPrototype,
 	fileNodesResponse,
 }: TransformNodeToAtlassianDesignParams): AtlassianDesign => {
-	const node = fileNodesResponse.nodes[transformNodeId(nodeId)].document;
+	const node = fileNodesResponse.nodes[unprettifyNodeId(nodeId)].document;
+	const fileName = fileNodesResponse.name;
 	return {
-		id: node.id,
+		id: buildDesignId(fileKey, nodeId),
 		displayName: node.name,
-		url,
-		liveEmbedUrl: buildLiveEmbedUrl(url),
-		inspectUrl: buildInspectUrl(url),
+		url: buildDesignUrl({ fileKey, fileName, nodeId }),
+		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName, nodeId }),
+		inspectUrl: buildInspectUrl({ fileKey, fileName, nodeId }),
 		status: node.devStatus
 			? mapNodeStatusToDevStatus(node.devStatus)
 			: AtlassianDesignStatus.NONE,
 		type: mapNodeTypeToDesignType(node.type, isPrototype),
-		// TODO: lastUpdated should come from the app database once polling is added
-		lastUpdated: new Date().toISOString(),
+		// TODO: lastUpdated should be determined by the nearest parent node's lastModified time once Figma have implemented lastModified
+		lastUpdated: fileNodesResponse.lastModified,
 		updateSequenceNumber: getUpdateSequenceNumber(fileNodesResponse.version),
 	};
 };
 
 type TransformFileToAtlassianDesignParams = {
-	readonly url: string;
 	readonly fileKey: string;
 	readonly isPrototype: boolean;
 	readonly fileResponse: FileResponse;
 };
 
 export const transformFileToAtlassianDesign = ({
-	url,
 	fileKey,
 	isPrototype,
 	fileResponse,
 }: TransformFileToAtlassianDesignParams): AtlassianDesign => {
+	const fileName = fileResponse.name;
 	return {
-		id: fileKey,
+		id: buildDesignId(fileKey),
 		displayName: fileResponse.name,
-		url,
-		liveEmbedUrl: buildLiveEmbedUrl(url),
-		inspectUrl: buildInspectUrl(url),
+		url: buildDesignUrl({ fileKey, fileName }),
+		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName }),
+		inspectUrl: buildInspectUrl({ fileKey, fileName }),
 		status: AtlassianDesignStatus.NONE,
 		type: isPrototype
 			? AtlassianDesignType.PROTOTYPE
 			: AtlassianDesignType.FILE,
-		// TODO: lastUpdated should come from the app database once polling is added
-		lastUpdated: new Date().toISOString(),
+		lastUpdated: fileResponse.lastModified,
 		updateSequenceNumber: getUpdateSequenceNumber(fileResponse.version),
 	};
 };

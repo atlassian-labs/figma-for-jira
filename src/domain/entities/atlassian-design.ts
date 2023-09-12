@@ -1,4 +1,4 @@
-const ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE = 'issue-associated-design';
+import { JIRA_ISSUE_ATI } from '../../common/constants';
 
 export enum AtlassianDesignStatus {
 	READY_FOR_DEVELOPMENT = 'READY_FOR_DEVELOPMENT',
@@ -22,9 +22,7 @@ export class AtlassianAssociation {
 	) {}
 
 	static createDesignIssueAssociation(issueAri: string): AtlassianAssociation {
-		return new AtlassianAssociation(ISSUE_ASSOCIATED_DESIGN_RELATIONSHIP_TYPE, [
-			issueAri,
-		]);
+		return new AtlassianAssociation(JIRA_ISSUE_ATI, [issueAri]);
 	}
 }
 

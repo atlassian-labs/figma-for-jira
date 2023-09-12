@@ -1,4 +1,6 @@
+import { DEFAULT_FIGMA_FILE_NODE_ID } from './figma-service';
 import {
+	buildDesignUrl,
 	buildInspectUrl,
 	buildLiveEmbedUrl,
 	extractDataFromFigmaUrl,
@@ -13,6 +15,7 @@ import {
 	MOCK_DESIGN_URL_WITH_NODE,
 	MOCK_DESIGN_URL_WITHOUT_NODE,
 	MOCK_FILE_KEY,
+	MOCK_FILE_NAME,
 	MOCK_INVALID_DESIGN_URL,
 	MOCK_NODE_ID,
 	MOCK_NODE_ID_URL,
@@ -53,14 +56,14 @@ describe('FigmaTransformer', () => {
 		it('should return fileKey, nodeId and isPrototype if both fileKey and nodeId are present in the url', () => {
 			expect(extractDataFromFigmaUrl(MOCK_DESIGN_URL_WITH_NODE)).toStrictEqual({
 				fileKey: MOCK_FILE_KEY,
-				nodeId: MOCK_NODE_ID_URL,
+				nodeId: MOCK_NODE_ID,
 				isPrototype: false,
 			});
 		});
 		it('should return `isPrototype: true` if the url is for a prototype', () => {
 			expect(extractDataFromFigmaUrl(MOCK_PROTOTYPE_URL)).toStrictEqual({
 				fileKey: MOCK_FILE_KEY,
-				nodeId: MOCK_NODE_ID_URL,
+				nodeId: MOCK_NODE_ID,
 				isPrototype: true,
 			});
 		});
@@ -73,16 +76,16 @@ describe('FigmaTransformer', () => {
 
 	describe('buildLiveEmbedUrl', () => {
 		it('should return a correctly formatted url', () => {
-			expect(buildLiveEmbedUrl(MOCK_DESIGN_URL_WITH_NODE)).toStrictEqual(
-				`https://www.figma.com/embed?embed_host=atlassian&url=${encodeURIComponent(
-					MOCK_DESIGN_URL_WITH_NODE,
-				)}`,
-			);
-		});
-		it('should throw for an invalid url', () => {
-			expect(() => {
-				buildLiveEmbedUrl('https://www.notfigma.com');
-			}).toThrow();
+			const expected = new URL('https://www.figma.com/embed');
+			expected.searchParams.append('embed_host', 'atlassian');
+			expected.searchParams.append('url', MOCK_DESIGN_URL_WITH_NODE);
+			expect(
+				buildLiveEmbedUrl({
+					fileKey: MOCK_FILE_KEY,
+					fileName: MOCK_FILE_NAME,
+					nodeId: MOCK_NODE_ID_URL,
+				}),
+			).toStrictEqual(expected.toString());
 		});
 	});
 
@@ -122,11 +125,23 @@ describe('FigmaTransformer', () => {
 				nodeId: MOCK_NODE_ID,
 			});
 			const expected: AtlassianDesign = {
-				id: MOCK_NODE_ID,
+				id: `${MOCK_FILE_KEY}/${MOCK_NODE_ID}`,
 				displayName: mockApiResponse.nodes[MOCK_NODE_ID].document.name,
-				url: MOCK_DESIGN_URL_WITH_NODE,
-				liveEmbedUrl: buildLiveEmbedUrl(MOCK_DESIGN_URL_WITH_NODE),
-				inspectUrl: buildInspectUrl(MOCK_DESIGN_URL_WITH_NODE),
+				url: buildDesignUrl({
+					fileKey: MOCK_FILE_KEY,
+					fileName: MOCK_FILE_NAME,
+					nodeId: MOCK_NODE_ID_URL,
+				}),
+				liveEmbedUrl: buildLiveEmbedUrl({
+					fileKey: MOCK_FILE_KEY,
+					fileName: MOCK_FILE_NAME,
+					nodeId: MOCK_NODE_ID_URL,
+				}),
+				inspectUrl: buildInspectUrl({
+					fileKey: MOCK_FILE_KEY,
+					fileName: MOCK_FILE_NAME,
+					nodeId: MOCK_NODE_ID_URL,
+				}),
 				status: AtlassianDesignStatus.NONE,
 				type: AtlassianDesignType.NODE,
 				lastUpdated: expect.anything(),
@@ -134,8 +149,8 @@ describe('FigmaTransformer', () => {
 			};
 
 			const result = transformNodeToAtlassianDesign({
+				fileKey: MOCK_FILE_KEY,
 				nodeId: MOCK_NODE_ID,
-				url: MOCK_DESIGN_URL_WITH_NODE,
 				isPrototype: false,
 				fileNodesResponse: mockApiResponse,
 			});
@@ -148,11 +163,20 @@ describe('FigmaTransformer', () => {
 		it('should correctly map to atlassian design', () => {
 			const mockApiResponse = generateGetFileResponse();
 			const expected: AtlassianDesign = {
-				id: MOCK_FILE_KEY,
+				id: `${MOCK_FILE_KEY}/${DEFAULT_FIGMA_FILE_NODE_ID}`,
 				displayName: mockApiResponse.name,
-				url: MOCK_DESIGN_URL_WITHOUT_NODE,
-				liveEmbedUrl: buildLiveEmbedUrl(MOCK_DESIGN_URL_WITHOUT_NODE),
-				inspectUrl: buildInspectUrl(MOCK_DESIGN_URL_WITHOUT_NODE),
+				url: buildDesignUrl({
+					fileKey: MOCK_FILE_KEY,
+					fileName: MOCK_FILE_NAME,
+				}),
+				liveEmbedUrl: buildLiveEmbedUrl({
+					fileKey: MOCK_FILE_KEY,
+					fileName: MOCK_FILE_NAME,
+				}),
+				inspectUrl: buildInspectUrl({
+					fileKey: MOCK_FILE_KEY,
+					fileName: MOCK_FILE_NAME,
+				}),
 				status: AtlassianDesignStatus.NONE,
 				type: AtlassianDesignType.FILE,
 				lastUpdated: expect.anything(),
@@ -160,7 +184,6 @@ describe('FigmaTransformer', () => {
 			};
 
 			const result = transformFileToAtlassianDesign({
-				url: MOCK_DESIGN_URL_WITHOUT_NODE,
 				fileKey: MOCK_FILE_KEY,
 				isPrototype: false,
 				fileResponse: mockApiResponse,

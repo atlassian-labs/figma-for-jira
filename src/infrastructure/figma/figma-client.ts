@@ -76,6 +76,22 @@ export type CreateDevResourcesResponse = {
 	readonly errors: CreateDevResourceError[];
 };
 
+type GetDevResourcesRequest = {
+	readonly fileKey: string;
+	readonly nodeIds?: string;
+	readonly accessToken: string;
+};
+
+export type GetDevResourcesResponse = {
+	readonly dev_resources: DevResource[];
+};
+
+type DeleteDevResourceRequest = {
+	readonly fileKey: string;
+	readonly devResourceId: string;
+	readonly accessToken: string;
+};
+
 /**
  * A generic Figma API client.
  *
@@ -207,6 +223,55 @@ export class FigmaClient {
 			{
 				dev_resources: devResources,
 			},
+			{
+				headers: {
+					['Authorization']: `Bearer ${accessToken}`,
+				},
+			},
+		);
+
+		return response.data;
+	};
+
+	/**
+	 * Fetches Figma Dev Resources using the GET dev resources endpoint
+	 *
+	 * @see https://www.figma.com/developers/api#get-dev-resources-endpoint
+	 */
+	getDevResources = async ({
+		fileKey,
+		nodeIds: node_ids,
+		accessToken,
+	}: GetDevResourcesRequest): Promise<GetDevResourcesResponse> => {
+		const response = await axios.get<GetDevResourcesResponse>(
+			`${getConfig().figma.apiBaseUrl}/v1/files/${fileKey}/dev_resources`,
+			{
+				params: {
+					node_ids,
+				},
+				headers: {
+					['Authorization']: `Bearer ${accessToken}`,
+				},
+			},
+		);
+
+		return response.data;
+	};
+
+	/**
+	 * Deletes a Figma Dev Resource using the DELETE dev resources endpoint
+	 *
+	 * @see https://www.figma.com/developers/api#delete-dev-resources-endpoint
+	 */
+	deleteDevResource = async ({
+		fileKey,
+		devResourceId,
+		accessToken,
+	}: DeleteDevResourceRequest): Promise<void> => {
+		const response = await axios.delete<void>(
+			`${
+				getConfig().figma.apiBaseUrl
+			}/v1/files/${fileKey}/dev_resources/${devResourceId}`,
 			{
 				headers: {
 					['Authorization']: `Bearer ${accessToken}`,
