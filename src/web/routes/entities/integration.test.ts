@@ -1,4 +1,5 @@
 import { HttpStatusCode } from 'axios';
+import type { RequestBodyMatcher } from 'nock';
 import nock from 'nock';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
@@ -6,11 +7,16 @@ import { v4 as uuidv4 } from 'uuid';
 import app from '../../../app';
 import { JIRA_ISSUE_ATI } from '../../../common/constants';
 import { getConfig } from '../../../config';
+import type {
+	AtlassianDesign,
+	FigmaUserCredentialsCreateParams,
+} from '../../../domain/entities';
 import {
 	generateFigmaUserCredentialsCreateParams,
 	generateIssueAri,
 	MOCK_ISSUE_ID,
 } from '../../../domain/entities/testing';
+import type { FileNodesResponse } from '../../../infrastructure/figma/figma-client';
 import { transformNodeToAtlassianDesign } from '../../../infrastructure/figma/figma-transformer';
 import {
 	generateEmptyDevResourcesResponse,
@@ -21,6 +27,8 @@ import {
 	MOCK_FILE_KEY,
 	MOCK_NODE_ID,
 } from '../../../infrastructure/figma/testing';
+import type { AttachedDesignUrlV2IssuePropertyValue } from '../../../infrastructure/jira';
+import { propertyKeys } from '../../../infrastructure/jira';
 import type { GetIssuePropertyResponse } from '../../../infrastructure/jira/jira-client';
 import {
 	generateGetIssuePropertyResponse,
@@ -167,18 +175,31 @@ const mockSetIssuePropertyEndpoint = ({
 	success = true,
 	errorCode = HttpStatusCode.InternalServerError,
 	successCode = HttpStatusCode.Ok,
+	value = {},
 }: {
 	propertyKey?: string;
 	success?: boolean;
 	errorCode?: HttpStatusCode;
 	successCode?: HttpStatusCode;
+	value?: RequestBodyMatcher;
 } = {}) => {
 	const statusCode = success ? successCode : errorCode;
 	nock(MOCK_CONNECT_INSTALLATION.baseUrl)
 		.put(
 			`${endpoints.jira.ISSUE_PROPERTY}/${MOCK_ISSUE_ID}/properties/${propertyKey}`,
+			value,
 		)
 		.reply(statusCode);
+};
+
+const mockDeleteIssuePropertyEndpoint = ({
+	propertyKey,
+}: { propertyKey?: string } = {}) => {
+	nock(MOCK_CONNECT_INSTALLATION.baseUrl)
+		.delete(
+			`${endpoints.jira.ISSUE_PROPERTY}/${MOCK_ISSUE_ID}/properties/${propertyKey}`,
+		)
+		.reply(200);
 };
 
 const mockGetDevResourcesEndpoint = ({
@@ -231,29 +252,69 @@ const MOCK_DISASSOCIATE_REQUEST: DisassociateEntityRequestParams = {
 	},
 };
 
+const getMockDesignFromFileNodesResponse = (
+	fileNodesResponse: FileNodesResponse,
+): AtlassianDesign =>
+	transformNodeToAtlassianDesign({
+		fileKey: MOCK_FILE_KEY,
+		nodeId: MOCK_NODE_ID,
+		isPrototype: false,
+		fileNodesResponse,
+	});
+
+const setupSuccessCaseTests = async (
+	validCredentialsParams: FigmaUserCredentialsCreateParams,
+) => {
+	await figmaOAuth2UserCredentialsRepository.upsert(validCredentialsParams);
+	await connectInstallationRepository.upsert(MOCK_CONNECT_INSTALLATION);
+};
+
+const cleanupSuccessCaseTests = async (
+	validCredentialsParams: FigmaUserCredentialsCreateParams,
+) => {
+	await connectInstallationRepository
+		.deleteByClientKey(MOCK_CLIENT_KEY)
+		.catch(console.log);
+	await figmaOAuth2UserCredentialsRepository
+		.delete(validCredentialsParams.atlassianUserId)
+		.catch(console.log);
+};
+
+const setupErrorCaseTests = async () => {
+	await connectInstallationRepository.upsert(MOCK_CONNECT_INSTALLATION);
+};
+
+const cleanupErrorCaseTests = async () => {
+	await connectInstallationRepository
+		.deleteByClientKey(MOCK_CLIENT_KEY)
+		.catch(console.log);
+};
+
 describe('/entities', () => {
-	describe('success cases', () => {
-		const validCredentialsParams = generateFigmaUserCredentialsCreateParams();
-		beforeEach(async () => {
-			await figmaOAuth2UserCredentialsRepository.upsert(validCredentialsParams);
-			await connectInstallationRepository.upsert(MOCK_CONNECT_INSTALLATION);
-		});
+	let validCredentialsParams: FigmaUserCredentialsCreateParams;
 
-		afterEach(async () => {
-			await connectInstallationRepository
-				.deleteByClientKey(MOCK_CLIENT_KEY)
-				.catch(console.log);
-			await figmaOAuth2UserCredentialsRepository
-				.delete(validCredentialsParams.atlassianUserId)
-				.catch(console.log);
-		});
+	beforeEach(() => {
+		validCredentialsParams = generateFigmaUserCredentialsCreateParams();
+	});
 
-		describe('/associateEntity', () => {
+	describe('/associateEntity', () => {
+		describe('success cases', () => {
+			beforeEach(async () => {
+				await setupSuccessCaseTests(validCredentialsParams);
+			});
+
+			afterEach(async () => {
+				await cleanupSuccessCaseTests(validCredentialsParams);
+			});
+
 			it('should respond with created design entity', async () => {
 				const credentials = await figmaOAuth2UserCredentialsRepository.get(
 					validCredentialsParams.atlassianUserId,
 				);
 				const mockFileNodesResponse = generateGetFileNodesResponse();
+				const mockDesign = getMockDesignFromFileNodesResponse(
+					mockFileNodesResponse,
+				);
 
 				mockMeEndpoint({ success: true, times: 2 });
 				mockGetFileNodesEndpoint({
@@ -263,22 +324,25 @@ describe('/entities', () => {
 				mockGetIssueEndpoint();
 				mockSubmitDesignsEndpoint();
 				mockCreateDevResourcesEndpoint();
+
 				mockGetIssuePropertyEndpoint({
-					propertyKey: 'attached-design-url',
+					propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
 					success: false,
 					errorCode: HttpStatusCode.NotFound,
+				});
+				mockSetIssuePropertyEndpoint({
+					propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+					value: JSON.stringify(mockDesign.url),
 				});
 
-				mockSetIssuePropertyEndpoint({
-					propertyKey: 'attached-design-url',
-				});
 				mockGetIssuePropertyEndpoint({
-					propertyKey: 'attached-design-url-v2',
+					propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 					success: false,
 					errorCode: HttpStatusCode.NotFound,
 				});
 				mockSetIssuePropertyEndpoint({
-					propertyKey: 'attached-design-url-v2',
+					propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: [{ url: mockDesign.url, name: mockDesign.displayName }],
 				});
 
 				const expectedResponse = {
@@ -300,56 +364,16 @@ describe('/entities', () => {
 					.expect(expectedResponse);
 			});
 		});
-		describe('/disassociateEntity', () => {
-			it('should respond with created design entity', async () => {
-				const credentials = await figmaOAuth2UserCredentialsRepository.get(
-					validCredentialsParams.atlassianUserId,
-				);
-				const mockFileNodesResponse = generateGetFileNodesResponse();
 
-				mockMeEndpoint({ success: true, times: 2 });
-				mockGetFileNodesEndpoint({
-					accessToken: credentials?.accessToken,
-					response: mockFileNodesResponse,
-				});
-				mockGetIssueEndpoint();
-				mockSubmitDesignsEndpoint();
-				mockGetDevResourcesEndpoint();
-				mockDeleteDevResourcesEndpoint();
-
-				const expectedResponse = {
-					design: transformNodeToAtlassianDesign({
-						fileKey: MOCK_FILE_KEY,
-						nodeId: MOCK_NODE_ID,
-						isPrototype: false,
-						fileNodesResponse: mockFileNodesResponse,
-					}),
-				};
-
-				return request(app)
-					.post(endpoints.DISASSOCIATE_ENTITY)
-					.send(MOCK_DISASSOCIATE_REQUEST)
-					.set('Authorization', DISASSOCIATE_JWT_TOKEN)
-					.set('Content-Type', 'application/json')
-					.set('User-Id', validCredentialsParams.atlassianUserId)
-					.expect(HttpStatusCode.Ok)
-					.expect(expectedResponse);
+		describe('error cases', () => {
+			beforeEach(async () => {
+				await setupErrorCaseTests();
 			});
-		});
-	});
-	describe('error cases', () => {
-		const validCredentialsParams = generateFigmaUserCredentialsCreateParams();
 
-		beforeEach(async () => {
-			await connectInstallationRepository.upsert(MOCK_CONNECT_INSTALLATION);
-		});
+			afterEach(async () => {
+				await cleanupErrorCaseTests();
+			});
 
-		afterEach(async () => {
-			await connectInstallationRepository
-				.deleteByClientKey(MOCK_CLIENT_KEY)
-				.catch(console.log);
-		});
-		describe('/associateEntity', () => {
 			it('should respond with 401 "User-Id" header is not set', () => {
 				return request(app)
 					.post(endpoints.ASSOCIATE_ENTITY)
@@ -429,6 +453,9 @@ describe('/entities', () => {
 						validCredentialsParams.atlassianUserId,
 					);
 					const mockFileNodesResponse = generateGetFileNodesResponse();
+					const mockDesign = getMockDesignFromFileNodesResponse(
+						mockFileNodesResponse,
+					);
 
 					mockMeEndpoint({ success: true, times: 2 });
 					mockGetFileNodesEndpoint({
@@ -438,11 +465,21 @@ describe('/entities', () => {
 					mockGetIssueEndpoint();
 
 					mockGetIssuePropertyEndpoint({
-						propertyKey: 'attached-design-url',
+						propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
 					});
+
 					mockGetIssuePropertyEndpoint({
-						propertyKey: 'attached-design-url-v2',
+						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+						response: generateGetIssuePropertyResponse({
+							key: propertyKeys.ATTACHED_DESIGN_URL_V2,
+							value: [],
+						}),
 					});
+					mockSetIssuePropertyEndpoint({
+						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+						value: [{ url: mockDesign.url, name: mockDesign.displayName }],
+					});
+
 					mockCreateDevResourcesEndpoint();
 					mockSubmitDesignsEndpoint({ success: false });
 
@@ -460,6 +497,9 @@ describe('/entities', () => {
 						validCredentialsParams.atlassianUserId,
 					);
 					const mockFileNodesResponse = generateGetFileNodesResponse();
+					const mockDesign = getMockDesignFromFileNodesResponse(
+						mockFileNodesResponse,
+					);
 
 					mockMeEndpoint({ success: true, times: 2 });
 					mockGetFileNodesEndpoint({
@@ -469,11 +509,21 @@ describe('/entities', () => {
 					mockGetIssueEndpoint();
 
 					mockGetIssuePropertyEndpoint({
-						propertyKey: 'attached-design-url',
+						propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
 					});
+
 					mockGetIssuePropertyEndpoint({
-						propertyKey: 'attached-design-url-v2',
+						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+						response: generateGetIssuePropertyResponse({
+							key: propertyKeys.ATTACHED_DESIGN_URL_V2,
+							value: [],
+						}),
 					});
+					mockSetIssuePropertyEndpoint({
+						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+						value: [{ url: mockDesign.url, name: mockDesign.displayName }],
+					});
+
 					mockSubmitDesignsEndpoint();
 					mockCreateDevResourcesEndpoint({ success: false });
 
@@ -491,6 +541,9 @@ describe('/entities', () => {
 						validCredentialsParams.atlassianUserId,
 					);
 					const mockFileNodesResponse = generateGetFileNodesResponse();
+					const mockDesign = getMockDesignFromFileNodesResponse(
+						mockFileNodesResponse,
+					);
 
 					mockMeEndpoint({ success: true, times: 2 });
 					mockGetFileNodesEndpoint({
@@ -500,12 +553,22 @@ describe('/entities', () => {
 					mockGetIssueEndpoint();
 
 					mockGetIssuePropertyEndpoint({
-						propertyKey: 'attached-design-url',
+						propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
 						success: false,
 					});
+
 					mockGetIssuePropertyEndpoint({
-						propertyKey: 'attached-design-url-v2',
+						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+						response: generateGetIssuePropertyResponse({
+							key: propertyKeys.ATTACHED_DESIGN_URL_V2,
+							value: [],
+						}),
 					});
+					mockSetIssuePropertyEndpoint({
+						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+						value: [{ url: mockDesign.url, name: mockDesign.displayName }],
+					});
+
 					mockSubmitDesignsEndpoint();
 					mockCreateDevResourcesEndpoint();
 
@@ -519,7 +582,101 @@ describe('/entities', () => {
 				});
 			});
 		});
-		describe('/disassociateEntity', () => {
+	});
+
+	describe('/disassociateEntity', () => {
+		describe('success cases', () => {
+			beforeEach(async () => {
+				await setupSuccessCaseTests(validCredentialsParams);
+			});
+
+			afterEach(async () => {
+				await cleanupSuccessCaseTests(validCredentialsParams);
+			});
+
+			it('should respond with created design entity', async () => {
+				const credentials = await figmaOAuth2UserCredentialsRepository.get(
+					validCredentialsParams.atlassianUserId,
+				);
+				const mockFileNodesResponse = generateGetFileNodesResponse();
+				const mockDesign = getMockDesignFromFileNodesResponse(
+					mockFileNodesResponse,
+				);
+
+				mockMeEndpoint({ success: true, times: 2 });
+				mockGetFileNodesEndpoint({
+					accessToken: credentials?.accessToken,
+					response: mockFileNodesResponse,
+				});
+
+				mockGetIssueEndpoint();
+				mockSubmitDesignsEndpoint();
+				mockGetDevResourcesEndpoint();
+
+				mockDeleteDevResourcesEndpoint();
+
+				mockGetIssuePropertyEndpoint({
+					propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+					response: generateGetIssuePropertyResponse({
+						key: propertyKeys.ATTACHED_DESIGN_URL,
+						value: mockDesign.url,
+					}),
+				});
+				mockDeleteIssuePropertyEndpoint({
+					propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+				});
+
+				const expectedDesignUrlV2Value: AttachedDesignUrlV2IssuePropertyValue =
+					{
+						url: 'https://should-not-be-deleted.com',
+						name: 'should not be deleted',
+					};
+				const attachedDesignUrlV2Values: AttachedDesignUrlV2IssuePropertyValue[] =
+					[
+						{ url: mockDesign.url, name: mockDesign.displayName },
+						expectedDesignUrlV2Value,
+					];
+				mockGetIssuePropertyEndpoint({
+					propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+					response: generateGetIssuePropertyResponse({
+						key: propertyKeys.ATTACHED_DESIGN_URL_V2,
+						value: attachedDesignUrlV2Values,
+					}),
+				});
+				mockSetIssuePropertyEndpoint({
+					propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: [expectedDesignUrlV2Value],
+				});
+
+				const expectedResponse = {
+					design: transformNodeToAtlassianDesign({
+						fileKey: MOCK_FILE_KEY,
+						nodeId: MOCK_NODE_ID,
+						isPrototype: false,
+						fileNodesResponse: mockFileNodesResponse,
+					}),
+				};
+
+				return request(app)
+					.post(endpoints.DISASSOCIATE_ENTITY)
+					.send(MOCK_DISASSOCIATE_REQUEST)
+					.set('Authorization', DISASSOCIATE_JWT_TOKEN)
+					.set('Content-Type', 'application/json')
+					.set('User-Id', validCredentialsParams.atlassianUserId)
+					.expect(HttpStatusCode.Ok)
+					.expect(expectedResponse);
+			});
+		});
+
+		describe('error cases', () => {
+			beforeEach(async () => {
+				await setupErrorCaseTests();
+			});
+
+			afterEach(async () => {
+				await cleanupErrorCaseTests();
+			});
+
 			it('should respond with 401 "User-Id" header is not set', () => {
 				return request(app)
 					.post(endpoints.DISASSOCIATE_ENTITY)
@@ -608,6 +765,16 @@ describe('/entities', () => {
 					mockGetIssueEndpoint();
 					mockGetDevResourcesEndpoint();
 					mockDeleteDevResourcesEndpoint();
+					mockGetIssuePropertyEndpoint({
+						propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+						success: false,
+						errorCode: HttpStatusCode.NotFound,
+					});
+					mockGetIssuePropertyEndpoint({
+						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+						success: false,
+						errorCode: HttpStatusCode.NotFound,
+					});
 					mockSubmitDesignsEndpoint({ success: false });
 
 					return request(app)
@@ -632,6 +799,16 @@ describe('/entities', () => {
 					});
 					mockGetIssueEndpoint();
 					mockSubmitDesignsEndpoint();
+					mockGetIssuePropertyEndpoint({
+						propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+						success: false,
+						errorCode: HttpStatusCode.NotFound,
+					});
+					mockGetIssuePropertyEndpoint({
+						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+						success: false,
+						errorCode: HttpStatusCode.NotFound,
+					});
 					mockGetDevResourcesEndpoint({ withDevResources: false });
 
 					return request(app)
@@ -657,6 +834,16 @@ describe('/entities', () => {
 					mockGetIssueEndpoint();
 					mockSubmitDesignsEndpoint();
 					mockGetDevResourcesEndpoint();
+					mockGetIssuePropertyEndpoint({
+						propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+						success: false,
+						errorCode: HttpStatusCode.NotFound,
+					});
+					mockGetIssuePropertyEndpoint({
+						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+						success: false,
+						errorCode: HttpStatusCode.NotFound,
+					});
 					mockDeleteDevResourcesEndpoint({ success: false });
 
 					return request(app)

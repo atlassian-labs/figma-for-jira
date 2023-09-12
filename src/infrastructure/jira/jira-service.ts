@@ -1,7 +1,6 @@
 import { JiraServiceSubmitDesignError } from './errors';
 import { jiraClient, JiraClientNotFoundError } from './jira-client';
 
-import { ensureString } from '../../common/stringUtils';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
@@ -135,9 +134,8 @@ class JiraService {
 				connectInstallation,
 			);
 
-			const storedAttachedDesignUrlIssuePropertyValues = JSON.parse(
-				ensureString(response.value),
-			) as AttachedDesignUrlV2IssuePropertyValue[];
+			const storedAttachedDesignUrlIssuePropertyValues =
+				response.value as AttachedDesignUrlV2IssuePropertyValue[];
 
 			const newAttachedDesignUrlIssuePropertyValue: AttachedDesignUrlV2IssuePropertyValue =
 				{
@@ -148,10 +146,10 @@ class JiraService {
 			await jiraClient.setIssueProperty(
 				issueIdOrKey,
 				propertyKeys.ATTACHED_DESIGN_URL_V2,
-				JSON.stringify([
+				[
 					...storedAttachedDesignUrlIssuePropertyValues,
 					newAttachedDesignUrlIssuePropertyValue,
-				]),
+				],
 				connectInstallation,
 			);
 		} catch (error) {
@@ -161,7 +159,7 @@ class JiraService {
 						url,
 						name: displayName,
 					};
-				const value = JSON.stringify([newAttachedDesignUrlIssuePropertyValue]);
+				const value = [newAttachedDesignUrlIssuePropertyValue];
 				await jiraClient.setIssueProperty(
 					issueIdOrKey,
 					propertyKeys.ATTACHED_DESIGN_URL_V2,
@@ -236,9 +234,8 @@ class JiraService {
 				connectInstallation,
 			);
 
-			const storedAttachedDesignUrlIssuePropertyValues = JSON.parse(
-				ensureString(response.value),
-			) as AttachedDesignUrlV2IssuePropertyValue[];
+			const storedAttachedDesignUrlIssuePropertyValues =
+				response.value as AttachedDesignUrlV2IssuePropertyValue[];
 
 			const issuePropertyValueToRemove: AttachedDesignUrlV2IssuePropertyValue =
 				{
@@ -254,7 +251,7 @@ class JiraService {
 			await jiraClient.setIssueProperty(
 				issueIdOrKey,
 				propertyKeys.ATTACHED_DESIGN_URL_V2,
-				JSON.stringify(newAttachedDesignUrlIssuePropertyValue),
+				newAttachedDesignUrlIssuePropertyValue,
 				connectInstallation,
 			);
 		} catch (error) {

@@ -116,9 +116,11 @@ class JiraClient {
 		let response: AxiosResponse<GetIssuePropertyResponse>;
 		try {
 			response = await axios.get<GetIssuePropertyResponse>(url.toString(), {
-				headers: new AxiosHeaders().setAuthorization(
-					this.buildAuthorizationHeader(url, 'GET', connectInstallation),
-				),
+				headers: new AxiosHeaders()
+					.setAuthorization(
+						this.buildAuthorizationHeader(url, 'GET', connectInstallation),
+					)
+					.setAccept('application/json'),
 			});
 		} catch (error) {
 			if (

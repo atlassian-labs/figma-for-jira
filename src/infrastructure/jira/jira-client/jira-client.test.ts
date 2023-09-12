@@ -117,9 +117,12 @@ describe('JiraClient', () => {
 				connectInstallation,
 			);
 
+			const headers =
+				defaultExpectedRequestHeaders().headers.setAccept('application/json');
+
 			expect(axios.get).toHaveBeenCalledWith(
 				`${connectInstallation.baseUrl}/rest/api/2/issue/TEST-1/properties/${propertyKey}`,
-				defaultExpectedRequestHeaders(),
+				{ headers },
 			);
 			expect(result).toEqual(response);
 		});
