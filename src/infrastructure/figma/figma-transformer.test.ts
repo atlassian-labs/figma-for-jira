@@ -78,14 +78,13 @@ describe('FigmaTransformer', () => {
 			const expected = new URL('https://www.figma.com/embed');
 			expected.searchParams.append('embed_host', 'atlassian');
 			expected.searchParams.append('url', MOCK_DESIGN_URL_WITH_NODE);
-			console.log('expected.toSTring', expected.toString());
 			expect(
 				buildLiveEmbedUrl({
 					fileKey: MOCK_FILE_KEY,
 					fileName: MOCK_FILE_NAME,
 					nodeId: MOCK_NODE_ID_URL,
 				}),
-			).toStrictEqual(expected.toString());
+			).toEqual(expected.toString());
 		});
 	});
 
@@ -130,17 +129,17 @@ describe('FigmaTransformer', () => {
 				url: buildDesignUrl({
 					fileKey: MOCK_FILE_KEY,
 					fileName: MOCK_FILE_NAME,
-					nodeId: MOCK_NODE_ID_URL,
+					nodeId: MOCK_NODE_ID,
 				}),
 				liveEmbedUrl: buildLiveEmbedUrl({
 					fileKey: MOCK_FILE_KEY,
 					fileName: MOCK_FILE_NAME,
-					nodeId: MOCK_NODE_ID_URL,
+					nodeId: MOCK_NODE_ID,
 				}),
 				inspectUrl: buildInspectUrl({
 					fileKey: MOCK_FILE_KEY,
 					fileName: MOCK_FILE_NAME,
-					nodeId: MOCK_NODE_ID_URL,
+					nodeId: MOCK_NODE_ID,
 				}),
 				status: AtlassianDesignStatus.NONE,
 				type: AtlassianDesignType.NODE,

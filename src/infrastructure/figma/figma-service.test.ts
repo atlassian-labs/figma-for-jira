@@ -16,8 +16,8 @@ import { figmaClient } from './figma-client';
 import { DEFAULT_FIGMA_FILE_NODE_ID, figmaService } from './figma-service';
 import {
 	transformFileToAtlassianDesign,
+	transformNodeIdForStorage,
 	transformNodeToAtlassianDesign,
-	unprettifyNodeId,
 } from './figma-transformer';
 import {
 	generateGetFileNodesResponse,
@@ -284,7 +284,7 @@ describe('FigmaService', () => {
 				name: MOCK_ISSUE_TITLE,
 				url: MOCK_ISSUE_URL,
 				file_key: MOCK_FILE_KEY,
-				node_id: unprettifyNodeId(MOCK_NODE_ID_URL),
+				node_id: transformNodeIdForStorage(MOCK_NODE_ID_URL),
 			};
 
 			await figmaService.createDevResource({

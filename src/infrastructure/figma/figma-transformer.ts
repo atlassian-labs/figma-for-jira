@@ -55,10 +55,10 @@ export const buildDesignUrl = ({
 	nodeId?: string;
 }): string => {
 	const url = new URL(
-		`${getConfig().figma.baseUrl}/file/${fileKey}/${fileName}`,
+		`${getConfig().figma.webBaseUrl}/file/${fileKey}/${fileName}`,
 	);
 	if (nodeId) {
-		url.searchParams.append('node-id', prettifyNodeId(nodeId));
+		url.searchParams.append('node-id', nodeId);
 	}
 	return url.toString();
 };
@@ -78,10 +78,9 @@ export const buildLiveEmbedUrl = ({
 	nodeId?: string;
 }): string => {
 	const inspectUrl = buildInspectUrl({ fileKey, fileName, nodeId });
-	const decodedInspectUrl = decodeURIComponent(new URL(inspectUrl).toString());
-	const url = new URL(`${getConfig().figma.liveEmbedBaseUrl}/embed`);
+	const url = new URL(`${getConfig().figma.webBaseUrl}/embed`);
 	url.searchParams.append('embed_host', 'atlassian');
-	url.searchParams.append('url', decodedInspectUrl);
+	url.searchParams.append('url', inspectUrl);
 	return url.toString();
 };
 
@@ -98,20 +97,16 @@ export const buildInspectUrl = ({
 	nodeId?: string;
 }): string => {
 	const url = new URL(
-		`${getConfig().figma.baseUrl}/file/${fileKey}/${fileName}`,
+		`${getConfig().figma.webBaseUrl}/file/${fileKey}/${fileName}`,
 	);
 	if (nodeId) {
-		url.searchParams.append('node-id', prettifyNodeId(nodeId));
+		url.searchParams.append('node-id', nodeId);
 	}
 	url.searchParams.set('mode', 'dev');
 	return url.toString();
 };
 
-export const prettifyNodeId = (nodeId: string): string => {
-	return nodeId.replace(':', '-');
-};
-
-export const unprettifyNodeId = (nodeId: string): string => {
+export const transformNodeIdForStorage = (nodeId: string): string => {
 	return nodeId.replace('-', ':');
 };
 
@@ -171,14 +166,15 @@ type TransformNodeToAtlassianDesignParams = {
 
 export const transformNodeToAtlassianDesign = ({
 	fileKey,
-	nodeId,
+	nodeId: _nodeId,
 	isPrototype,
 	fileNodesResponse,
 }: TransformNodeToAtlassianDesignParams): AtlassianDesign => {
-	const node = fileNodesResponse.nodes[unprettifyNodeId(nodeId)].document;
+	const nodeId = transformNodeIdForStorage(_nodeId);
+	const node = fileNodesResponse.nodes[nodeId].document;
 	const fileName = fileNodesResponse.name;
 	return {
-		id: node.id,
+		id: nodeId,
 		displayName: node.name,
 		url: buildDesignUrl({ fileKey, fileName, nodeId }),
 		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName, nodeId }),
