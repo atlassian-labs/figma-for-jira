@@ -175,7 +175,7 @@ export class FigmaService {
 
 		const { dev_resources } = await figmaClient.getDevResources({
 			fileKey,
-			...(nodeId && { nodeIds: unprettifyNodeId(nodeId) }),
+			...(nodeId && { nodeIds: transformNodeIdForStorage(nodeId) }),
 			accessToken,
 		});
 
