@@ -5,6 +5,7 @@ import { JwtVerificationError } from './jwt-utils';
 
 import { FigmaServiceCredentialsError } from '../../infrastructure/figma';
 import { RepositoryRecordNotFoundError } from '../../infrastructure/repositories';
+import { UnauthorizedError } from '../routes/entities';
 
 export const errorHandlerMiddleware = (
 	err: Error,
@@ -20,7 +21,7 @@ export const errorHandlerMiddleware = (
 	// Setting `err` on the response so it can be picked up by the `pino-http` logger
 	res.err = err;
 
-	if (err instanceof JwtVerificationError) {
+	if (err instanceof JwtVerificationError || err instanceof UnauthorizedError) {
 		res.status(HttpStatusCode.Unauthorized).send(err.message);
 	} else if (err instanceof RepositoryRecordNotFoundError) {
 		res.status(HttpStatusCode.NotFound).send(err.message);

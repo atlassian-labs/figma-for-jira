@@ -1,15 +1,14 @@
 import { HttpStatusCode } from 'axios';
 import { Router } from 'express';
-import type { NextFunction, Response } from 'express';
+import type { NextFunction } from 'express';
 
 import type {
-	AtlassianDesign,
-	ConnectInstallation,
-} from '../../../domain/entities';
-import type {
-	AssociateEntityUseCaseParams,
-	DisassociateEntityUseCaseParams,
-} from '../../../usecases';
+	AssociateEntityRequestParams,
+	AssociateEntityResponse,
+	DisassociateEntityRequestParams,
+	DisassociateEntityResponse,
+} from './types';
+
 import {
 	associateEntityUseCase,
 	disassociateEntityUseCase,
@@ -17,39 +16,18 @@ import {
 import { authHeaderSymmetricJwtMiddleware } from '../../middleware';
 import type { TypedRequest } from '../types';
 
-export const entitiesRouter = Router();
-
-export type AssociateEntityRequestParams = Omit<
-	AssociateEntityUseCaseParams,
-	'atlassianUserId' | 'connectInstallation'
->;
-
-type AssociateEntityResponse = Response<
-	{ design: AtlassianDesign } | string,
-	{ connectInstallation: ConnectInstallation }
->;
-
-export type DisassociateEntityRequestParams = Omit<
-	DisassociateEntityUseCaseParams,
-	'atlassianUserId' | 'connectInstallation'
->;
-
-type DisassociateEntityResponse = Response<
-	{ design: AtlassianDesign } | string,
-	{ connectInstallation: ConnectInstallation }
->;
+export class UnauthorizedError extends Error {}
 
 const getUserIdHeaderOrThrow = (
 	userId: string | string[] | undefined,
-	res: Response,
 ): string => {
 	if (!userId || typeof userId !== 'string') {
-		const errorMessage = 'Missing or invalid User-Id header';
-		res.status(401).send(errorMessage);
-		throw errorMessage;
+		throw new UnauthorizedError('Missing or invalid User-Id header');
 	}
 	return userId;
 };
+
+export const entitiesRouter = Router();
 
 entitiesRouter.post(
 	'/associateEntity',
@@ -59,7 +37,7 @@ entitiesRouter.post(
 		res: AssociateEntityResponse,
 		next: NextFunction,
 	) => {
-		const atlassianUserId = getUserIdHeaderOrThrow(req.headers['user-id'], res);
+		const atlassianUserId = getUserIdHeaderOrThrow(req.headers['user-id']);
 		associateEntityUseCase
 			.execute({
 				...req.body,
@@ -79,7 +57,7 @@ entitiesRouter.post(
 		res: DisassociateEntityResponse,
 		next: NextFunction,
 	) => {
-		const atlassianUserId = getUserIdHeaderOrThrow(req.headers['user-id'], res);
+		const atlassianUserId = getUserIdHeaderOrThrow(req.headers['user-id']);
 		disassociateEntityUseCase
 			.execute({
 				...req.body,
