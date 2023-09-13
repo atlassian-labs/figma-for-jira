@@ -222,6 +222,10 @@ class JiraService {
 		}
 	};
 
+	/**
+	 * @internal
+	 * Only visible for testing. Please use {@link saveDesignUrlInIssueProperties}
+	 */
 	deleteFromAttachedDesignUrlV2IssueProperties = async (
 		issueIdOrKey: string,
 		{ url, displayName }: AtlassianDesign,
