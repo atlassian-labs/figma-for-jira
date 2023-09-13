@@ -1,6 +1,8 @@
 import { AtlassianAssociation } from './atlassian-design';
 import { generateIssueAri } from './testing';
 
+import { JIRA_ISSUE_ATI } from '../../common/constants';
+
 describe('AtlassianDesign', () => {
 	describe('createDesignIssueAssociation', () => {
 		test('should return issue-associated-design association', () => {
@@ -10,7 +12,7 @@ describe('AtlassianDesign', () => {
 				AtlassianAssociation.createDesignIssueAssociation(issueAri);
 
 			expect(association).toEqual({
-				associationType: 'issue-associated-design',
+				associationType: JIRA_ISSUE_ATI,
 				values: [issueAri],
 			});
 		});

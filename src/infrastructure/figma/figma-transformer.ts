@@ -4,6 +4,7 @@ import type {
 	FileResponse,
 	NodeDevStatus,
 } from './figma-client';
+import { DEFAULT_FIGMA_FILE_NODE_ID } from './figma-service';
 
 import { getConfig } from '../../config';
 import type { AtlassianDesign } from '../../domain/entities';
@@ -33,13 +34,34 @@ export const extractDataFromFigmaUrl = (url: string): FigmaUrlData | null => {
 	}
 
 	const fileKey = fileKeyMatch ? fileKeyMatch[1] : prototypeMatch![1];
-	const nodeId = nodeIdMatch ? nodeIdMatch[1] : undefined;
+	const nodeId = nodeIdMatch
+		? transformNodeIdForStorage(nodeIdMatch[1])
+		: undefined;
 
 	return {
 		fileKey,
 		...(nodeId && { nodeId }),
 		isPrototype,
 	};
+};
+
+/**
+ * Builds a design identifier given a fileKey and optional nodeId.
+ * A design identifier is a composite of `<fileKey>/<nodeId>`
+ */
+export const buildDesignId = (fileKey: string, nodeId?: string) => {
+	return `${fileKey}/${nodeId ?? DEFAULT_FIGMA_FILE_NODE_ID}`;
+};
+
+/**
+ * Parses a design identifier into a tuple of its parts: [fileKey, nodeId]
+ */
+export const parseDesignIdOrThrow = (id: string): [string, string] => {
+	const [fileKey, nodeId] = id.split('/');
+	if (!fileKey || !nodeId) {
+		throw new Error(`Received invalid Design ID: ${id}`);
+	}
+	return [fileKey, nodeId];
 };
 
 /**
@@ -174,7 +196,7 @@ export const transformNodeToAtlassianDesign = ({
 	const node = fileNodesResponse.nodes[nodeId].document;
 	const fileName = fileNodesResponse.name;
 	return {
-		id: nodeId,
+		id: buildDesignId(fileKey, nodeId),
 		displayName: node.name,
 		url: buildDesignUrl({ fileKey, fileName, nodeId }),
 		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName, nodeId }),
@@ -202,7 +224,7 @@ export const transformFileToAtlassianDesign = ({
 }: TransformFileToAtlassianDesignParams): AtlassianDesign => {
 	const fileName = fileResponse.name;
 	return {
-		id: fileKey,
+		id: buildDesignId(fileKey),
 		displayName: fileResponse.name,
 		url: buildDesignUrl({ fileKey, fileName }),
 		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName }),

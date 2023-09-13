@@ -1,3 +1,4 @@
+import { DEFAULT_FIGMA_FILE_NODE_ID } from './figma-service';
 import {
 	buildDesignUrl,
 	buildInspectUrl,
@@ -55,14 +56,14 @@ describe('FigmaTransformer', () => {
 		it('should return fileKey, nodeId and isPrototype if both fileKey and nodeId are present in the url', () => {
 			expect(extractDataFromFigmaUrl(MOCK_DESIGN_URL_WITH_NODE)).toStrictEqual({
 				fileKey: MOCK_FILE_KEY,
-				nodeId: MOCK_NODE_ID_URL,
+				nodeId: MOCK_NODE_ID,
 				isPrototype: false,
 			});
 		});
 		it('should return `isPrototype: true` if the url is for a prototype', () => {
 			expect(extractDataFromFigmaUrl(MOCK_PROTOTYPE_URL)).toStrictEqual({
 				fileKey: MOCK_FILE_KEY,
-				nodeId: MOCK_NODE_ID_URL,
+				nodeId: MOCK_NODE_ID,
 				isPrototype: true,
 			});
 		});
@@ -124,7 +125,7 @@ describe('FigmaTransformer', () => {
 				nodeId: MOCK_NODE_ID,
 			});
 			const expected: AtlassianDesign = {
-				id: MOCK_NODE_ID,
+				id: `${MOCK_FILE_KEY}/${MOCK_NODE_ID}`,
 				displayName: mockApiResponse.nodes[MOCK_NODE_ID].document.name,
 				url: buildDesignUrl({
 					fileKey: MOCK_FILE_KEY,
@@ -162,7 +163,7 @@ describe('FigmaTransformer', () => {
 		it('should correctly map to atlassian design', () => {
 			const mockApiResponse = generateGetFileResponse();
 			const expected: AtlassianDesign = {
-				id: MOCK_FILE_KEY,
+				id: `${MOCK_FILE_KEY}/${DEFAULT_FIGMA_FILE_NODE_ID}`,
 				displayName: mockApiResponse.name,
 				url: buildDesignUrl({
 					fileKey: MOCK_FILE_KEY,

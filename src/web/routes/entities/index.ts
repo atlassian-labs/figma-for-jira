@@ -1,27 +1,33 @@
 import { HttpStatusCode } from 'axios';
 import { Router } from 'express';
-import type { NextFunction, Response } from 'express';
+import type { NextFunction } from 'express';
 
 import type {
-	AtlassianDesign,
-	ConnectInstallation,
-} from '../../../domain/entities';
-import type { AssociateEntityUseCaseParams } from '../../../usecases';
-import { associateEntityUseCase } from '../../../usecases';
+	AssociateEntityRequestParams,
+	AssociateEntityResponse,
+	DisassociateEntityRequestParams,
+	DisassociateEntityResponse,
+} from './types';
+
+import {
+	associateEntityUseCase,
+	disassociateEntityUseCase,
+} from '../../../usecases';
 import { authHeaderSymmetricJwtMiddleware } from '../../middleware';
 import type { TypedRequest } from '../types';
 
+export class UnauthorizedError extends Error {}
+
+const getUserIdHeaderOrThrow = (
+	userId: string | string[] | undefined,
+): string => {
+	if (!userId || typeof userId !== 'string') {
+		throw new UnauthorizedError('Missing or invalid User-Id header');
+	}
+	return userId;
+};
+
 export const entitiesRouter = Router();
-
-export type AssociateEntityRequestParams = Omit<
-	AssociateEntityUseCaseParams,
-	'atlassianUserId' | 'connectInstallation'
->;
-
-type AssociateEntityResponse = Response<
-	{ design: AtlassianDesign } | string,
-	{ connectInstallation: ConnectInstallation }
->;
 
 entitiesRouter.post(
 	'/associateEntity',
@@ -31,19 +37,34 @@ entitiesRouter.post(
 		res: AssociateEntityResponse,
 		next: NextFunction,
 	) => {
-		const atlassianUserId = req.headers['user-id'];
-		if (!atlassianUserId || typeof atlassianUserId !== 'string') {
-			const errorMessage = 'Missing or invalid User-Id header';
-			res.status(HttpStatusCode.Unauthorized).send(errorMessage);
-			return;
-		}
+		const atlassianUserId = getUserIdHeaderOrThrow(req.headers['user-id']);
 		associateEntityUseCase
 			.execute({
 				...req.body,
 				atlassianUserId,
 				connectInstallation: res.locals.connectInstallation,
 			})
-			.then((design) => res.status(HttpStatusCode.Created).send({ design }))
+			.then((design) => res.status(HttpStatusCode.Ok).send({ design }))
+			.catch((error) => next(error));
+	},
+);
+
+entitiesRouter.post(
+	'/disassociateEntity',
+	authHeaderSymmetricJwtMiddleware,
+	(
+		req: TypedRequest<DisassociateEntityRequestParams>,
+		res: DisassociateEntityResponse,
+		next: NextFunction,
+	) => {
+		const atlassianUserId = getUserIdHeaderOrThrow(req.headers['user-id']);
+		disassociateEntityUseCase
+			.execute({
+				...req.body,
+				atlassianUserId,
+				connectInstallation: res.locals.connectInstallation,
+			})
+			.then((design) => res.status(HttpStatusCode.Ok).send({ design }))
 			.catch((error) => next(error));
 	},
 );
