@@ -4,6 +4,11 @@ import nock from 'nock';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
+import type {
+	AssociateEntityRequestParams,
+	DisassociateEntityRequestParams,
+} from './types';
+
 import app from '../../../app';
 import { JIRA_ISSUE_ATI } from '../../../common/constants';
 import { getConfig } from '../../../config';
@@ -39,11 +44,6 @@ import {
 	connectInstallationRepository,
 	figmaOAuth2UserCredentialsRepository,
 } from '../../../infrastructure/repositories';
-
-import type {
-	AssociateEntityRequestParams,
-	DisassociateEntityRequestParams,
-} from '.';
 
 const MOCK_CLIENT_KEY = '4561b8be-e38b-43d4-84d9-f09e8195d117';
 const MOCK_SHARED_SECRET = '903b6b9e-b82b-48ea-a9b2-40b9e700df32';
