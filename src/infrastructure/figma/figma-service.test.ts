@@ -13,7 +13,11 @@ import type {
 	MeResponse,
 } from './figma-client';
 import { figmaClient } from './figma-client';
-import { DEFAULT_FIGMA_FILE_NODE_ID, figmaService } from './figma-service';
+import {
+	buildIssueTitle,
+	DEFAULT_FIGMA_FILE_NODE_ID,
+	figmaService,
+} from './figma-service';
 import {
 	transformFileToAtlassianDesign,
 	transformNodeIdForStorage,
@@ -26,6 +30,7 @@ import {
 	MOCK_DESIGN_URL_WITHOUT_NODE,
 	MOCK_FILE_KEY,
 	MOCK_INVALID_DESIGN_URL,
+	MOCK_ISSUE_KEY,
 	MOCK_ISSUE_TITLE,
 	MOCK_ISSUE_URL,
 	MOCK_NODE_ID,
@@ -255,7 +260,7 @@ describe('FigmaService', () => {
 			} as CreateDevResourcesResponse);
 
 			const expectedDevResource: CreateDevResourcesRequest = {
-				name: MOCK_ISSUE_TITLE,
+				name: buildIssueTitle(MOCK_ISSUE_KEY, MOCK_ISSUE_TITLE),
 				url: MOCK_ISSUE_URL,
 				file_key: MOCK_FILE_KEY,
 				node_id: DEFAULT_FIGMA_FILE_NODE_ID,
@@ -264,6 +269,7 @@ describe('FigmaService', () => {
 			await figmaService.createDevResource({
 				designUrl: MOCK_DESIGN_URL_WITHOUT_NODE,
 				issueUrl: MOCK_ISSUE_URL,
+				issueKey: MOCK_ISSUE_KEY,
 				issueTitle: MOCK_ISSUE_TITLE,
 				atlassianUserId: ATLASSIAN_USER_ID,
 			});
@@ -281,7 +287,7 @@ describe('FigmaService', () => {
 			} as CreateDevResourcesResponse);
 
 			const expectedDevResource: CreateDevResourcesRequest = {
-				name: MOCK_ISSUE_TITLE,
+				name: buildIssueTitle(MOCK_ISSUE_KEY, MOCK_ISSUE_TITLE),
 				url: MOCK_ISSUE_URL,
 				file_key: MOCK_FILE_KEY,
 				node_id: transformNodeIdForStorage(MOCK_NODE_ID_URL),
@@ -290,6 +296,7 @@ describe('FigmaService', () => {
 			await figmaService.createDevResource({
 				designUrl: MOCK_DESIGN_URL_WITH_NODE,
 				issueUrl: MOCK_ISSUE_URL,
+				issueKey: MOCK_ISSUE_KEY,
 				issueTitle: MOCK_ISSUE_TITLE,
 				atlassianUserId: ATLASSIAN_USER_ID,
 			});
@@ -310,6 +317,7 @@ describe('FigmaService', () => {
 				figmaService.createDevResource({
 					designUrl: MOCK_DESIGN_URL_WITH_NODE,
 					issueUrl: MOCK_ISSUE_URL,
+					issueKey: MOCK_ISSUE_KEY,
 					issueTitle: MOCK_ISSUE_TITLE,
 					atlassianUserId: ATLASSIAN_USER_ID,
 				}),
@@ -324,6 +332,7 @@ describe('FigmaService', () => {
 				figmaService.createDevResource({
 					designUrl: MOCK_INVALID_DESIGN_URL,
 					issueUrl: MOCK_ISSUE_URL,
+					issueKey: MOCK_ISSUE_KEY,
 					issueTitle: MOCK_ISSUE_TITLE,
 					atlassianUserId: ATLASSIAN_USER_ID,
 				}),
@@ -341,6 +350,7 @@ describe('FigmaService', () => {
 				figmaService.createDevResource({
 					designUrl: MOCK_DESIGN_URL_WITH_NODE,
 					issueUrl: MOCK_ISSUE_URL,
+					issueKey: MOCK_ISSUE_KEY,
 					issueTitle: MOCK_ISSUE_TITLE,
 					atlassianUserId: ATLASSIAN_USER_ID,
 				}),

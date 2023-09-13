@@ -1,4 +1,5 @@
 import type { AtlassianEntity } from './types';
+import { buildIssueUrl } from './utils';
 
 import { JIRA_ISSUE_ATI } from '../common/constants';
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
@@ -34,7 +35,7 @@ export const disassociateEntityUseCase = {
 		const designIssueAssociation =
 			AtlassianAssociation.createDesignIssueAssociation(disassociateFrom.ari);
 
-		const { self: issueUrl } = issue;
+		const { key: issueKey } = issue;
 
 		await Promise.all([
 			jiraService.submitDesign(
@@ -46,7 +47,7 @@ export const disassociateEntityUseCase = {
 			),
 			figmaService.deleteDevResourceIfExists({
 				designId: entity.id,
-				issueUrl,
+				issueUrl: buildIssueUrl(connectInstallation.baseUrl, issueKey),
 				atlassianUserId,
 			}),
 		]);

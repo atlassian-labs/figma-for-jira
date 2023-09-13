@@ -18,8 +18,8 @@ export const MOCK_INVALID_DESIGN_URL = 'https://www.figma.com';
 export const MOCK_NODE_ID = '1:2';
 export const MOCK_LAST_MODIFIED = '2023-08-29T03:17:29Z';
 export const MOCK_VERSION = '4067551197';
-export const MOCK_ISSUE_URL =
-	'https://myjirainstance.atlassian.net/browse/FIG-1';
+export const MOCK_ISSUE_KEY = 'FIG-1';
+export const MOCK_ISSUE_URL = `https://myjirainstance.atlassian.net/browse/${MOCK_ISSUE_KEY}`;
 export const MOCK_ISSUE_TITLE = 'Test Jira Issue';
 export const MOCK_DEV_RESOURCE_ID = uuidv4();
 export const MOCK_DOCUMENT: NodeDetails = {
