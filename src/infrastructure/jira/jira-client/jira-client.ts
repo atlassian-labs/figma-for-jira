@@ -23,7 +23,6 @@ import type { ConnectInstallation } from '../../../domain/entities';
 import { getAjvSchema } from '../../ajv';
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
-const ISSUE_PROPERTY_BASE_URI = '/rest/api/2/issue';
 
 /**
  * A Jira API client.
@@ -110,7 +109,7 @@ class JiraClient {
 		connectInstallation: ConnectInstallation,
 	): Promise<GetIssuePropertyResponse> => {
 		const url = new URL(
-			`${ISSUE_PROPERTY_BASE_URI}/${issueIdOrKey}/properties/${propertyKey}`,
+			`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
 			connectInstallation.baseUrl,
 		);
 		let response: AxiosResponse<GetIssuePropertyResponse>;
@@ -154,7 +153,7 @@ class JiraClient {
 		connectInstallation: ConnectInstallation,
 	): Promise<number> => {
 		const url = new URL(
-			`${ISSUE_PROPERTY_BASE_URI}/${issueIdOrKey}/properties/${propertyKey}`,
+			`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
 			connectInstallation.baseUrl,
 		);
 
@@ -181,7 +180,7 @@ class JiraClient {
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		const url = new URL(
-			`${ISSUE_PROPERTY_BASE_URI}/${issueIdOrKey}/properties/${propertyKey}`,
+			`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
 			connectInstallation.baseUrl,
 		);
 
