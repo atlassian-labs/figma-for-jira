@@ -64,8 +64,7 @@ export class FigmaService {
 		url: string,
 		atlassianUserId: string,
 	): Promise<AtlassianDesign> => {
-		const { fileKey, nodeId, isPrototype } =
-			extractDataFromFigmaUrlOrThrow(url);
+		const { fileKey, nodeId } = extractDataFromFigmaUrlOrThrow(url);
 
 		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
 
@@ -80,14 +79,12 @@ export class FigmaService {
 			return transformNodeToAtlassianDesign({
 				fileKey,
 				nodeId,
-				isPrototype,
 				fileNodesResponse,
 			});
 		} else {
 			const fileResponse = await figmaClient.getFile(fileKey, accessToken);
 			return transformFileToAtlassianDesign({
 				fileKey,
-				isPrototype,
 				fileResponse,
 			});
 		}
@@ -112,14 +109,12 @@ export class FigmaService {
 			return transformNodeToAtlassianDesign({
 				fileKey,
 				nodeId,
-				isPrototype: false,
 				fileNodesResponse,
 			});
 		} else {
 			const fileResponse = await figmaClient.getFile(fileKey, accessToken);
 			return transformFileToAtlassianDesign({
 				fileKey,
-				isPrototype: false,
 				fileResponse,
 			});
 		}

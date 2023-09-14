@@ -16,24 +16,20 @@ import {
 export type FigmaUrlData = {
 	readonly fileKey: string;
 	readonly nodeId?: string;
-	readonly isPrototype: boolean;
 };
 
 export const extractDataFromFigmaUrl = (url: string): FigmaUrlData | null => {
 	const fileKeyRegex = /file\/([a-zA-Z0-9]+)/;
 	const nodeIdRegex = /node-id=([a-zA-Z0-9-]+)/;
-	const prototypeRegex = /proto\/([a-zA-Z0-9]+)/;
 
 	const fileKeyMatch = url.match(fileKeyRegex);
 	const nodeIdMatch = url.match(nodeIdRegex);
-	const prototypeMatch = url.match(prototypeRegex);
-	const isPrototype = prototypeRegex.test(url);
 
-	if (!fileKeyMatch && !prototypeMatch) {
+	if (!fileKeyMatch) {
 		return null;
 	}
 
-	const fileKey = fileKeyMatch ? fileKeyMatch[1] : prototypeMatch![1];
+	const fileKey = fileKeyMatch[1];
 	const nodeId = nodeIdMatch
 		? transformNodeIdForStorage(nodeIdMatch[1])
 		: undefined;
@@ -41,7 +37,6 @@ export const extractDataFromFigmaUrl = (url: string): FigmaUrlData | null => {
 	return {
 		fileKey,
 		...(nodeId && { nodeId }),
-		isPrototype,
 	};
 };
 
@@ -149,13 +144,7 @@ export const mapNodeStatusToDevStatus = (
  * @see https://www.figma.com/developers/api#node-types
  * @returns
  */
-export const mapNodeTypeToDesignType = (
-	type: string,
-	isPrototype: boolean,
-): AtlassianDesignType => {
-	if (isPrototype) {
-		return AtlassianDesignType.PROTOTYPE;
-	}
+export const mapNodeTypeToDesignType = (type: string): AtlassianDesignType => {
 	if (type === 'DOCUMENT') {
 		return AtlassianDesignType.FILE;
 	}
@@ -182,14 +171,12 @@ const getUpdateSequenceNumber = (input: string): number => {
 type TransformNodeToAtlassianDesignParams = {
 	readonly fileKey: string;
 	readonly nodeId: string;
-	readonly isPrototype: boolean;
 	readonly fileNodesResponse: FileNodesResponse;
 };
 
 export const transformNodeToAtlassianDesign = ({
 	fileKey,
 	nodeId: _nodeId,
-	isPrototype,
 	fileNodesResponse,
 }: TransformNodeToAtlassianDesignParams): AtlassianDesign => {
 	const nodeId = transformNodeIdForStorage(_nodeId);
@@ -204,7 +191,7 @@ export const transformNodeToAtlassianDesign = ({
 		status: node.devStatus
 			? mapNodeStatusToDevStatus(node.devStatus)
 			: AtlassianDesignStatus.NONE,
-		type: mapNodeTypeToDesignType(node.type, isPrototype),
+		type: mapNodeTypeToDesignType(node.type),
 		// TODO: lastUpdated should be determined by the nearest parent node's lastModified time once Figma have implemented lastModified
 		lastUpdated: fileNodesResponse.lastModified,
 		updateSequenceNumber: getUpdateSequenceNumber(fileNodesResponse.version),
@@ -213,13 +200,11 @@ export const transformNodeToAtlassianDesign = ({
 
 type TransformFileToAtlassianDesignParams = {
 	readonly fileKey: string;
-	readonly isPrototype: boolean;
 	readonly fileResponse: FileResponse;
 };
 
 export const transformFileToAtlassianDesign = ({
 	fileKey,
-	isPrototype,
 	fileResponse,
 }: TransformFileToAtlassianDesignParams): AtlassianDesign => {
 	const fileName = fileResponse.name;
@@ -230,9 +215,7 @@ export const transformFileToAtlassianDesign = ({
 		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName }),
 		inspectUrl: buildInspectUrl({ fileKey, fileName }),
 		status: AtlassianDesignStatus.NONE,
-		type: isPrototype
-			? AtlassianDesignType.PROTOTYPE
-			: AtlassianDesignType.FILE,
+		type: AtlassianDesignType.FILE,
 		lastUpdated: fileResponse.lastModified,
 		updateSequenceNumber: getUpdateSequenceNumber(fileResponse.version),
 	};
