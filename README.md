@@ -98,7 +98,7 @@ Run `npm run jira:installApp`. The app will be installed to the Jira instance sp
 
 If you want to install the app on multiple Jira instances, you can do this manually by performing the following steps:
 
-1. Visit the **Manage apps** page on your Jira instance (you'll need to be a Jira admin) by visiting this link `https://${JIRA_INSTANCE_BASE_URL}/plugins/servlet/upm` or from the header menu, select **Apps** -> **Manage your apps**.
+1. Visit the **Manage apps** page on your Jira instance (you'll need to be a Jira admin) by visiting this link `https://<your_jira_instance>.atlassian.net/plugins/servlet/upm` or from the header menu, select **Apps** -> **Manage your apps**.
 2. Verify the filter is set to User-installed, and select **Settings** beneath the User-installed apps table.
 3. **Enable development mode** then refresh the page.
 4. You should now see an **Upload app** button. Click it and enter the app URL `https://${APP_URL}/atlassian-connect.json`.
@@ -164,7 +164,7 @@ To run a database migration do the following:
 
 ## Logging
 
-The app uses [pino](https://github.com/pinojs/pino) and [pino-http](https://github.com/pinojs/pino-http) for logging. The logger is configured in `/src/infrastructure/logger.ts`.
+The app uses [pino](https://github.com/pinojs/pino) and [pino-http](https://github.com/pinojs/pino-http) for logging. The logger is configured in `/src/infrastructure/logger.ts` and `pino-http` middleware logging is set up in `src/web/middleware/http-logger-middleware.ts`
 
 ## Testing
 
