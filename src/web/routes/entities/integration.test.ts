@@ -470,7 +470,7 @@ describe('/entities', () => {
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 						response: generateGetIssuePropertyResponse({
 							key: propertyKeys.ATTACHED_DESIGN_URL_V2,
-							value: JSON.stringify([]),
+							value: [],
 						}),
 					});
 					mockSetIssuePropertyEndpoint({
@@ -514,7 +514,7 @@ describe('/entities', () => {
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 						response: generateGetIssuePropertyResponse({
 							key: propertyKeys.ATTACHED_DESIGN_URL_V2,
-							value: JSON.stringify([]),
+							value: [],
 						}),
 					});
 					mockSetIssuePropertyEndpoint({
@@ -559,7 +559,7 @@ describe('/entities', () => {
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 						response: generateGetIssuePropertyResponse({
 							key: propertyKeys.ATTACHED_DESIGN_URL_V2,
-							value: JSON.stringify([]),
+							value: [],
 						}),
 					});
 					mockSetIssuePropertyEndpoint({
@@ -638,7 +638,7 @@ describe('/entities', () => {
 					propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 					response: generateGetIssuePropertyResponse({
 						key: propertyKeys.ATTACHED_DESIGN_URL_V2,
-						value: JSON.stringify(attachedDesignUrlV2Values),
+						value: attachedDesignUrlV2Values,
 					}),
 				});
 				mockSetIssuePropertyEndpoint({

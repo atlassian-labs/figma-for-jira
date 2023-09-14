@@ -3,7 +3,6 @@ import type { GetIssuePropertyResponse } from './jira-client';
 import { jiraClient, JiraClientNotFoundError } from './jira-client';
 import { ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA } from './schemas';
 
-import { ensureString } from '../../common/stringUtils';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
@@ -149,7 +148,7 @@ class JiraService {
 				await jiraClient.setIssueProperty(
 					issueIdOrKey,
 					propertyKeys.ATTACHED_DESIGN_URL_V2,
-					JSON.stringify([newAttachedDesignUrlIssuePropertyValue]),
+					[newAttachedDesignUrlIssuePropertyValue],
 					connectInstallation,
 				);
 				return;
@@ -158,20 +157,12 @@ class JiraService {
 			}
 		}
 
-		const storedAttachedDesignUrlIssuePropertyValues = JSON.parse(
-			ensureString(response.value),
-		) as unknown;
-
 		assertSchema<AttachedDesignUrlV2IssuePropertyValue[]>(
-			storedAttachedDesignUrlIssuePropertyValues,
+			response.value,
 			ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 		);
 
-		if (
-			!storedAttachedDesignUrlIssuePropertyValues.find(
-				(value) => value.url === url,
-			)
-		) {
+		if (!response.value.find((value) => value.url === url)) {
 			const newAttachedDesignUrlIssuePropertyValue: AttachedDesignUrlV2IssuePropertyValue =
 				{
 					url,
@@ -181,10 +172,7 @@ class JiraService {
 			await jiraClient.setIssueProperty(
 				issueIdOrKey,
 				propertyKeys.ATTACHED_DESIGN_URL_V2,
-				JSON.stringify([
-					...storedAttachedDesignUrlIssuePropertyValues,
-					newAttachedDesignUrlIssuePropertyValue,
-				]),
+				[...response.value, newAttachedDesignUrlIssuePropertyValue],
 				connectInstallation,
 			);
 		}
@@ -225,7 +213,7 @@ class JiraService {
 				connectInstallation,
 			);
 
-			const storedUrl = ensureString(response.value);
+			const storedUrl = response.value;
 
 			if (storedUrl === design.url) {
 				await jiraClient.deleteIssueProperty(
@@ -264,12 +252,9 @@ class JiraService {
 			}
 			throw error;
 		}
-		const storedAttachedDesignUrlIssuePropertyValues = JSON.parse(
-			ensureString(response.value),
-		) as unknown;
 
 		assertSchema<AttachedDesignUrlV2IssuePropertyValue[]>(
-			storedAttachedDesignUrlIssuePropertyValues,
+			response.value,
 			ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 		);
 
@@ -278,19 +263,15 @@ class JiraService {
 			name: displayName,
 		};
 
-		const newAttachedDesignUrlIssuePropertyValue =
-			storedAttachedDesignUrlIssuePropertyValues.filter(
-				({ url }) => url !== issuePropertyValueToRemove.url,
-			);
+		const newAttachedDesignUrlIssuePropertyValue = response.value.filter(
+			({ url }) => url !== issuePropertyValueToRemove.url,
+		);
 
-		if (
-			newAttachedDesignUrlIssuePropertyValue.length <
-			storedAttachedDesignUrlIssuePropertyValues.length
-		) {
+		if (newAttachedDesignUrlIssuePropertyValue.length < response.value.length) {
 			await jiraClient.setIssueProperty(
 				issueIdOrKey,
 				propertyKeys.ATTACHED_DESIGN_URL_V2,
-				JSON.stringify(newAttachedDesignUrlIssuePropertyValue),
+				newAttachedDesignUrlIssuePropertyValue,
 				connectInstallation,
 			);
 		} else {

@@ -1,4 +1,4 @@
-import { ensureString, isString } from './stringUtils';
+import { isString } from './stringUtils';
 
 describe('stringUtils', () => {
 	describe('isString', () => {
@@ -12,13 +12,5 @@ describe('stringUtils', () => {
 				expect(isString(value)).toBe(false);
 			},
 		);
-	});
-
-	describe('ensureString', () => {
-		it('should throw when non-string is given', () => {
-			expect(() => ensureString(1)).toThrow(
-				'The provided value is not of the correct type. Expected string, but received: number',
-			);
-		});
 	});
 });
