@@ -14,7 +14,7 @@ import {
 
 import type { ConnectInstallation } from '../../../domain/entities';
 import { generateConnectInstallation } from '../../../domain/entities/testing';
-import { ValidationError } from '../../errors';
+import { SchemaValidationError } from '../../ajv';
 
 jest.mock('./jwt-utils');
 
@@ -64,7 +64,7 @@ describe('JiraClient', () => {
 
 			await expect(() =>
 				jiraClient.submitDesigns(request, connectInstallation),
-			).rejects.toThrowError(ValidationError);
+			).rejects.toThrowError(SchemaValidationError);
 		});
 	});
 
@@ -96,7 +96,7 @@ describe('JiraClient', () => {
 
 			await expect(() =>
 				jiraClient.getIssue(issueKey, connectInstallation),
-			).rejects.toThrowError(ValidationError);
+			).rejects.toThrowError(SchemaValidationError);
 		});
 	});
 
@@ -136,7 +136,7 @@ describe('JiraClient', () => {
 
 			await expect(() =>
 				jiraClient.getIssueProperty(issueId, propertyKey, connectInstallation),
-			).rejects.toThrowError(ValidationError);
+			).rejects.toThrowError(SchemaValidationError);
 		});
 
 		it('should throw a JiraClientNotFound exception when response status is 404', async () => {

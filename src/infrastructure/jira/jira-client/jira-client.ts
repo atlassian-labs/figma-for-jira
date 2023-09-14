@@ -17,8 +17,7 @@ import type {
 
 import { Duration } from '../../../common/duration';
 import type { ConnectInstallation } from '../../../domain/entities';
-import { getAjvSchema } from '../../ajv';
-import { ValidationError } from '../../errors';
+import { assertSchema } from '../../ajv';
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
 
@@ -58,14 +57,7 @@ class JiraClient {
 			},
 		);
 
-		const validate = getAjvSchema(SUBMIT_DESIGNS_RESPONSE_SCHEMA);
-
-		if (!validate(response.data)) {
-			throw new ValidationError(
-				`Unexpected response from ${url.pathname}`,
-				validate.errors,
-			);
-		}
+		assertSchema(response.data, SUBMIT_DESIGNS_RESPONSE_SCHEMA);
 
 		return response.data;
 	};
@@ -90,14 +82,7 @@ class JiraClient {
 			),
 		});
 
-		const validate = getAjvSchema(GET_ISSUE_RESPONSE_SCHEMA);
-
-		if (!validate(response.data)) {
-			throw new ValidationError(
-				`Unexpected response from ${url.pathname}`,
-				validate.errors,
-			);
-		}
+		assertSchema(response.data, GET_ISSUE_RESPONSE_SCHEMA);
 
 		return response.data;
 	};
@@ -136,14 +121,10 @@ class JiraClient {
 			}
 		}
 
-		const validate = getAjvSchema(GET_ISSUE_PROPERTY_RESPONSE_SCHEMA);
-
-		if (!validate(response.data)) {
-			throw new ValidationError(
-				`Unexpected response from ${url.pathname}`,
-				validate.errors,
-			);
-		}
+		assertSchema<Omit<GetIssuePropertyResponse, 'value'>>(
+			response.data,
+			GET_ISSUE_PROPERTY_RESPONSE_SCHEMA,
+		);
 
 		return response.data;
 	};

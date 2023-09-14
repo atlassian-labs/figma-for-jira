@@ -23,6 +23,7 @@ import {
 	generateIssueAri,
 	generateJiraIssue,
 } from '../../domain/entities/testing';
+import { SchemaValidationError } from '../ajv';
 
 describe('JiraService', () => {
 	describe('submitDesign', () => {
@@ -361,9 +362,7 @@ describe('JiraService', () => {
 						design,
 						connectInstallation,
 					),
-				).rejects.toThrowError(
-					`The value for issue property ${propertyKeys.ATTACHED_DESIGN_URL_V2} is invalid.`,
-				);
+				).rejects.toThrowError(SchemaValidationError);
 			},
 		);
 
@@ -640,9 +639,7 @@ describe('JiraService', () => {
 						design,
 						connectInstallation,
 					),
-				).rejects.toThrowError(
-					`The value for issue property ${propertyKeys.ATTACHED_DESIGN_URL_V2} is invalid.`,
-				);
+				).rejects.toThrowError(SchemaValidationError);
 			},
 		);
 

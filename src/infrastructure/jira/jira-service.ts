@@ -10,8 +10,7 @@ import type {
 	JiraIssue,
 } from '../../domain/entities';
 import { AtlassianAssociation } from '../../domain/entities';
-import { getAjvSchema } from '../ajv';
-import { ValidationError } from '../errors';
+import { assertSchema } from '../ajv';
 import { getLogger } from '../logger';
 
 type SubmitDesignParams = {
@@ -161,10 +160,11 @@ class JiraService {
 
 		const storedAttachedDesignUrlIssuePropertyValues = JSON.parse(
 			ensureString(response.value),
-		) as AttachedDesignUrlV2IssuePropertyValue[];
+		) as unknown;
 
-		this.validateAttachedDesignUrlV2IssuePropertyValue(
+		assertSchema<AttachedDesignUrlV2IssuePropertyValue[]>(
 			storedAttachedDesignUrlIssuePropertyValues,
+			ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 		);
 
 		if (
@@ -266,10 +266,11 @@ class JiraService {
 		}
 		const storedAttachedDesignUrlIssuePropertyValues = JSON.parse(
 			ensureString(response.value),
-		) as AttachedDesignUrlV2IssuePropertyValue[];
+		) as unknown;
 
-		this.validateAttachedDesignUrlV2IssuePropertyValue(
+		assertSchema<AttachedDesignUrlV2IssuePropertyValue[]>(
 			storedAttachedDesignUrlIssuePropertyValues,
+			ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 		);
 
 		const issuePropertyValueToRemove: AttachedDesignUrlV2IssuePropertyValue = {
@@ -295,19 +296,6 @@ class JiraService {
 		} else {
 			getLogger().warn(
 				`Design with url: ${url} that was requested to be deleted was not removed from the 'attached-design-v2' issue property array`,
-			);
-		}
-	};
-
-	private validateAttachedDesignUrlV2IssuePropertyValue = (
-		value: AttachedDesignUrlV2IssuePropertyValue[],
-	) => {
-		const validate = getAjvSchema(ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA);
-
-		if (!validate(value)) {
-			throw new ValidationError(
-				`The value for issue property ${propertyKeys.ATTACHED_DESIGN_URL_V2} is invalid.`,
-				validate.errors,
 			);
 		}
 	};

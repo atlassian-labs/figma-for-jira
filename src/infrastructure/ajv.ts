@@ -1,5 +1,5 @@
-import type { JSONSchemaType, ValidateFunction } from 'ajv';
 import Ajv from 'ajv';
+import type { ErrorObject, JSONSchemaType, ValidateFunction } from 'ajv';
 
 export const ajv = new Ajv();
 
@@ -17,3 +17,26 @@ export const getAjvSchema = <T>(
 ): ValidateFunction<T> => {
 	return ajv.getSchema(schema.$id) ?? ajv.compile(schema);
 };
+
+export function assertSchema<T>(
+	value: unknown,
+	schema: JSONSchemaTypeWithId<T>,
+): asserts value is T {
+	const validate = getAjvSchema(schema);
+
+	if (!validate(value)) {
+		throw new SchemaValidationError(
+			`Error validating schema ${schema.$id}`,
+			validate.errors,
+		);
+	}
+}
+
+export class SchemaValidationError extends Error {
+	errors?: ErrorObject[] | null;
+
+	constructor(message: string, errors?: ErrorObject[] | null) {
+		super(message);
+		this.errors = errors;
+	}
+}
