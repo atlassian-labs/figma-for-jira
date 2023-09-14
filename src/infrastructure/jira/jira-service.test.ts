@@ -266,12 +266,12 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			const expectedIssuePropertyValue = [
+			const expectedIssuePropertyValue = JSON.stringify([
 				{
 					url: design.url,
 					name: design.displayName,
 				},
-			];
+			]);
 
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
@@ -292,7 +292,7 @@ describe('JiraService', () => {
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
 					key: propertyKeys.ATTACHED_DESIGN_URL_V2,
-					value: attachedDesignPropertyValues,
+					value: JSON.stringify(attachedDesignPropertyValues),
 				}),
 			);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
@@ -303,13 +303,13 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			const expectedIssuePropertyValue = [
+			const expectedIssuePropertyValue = JSON.stringify([
 				...attachedDesignPropertyValues,
 				{
 					url: design.url,
 					name: design.displayName,
 				},
-			];
+			]);
 
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
@@ -317,6 +317,73 @@ describe('JiraService', () => {
 				expectedIssuePropertyValue,
 				connectInstallation,
 			);
+		});
+
+		it('should not update the issue property url array if the design has already been linked', async () => {
+			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+				generateGetIssuePropertyResponse({
+					key: propertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify([
+						{ url: design.url, name: design.displayName },
+					]),
+				}),
+			);
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await jiraService.updateAttachedDesignUrlV2IssueProperty(
+				issueId,
+				design,
+				connectInstallation,
+			);
+
+			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
+		});
+
+		it.each([
+			1,
+			null,
+			{ name: 'test', url: 'url' },
+			[{ name: 'test-no-url' }],
+			[{ url: 'test-no-name' }],
+		])(
+			'should throw a validation error if the issue property value is not in the expected shape',
+			async (value) => {
+				jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+					generateGetIssuePropertyResponse({
+						key: propertyKeys.ATTACHED_DESIGN_URL_V2,
+						value: JSON.stringify(value),
+					}),
+				);
+
+				await expect(
+					jiraService.updateAttachedDesignUrlV2IssueProperty(
+						issueId,
+						design,
+						connectInstallation,
+					),
+				).rejects.toThrowError(
+					`The value for issue property ${propertyKeys.ATTACHED_DESIGN_URL_V2} is invalid.`,
+				);
+			},
+		);
+
+		it('should throw if the issue property value received from jira is not a string', async () => {
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockResolvedValue(generateGetIssuePropertyResponse({ value: 1 }));
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await expect(
+				jiraService.updateAttachedDesignUrlV2IssueProperty(
+					issueId,
+					design,
+					connectInstallation,
+				),
+			).rejects.toThrowError(
+				'The provided value is not of the correct type. Expected string, but received: number',
+			);
+
+			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
 		});
 
 		it('should rethrow unknown errors', async () => {
@@ -397,6 +464,27 @@ describe('JiraService', () => {
 			expect(jiraClient.deleteIssueProperty).not.toHaveBeenCalled();
 		});
 
+		it('should throw if the issue property value returned is not a string', async () => {
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockResolvedValue(generateGetIssuePropertyResponse({ value: 1 }));
+			jest
+				.spyOn(jiraClient, 'deleteIssueProperty')
+				.mockImplementation(jest.fn());
+
+			await expect(
+				jiraService.deleteAttachedDesignUrlInIssuePropertiesIfPresent(
+					issueId,
+					design,
+					connectInstallation,
+				),
+			).rejects.toThrowError(
+				'The provided value is not of the correct type. Expected string, but received: number',
+			);
+
+			expect(jiraClient.deleteIssueProperty).not.toHaveBeenCalled();
+		});
+
 		it('should rethrow unknown errors', async () => {
 			const unexpectedError = new AxiosError(
 				'Forbidden.',
@@ -465,7 +553,7 @@ describe('JiraService', () => {
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
 					key: propertyKeys.ATTACHED_DESIGN_URL_V2,
-					value: attachedDesignPropertyValues,
+					value: JSON.stringify(attachedDesignPropertyValues),
 				}),
 			);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
@@ -476,7 +564,7 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			const expectedIssuePropertyValue = [designPropertyValue];
+			const expectedIssuePropertyValue = JSON.stringify([designPropertyValue]);
 
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
@@ -485,6 +573,78 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 		});
+
+		it('should not set issue properties again if the array remained unchanged', async () => {
+			const designToDelete = generateAtlassianDesign();
+			const designPropertyValue: AttachedDesignUrlV2IssuePropertyValue = {
+				url: design.url,
+				name: design.displayName,
+			};
+			const attachedDesignPropertyValues = [designPropertyValue];
+
+			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+				generateGetIssuePropertyResponse({
+					key: propertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify(attachedDesignPropertyValues),
+				}),
+			);
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await jiraService.deleteFromAttachedDesignUrlV2IssueProperties(
+				issueId,
+				designToDelete,
+				connectInstallation,
+			);
+
+			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
+		});
+
+		it('should throw if the issue property value received from jira is not a string', async () => {
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockResolvedValue(generateGetIssuePropertyResponse({ value: 1 }));
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await expect(
+				jiraService.deleteFromAttachedDesignUrlV2IssueProperties(
+					issueId,
+					design,
+					connectInstallation,
+				),
+			).rejects.toThrowError(
+				'The provided value is not of the correct type. Expected string, but received: number',
+			);
+
+			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
+		});
+
+		it.each([
+			1,
+			null,
+			{ name: 'test', url: 'url' },
+			[{ name: 'test-no-url' }],
+			[{ url: 'test-no-name' }],
+		])(
+			'should throw a validation error if the issue property value is not in the expected shape',
+			async (value) => {
+				jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+					generateGetIssuePropertyResponse({
+						key: propertyKeys.ATTACHED_DESIGN_URL_V2,
+						value: JSON.stringify(value),
+					}),
+				);
+
+				await expect(
+					jiraService.deleteFromAttachedDesignUrlV2IssueProperties(
+						issueId,
+						design,
+						connectInstallation,
+					),
+				).rejects.toThrowError(
+					`The value for issue property ${propertyKeys.ATTACHED_DESIGN_URL_V2} is invalid.`,
+				);
+			},
+		);
 
 		it('should rethrow unknown errors', async () => {
 			const unexpectedError = new AxiosError(
