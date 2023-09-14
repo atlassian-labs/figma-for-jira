@@ -158,9 +158,8 @@ export class FigmaService {
 		);
 
 		if (response.errors?.length > 0) {
-			const errorMessage = response.errors.map((err) => err.error).join('|');
 			getLogger().error(
-				new Error(errorMessage),
+				{ errors: response.errors },
 				'Created dev resources with errors',
 			);
 		}

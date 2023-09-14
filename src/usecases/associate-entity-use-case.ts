@@ -1,10 +1,9 @@
 import type { AtlassianEntity } from './types';
-import { buildIssueUrl } from './utils';
 
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
 import { AtlassianAssociation } from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
-import { jiraService } from '../infrastructure/jira';
+import { buildIssueUrl, jiraService } from '../infrastructure/jira';
 
 export type AssociateEntityUseCaseParams = {
 	readonly entity: {

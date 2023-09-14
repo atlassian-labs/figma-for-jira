@@ -30,16 +30,18 @@ import {
 	MOCK_DESIGN_URL_WITHOUT_NODE,
 	MOCK_FILE_KEY,
 	MOCK_INVALID_DESIGN_URL,
-	MOCK_ISSUE_KEY,
-	MOCK_ISSUE_TITLE,
-	MOCK_ISSUE_URL,
 	MOCK_NODE_ID,
 	MOCK_NODE_ID_URL,
 } from './testing';
 
 import * as configModule from '../../config';
 import { mockConfig } from '../../config/testing';
-import { generateFigmaOAuth2UserCredentials } from '../../domain/entities/testing';
+import {
+	generateFigmaOAuth2UserCredentials,
+	MOCK_ISSUE_KEY,
+	MOCK_ISSUE_TITLE,
+	MOCK_ISSUE_URL,
+} from '../../domain/entities/testing';
 
 const ATLASSIAN_USER_ID = uuidv4();
 

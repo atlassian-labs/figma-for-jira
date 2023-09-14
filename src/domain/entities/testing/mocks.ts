@@ -15,6 +15,9 @@ import {
 import { Duration } from '../../../common/duration';
 
 export const MOCK_ISSUE_ID = '10000';
+export const MOCK_ISSUE_KEY = 'FIG-1';
+export const MOCK_ISSUE_URL = `https://myjirainstance.atlassian.net/browse/${MOCK_ISSUE_KEY}`;
+export const MOCK_ISSUE_TITLE = 'Test Jira Issue';
 
 export const generateIssueAri = (issueId = Date.now().toString()) =>
 	`ari:cloud:jira:${uuidv4()}:issue/${issueId}`;

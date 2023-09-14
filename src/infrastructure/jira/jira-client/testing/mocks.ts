@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { Duration } from '../../../../common/duration';
-import { MOCK_ISSUE_KEY } from '../../../figma/testing';
+import { MOCK_ISSUE_KEY } from '../../../../domain/entities/testing';
 import type { JwtTokenParams } from '../jwt-utils';
 import type {
 	GetIssuePropertyResponse,
