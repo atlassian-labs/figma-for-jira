@@ -1,10 +1,7 @@
 import type { AxiosResponse, Method } from 'axios';
 import axios, { AxiosHeaders, HttpStatusCode, isAxiosError } from 'axios';
 
-import {
-	JiraClientNotFoundError,
-	JiraClientResponseValidationError,
-} from './errors';
+import { JiraClientNotFoundError } from './errors';
 import { createJwtToken } from './jwt-utils';
 import {
 	GET_ISSUE_PROPERTY_RESPONSE_SCHEMA,
@@ -20,7 +17,7 @@ import type {
 
 import { Duration } from '../../../common/duration';
 import type { ConnectInstallation } from '../../../domain/entities';
-import { getAjvSchema } from '../../ajv';
+import { assertSchema } from '../../ajv';
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
 
@@ -60,11 +57,7 @@ class JiraClient {
 			},
 		);
 
-		const validate = getAjvSchema(SUBMIT_DESIGNS_RESPONSE_SCHEMA);
-
-		if (!validate(response.data)) {
-			throw new JiraClientResponseValidationError(url, validate.errors);
-		}
+		assertSchema(response.data, SUBMIT_DESIGNS_RESPONSE_SCHEMA);
 
 		return response.data;
 	};
@@ -89,11 +82,7 @@ class JiraClient {
 			),
 		});
 
-		const validate = getAjvSchema(GET_ISSUE_RESPONSE_SCHEMA);
-
-		if (!validate(response.data)) {
-			throw new JiraClientResponseValidationError(url, validate.errors);
-		}
+		assertSchema(response.data, GET_ISSUE_RESPONSE_SCHEMA);
 
 		return response.data;
 	};
@@ -115,9 +104,11 @@ class JiraClient {
 		let response: AxiosResponse<GetIssuePropertyResponse>;
 		try {
 			response = await axios.get<GetIssuePropertyResponse>(url.toString(), {
-				headers: new AxiosHeaders().setAuthorization(
-					this.buildAuthorizationHeader(url, 'GET', connectInstallation),
-				),
+				headers: new AxiosHeaders()
+					.setAuthorization(
+						this.buildAuthorizationHeader(url, 'GET', connectInstallation),
+					)
+					.setAccept('application/json'),
 			});
 		} catch (error) {
 			if (
@@ -130,11 +121,10 @@ class JiraClient {
 			}
 		}
 
-		const validate = getAjvSchema(GET_ISSUE_PROPERTY_RESPONSE_SCHEMA);
-
-		if (!validate(response.data)) {
-			throw new JiraClientResponseValidationError(url, validate.errors);
-		}
+		assertSchema<Omit<GetIssuePropertyResponse, 'value'>>(
+			response.data,
+			GET_ISSUE_PROPERTY_RESPONSE_SCHEMA,
+		);
 
 		return response.data;
 	};
@@ -165,6 +155,39 @@ class JiraClient {
 		});
 
 		return response.status;
+	};
+
+	/**
+	 * Deletes an issue's property
+	 *
+	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-properties/#api-rest-api-2-issue-issueidorkey-properties-propertykey-delete
+	 */
+	deleteIssueProperty = async (
+		issueIdOrKey: string,
+		propertyKey: string,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> => {
+		const url = new URL(
+			`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
+			connectInstallation.baseUrl,
+		);
+
+		try {
+			await axios.delete(url.toString(), {
+				headers: new AxiosHeaders().setAuthorization(
+					this.buildAuthorizationHeader(url, 'DELETE', connectInstallation),
+				),
+			});
+		} catch (error) {
+			if (
+				isAxiosError(error) &&
+				error.response?.status === HttpStatusCode.NotFound
+			) {
+				throw new JiraClientNotFoundError();
+			} else {
+				throw error;
+			}
+		}
 	};
 
 	private buildAuthorizationHeader(

@@ -29,7 +29,7 @@ export type FileResponse = {
 	readonly thumbnailUrl: string;
 } & FileNode;
 
-type FileNode = {
+export type FileNode = {
 	readonly document: NodeDetails;
 };
 

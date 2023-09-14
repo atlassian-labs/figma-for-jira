@@ -34,7 +34,7 @@ export const disassociateEntityUseCase = {
 		const designIssueAssociation =
 			AtlassianAssociation.createDesignIssueAssociation(disassociateFrom.ari);
 
-		const { key: issueKey } = issue;
+		const { key: issueKey, id: issueId } = issue;
 
 		await Promise.all([
 			jiraService.submitDesign(
@@ -42,6 +42,11 @@ export const disassociateEntityUseCase = {
 					design,
 					removeAssociations: [designIssueAssociation],
 				},
+				connectInstallation,
+			),
+			jiraService.deleteDesignUrlInIssueProperties(
+				issueId,
+				design,
 				connectInstallation,
 			),
 			figmaService.deleteDevResourceIfExists({

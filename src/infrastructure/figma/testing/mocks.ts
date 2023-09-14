@@ -3,6 +3,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { Duration } from '../../../common/duration';
 import { MOCK_ISSUE_URL } from '../../../domain/entities/testing';
 import type {
+	FileNode,
+	FileNodesResponse,
 	GetDevResourcesResponse,
 	GetOAuth2TokenResponse,
 	NodeDetails,
@@ -79,13 +81,12 @@ export const generateGetFileNodesResponse = ({
 	version?: string;
 	nodeId?: string;
 	document?: NodeDetails;
-} = {}) => ({
+} = {}): FileNodesResponse => ({
 	name,
 	lastModified,
 	version,
 	role: 'owner',
 	editorType: 'figma',
-	linkAccess: 'org_view',
 	thumbnailUrl: '',
 	err: '',
 	nodes: {
@@ -95,7 +96,7 @@ export const generateGetFileNodesResponse = ({
 			componentSets: {},
 			schemaVersion: 0,
 			styles: {},
-		},
+		} as FileNode,
 	},
 });
 

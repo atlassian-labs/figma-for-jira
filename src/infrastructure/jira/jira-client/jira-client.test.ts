@@ -1,10 +1,7 @@
 import type { AxiosResponse } from 'axios';
 import axios, { AxiosError, AxiosHeaders, HttpStatusCode } from 'axios';
 
-import {
-	JiraClientNotFoundError,
-	JiraClientResponseValidationError,
-} from './errors';
+import { JiraClientNotFoundError } from './errors';
 import { jiraClient } from './jira-client';
 import { createJwtToken } from './jwt-utils';
 import {
@@ -17,6 +14,7 @@ import {
 
 import type { ConnectInstallation } from '../../../domain/entities';
 import { generateConnectInstallation } from '../../../domain/entities/testing';
+import { SchemaValidationError } from '../../ajv';
 
 jest.mock('./jwt-utils');
 
@@ -66,7 +64,7 @@ describe('JiraClient', () => {
 
 			await expect(() =>
 				jiraClient.submitDesigns(request, connectInstallation),
-			).rejects.toThrowError(JiraClientResponseValidationError);
+			).rejects.toThrowError(SchemaValidationError);
 		});
 	});
 
@@ -98,7 +96,7 @@ describe('JiraClient', () => {
 
 			await expect(() =>
 				jiraClient.getIssue(issueKey, connectInstallation),
-			).rejects.toThrowError(JiraClientResponseValidationError);
+			).rejects.toThrowError(SchemaValidationError);
 		});
 	});
 
@@ -117,9 +115,12 @@ describe('JiraClient', () => {
 				connectInstallation,
 			);
 
+			const headers =
+				defaultExpectedRequestHeaders().headers.setAccept('application/json');
+
 			expect(axios.get).toHaveBeenCalledWith(
 				`${connectInstallation.baseUrl}/rest/api/2/issue/TEST-1/properties/${propertyKey}`,
-				defaultExpectedRequestHeaders(),
+				{ headers },
 			);
 			expect(result).toEqual(response);
 		});
@@ -135,7 +136,7 @@ describe('JiraClient', () => {
 
 			await expect(() =>
 				jiraClient.getIssueProperty(issueId, propertyKey, connectInstallation),
-			).rejects.toThrowError(JiraClientResponseValidationError);
+			).rejects.toThrowError(SchemaValidationError);
 		});
 
 		it('should throw a JiraClientNotFound exception when response status is 404', async () => {
@@ -182,6 +183,49 @@ describe('JiraClient', () => {
 				{ headers },
 			);
 			expect(response).toBe(HttpStatusCode.Ok);
+		});
+	});
+
+	describe('deleteIssueProperty', () => {
+		const issueId = 'TEST-1';
+		const propertyKey = 'property-key';
+		it('should delete the issue property and respond with a status code', async () => {
+			jest.spyOn(axios, 'delete').mockResolvedValue({
+				status: HttpStatusCode.NoContent,
+			});
+
+			await jiraClient.deleteIssueProperty(
+				issueId,
+				propertyKey,
+				connectInstallation,
+			);
+
+			expect(axios.delete).toHaveBeenCalledWith(
+				`${connectInstallation.baseUrl}/rest/api/2/issue/${issueId}/properties/${propertyKey}`,
+				defaultExpectedRequestHeaders(),
+			);
+		});
+
+		it('should throw a JiraClientNotFound exception when response status is 404', async () => {
+			jest
+				.spyOn(axios, 'delete')
+				.mockRejectedValue(
+					new AxiosError(
+						'Not found.',
+						HttpStatusCode.NotFound.toString(),
+						undefined,
+						undefined,
+						{ status: HttpStatusCode.NotFound } as AxiosResponse,
+					),
+				);
+
+			await expect(() =>
+				jiraClient.deleteIssueProperty(
+					issueId,
+					propertyKey,
+					connectInstallation,
+				),
+			).rejects.toThrowError(JiraClientNotFoundError);
 		});
 	});
 });
