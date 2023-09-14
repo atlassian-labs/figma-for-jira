@@ -12,6 +12,7 @@
 		"db:migrate": "prisma migrate dev",
 		"db:reset:dev": "prisma migrate reset",
 		"db:reset:test": "dotenv -e .env.test -- prisma migrate reset -f",
+		"jwt:generate": "dotenv -e .env -- ts-node ./scripts/create-jwt.ts",
 		"format": "prettier . --write",
 		"format:check": "prettier . --check",
 		"jira:installApp": "./scripts/app-install.sh",

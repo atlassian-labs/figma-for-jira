@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { Duration } from '../../../../common/duration';
+import { MOCK_ISSUE_KEY } from '../../../../domain/entities/testing';
 import type { JwtTokenParams } from '../jwt-utils';
 import type {
 	GetIssuePropertyResponse,
@@ -17,7 +18,7 @@ export const MOCK_JWT_TOKEN_PARAMS: JwtTokenParams = {
 			param1: uuidv4,
 		},
 	},
-	connectAppKey: uuidv4(),
+	connectClientKey: uuidv4(),
 	connectSharedSecret: uuidv4(),
 	expiresIn: Duration.ofMinutes(10),
 };
@@ -92,7 +93,7 @@ export const generateSubmitDesignsResponseWithUnknownData = ({
 
 export const generateGetIssueResponse = ({
 	id = uuidv4(),
-	key = uuidv4(),
+	key = MOCK_ISSUE_KEY,
 	self = 'https://myjirainstance.atlassian.net/browse/FIG-1',
 	fields = {
 		summary: `Issue ${uuidv4()}`,
