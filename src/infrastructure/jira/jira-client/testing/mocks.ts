@@ -18,7 +18,7 @@ export const MOCK_JWT_TOKEN_PARAMS: JwtTokenParams = {
 			param1: uuidv4,
 		},
 	},
-	connectAppKey: uuidv4(),
+	connectClientKey: uuidv4(),
 	connectSharedSecret: uuidv4(),
 	expiresIn: Duration.ofMinutes(10),
 };
