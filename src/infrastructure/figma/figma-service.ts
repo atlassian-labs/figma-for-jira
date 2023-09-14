@@ -30,6 +30,10 @@ const extractDataFromFigmaUrlOrThrow = (url: string): FigmaUrlData => {
 	return urlData;
 };
 
+export const buildIssueTitle = (issueKey: string, issueSummary: string) => {
+	return `[${issueKey}] ${issueSummary}`;
+};
+
 export class FigmaService {
 	getValidCredentialsOrThrow = async (
 		atlassianUserId: string,
@@ -124,11 +128,13 @@ export class FigmaService {
 	createDevResource = async ({
 		designUrl,
 		issueUrl,
+		issueKey,
 		issueTitle,
 		atlassianUserId,
 	}: {
 		designUrl: string;
 		issueUrl: string;
+		issueKey: string;
 		issueTitle: string;
 		atlassianUserId: string;
 	}): Promise<CreateDevResourcesResponse> => {
@@ -138,7 +144,7 @@ export class FigmaService {
 		const { accessToken } = credentials;
 
 		const devResource = buildDevResource({
-			name: issueTitle,
+			name: buildIssueTitle(issueKey, issueTitle),
 			url: issueUrl,
 			file_key: fileKey,
 			node_id: nodeId
@@ -152,8 +158,10 @@ export class FigmaService {
 		);
 
 		if (response.errors?.length > 0) {
-			const errorMessage = response.errors.map((err) => err.error).join('|');
-			getLogger().error(errorMessage, 'Created dev resources with errors');
+			getLogger().error(
+				{ errors: response.errors },
+				'Created dev resources with errors',
+			);
 		}
 
 		return response;

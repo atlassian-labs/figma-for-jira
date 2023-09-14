@@ -3,7 +3,8 @@ import type { Request, Response } from 'express';
 
 import { getConfig } from '../../config';
 
-const figmaScope = 'files:read,file_dev_resources:write';
+const figmaScope =
+	'files:read,file_dev_resources:read,file_dev_resources:write';
 
 export const connectDescriptorGet = (_: Request, res: Response) => {
 	res.status(HttpStatusCode.Ok).json(connectAppDescriptor);
@@ -58,7 +59,7 @@ export const connectAppDescriptor = {
 	 * Sets the scopes requested by the app
 	 * https://developer.atlassian.com/cloud/jira/platform/scopes-for-connect-apps/
 	 */
-	scopes: ['READ', 'WRITE'],
+	scopes: ['READ', 'WRITE', 'DELETE'],
 
 	/**
 	 * The API version is an OPTIONAL integer. If omitted we will infer an API version of 1.
