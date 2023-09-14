@@ -1,10 +1,7 @@
 import type { AxiosResponse, Method } from 'axios';
 import axios, { AxiosHeaders, HttpStatusCode, isAxiosError } from 'axios';
 
-import {
-	JiraClientNotFoundError,
-	JiraClientResponseValidationError,
-} from './errors';
+import { JiraClientNotFoundError } from './errors';
 import { createJwtToken } from './jwt-utils';
 import {
 	GET_ISSUE_PROPERTY_RESPONSE_SCHEMA,
@@ -21,6 +18,7 @@ import type {
 import { Duration } from '../../../common/duration';
 import type { ConnectInstallation } from '../../../domain/entities';
 import { getAjvSchema } from '../../ajv';
+import { ValidationError } from '../../errors';
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
 
@@ -63,7 +61,10 @@ class JiraClient {
 		const validate = getAjvSchema(SUBMIT_DESIGNS_RESPONSE_SCHEMA);
 
 		if (!validate(response.data)) {
-			throw new JiraClientResponseValidationError(url, validate.errors);
+			throw new ValidationError(
+				`Unexpected response from ${url.pathname}`,
+				validate.errors,
+			);
 		}
 
 		return response.data;
@@ -92,7 +93,10 @@ class JiraClient {
 		const validate = getAjvSchema(GET_ISSUE_RESPONSE_SCHEMA);
 
 		if (!validate(response.data)) {
-			throw new JiraClientResponseValidationError(url, validate.errors);
+			throw new ValidationError(
+				`Unexpected response from ${url.pathname}`,
+				validate.errors,
+			);
 		}
 
 		return response.data;
@@ -135,7 +139,10 @@ class JiraClient {
 		const validate = getAjvSchema(GET_ISSUE_PROPERTY_RESPONSE_SCHEMA);
 
 		if (!validate(response.data)) {
-			throw new JiraClientResponseValidationError(url, validate.errors);
+			throw new ValidationError(
+				`Unexpected response from ${url.pathname}`,
+				validate.errors,
+			);
 		}
 
 		return response.data;

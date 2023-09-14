@@ -1,10 +1,7 @@
 import type { AxiosResponse } from 'axios';
 import axios, { AxiosError, AxiosHeaders, HttpStatusCode } from 'axios';
 
-import {
-	JiraClientNotFoundError,
-	JiraClientResponseValidationError,
-} from './errors';
+import { JiraClientNotFoundError } from './errors';
 import { jiraClient } from './jira-client';
 import { createJwtToken } from './jwt-utils';
 import {
@@ -17,6 +14,7 @@ import {
 
 import type { ConnectInstallation } from '../../../domain/entities';
 import { generateConnectInstallation } from '../../../domain/entities/testing';
+import { ValidationError } from '../../errors';
 
 jest.mock('./jwt-utils');
 
@@ -66,7 +64,7 @@ describe('JiraClient', () => {
 
 			await expect(() =>
 				jiraClient.submitDesigns(request, connectInstallation),
-			).rejects.toThrowError(JiraClientResponseValidationError);
+			).rejects.toThrowError(ValidationError);
 		});
 	});
 
@@ -98,7 +96,7 @@ describe('JiraClient', () => {
 
 			await expect(() =>
 				jiraClient.getIssue(issueKey, connectInstallation),
-			).rejects.toThrowError(JiraClientResponseValidationError);
+			).rejects.toThrowError(ValidationError);
 		});
 	});
 
@@ -138,7 +136,7 @@ describe('JiraClient', () => {
 
 			await expect(() =>
 				jiraClient.getIssueProperty(issueId, propertyKey, connectInstallation),
-			).rejects.toThrowError(JiraClientResponseValidationError);
+			).rejects.toThrowError(ValidationError);
 		});
 
 		it('should throw a JiraClientNotFound exception when response status is 404', async () => {
