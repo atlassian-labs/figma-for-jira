@@ -28,7 +28,7 @@ describe('createJwtToken', () => {
 		expect(decodedToken).toEqual({
 			iat: Math.floor(now / 1000),
 			exp: Math.floor(now / 1000) + MOCK_JWT_TOKEN_PARAMS.expiresIn.asSeconds,
-			iss: MOCK_JWT_TOKEN_PARAMS.connectAppKey,
+			iss: MOCK_JWT_TOKEN_PARAMS.connectClientKey,
 			qsh: createQueryStringHash(MOCK_JWT_TOKEN_PARAMS.request),
 		});
 	});

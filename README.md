@@ -88,6 +88,28 @@ the following steps:
 - Click Upload.
 - That's it! You're done. 🎉
 
+## Generating JWTs for local testing
+
+Endpoints that are called by Jira use `authHeaderSymmetricJwtMiddleware` which expects a JWT Authorization header that will be verified against a `ConnectInstallation`.
+
+Because the JWT contains a query string hash `qsh`, you will require a unique JWT token **for each endpoint** you want to test.
+
+See [Understanding JWT for Connect apps](https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/) for more details.
+
+**Steps to generate a JWT:**
+
+1. Ensure you have the app and database running, and have installed the app on a Jira instance
+2. Enter values for `INSTALLATION_CLIENT_KEY` and `INSTALLATION_CLIENT_SECRET` in your `.env` file. You can find these values by inspecting the `ConnectInstallation` table of your database.
+3. Run the `npm run jwt:generate <request_method> <url>` script for each endpoint you need to test
+
+**Example:**
+
+```
+npm run jwt:generate POST http://localhost:3000/entities/associateEntity
+```
+
+You can then use this value as the `Authorization` header for your cURL / Postman / Insomnia requests.
+
 ## Database
 
 This repository uses [Prisma](https://www.prisma.io/) as an ORM for interacting with a Postgres database.
