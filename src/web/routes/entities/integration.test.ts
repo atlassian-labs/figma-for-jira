@@ -258,7 +258,6 @@ const getMockDesignFromFileNodesResponse = (
 	transformNodeToAtlassianDesign({
 		fileKey: MOCK_FILE_KEY,
 		nodeId: MOCK_NODE_ID,
-		isPrototype: false,
 		fileNodesResponse,
 	});
 
@@ -349,7 +348,6 @@ describe('/entities', () => {
 					design: transformNodeToAtlassianDesign({
 						fileKey: MOCK_FILE_KEY,
 						nodeId: MOCK_NODE_ID,
-						isPrototype: false,
 						fileNodesResponse: mockFileNodesResponse,
 					}),
 				};
@@ -652,7 +650,6 @@ describe('/entities', () => {
 					design: transformNodeToAtlassianDesign({
 						fileKey: MOCK_FILE_KEY,
 						nodeId: MOCK_NODE_ID,
-						isPrototype: false,
 						fileNodesResponse: mockFileNodesResponse,
 					}),
 				};

@@ -159,7 +159,6 @@ describe('FigmaService', () => {
 			const expectedEntity = transformNodeToAtlassianDesign({
 				fileKey: MOCK_FILE_KEY,
 				nodeId: MOCK_NODE_ID,
-				isPrototype: false,
 				fileNodesResponse: mockResponse,
 			});
 
@@ -188,7 +187,6 @@ describe('FigmaService', () => {
 
 			const expectedEntity = transformFileToAtlassianDesign({
 				fileKey: MOCK_FILE_KEY,
-				isPrototype: false,
 				fileResponse: mockResponse,
 			});
 
