@@ -19,7 +19,6 @@ import {
 	MOCK_INVALID_DESIGN_URL,
 	MOCK_NODE_ID,
 	MOCK_NODE_ID_URL,
-	MOCK_PROTOTYPE_URL,
 } from './testing';
 
 import * as configModule from '../../config';
@@ -45,26 +44,17 @@ describe('FigmaTransformer', () => {
 		jest.restoreAllMocks();
 	});
 	describe('extractDataFromFigmaUrl', () => {
-		it('should return only fileKey and isPrototype if node_id is not provided in the url', () => {
+		it('should return only fileKey if node_id is not provided in the url', () => {
 			expect(
 				extractDataFromFigmaUrl(MOCK_DESIGN_URL_WITHOUT_NODE),
 			).toStrictEqual({
 				fileKey: MOCK_FILE_KEY,
-				isPrototype: false,
 			});
 		});
-		it('should return fileKey, nodeId and isPrototype if both fileKey and nodeId are present in the url', () => {
+		it('should return fileKey and nodeId if both fileKey and nodeId are present in the url', () => {
 			expect(extractDataFromFigmaUrl(MOCK_DESIGN_URL_WITH_NODE)).toStrictEqual({
 				fileKey: MOCK_FILE_KEY,
 				nodeId: MOCK_NODE_ID,
-				isPrototype: false,
-			});
-		});
-		it('should return `isPrototype: true` if the url is for a prototype', () => {
-			expect(extractDataFromFigmaUrl(MOCK_PROTOTYPE_URL)).toStrictEqual({
-				fileKey: MOCK_FILE_KEY,
-				nodeId: MOCK_NODE_ID,
-				isPrototype: true,
 			});
 		});
 		it('should return null for an invalid url', () => {
@@ -104,19 +94,15 @@ describe('FigmaTransformer', () => {
 
 	describe('mapNodeTypeToDesignType', () => {
 		it.each([
-			[AtlassianDesignType.PROTOTYPE, 'FRAME', true],
-			[AtlassianDesignType.FILE, 'DOCUMENT', false],
-			[AtlassianDesignType.CANVAS, 'CANVAS', false],
-			[AtlassianDesignType.GROUP, 'SECTION', false],
-			[AtlassianDesignType.GROUP, 'GROUP', false],
-			[AtlassianDesignType.NODE, 'FRAME', false],
-			[AtlassianDesignType.OTHER, 'SOMETHINGELSE', false],
-		])(
-			'should return %s if Figma type is %s and isPrototype is %s',
-			(expected, type, isPrototype) => {
-				expect(mapNodeTypeToDesignType(type, isPrototype)).toEqual(expected);
-			},
-		);
+			[AtlassianDesignType.FILE, 'DOCUMENT'],
+			[AtlassianDesignType.CANVAS, 'CANVAS'],
+			[AtlassianDesignType.GROUP, 'SECTION'],
+			[AtlassianDesignType.GROUP, 'GROUP'],
+			[AtlassianDesignType.NODE, 'FRAME'],
+			[AtlassianDesignType.OTHER, 'SOMETHINGELSE'],
+		])('should return %s if Figma type is %s', (expected, type) => {
+			expect(mapNodeTypeToDesignType(type)).toEqual(expected);
+		});
 	});
 
 	describe('transformNodeToAtlassianDesign', () => {
@@ -151,7 +137,6 @@ describe('FigmaTransformer', () => {
 			const result = transformNodeToAtlassianDesign({
 				fileKey: MOCK_FILE_KEY,
 				nodeId: MOCK_NODE_ID,
-				isPrototype: false,
 				fileNodesResponse: mockApiResponse,
 			});
 
@@ -185,7 +170,6 @@ describe('FigmaTransformer', () => {
 
 			const result = transformFileToAtlassianDesign({
 				fileKey: MOCK_FILE_KEY,
-				isPrototype: false,
 				fileResponse: mockApiResponse,
 			});
 
