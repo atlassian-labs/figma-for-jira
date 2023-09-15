@@ -113,7 +113,9 @@ export const connectAppDescriptor = {
 					}/auth/callback&scope=${figmaScope}&state={state}&response_type=code`,
 				},
 				check3LO: {
-					templateUrl: `${getConfig().app.baseUrl}/auth/check3LO`,
+					templateUrl: `${
+						getConfig().app.baseUrl
+					}/auth/check3LO?userId={userId}`,
 				},
 			},
 		},
