@@ -1,4 +1,4 @@
-const FIGMA_ROOT_NODE_ID = '0:0';
+const FIGMA_DOCUMENT_NODE_ID = '0:0';
 
 export class FigmaDesignIdentity {
 	constructor(
@@ -31,25 +31,15 @@ export class FigmaDesignIdentity {
 		return new FigmaDesignIdentity(fileKey, nodeId);
 	};
 
-	get referencesNode(): boolean {
-		return !!this.nodeId && this.nodeId !== FIGMA_ROOT_NODE_ID;
+	get nodeIdOrDefaultDocumentId(): string {
+		return this.nodeId ?? FIGMA_DOCUMENT_NODE_ID;
 	}
-
-	get nodeIdOrRootNodeId(): string {
-		return this.nodeId ?? FIGMA_ROOT_NODE_ID;
-	}
-
-	nodeIdOrThrow = (): string => {
-		if (!this.nodeId) throw new Error('nodeId is missing.');
-
-		return this.nodeId;
-	};
 
 	/**
 	 * Builds an {@link AtlassianDesign} identifier given a fileKey and optional nodeId.
 	 * A design identifier is a composite of `<fileKey>/<nodeId>`
 	 */
 	toAtlassianDesignId = () => {
-		return `${this.fileKey}/${this.nodeIdOrRootNodeId}`;
+		return [this.fileKey, this.nodeId].filter(Boolean).join('/');
 	};
 }

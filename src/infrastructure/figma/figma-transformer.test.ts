@@ -128,7 +128,7 @@ describe('FigmaTransformer', () => {
 		it('should correctly map to atlassian design', () => {
 			const mockApiResponse = generateGetFileResponse();
 			const expected: AtlassianDesign = {
-				id: `${MOCK_FILE_KEY}/0:0`,
+				id: MOCK_FILE_KEY,
 				displayName: mockApiResponse.name,
 				url: buildDesignUrl({
 					fileKey: MOCK_FILE_KEY,

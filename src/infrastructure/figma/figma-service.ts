@@ -55,15 +55,15 @@ export class FigmaService {
 
 		const { accessToken } = credentials;
 
-		if (designId.referencesNode) {
+		if (designId.nodeId) {
 			const fileNodesResponse = await figmaClient.getFileNodes(
 				designId.fileKey,
-				designId.nodeIdOrThrow(),
+				designId.nodeId,
 				accessToken,
 			);
 			return transformNodeToAtlassianDesign({
 				fileKey: designId.fileKey,
-				nodeId: designId.nodeIdOrThrow(),
+				nodeId: designId.nodeId,
 				fileNodesResponse,
 			});
 		} else {
@@ -99,7 +99,7 @@ export class FigmaService {
 			name: buildIssueTitle(issueKey, issueTitle),
 			url: issueUrl,
 			file_key: designId.fileKey,
-			node_id: designId.nodeIdOrRootNodeId,
+			node_id: designId.nodeIdOrDefaultDocumentId,
 		});
 
 		const response = await figmaClient.createDevResources(
@@ -132,7 +132,7 @@ export class FigmaService {
 
 		const { dev_resources } = await figmaClient.getDevResources({
 			fileKey: designId.fileKey,
-			nodeIds: designId.nodeId,
+			nodeIds: designId.nodeIdOrDefaultDocumentId,
 			accessToken,
 		});
 

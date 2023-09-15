@@ -40,7 +40,10 @@ export class AssociatedFigmaDesignRepository {
 		connectInstallationId,
 	}: PrismaAssociatedFigmaDesign): AssociatedFigmaDesign => ({
 		id,
-		designId: new FigmaDesignIdentity(fileKey, nodeId),
+		designId: new FigmaDesignIdentity(
+			fileKey,
+			nodeId !== '' ? nodeId : undefined,
+		),
 		connectInstallationId,
 	});
 
@@ -49,7 +52,7 @@ export class AssociatedFigmaDesignRepository {
 		connectInstallationId,
 	}: AssociatedFigmaDesignCreateParams): PrismaAssociatedFigmaDesignCreateParams => ({
 		fileKey: designId.fileKey,
-		nodeId: designId.nodeIdOrRootNodeId,
+		nodeId: designId.nodeId ?? '',
 		connectInstallationId,
 	});
 }
