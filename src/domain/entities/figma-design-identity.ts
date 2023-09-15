@@ -4,7 +4,10 @@ export class FigmaDesignIdentity {
 	constructor(
 		readonly fileKey: string,
 		readonly nodeId?: string,
-	) {}
+	) {
+		if (fileKey.length === 0) throw new Error('fileKey is empty string.');
+		if (nodeId?.length === 0) throw new Error('nodeId is empty string.');
+	}
 
 	/**
 	 * Creates {@link FigmaDesignIdentity} from the given {@link AtlassianDesign} ID.
@@ -50,7 +53,7 @@ export class FigmaDesignIdentity {
 	 * - `fileKey/nodeId` when {@link nodeId} is defined.
 	 * - `fileKey` when {@link nodeId} is not defined.
 	 */
-	toAtlassianDesignId = () => {
+	toAtlassianDesignId(): string {
 		return [this.fileKey, this.nodeId].filter(Boolean).join('/');
-	};
+	}
 }

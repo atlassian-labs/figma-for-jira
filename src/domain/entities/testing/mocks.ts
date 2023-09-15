@@ -33,7 +33,7 @@ export const MOCK_FIGMA_DESIGN_IDENTITY = MOCK_FIGMA_FILE_IDENTITY;
 
 export const generateFigmaDesignUrl = ({
 	fileKey = MOCK_FIGMA_FILE_KEY,
-	nodeId = MOCK_FIGMA_NODE_ID,
+	nodeId = MOCK_FIGMA_NODE_ID as string | undefined,
 	fileName = 'test-design-1',
 } = {}) => {
 	const url = new URL(`https://www.figma.com/file/${fileKey}/${fileName}`);
