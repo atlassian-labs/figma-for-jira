@@ -11,7 +11,7 @@ export class FigmaDesignIdentity {
 	 */
 	static fromAtlassianDesignId = (id: string): FigmaDesignIdentity => {
 		const [fileKey, nodeId] = id.split('/');
-		if (!fileKey || !nodeId) {
+		if (!fileKey) {
 			throw new Error(`Received invalid Design ID: ${id}`);
 		}
 		return new FigmaDesignIdentity(fileKey, nodeId);
