@@ -36,8 +36,12 @@ export const generateFigmaDesignUrl = ({
 	nodeId = MOCK_FIGMA_NODE_ID,
 	fileName = 'test-design-1',
 } = {}) => {
-	const normalizedNodeId = nodeId.replace(':', '-');
-	return `https://www.figma.com/file/${fileKey}/${fileName}?node-id=${normalizedNodeId}&mode=dev`;
+	const url = new URL(`https://www.figma.com/file/${fileKey}/${fileName}`);
+	if (nodeId) {
+		url.searchParams.append('node-id', nodeId);
+	}
+	url.searchParams.append('mode', 'dev');
+	return url.toString();
 };
 
 export const generateIssueAri = (issueId = Date.now().toString()) =>

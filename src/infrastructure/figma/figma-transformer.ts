@@ -71,7 +71,7 @@ export const buildInspectUrl = ({
 		`${getConfig().figma.webBaseUrl}/file/${fileKey}/${fileName}`,
 	);
 	if (nodeId) {
-		url.searchParams.append('node-id', nodeId.replace(':', '-'));
+		url.searchParams.append('node-id', nodeId);
 	}
 	url.searchParams.set('mode', 'dev');
 	return url.toString();

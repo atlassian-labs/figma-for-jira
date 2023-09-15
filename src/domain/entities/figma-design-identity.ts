@@ -18,16 +18,15 @@ export class FigmaDesignIdentity {
 	};
 
 	static fromFigmaDesignUrl = (url: string): FigmaDesignIdentity => {
-		const fileKeyRegex = /file\/([a-zA-Z0-9]+)/;
-		const nodeIdRegex = /node-id=([a-zA-Z0-9-]+)/;
+		const parsedUrl = new URL(url);
 
-		const fileKeyMatch = url.match(fileKeyRegex);
-		const nodeIdMatch = url.match(nodeIdRegex);
+		const pathComponents = parsedUrl.pathname.split('/');
+		const filePathComponentId = pathComponents.findIndex((x) => x === 'file');
 
-		if (!fileKeyMatch) throw new Error(`Received invalid Figma URL: ${url}`);
+		const fileKey = pathComponents[filePathComponentId + 1];
+		const nodeId = parsedUrl.searchParams.get('node-id')?.replace('-', ':');
 
-		const fileKey = fileKeyMatch[1];
-		const nodeId = nodeIdMatch?.[1]?.replace('-', ':');
+		if (!fileKey) throw new Error(`Received invalid Figma URL: ${url}`);
 
 		return new FigmaDesignIdentity(fileKey, nodeId);
 	};
