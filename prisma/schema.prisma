@@ -8,19 +8,19 @@ datasource db {
 }
 
 model ConnectInstallation {
-  id               Int                @id @default(autoincrement())
-  key              String
-  clientKey        String             @unique @map("client_key")
-  sharedSecret     String             @map("shared_secret")
-  baseUrl          String             @map("base_url")
-  displayUrl       String             @map("display_url")
-  FigmaWebhook     FigmaTeam[]
-  AssociatedDesign AssociatedDesign[]
+  id                    Int                @id @default(autoincrement())
+  key                   String
+  clientKey             String             @unique @map("client_key")
+  sharedSecret          String             @map("shared_secret")
+  baseUrl               String             @map("base_url")
+  displayUrl            String             @map("display_url")
+  FigmaTeam             FigmaTeam[]
+  AssociatedFigmaDesign AssociatedFigmaDesign[]
 
   @@map("connect_installation")
 }
 
-model AssociatedDesign {
+model AssociatedFigmaDesign {
   id      Int    @id @default(autoincrement())
   fileKey String @map("file_key")
   nodeId  String @map("node_id")
@@ -29,7 +29,7 @@ model AssociatedDesign {
   connectInstallationId Int                 @map("connect_installation_id")
 
   @@unique([fileKey, nodeId, connectInstallationId])
-  @@map("associated_design")
+  @@map("associated_figma_design")
 }
 
 model FigmaOAuth2UserCredentials {

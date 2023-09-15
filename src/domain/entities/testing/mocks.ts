@@ -10,6 +10,7 @@ import type {
 import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
+	FigmaDesignIdentity,
 	FigmaOAuth2UserCredentials,
 } from '..';
 import { Duration } from '../../../common/duration';
@@ -18,6 +19,26 @@ export const MOCK_ISSUE_ID = '10000';
 export const MOCK_ISSUE_KEY = 'FIG-1';
 export const MOCK_ISSUE_URL = `https://myjirainstance.atlassian.net/browse/${MOCK_ISSUE_KEY}`;
 export const MOCK_ISSUE_TITLE = 'Test Jira Issue';
+
+export const MOCK_FIGMA_FILE_KEY = '5BnX6YnPJOvOHRdiB0seWx';
+export const MOCK_FIGMA_NODE_ID = '100:42';
+export const MOCK_FIGMA_FILE_IDENTITY = new FigmaDesignIdentity(
+	MOCK_FIGMA_FILE_KEY,
+);
+export const MOCK_FIGMA_NODE_IDENTITY = new FigmaDesignIdentity(
+	MOCK_FIGMA_FILE_KEY,
+	MOCK_FIGMA_NODE_ID,
+);
+export const MOCK_FIGMA_DESIGN_IDENTITY = MOCK_FIGMA_FILE_IDENTITY;
+
+export const generateFigmaDesignUrl = ({
+	fileKey = MOCK_FIGMA_FILE_KEY,
+	nodeId = MOCK_FIGMA_NODE_ID,
+	fileName = 'test-design-1',
+} = {}) => {
+	const normalizedNodeId = nodeId.replace(':', '-');
+	return `https://www.figma.com/file/${fileKey}/${fileName}?node-id=${normalizedNodeId}&mode=dev`;
+};
 
 export const generateIssueAri = (issueId = Date.now().toString()) =>
 	`ari:cloud:jira:${uuidv4()}:issue/${issueId}`;

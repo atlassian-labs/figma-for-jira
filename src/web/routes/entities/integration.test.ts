@@ -10,13 +10,14 @@ import type {
 } from './types';
 
 import app from '../../../app';
-import { JIRA_ISSUE_ATI } from '../../../common/constants';
 import { getConfig } from '../../../config';
 import type {
 	AtlassianDesign,
 	FigmaUserCredentialsCreateParams,
 } from '../../../domain/entities';
+import { JIRA_ISSUE_ATI } from '../../../domain/entities';
 import {
+	generateFigmaDesignUrl,
 	generateFigmaUserCredentialsCreateParams,
 	generateIssueAri,
 	MOCK_ISSUE_ID,
@@ -27,7 +28,6 @@ import {
 	generateEmptyDevResourcesResponse,
 	generateGetDevResourcesResponse,
 	generateGetFileNodesResponse,
-	MOCK_DESIGN_URL_WITH_NODE,
 	MOCK_DEV_RESOURCE_ID,
 	MOCK_FILE_KEY,
 	MOCK_NODE_ID,
@@ -229,7 +229,10 @@ const mockDeleteDevResourcesEndpoint = ({
 
 const MOCK_ASSOCIATE_REQUEST: AssociateEntityRequestParams = {
 	entity: {
-		url: MOCK_DESIGN_URL_WITH_NODE,
+		url: generateFigmaDesignUrl({
+			fileKey: MOCK_FILE_KEY,
+			nodeId: MOCK_NODE_ID,
+		}),
 	},
 	associateWith: {
 		ati: JIRA_ISSUE_ATI,

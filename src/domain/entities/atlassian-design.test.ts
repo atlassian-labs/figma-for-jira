@@ -1,7 +1,6 @@
 import { AtlassianAssociation } from './atlassian-design';
+import { JIRA_ISSUE_ATI } from './jira-issue';
 import { generateIssueAri } from './testing';
-
-import { JIRA_ISSUE_ATI } from '../../common/constants';
 
 describe('AtlassianDesign', () => {
 	describe('createDesignIssueAssociation', () => {

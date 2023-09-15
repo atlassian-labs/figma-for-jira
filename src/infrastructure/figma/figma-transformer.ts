@@ -4,60 +4,14 @@ import type {
 	FileResponse,
 	NodeDevStatus,
 } from './figma-client';
-import { DEFAULT_FIGMA_FILE_NODE_ID } from './figma-service';
 
 import { getConfig } from '../../config';
 import type { AtlassianDesign } from '../../domain/entities';
 import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
+	FigmaDesignIdentity,
 } from '../../domain/entities';
-
-export type FigmaUrlData = {
-	readonly fileKey: string;
-	readonly nodeId?: string;
-};
-
-export const extractDataFromFigmaUrl = (url: string): FigmaUrlData | null => {
-	const fileKeyRegex = /file\/([a-zA-Z0-9]+)/;
-	const nodeIdRegex = /node-id=([a-zA-Z0-9-]+)/;
-
-	const fileKeyMatch = url.match(fileKeyRegex);
-	const nodeIdMatch = url.match(nodeIdRegex);
-
-	if (!fileKeyMatch) {
-		return null;
-	}
-
-	const fileKey = fileKeyMatch[1];
-	const nodeId = nodeIdMatch
-		? transformNodeIdForStorage(nodeIdMatch[1])
-		: undefined;
-
-	return {
-		fileKey,
-		...(nodeId && { nodeId }),
-	};
-};
-
-/**
- * Builds a design identifier given a fileKey and optional nodeId.
- * A design identifier is a composite of `<fileKey>/<nodeId>`
- */
-export const buildDesignId = (fileKey: string, nodeId?: string) => {
-	return `${fileKey}/${nodeId ?? DEFAULT_FIGMA_FILE_NODE_ID}`;
-};
-
-/**
- * Parses a design identifier into a tuple of its parts: [fileKey, nodeId]
- */
-export const parseDesignIdOrThrow = (id: string): [string, string] => {
-	const [fileKey, nodeId] = id.split('/');
-	if (!fileKey || !nodeId) {
-		throw new Error(`Received invalid Design ID: ${id}`);
-	}
-	return [fileKey, nodeId];
-};
 
 /**
  * Builds a URL to a Figma design given Figma file/node metadata.
@@ -117,14 +71,10 @@ export const buildInspectUrl = ({
 		`${getConfig().figma.webBaseUrl}/file/${fileKey}/${fileName}`,
 	);
 	if (nodeId) {
-		url.searchParams.append('node-id', nodeId);
+		url.searchParams.append('node-id', nodeId.replace(':', '-'));
 	}
 	url.searchParams.set('mode', 'dev');
 	return url.toString();
-};
-
-export const transformNodeIdForStorage = (nodeId: string): string => {
-	return nodeId.replace('-', ':');
 };
 
 /**
@@ -176,14 +126,14 @@ type TransformNodeToAtlassianDesignParams = {
 
 export const transformNodeToAtlassianDesign = ({
 	fileKey,
-	nodeId: _nodeId,
+	nodeId,
 	fileNodesResponse,
 }: TransformNodeToAtlassianDesignParams): AtlassianDesign => {
-	const nodeId = transformNodeIdForStorage(_nodeId);
+	const designId = new FigmaDesignIdentity(fileKey, nodeId);
 	const node = fileNodesResponse.nodes[nodeId].document;
 	const fileName = fileNodesResponse.name;
 	return {
-		id: buildDesignId(fileKey, nodeId),
+		id: designId.toAtlassianDesignId(),
 		displayName: node.name,
 		url: buildDesignUrl({ fileKey, fileName, nodeId }),
 		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName, nodeId }),
@@ -207,9 +157,10 @@ export const transformFileToAtlassianDesign = ({
 	fileKey,
 	fileResponse,
 }: TransformFileToAtlassianDesignParams): AtlassianDesign => {
+	const designId = new FigmaDesignIdentity(fileKey);
 	const fileName = fileResponse.name;
 	return {
-		id: buildDesignId(fileKey),
+		id: designId.toAtlassianDesignId(),
 		displayName: fileResponse.name,
 		url: buildDesignUrl({ fileKey, fileName }),
 		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName }),

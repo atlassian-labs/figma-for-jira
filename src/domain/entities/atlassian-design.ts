@@ -1,4 +1,4 @@
-import { JIRA_ISSUE_ATI } from '../../common/constants';
+import { JIRA_ISSUE_ATI } from './jira-issue';
 
 export enum AtlassianDesignStatus {
 	READY_FOR_DEVELOPMENT = 'READY_FOR_DEVELOPMENT',
@@ -29,7 +29,7 @@ export class AtlassianAssociation {
 /**
  * An Atlassian representation of a Design from a provider.
  *
- * TODO: Replace a link below with a link to public Data Depot documentation.
+ * TODO: Replace a link below with a link to public Jira Design documentation.
  * @see https://hello.atlassian.net/wiki/spaces/MDT/pages/2803802934/Proposed+Design+Schema
  */
 export type AtlassianDesign = {
