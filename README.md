@@ -9,15 +9,18 @@ This app is aimed to help you to easily add your integration in Jira.
 
 - [Pre-requisites](#pre-requisites)
 - [Getting started](#getting-started)
-- [Manual Install](#installing-the-app)
+- [OAuth component](#oauth-component)
+- [Installing the app](#installing-the-app)
+- [Testing endpoints locally](#testing-endpoints-locally)
 - [Database](#database)
+- [Logging](#logging)
 - [Testing](#testing)
 - [Getting help](#getting-help)
 - [License](#license)
 
 ## Pre-requisites
 
-- [Node](https://nodejs.org)
+- [Node](https://nodejs.org) v18
 - [docker & docker-compose](https://docs.docker.com/engine/install/)
 - [ngrok account](https://ngrok.com/)
 
@@ -31,8 +34,8 @@ This app is aimed to help you to easily add your integration in Jira.
 
   - We are using [ngrok](https://ngrok.com/docs/getting-started) for tunnelling. You'll need to create an ngrok
     account to get access to the auth token.
-  - [Register a Figma application](https://www.figma.com/developers/api#register-oauth2) via your Figma account and note Client ID and Secret.
   - Create an `.env` file (based on `.env.example`) and fill in _all the missing fields_
+  - Follow the steps for [Registering a Figma OAuth application](#registering-a-figma-oauth-application) to get the client id and secret
 
 - **Running the sandbox**
 
@@ -53,44 +56,68 @@ run start:sandbox`, but should be re-run whenever DB schema changes are made (ei
 
   - Run `npm start` to begin running the app in development mode
 
-## Figma OAuth 2.0
+## OAuth Component
 
-Ensure that you registered a Figma application and filled out env variables in `.env`.
+In order to make authorized calls to Figma REST APIs, this application stores Figma user 3LO credentials in the `FigmaOAuth2UserCredentials` table.
 
-1. Start the app.
+### Registering a Figma OAuth application
+
+Follow the steps [here](https://www.figma.com/developers/api#register-oauth2) to register a Figma OAuth app and callback url, and note down the Client ID and Secret.
+
+- Use `APP_URL` for the website URL
+- Use `${APP_URL}/auth/callback` for the callback URL
+
+### Testing the OAuth flow
+
+To test the OAuth 3LO flow and store a Figma users' credentials in the app, you first need to register a Figma application and fill out the `FIGMA_OAUTH_CLIENT_ID` and `FIGMA_OAUTH_CLIENT_SECRET` variables in `.env`.
+
+1. Start the app
 2. Replace the placeholders with actual value and visit the following URL to initiate the OAuth flow.
 
 ```
 https://www.figma.com/oauth?
   client_id=${CLIENT_ID}&
   redirect_uri=${APP_URL}/auth/callback&
-  scope=files:read&
-  state=${ATTLASSIAN_USER_ID}&
+  scope=files:read,file_dev_resources:read,file_dev_resources:write&
+  state=${ATLASSIAN_USER_ID}&
   response_type=code
 ```
 
-You should see a created record in `FigmaUserCredential` table.
+You should see a created record in `FigmaUserCredential` table and hitting `/auth/check3LO?userId=${USER_ID}` should return `{ authorized: true }`
 
 ## Installing the App
 
-To install the app, first ensure both the ngrok tunnel and the app are running, and you've filled out the required
-values in your `.env` file. Then run `npm run jira:installApp`. The app will be installed to the Jira instance specified by
-the `ATLASSIAN_URL` environment variable.
+Before installing, first ensure both the ngrok tunnel and the app are running, and you've filled out the required
+values in your `.env` file.
 
-If you want to install the app in multiple Jira instances, please do it manually. Go to your Jira instances and do
-the following steps:
+### Installation script
 
-- From the header menu, select Apps -> Manage your apps.
-- Verify the filter is set to User-installed, and select Settings beneath the User-installed apps table.
-- On the Settings pop-up, add Enable development mode and click Apply. Refresh the page.
-- On the right side of the header, there should now appear a button Upload app. Click it and enter the app URL
-  `/atlassian-connect.json`(`https://${APP_URL}/atlassian-connect.json`)
-- Click Upload.
-- That's it! You're done. 🎉
+Run `npm run jira:installApp`. The app will be installed to the Jira instance specified by the `ATLASSIAN_URL` environment variable.
 
-## Generating JWTs for local testing
+### Manual installs
 
-Endpoints that are called by Jira use `authHeaderSymmetricJwtMiddleware` which expects a JWT Authorization header that will be verified against a `ConnectInstallation`.
+If you want to install the app on multiple Jira instances, you can do this manually by performing the following steps:
+
+1. Visit the **Manage apps** page on your Jira instance (you'll need to be a Jira admin) by visiting this link `https://<your_jira_instance>.atlassian.net/plugins/servlet/upm` or from the header menu, select **Apps** -> **Manage your apps**.
+2. Verify the filter is set to User-installed, and select **Settings** beneath the User-installed apps table.
+3. **Enable development mode** then refresh the page.
+4. You should now see an **Upload app** button. Click it and enter the app URL `https://${APP_URL}/atlassian-connect.json`.
+5. Click upload.
+6. That's it! You're done. 🎉
+
+## Testing endpoints locally
+
+To test endpoints locally, you can use your preferred tool for making network requests. Our preferred tool is [Insomnia](https://insomnia.rest/download).
+
+### Authorizing and calling endpoints as a user
+
+Endpoints that call out to Figma APIs require a users 3LO token to be stored in the app. To perform the 3LO flow and store Figma credentials in the app, follow the steps in [Testing the OAuth flow](#testing-the-oauth-flow).
+
+> The `atlassianUserId` stored in the `FigmaOAuth2UserCredentials` table will need to be passed as the `User-Id` header for any of these requests.
+
+### Generating JWTs for local testing
+
+Endpoints that are called by Jira use `authHeaderSymmetricJwtMiddleware` which expects a JWT Authorization header that will be verified against a `ConnectInstallation`. You will need to generate this JWT token to impersonate Jira when attempting to test these endpoints.
 
 Because the JWT contains a query string hash `qsh`, you will require a unique JWT token **for each endpoint** you want to test.
 
@@ -116,9 +143,11 @@ This repository uses [Prisma](https://www.prisma.io/) as an ORM for interacting 
 
 ### Running and inspecting the database locally
 
-1. Fill in `PG_*` variables in `.env` using samples from `.env.example` as a guide
-2. Spin up dependencies using `npm run start:sandbox`
+1. Ensure `PG_*` variables in `.env` are filled in. Values from `.env.example` should work
+2. Spin up the database using `npm run start:sandbox`
 3. Using IntelliJ or whatever tool you use for inspecting databases, add a database using fields from from `.env`
+
+> If you aren't seeing the tables in IntelliJ, you may have to select the right schemas from the 'Schemas' tab in the Data Sources window.
 
 ### Running migrations
 
@@ -126,12 +155,16 @@ To run a database migration do the following:
 
 1. Make any schema additions in `prisma/schema.prisma`
 2. Spin up dependencies using `npm run start:sandbox`. This will also run the `prisma migrate dev` command, applying all
-   existing migrations. See [the docs](https://www.prisma.io/docs/concepts/components/prisma-migrate/migrate-development-production#development-environments)
+   existing migrations. See the [Prisma docs](https://www.prisma.io/docs/concepts/components/prisma-migrate/migrate-development-production#development-environments)
    for more info
 3. To create a new migration after making schema changes, with the sandbox already running, run `npm run db:migrate --name <migration_name>` - this will create your migration in a new folder under `prisma/migrations`. If you omit the `--name` option, you will be prompted to name the migration
 4. Running `prisma migrate dev` will trigger generation of artifacts automatically, but you can trigger these manually
    by running `npm run db:generate` to rebuild the `@prisma/client`, which provides type safety and utility functions
    for any newly added tables and fields
+
+## Logging
+
+The app uses [pino](https://github.com/pinojs/pino) and [pino-http](https://github.com/pinojs/pino-http) for logging. The logger is configured in `/src/infrastructure/logger.ts` and `pino-http` middleware logging is set up in `src/web/middleware/http-logger-middleware.ts`
 
 ## Testing
 
@@ -148,7 +181,7 @@ Integration tests require a test database. There are two options for running int
 
 ## Getting help
 
-If you have feedback, found a bug or need some help, please create a [new issue in this repo](https://github.com/atlassian/atlassian-connect-example-app-node/issues/new/choose).
+If you have feedback, found a bug or need some help, please create a [new issue in this repo](https://github.com/atlassian/figma-for-jira/issues/new/choose).
 
 ## License
 
