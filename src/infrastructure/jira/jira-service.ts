@@ -3,6 +3,7 @@ import type { GetIssuePropertyResponse } from './jira-client';
 import { jiraClient, JiraClientNotFoundError } from './jira-client';
 import { ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA } from './schemas';
 
+import { ensureString } from '../../common/stringUtils';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
@@ -148,7 +149,7 @@ class JiraService {
 				await jiraClient.setIssueProperty(
 					issueIdOrKey,
 					propertyKeys.ATTACHED_DESIGN_URL_V2,
-					[newAttachedDesignUrlIssuePropertyValue],
+					this.superStringify([newAttachedDesignUrlIssuePropertyValue]),
 					connectInstallation,
 				);
 				return;
@@ -157,12 +158,20 @@ class JiraService {
 			}
 		}
 
+		const storedAttachedDesignUrlIssuePropertyValue = JSON.parse(
+			ensureString(response.value),
+		) as unknown;
+
 		assertSchema<AttachedDesignUrlV2IssuePropertyValue[]>(
-			response.value,
+			storedAttachedDesignUrlIssuePropertyValue,
 			ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 		);
 
-		if (!response.value.find((value) => value.url === url)) {
+		if (
+			!storedAttachedDesignUrlIssuePropertyValue.find(
+				(value) => value.url === url,
+			)
+		) {
 			const newAttachedDesignUrlIssuePropertyValue: AttachedDesignUrlV2IssuePropertyValue =
 				{
 					url,
@@ -172,7 +181,10 @@ class JiraService {
 			await jiraClient.setIssueProperty(
 				issueIdOrKey,
 				propertyKeys.ATTACHED_DESIGN_URL_V2,
-				[...response.value, newAttachedDesignUrlIssuePropertyValue],
+				this.superStringify([
+					...storedAttachedDesignUrlIssuePropertyValue,
+					newAttachedDesignUrlIssuePropertyValue,
+				]),
 				connectInstallation,
 			);
 		}
@@ -253,8 +265,12 @@ class JiraService {
 			throw error;
 		}
 
+		const storedAttachedDesignUrlIssuePropertyValue = JSON.parse(
+			ensureString(response.value),
+		) as unknown;
+
 		assertSchema<AttachedDesignUrlV2IssuePropertyValue[]>(
-			response.value,
+			storedAttachedDesignUrlIssuePropertyValue,
 			ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 		);
 
@@ -263,15 +279,19 @@ class JiraService {
 			name: displayName,
 		};
 
-		const newAttachedDesignUrlIssuePropertyValue = response.value.filter(
-			({ url }) => url !== issuePropertyValueToRemove.url,
-		);
+		const newAttachedDesignUrlIssuePropertyValue =
+			storedAttachedDesignUrlIssuePropertyValue.filter(
+				({ url }) => url !== issuePropertyValueToRemove.url,
+			);
 
-		if (newAttachedDesignUrlIssuePropertyValue.length < response.value.length) {
+		if (
+			newAttachedDesignUrlIssuePropertyValue.length <
+			storedAttachedDesignUrlIssuePropertyValue.length
+		) {
 			await jiraClient.setIssueProperty(
 				issueIdOrKey,
 				propertyKeys.ATTACHED_DESIGN_URL_V2,
-				newAttachedDesignUrlIssuePropertyValue,
+				this.superStringify(newAttachedDesignUrlIssuePropertyValue),
 				connectInstallation,
 			);
 		} else {
@@ -280,6 +300,16 @@ class JiraService {
 			);
 		}
 	};
+
+	/**
+	 * This isn't ideal but must be done as it's how the current implementation works
+	 * Need to keep this way so current implementation doesn't break
+	 */
+	private superStringify(
+		issuePropertyValue: AttachedDesignUrlV2IssuePropertyValue[],
+	) {
+		return JSON.stringify(JSON.stringify(issuePropertyValue));
+	}
 }
 
 export const jiraService = new JiraService();
