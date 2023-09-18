@@ -17,14 +17,13 @@ describe('FigmaDesignIdentity', () => {
 		});
 	});
 
-	describe('fromFigmaDesignUrl', () => {
+	describe('fromAtlassianDesignId', () => {
 		it('should return identity when Atlassian design ID does not contain node part', () => {
-			const result = FigmaDesignIdentity.fromAtlassianDesignId(
-				`${MOCK_FIGMA_FILE_KEY}/${MOCK_FIGMA_NODE_ID}`,
-			);
+			const result =
+				FigmaDesignIdentity.fromAtlassianDesignId(MOCK_FIGMA_FILE_KEY);
 
 			expect(result).toStrictEqual(
-				new FigmaDesignIdentity(MOCK_FIGMA_FILE_KEY, MOCK_FIGMA_NODE_ID),
+				new FigmaDesignIdentity(MOCK_FIGMA_FILE_KEY),
 			);
 		});
 
@@ -38,8 +37,8 @@ describe('FigmaDesignIdentity', () => {
 			);
 		});
 
-		it('should throw when  Atlassian design ID has unexpected format', () => {
-			expect(() => FigmaDesignIdentity.fromFigmaDesignUrl(``)).toThrow();
+		it('should throw when Atlassian design ID has unexpected format', () => {
+			expect(() => FigmaDesignIdentity.fromAtlassianDesignId(``)).toThrow();
 		});
 	});
 
@@ -104,6 +103,7 @@ describe('FigmaDesignIdentity', () => {
 					`https://www.figma.com?param=file%2Fsome-id`,
 				),
 			).toThrow();
+			expect(() => FigmaDesignIdentity.fromFigmaDesignUrl(``)).toThrow();
 		});
 	});
 
