@@ -10,6 +10,18 @@ import type {
 } from '../../domain/entities';
 
 export class ConnectInstallationRepository {
+	get = async (id: number): Promise<ConnectInstallation> => {
+		const result = await prismaClient.get().connectInstallation.findFirst({
+			where: { id },
+		});
+		if (result === null) {
+			throw new RepositoryRecordNotFoundError(
+				`Failed to find ConnectInstallation for id ${id}`,
+			);
+		}
+		return this.mapToDomainModel(result);
+	};
+
 	getByClientKey = async (clientKey: string): Promise<ConnectInstallation> => {
 		const result = await prismaClient.get().connectInstallation.findFirst({
 			where: { clientKey },

@@ -14,11 +14,13 @@ import type {
 	NodeDetails,
 	RefreshOAuth2TokenResponse,
 } from '../figma-client';
+import type { FigmaWebhookEventPayload } from '../schemas';
 
 export const MOCK_FILE_KEY = MOCK_FIGMA_FILE_KEY;
 export const MOCK_NODE_ID = MOCK_FIGMA_NODE_ID;
 export const MOCK_FILE_NAME = 'Test-File';
-export const MOCK_LAST_MODIFIED = '2023-08-29T03:17:29Z';
+export const MOCK_TIMESTAMP = '2023-08-29T03:17:29Z';
+export const MOCK_LAST_MODIFIED = MOCK_TIMESTAMP;
 export const MOCK_VERSION = '4067551197';
 export const MOCK_DEV_RESOURCE_ID = uuidv4();
 export const MOCK_DOCUMENT: NodeDetails = {
@@ -139,3 +141,25 @@ export const generateEmptyDevResourcesResponse =
 	(): GetDevResourcesResponse => ({
 		dev_resources: [],
 	});
+
+export const generateFigmaWebhookEventPayload = ({
+	event_type = 'FILE_UPDATE',
+	file_key = MOCK_FILE_KEY,
+	file_name = MOCK_FILE_NAME,
+	passcode = 'passcode',
+	protocol_version = '2',
+	retries = 0,
+	timestamp = MOCK_TIMESTAMP,
+	webhook_id = '12345',
+	triggered_by = undefined,
+}: Partial<FigmaWebhookEventPayload> = {}): FigmaWebhookEventPayload => ({
+	event_type,
+	file_key,
+	file_name,
+	passcode,
+	protocol_version,
+	retries,
+	timestamp,
+	webhook_id,
+	triggered_by,
+});

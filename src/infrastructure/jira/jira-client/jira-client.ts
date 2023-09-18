@@ -16,7 +16,10 @@ import type {
 } from './types';
 
 import { Duration } from '../../../common/duration';
-import type { ConnectInstallation } from '../../../domain/entities';
+import type {
+	ConnectInstallation,
+	FigmaDesignIdentity,
+} from '../../../domain/entities';
 import { assertSchema } from '../../ajv';
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
@@ -45,7 +48,7 @@ class JiraClient {
 		payload: SubmitDesignsRequest,
 		connectInstallation: ConnectInstallation,
 	): Promise<SubmitDesignsResponse> => {
-		const url = new URL(`/rest/designs/1.0/bulk`, connectInstallation.baseUrl);
+		const url = new URL('/rest/designs/1.0/bulk', connectInstallation.baseUrl);
 
 		const response = await axios.post<SubmitDesignsResponse>(
 			url.toString(),
@@ -60,6 +63,24 @@ class JiraClient {
 		assertSchema(response.data, SUBMIT_DESIGNS_RESPONSE_SCHEMA);
 
 		return response.data;
+	};
+
+	deleteDesign = async (
+		designId: FigmaDesignIdentity,
+		connectInstallation: ConnectInstallation,
+	): Promise<FigmaDesignIdentity> => {
+		const url = new URL(
+			`/rest/designs/1.0/design/${designId.toAtlassianDesignId()}`,
+			connectInstallation.baseUrl,
+		);
+
+		await axios.delete(url.toString(), {
+			headers: new AxiosHeaders().setAuthorization(
+				this.buildAuthorizationHeader(url, 'DELETE', connectInstallation),
+			),
+		});
+
+		return designId;
 	};
 
 	/**

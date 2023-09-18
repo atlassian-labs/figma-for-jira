@@ -60,6 +60,13 @@ export const generateSuccessfulSubmitDesignsResponse = (
 	rejectedEntities: [],
 });
 
+export const generateSuccessfulUpdateDesignsResponse = (
+	designIds = [uuidv4(), uuidv4()],
+): SubmitDesignsResponse => ({
+	acceptedEntities: designIds.map((id) => ({ designId: id })),
+	rejectedEntities: [],
+});
+
 export const generateFailedSubmitDesignsResponse = (
 	designId = uuidv4(),
 ): SubmitDesignsResponse => ({
@@ -74,6 +81,16 @@ export const generateFailedSubmitDesignsResponse = (
 			],
 		},
 	],
+});
+
+export const generateFailedUpdateDesignsResponse = (
+	designIds = [uuidv4(), uuidv4()],
+): SubmitDesignsResponse => ({
+	acceptedEntities: [],
+	rejectedEntities: designIds.map((id) => ({
+		key: { designId: id },
+		errors: [{ message: 'Failure' }],
+	})),
 });
 
 export const generateSubmitDesignsResponseWithUnknownData = ({

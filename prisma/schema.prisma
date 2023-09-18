@@ -8,12 +8,12 @@ datasource db {
 }
 
 model ConnectInstallation {
-  id                    Int                @id @default(autoincrement())
+  id                    Int                     @id @default(autoincrement())
   key                   String
-  clientKey             String             @unique @map("client_key")
-  sharedSecret          String             @map("shared_secret")
-  baseUrl               String             @map("base_url")
-  displayUrl            String             @map("display_url")
+  clientKey             String                  @unique @map("client_key")
+  sharedSecret          String                  @map("shared_secret")
+  baseUrl               String                  @map("base_url")
+  displayUrl            String                  @map("display_url")
   FigmaTeam             FigmaTeam[]
   AssociatedFigmaDesign AssociatedFigmaDesign[]
 
@@ -21,11 +21,11 @@ model ConnectInstallation {
 }
 
 model AssociatedFigmaDesign {
-  id                    Int    @id @default(autoincrement())
-  fileKey               String @map("file_key")
+  id      Int    @id @default(autoincrement())
+  fileKey String @map("file_key")
   // Prisma does not support nullable columns with the composite indexes
   // https://github.com/prisma/prisma/issues/3197
-  nodeId                String @map("node_id")
+  nodeId  String @map("node_id")
 
   connectInstallation   ConnectInstallation @relation(fields: [connectInstallationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   connectInstallationId Int                 @map("connect_installation_id")
@@ -45,9 +45,7 @@ model FigmaOAuth2UserCredentials {
 }
 
 enum FigmaTeamStatus {
-  PENDING
-  ACTIVE
-  PAUSED
+  OK
   ERROR
 
   @@map("figma_team_status")

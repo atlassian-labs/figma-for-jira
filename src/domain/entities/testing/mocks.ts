@@ -1,9 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import type {
+	AssociatedFigmaDesignCreateParams,
 	AtlassianDesign,
 	ConnectInstallation,
 	ConnectInstallationCreateParams,
+	FigmaTeamCreateParams,
 	FigmaUserCredentialsCreateParams,
 	JiraIssue,
 } from '..';
@@ -12,6 +14,7 @@ import {
 	AtlassianDesignType,
 	FigmaDesignIdentity,
 	FigmaOAuth2UserCredentials,
+	FigmaTeamStatus,
 } from '..';
 import { Duration } from '../../../common/duration';
 
@@ -136,4 +139,28 @@ export const generateJiraIssue = ({
 	key,
 	self,
 	fields,
+});
+
+export const generateAssociatedFigmaDesignCreateParams = ({
+	designId = MOCK_FIGMA_DESIGN_IDENTITY,
+	connectInstallationId = 1,
+}: Partial<AssociatedFigmaDesignCreateParams> = {}): AssociatedFigmaDesignCreateParams => ({
+	designId,
+	connectInstallationId,
+});
+
+export const generateFigmaTeamCreateParams = ({
+	webhookId = uuidv4(),
+	teamId = uuidv4(),
+	teamName = 'Team Name',
+	figmaAdminAtlassianUserId = uuidv4(),
+	status = FigmaTeamStatus.OK,
+	connectInstallationId = 1,
+}: Partial<FigmaTeamCreateParams> = {}): FigmaTeamCreateParams => ({
+	webhookId,
+	teamId,
+	teamName,
+	figmaAdminAtlassianUserId,
+	status,
+	connectInstallationId,
 });
