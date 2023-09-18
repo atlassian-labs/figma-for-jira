@@ -1,7 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { Duration } from '../../../common/duration';
-import { MOCK_ISSUE_URL } from '../../../domain/entities/testing';
+import {
+	MOCK_FIGMA_FILE_KEY,
+	MOCK_FIGMA_NODE_ID,
+	MOCK_ISSUE_URL,
+} from '../../../domain/entities/testing';
 import type {
 	FileNode,
 	FileNodesResponse,
@@ -11,18 +15,14 @@ import type {
 	RefreshOAuth2TokenResponse,
 } from '../figma-client';
 
-export const MOCK_NODE_ID_URL = '1-2';
-export const MOCK_FILE_KEY = '5BnX6YnPJOvOHRdiB0seWx';
+export const MOCK_FILE_KEY = MOCK_FIGMA_FILE_KEY;
+export const MOCK_NODE_ID = MOCK_FIGMA_NODE_ID;
 export const MOCK_FILE_NAME = 'Test-File';
-export const MOCK_DESIGN_URL_WITH_NODE = `https://www.figma.com/file/${MOCK_FILE_KEY}/${MOCK_FILE_NAME}?node-id=${MOCK_NODE_ID_URL}&mode=dev`;
-export const MOCK_DESIGN_URL_WITHOUT_NODE = `https://www.figma.com/file/${MOCK_FILE_KEY}/${MOCK_FILE_NAME}?mode=dev`;
-export const MOCK_INVALID_DESIGN_URL = 'https://www.figma.com';
-export const MOCK_NODE_ID = '1:2';
 export const MOCK_LAST_MODIFIED = '2023-08-29T03:17:29Z';
 export const MOCK_VERSION = '4067551197';
 export const MOCK_DEV_RESOURCE_ID = uuidv4();
 export const MOCK_DOCUMENT: NodeDetails = {
-	id: MOCK_NODE_ID,
+	id: '1:2',
 	name: 'Test Node',
 	type: 'FRAME',
 };

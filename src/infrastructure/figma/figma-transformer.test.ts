@@ -1,9 +1,7 @@
-import { DEFAULT_FIGMA_FILE_NODE_ID } from './figma-service';
 import {
 	buildDesignUrl,
 	buildInspectUrl,
 	buildLiveEmbedUrl,
-	extractDataFromFigmaUrl,
 	mapNodeStatusToDevStatus,
 	mapNodeTypeToDesignType,
 	transformFileToAtlassianDesign,
@@ -12,13 +10,9 @@ import {
 import {
 	generateGetFileNodesResponse,
 	generateGetFileResponse,
-	MOCK_DESIGN_URL_WITH_NODE,
-	MOCK_DESIGN_URL_WITHOUT_NODE,
 	MOCK_FILE_KEY,
 	MOCK_FILE_NAME,
-	MOCK_INVALID_DESIGN_URL,
 	MOCK_NODE_ID,
-	MOCK_NODE_ID_URL,
 } from './testing';
 
 import * as configModule from '../../config';
@@ -28,6 +22,7 @@ import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
 } from '../../domain/entities';
+import { generateFigmaDesignUrl } from '../../domain/entities/testing';
 
 jest.mock('../../config', () => {
 	return {
@@ -43,37 +38,22 @@ describe('FigmaTransformer', () => {
 	afterEach(() => {
 		jest.restoreAllMocks();
 	});
-	describe('extractDataFromFigmaUrl', () => {
-		it('should return only fileKey if node_id is not provided in the url', () => {
-			expect(
-				extractDataFromFigmaUrl(MOCK_DESIGN_URL_WITHOUT_NODE),
-			).toStrictEqual({
-				fileKey: MOCK_FILE_KEY,
-			});
-		});
-		it('should return fileKey and nodeId if both fileKey and nodeId are present in the url', () => {
-			expect(extractDataFromFigmaUrl(MOCK_DESIGN_URL_WITH_NODE)).toStrictEqual({
-				fileKey: MOCK_FILE_KEY,
-				nodeId: MOCK_NODE_ID,
-			});
-		});
-		it('should return null for an invalid url', () => {
-			expect(extractDataFromFigmaUrl(MOCK_INVALID_DESIGN_URL)).toStrictEqual(
-				null,
-			);
-		});
-	});
 
 	describe('buildLiveEmbedUrl', () => {
 		it('should return a correctly formatted url', () => {
+			const designUrl = generateFigmaDesignUrl({
+				fileKey: MOCK_FILE_KEY,
+				nodeId: MOCK_NODE_ID,
+				fileName: MOCK_FILE_NAME,
+			});
 			const expected = new URL('https://www.figma.com/embed');
 			expected.searchParams.append('embed_host', 'atlassian');
-			expected.searchParams.append('url', MOCK_DESIGN_URL_WITH_NODE);
+			expected.searchParams.append('url', designUrl);
 			expect(
 				buildLiveEmbedUrl({
 					fileKey: MOCK_FILE_KEY,
 					fileName: MOCK_FILE_NAME,
-					nodeId: MOCK_NODE_ID_URL,
+					nodeId: MOCK_NODE_ID,
 				}),
 			).toEqual(expected.toString());
 		});
@@ -148,7 +128,7 @@ describe('FigmaTransformer', () => {
 		it('should correctly map to atlassian design', () => {
 			const mockApiResponse = generateGetFileResponse();
 			const expected: AtlassianDesign = {
-				id: `${MOCK_FILE_KEY}/${DEFAULT_FIGMA_FILE_NODE_ID}`,
+				id: MOCK_FILE_KEY,
 				displayName: mockApiResponse.name,
 				url: buildDesignUrl({
 					fileKey: MOCK_FILE_KEY,

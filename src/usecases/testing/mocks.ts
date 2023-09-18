@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { JIRA_ISSUE_ATI } from '../../common/constants';
+import { JIRA_ISSUE_ATI } from '../../domain/entities';
 import { generateIssueAri, MOCK_ISSUE_ID } from '../../domain/entities/testing';
 
 const SITE_ID = uuidv4();

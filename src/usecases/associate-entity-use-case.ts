@@ -1,9 +1,10 @@
 import type { AtlassianEntity } from './types';
 
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
-import { AtlassianAssociation } from '../domain/entities';
+import { AtlassianAssociation, FigmaDesignIdentity } from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
 import { buildIssueUrl, jiraService } from '../infrastructure/jira';
+import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
 export type AssociateEntityUseCaseParams = {
 	readonly entity: {
@@ -21,8 +22,10 @@ export const associateEntityUseCase = {
 		atlassianUserId,
 		connectInstallation,
 	}: AssociateEntityUseCaseParams): Promise<AtlassianDesign> => {
+		const figmaDesignId = FigmaDesignIdentity.fromFigmaDesignUrl(entity.url);
+
 		const [design, issue] = await Promise.all([
-			figmaService.fetchDesignByUrl(entity.url, atlassianUserId),
+			figmaService.fetchDesignById(figmaDesignId, atlassianUserId),
 			jiraService.getIssue(associateWith.id, connectInstallation),
 		]);
 
@@ -45,13 +48,18 @@ export const associateEntityUseCase = {
 				connectInstallation,
 			),
 			figmaService.createDevResource({
-				designUrl: entity.url,
+				designId: figmaDesignId,
 				issueUrl: buildIssueUrl(connectInstallation.baseUrl, issueKey),
 				issueKey,
 				issueTitle: fields.summary,
 				atlassianUserId,
 			}),
 		]);
+
+		await associatedFigmaDesignRepository.upsert({
+			designId: figmaDesignId,
+			connectInstallationId: connectInstallation.id,
+		});
 
 		return design;
 	},

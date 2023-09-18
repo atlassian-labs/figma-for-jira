@@ -1,8 +1,11 @@
 import type { AtlassianEntity } from './types';
 
-import { JIRA_ISSUE_ATI } from '../common/constants';
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
-import { AtlassianAssociation } from '../domain/entities';
+import {
+	AtlassianAssociation,
+	FigmaDesignIdentity,
+	JIRA_ISSUE_ATI,
+} from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
 import { buildIssueUrl, jiraService } from '../infrastructure/jira';
 
@@ -26,8 +29,11 @@ export const disassociateEntityUseCase = {
 		if (disassociateFrom.ati !== JIRA_ISSUE_ATI) {
 			throw new Error('Unrecognised ATI');
 		}
+
+		const figmaDesignId = FigmaDesignIdentity.fromAtlassianDesignId(entity.id);
+
 		const [design, issue] = await Promise.all([
-			figmaService.fetchDesignById(entity.id, atlassianUserId),
+			figmaService.fetchDesignById(figmaDesignId, atlassianUserId),
 			jiraService.getIssue(disassociateFrom.id, connectInstallation),
 		]);
 
@@ -50,7 +56,7 @@ export const disassociateEntityUseCase = {
 				connectInstallation,
 			),
 			figmaService.deleteDevResourceIfExists({
-				designId: entity.id,
+				designId: figmaDesignId,
 				issueUrl: buildIssueUrl(connectInstallation.baseUrl, issueKey),
 				atlassianUserId,
 			}),

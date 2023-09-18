@@ -4,31 +4,18 @@ import { FigmaServiceCredentialsError } from './errors';
 import { figmaAuthService } from './figma-auth-service';
 import type { CreateDevResourcesResponse } from './figma-client';
 import { figmaClient } from './figma-client';
-import type { FigmaUrlData } from './figma-transformer';
 import {
 	buildDevResource,
-	extractDataFromFigmaUrl,
-	parseDesignIdOrThrow,
 	transformFileToAtlassianDesign,
-	transformNodeIdForStorage,
 	transformNodeToAtlassianDesign,
 } from './figma-transformer';
 
 import type {
 	AtlassianDesign,
+	FigmaDesignIdentity,
 	FigmaOAuth2UserCredentials,
 } from '../../domain/entities';
 import { getLogger } from '../logger';
-
-export const DEFAULT_FIGMA_FILE_NODE_ID = '0:0';
-
-const extractDataFromFigmaUrlOrThrow = (url: string): FigmaUrlData => {
-	const urlData = extractDataFromFigmaUrl(url);
-	if (!urlData) {
-		throw new Error(`Received invalid Figma URL: ${url}`);
-	}
-	return urlData;
-};
 
 export const buildIssueTitle = (issueKey: string, issueSummary: string) => {
 	return `[${issueKey}] ${issueSummary}`;
@@ -60,80 +47,50 @@ export class FigmaService {
 		}
 	};
 
-	fetchDesignByUrl = async (
-		url: string,
-		atlassianUserId: string,
-	): Promise<AtlassianDesign> => {
-		const { fileKey, nodeId } = extractDataFromFigmaUrlOrThrow(url);
-
-		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
-
-		const { accessToken } = credentials;
-
-		if (nodeId) {
-			const fileNodesResponse = await figmaClient.getFileNodes(
-				fileKey,
-				nodeId,
-				accessToken,
-			);
-			return transformNodeToAtlassianDesign({
-				fileKey,
-				nodeId,
-				fileNodesResponse,
-			});
-		} else {
-			const fileResponse = await figmaClient.getFile(fileKey, accessToken);
-			return transformFileToAtlassianDesign({
-				fileKey,
-				fileResponse,
-			});
-		}
-	};
-
 	fetchDesignById = async (
-		id: string,
+		designId: FigmaDesignIdentity,
 		atlassianUserId: string,
 	): Promise<AtlassianDesign> => {
-		const [fileKey, nodeId] = parseDesignIdOrThrow(id);
-
 		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
 
 		const { accessToken } = credentials;
 
-		if (nodeId !== DEFAULT_FIGMA_FILE_NODE_ID) {
+		if (designId.nodeId) {
 			const fileNodesResponse = await figmaClient.getFileNodes(
-				fileKey,
-				nodeId,
+				designId.fileKey,
+				designId.nodeId,
 				accessToken,
 			);
 			return transformNodeToAtlassianDesign({
-				fileKey,
-				nodeId,
+				fileKey: designId.fileKey,
+				nodeId: designId.nodeId,
 				fileNodesResponse,
 			});
 		} else {
-			const fileResponse = await figmaClient.getFile(fileKey, accessToken);
+			const fileResponse = await figmaClient.getFile(
+				designId.fileKey,
+				accessToken,
+			);
 			return transformFileToAtlassianDesign({
-				fileKey,
+				fileKey: designId.fileKey,
 				fileResponse,
 			});
 		}
 	};
 
 	createDevResource = async ({
-		designUrl,
+		designId,
 		issueUrl,
 		issueKey,
 		issueTitle,
 		atlassianUserId,
 	}: {
-		designUrl: string;
+		designId: FigmaDesignIdentity;
 		issueUrl: string;
 		issueKey: string;
 		issueTitle: string;
 		atlassianUserId: string;
 	}): Promise<CreateDevResourcesResponse> => {
-		const { fileKey, nodeId } = extractDataFromFigmaUrlOrThrow(designUrl);
 		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
 
 		const { accessToken } = credentials;
@@ -141,10 +98,8 @@ export class FigmaService {
 		const devResource = buildDevResource({
 			name: buildIssueTitle(issueKey, issueTitle),
 			url: issueUrl,
-			file_key: fileKey,
-			node_id: nodeId
-				? transformNodeIdForStorage(nodeId)
-				: DEFAULT_FIGMA_FILE_NODE_ID,
+			file_key: designId.fileKey,
+			node_id: designId.nodeIdOrDefaultDocumentId,
 		});
 
 		const response = await figmaClient.createDevResources(
@@ -167,18 +122,17 @@ export class FigmaService {
 		issueUrl,
 		atlassianUserId,
 	}: {
-		designId: string;
+		designId: FigmaDesignIdentity;
 		issueUrl: string;
 		atlassianUserId: string;
 	}): Promise<void> => {
-		const [fileKey, nodeId] = parseDesignIdOrThrow(designId);
 		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
 
 		const { accessToken } = credentials;
 
 		const { dev_resources } = await figmaClient.getDevResources({
-			fileKey,
-			...(nodeId && { nodeIds: transformNodeIdForStorage(nodeId) }),
+			fileKey: designId.fileKey,
+			nodeIds: designId.nodeIdOrDefaultDocumentId,
 			accessToken,
 		});
 
@@ -188,13 +142,13 @@ export class FigmaService {
 
 		if (!devResourceToDelete) {
 			getLogger().error(
-				`No matching dev resource found to delete for file ${fileKey} and node ${nodeId}`,
+				`No matching dev resource found to delete for file ${designId.fileKey} and node ${designId.nodeId}`,
 			);
 			return;
 		}
 
 		return await figmaClient.deleteDevResource({
-			fileKey,
+			fileKey: designId.fileKey,
 			devResourceId: devResourceToDelete.id,
 			accessToken,
 		});
