@@ -341,7 +341,11 @@ describe('/entities', () => {
 				});
 				mockSetIssuePropertyEndpoint({
 					propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
-					value: [{ url: mockDesign.url, name: mockDesign.displayName }],
+					value: JSON.stringify(
+						JSON.stringify([
+							{ url: mockDesign.url, name: mockDesign.displayName },
+						]),
+					),
 				});
 
 				const expectedResponse = {
@@ -470,12 +474,16 @@ describe('/entities', () => {
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 						response: generateGetIssuePropertyResponse({
 							key: propertyKeys.ATTACHED_DESIGN_URL_V2,
-							value: [],
+							value: JSON.stringify([]),
 						}),
 					});
 					mockSetIssuePropertyEndpoint({
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
-						value: [{ url: mockDesign.url, name: mockDesign.displayName }],
+						value: JSON.stringify(
+							JSON.stringify([
+								{ url: mockDesign.url, name: mockDesign.displayName },
+							]),
+						),
 					});
 
 					mockCreateDevResourcesEndpoint();
@@ -514,12 +522,16 @@ describe('/entities', () => {
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 						response: generateGetIssuePropertyResponse({
 							key: propertyKeys.ATTACHED_DESIGN_URL_V2,
-							value: [],
+							value: JSON.stringify([]),
 						}),
 					});
 					mockSetIssuePropertyEndpoint({
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
-						value: [{ url: mockDesign.url, name: mockDesign.displayName }],
+						value: JSON.stringify(
+							JSON.stringify([
+								{ url: mockDesign.url, name: mockDesign.displayName },
+							]),
+						),
 					});
 
 					mockSubmitDesignsEndpoint();
@@ -559,12 +571,16 @@ describe('/entities', () => {
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 						response: generateGetIssuePropertyResponse({
 							key: propertyKeys.ATTACHED_DESIGN_URL_V2,
-							value: [],
+							value: JSON.stringify([]),
 						}),
 					});
 					mockSetIssuePropertyEndpoint({
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
-						value: [{ url: mockDesign.url, name: mockDesign.displayName }],
+						value: JSON.stringify(
+							JSON.stringify([
+								{ url: mockDesign.url, name: mockDesign.displayName },
+							]),
+						),
 					});
 
 					mockSubmitDesignsEndpoint();
@@ -638,12 +654,12 @@ describe('/entities', () => {
 					propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 					response: generateGetIssuePropertyResponse({
 						key: propertyKeys.ATTACHED_DESIGN_URL_V2,
-						value: attachedDesignUrlV2Values,
+						value: JSON.stringify(attachedDesignUrlV2Values),
 					}),
 				});
 				mockSetIssuePropertyEndpoint({
 					propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
-					value: [expectedDesignUrlV2Value],
+					value: JSON.stringify(JSON.stringify([expectedDesignUrlV2Value])),
 				});
 
 				const expectedResponse = {
