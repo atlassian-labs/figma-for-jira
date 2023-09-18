@@ -91,19 +91,13 @@ describe('FigmaDesignIdentity', () => {
 			);
 		});
 
-		it('should throw when URL has an unexpected format', () => {
-			expect(() =>
-				FigmaDesignIdentity.fromFigmaDesignUrl(`https://www.figma.com`),
-			).toThrow();
-			expect(() =>
-				FigmaDesignIdentity.fromFigmaDesignUrl(`https://www.figma.com/file`),
-			).toThrow();
-			expect(() =>
-				FigmaDesignIdentity.fromFigmaDesignUrl(
-					`https://www.figma.com?param=file%2Fsome-id`,
-				),
-			).toThrow();
-			expect(() => FigmaDesignIdentity.fromFigmaDesignUrl(``)).toThrow();
+		it.each([
+			`https://www.figma.com`,
+			`https://www.figma.com/file`,
+			`https://www.figma.com?param=file%2Fsome-id`,
+			'',
+		])('should throw when URL has an unexpected format', (input: string) => {
+			expect(() => FigmaDesignIdentity.fromFigmaDesignUrl(input)).toThrow();
 		});
 	});
 
