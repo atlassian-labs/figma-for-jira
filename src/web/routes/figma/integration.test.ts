@@ -28,7 +28,7 @@ import {
 	generateFigmaWebhookEventPayload,
 	generateGetFileNodesResponse,
 } from '../../../infrastructure/figma/testing';
-import { generateSuccessfulSubmitDesignsResponse } from '../../../infrastructure/jira/jira-client/testing';
+import { generateSuccessfulUpdateDesignsResponse } from '../../../infrastructure/jira/jira-client/testing';
 import {
 	associatedFigmaDesignRepository,
 	connectInstallationRepository,
@@ -95,7 +95,11 @@ const mockSubmitDesignsEndpoint = ({
 		})
 		.reply(
 			success ? HttpStatusCode.Ok : HttpStatusCode.InternalServerError,
-			success ? generateSuccessfulSubmitDesignsResponse() : undefined,
+			success
+				? generateSuccessfulUpdateDesignsResponse(
+						atlassianDesigns.map((design) => design.id),
+				  )
+				: undefined,
 		);
 };
 
