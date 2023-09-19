@@ -9,7 +9,7 @@ import { figmaClient } from './figma-client';
 import {
 	generateGetOAuth2TokenResponse,
 	generateRefreshOAuth2TokenResponse,
-} from './testing';
+} from './figma-client/testing';
 
 import { Duration } from '../../common/duration';
 import { generateFigmaOAuth2UserCredentials } from '../../domain/entities/testing';

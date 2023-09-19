@@ -15,14 +15,14 @@ import {
 	MOCK_NODE_ID,
 } from './testing';
 
-import * as configModule from '../../config';
-import { mockConfig } from '../../config/testing';
-import type { AtlassianDesign } from '../../domain/entities';
+import * as configModule from '../../../config';
+import { mockConfig } from '../../../config/testing';
+import type { AtlassianDesign } from '../../../domain/entities';
 import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
-} from '../../domain/entities';
-import { generateFigmaDesignUrl } from '../../domain/entities/testing';
+} from '../../../domain/entities';
+import { generateFigmaDesignUrl } from '../../../domain/entities/testing';
 
 jest.mock('../../config', () => {
 	return {

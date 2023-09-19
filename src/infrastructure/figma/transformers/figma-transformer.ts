@@ -3,15 +3,15 @@ import type {
 	FileNodesResponse,
 	FileResponse,
 	NodeDevStatus,
-} from './figma-client';
+} from '../figma-client';
 
-import { getConfig } from '../../config';
-import type { AtlassianDesign } from '../../domain/entities';
+import { getConfig } from '../../../config';
+import type { AtlassianDesign } from '../../../domain/entities';
 import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
 	FigmaDesignIdentity,
-} from '../../domain/entities';
+} from '../../../domain/entities';
 
 /**
  * Builds a URL to a Figma design given Figma file/node metadata.

@@ -11,27 +11,29 @@ import type {
 
 import app from '../../../app';
 import { getConfig } from '../../../config';
-import type {
-	AtlassianDesign,
-	FigmaUserCredentialsCreateParams,
-} from '../../../domain/entities';
+import type { FigmaUserCredentialsCreateParams } from '../../../domain/entities';
 import { JIRA_ISSUE_ATI } from '../../../domain/entities';
 import {
 	generateFigmaDesignUrl,
+	generateFigmaFileKey,
+	generateFigmaFileName,
+	generateFigmaNodeId,
 	generateFigmaUserCredentialsCreateParams,
 	generateIssueAri,
-	MOCK_ISSUE_ID,
+	generateIssueId,
 } from '../../../domain/entities/testing';
-import type { FileNodesResponse } from '../../../infrastructure/figma/figma-client';
-import { transformNodeToAtlassianDesign } from '../../../infrastructure/figma/figma-transformer';
+import type { GetDevResourcesResponse } from '../../../infrastructure/figma/figma-client';
 import {
 	generateEmptyDevResourcesResponse,
 	generateGetDevResourcesResponse,
-	generateGetFileNodesResponse,
-	MOCK_DEV_RESOURCE_ID,
-	MOCK_FILE_KEY,
-	MOCK_NODE_ID,
-} from '../../../infrastructure/figma/testing';
+	generateGetFileResponse,
+	generateGetFileResponseWithNode,
+	MOCK_CHILD_NODE,
+} from '../../../infrastructure/figma/figma-client/testing';
+import {
+	transformFileToAtlassianDesign,
+	transformNodeToAtlassianDesign,
+} from '../../../infrastructure/figma/transformers';
 import type { AttachedDesignUrlV2IssuePropertyValue } from '../../../infrastructure/jira';
 import { propertyKeys } from '../../../infrastructure/jira';
 import type { GetIssuePropertyResponse } from '../../../infrastructure/jira/jira-client';
@@ -59,18 +61,8 @@ const ASSOCIATE_JWT_TOKEN =
 const DISASSOCIATE_JWT_TOKEN =
 	'JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2OTQ0MzU0NjcsImV4cCI6NjAwMDAwMDE2OTQ0MzU0MDAsImlzcyI6IjQ1NjFiOGJlLWUzOGItNDNkNC04NGQ5LWYwOWU4MTk1ZDExNyIsInFzaCI6ImEzYTcwOGIxNDQwMjdlM2U2ZWRjYWYzY2MzZTBkNzYzYWRhMzI4NDgwMTFjNzMzNGQwMjRkZGE2ZGQ5OWU2NWUifQ.j_Bb4M76LpldZglEY7wQE7KY1KsMIsuvTyqppQd2wBY';
 
+const FIGMA_API_BASE_URL = getConfig().figma.apiBaseUrl;
 const endpoints = {
-	figma: {
-		API_BASE_URL: getConfig().figma.apiBaseUrl,
-		ME: '/v1/me',
-		FILE_NODES: '/v1/files',
-		DEV_RESOURCES: '/v1/dev_resources',
-	},
-	jira: {
-		ISSUE: '/rest/agile/1.0/issue',
-		INGEST_DESIGN: '/rest/designs/1.0/bulk',
-		ISSUE_PROPERTY: '/rest/api/2/issue',
-	},
 	ASSOCIATE_ENTITY: '/entities/associateEntity',
 	DISASSOCIATE_ENTITY: '/entities/disassociateEntity',
 };
@@ -83,186 +75,178 @@ const mockMeEndpoint = ({
 	times?: number;
 } = {}) => {
 	const statusCode = success ? HttpStatusCode.Ok : HttpStatusCode.Forbidden;
-	nock(endpoints.figma.API_BASE_URL)
-		.get(endpoints.figma.ME)
-		.times(times)
-		.reply(statusCode);
+	nock(FIGMA_API_BASE_URL).get('/v1/me').times(times).reply(statusCode);
 };
 
-const mockGetFileNodesEndpoint = ({
+const mockGetFileEndpoint = ({
+	fileKey = generateFigmaFileKey(),
 	accessToken,
-	response,
+	query,
 	success = true,
+	response,
 }: {
+	fileKey?: string;
 	accessToken?: string;
-	response?: Record<string, unknown>;
+	query?: Record<string, string>;
 	success?: boolean;
+	response?: Record<string, unknown>;
 }) => {
 	const statusCode = success
 		? HttpStatusCode.Ok
 		: HttpStatusCode.InternalServerError;
-	nock(endpoints.figma.API_BASE_URL, {
+	nock(FIGMA_API_BASE_URL, {
 		reqheaders: {
 			Authorization: `Bearer ${accessToken}`,
 		},
 	})
-		.get(`${endpoints.figma.FILE_NODES}/${MOCK_FILE_KEY}/nodes`)
-		.query({ ids: MOCK_NODE_ID })
+		.get(`/v1/files/${fileKey}`)
+		.query(query ?? {})
 		.reply(statusCode, response ?? {});
 };
 
-const mockCreateDevResourcesEndpoint = ({
-	success = true,
-}: {
-	success?: boolean;
-} = {}) => {
-	const statusCode = success
-		? HttpStatusCode.Ok
-		: HttpStatusCode.InternalServerError;
-	nock(endpoints.figma.API_BASE_URL)
-		.post(endpoints.figma.DEV_RESOURCES)
-		.reply(statusCode);
-};
-
 const mockGetIssueEndpoint = ({
-	success = true,
-}: { success?: boolean } = {}) => {
-	const issue = generateGetIssueResponse({ id: MOCK_ISSUE_ID });
-	const statusCode = success ? HttpStatusCode.Ok : HttpStatusCode.NotFound;
-	const response = success ? issue : {};
+	issueId = generateIssueId(),
+	status = HttpStatusCode.Ok,
+	response = generateGetIssueResponse({ id: issueId }),
+}: {
+	issueId?: string;
+	status?: HttpStatusCode;
+	response?: Record<string, unknown>;
+} = {}) => {
 	nock(MOCK_CONNECT_INSTALLATION.baseUrl)
-		.get(`${endpoints.jira.ISSUE}/${MOCK_ISSUE_ID}`)
-		.reply(statusCode, response);
+		.get(`/rest/agile/1.0/issue/${issueId}`)
+		.reply(status, response);
 };
 
 const mockSubmitDesignsEndpoint = ({
-	success = true,
+	status = HttpStatusCode.Ok,
 }: {
-	success?: boolean;
+	status?: HttpStatusCode;
 } = {}) => {
-	const statusCode = success
-		? HttpStatusCode.Ok
-		: HttpStatusCode.InternalServerError;
 	nock(MOCK_CONNECT_INSTALLATION.baseUrl)
-		.post(endpoints.jira.INGEST_DESIGN)
+		.post('/rest/designs/1.0/bulk')
 		.reply(
-			statusCode,
-			success ? generateSuccessfulSubmitDesignsResponse() : {},
+			status,
+			status === HttpStatusCode.Ok
+				? generateSuccessfulSubmitDesignsResponse()
+				: {},
 		);
 };
 
 const mockGetIssuePropertyEndpoint = ({
+	issueId = generateIssueId(),
 	propertyKey = '',
-	success = true,
-	errorCode = HttpStatusCode.InternalServerError,
+	status = HttpStatusCode.Ok,
 	response = generateGetIssuePropertyResponse(),
 }: {
+	issueId?: string;
 	propertyKey?: string;
-	success?: boolean;
-	errorCode?: HttpStatusCode;
+	status?: HttpStatusCode;
 	response?: GetIssuePropertyResponse;
 } = {}) => {
-	const statusCode = success ? HttpStatusCode.Ok : errorCode;
 	nock(MOCK_CONNECT_INSTALLATION.baseUrl)
-		.get(
-			`${endpoints.jira.ISSUE_PROPERTY}/${MOCK_ISSUE_ID}/properties/${propertyKey}`,
-		)
-		.reply(statusCode, success ? response : undefined);
+		.get(`/rest/api/2/issue/${issueId}/properties/${propertyKey}`)
+		.reply(status, status === HttpStatusCode.Ok ? response : undefined);
 };
 
 const mockSetIssuePropertyEndpoint = ({
+	issueId = generateIssueId(),
 	propertyKey = '',
-	success = true,
-	errorCode = HttpStatusCode.InternalServerError,
-	successCode = HttpStatusCode.Ok,
 	value = {},
+	status = HttpStatusCode.Ok,
 }: {
+	issueId?: string;
 	propertyKey?: string;
-	success?: boolean;
-	errorCode?: HttpStatusCode;
-	successCode?: HttpStatusCode;
 	value?: RequestBodyMatcher;
+	status?: HttpStatusCode;
 } = {}) => {
-	const statusCode = success ? successCode : errorCode;
 	nock(MOCK_CONNECT_INSTALLATION.baseUrl)
-		.put(
-			`${endpoints.jira.ISSUE_PROPERTY}/${MOCK_ISSUE_ID}/properties/${propertyKey}`,
-			value,
-		)
-		.reply(statusCode);
+		.put(`/rest/api/2/issue/${issueId}/properties/${propertyKey}`, value)
+		.reply(status);
 };
 
 const mockDeleteIssuePropertyEndpoint = ({
+	issueId = generateIssueId(),
 	propertyKey,
-}: { propertyKey?: string } = {}) => {
+}: {
+	issueId?: string;
+	propertyKey?: string;
+} = {}) => {
 	nock(MOCK_CONNECT_INSTALLATION.baseUrl)
-		.delete(
-			`${endpoints.jira.ISSUE_PROPERTY}/${MOCK_ISSUE_ID}/properties/${propertyKey}`,
-		)
+		.delete(`/rest/api/2/issue/${issueId}/properties/${propertyKey}`)
 		.reply(200);
 };
 
+const mockCreateDevResourcesEndpoint = ({
+	status = HttpStatusCode.Ok,
+}: {
+	status?: HttpStatusCode;
+} = {}) => {
+	nock(FIGMA_API_BASE_URL).post('/v1/dev_resources').reply(status);
+};
+
 const mockGetDevResourcesEndpoint = ({
-	withDevResources = true,
-}: { withDevResources?: boolean } = {}) => {
-	const response = withDevResources
-		? generateGetDevResourcesResponse()
-		: generateEmptyDevResourcesResponse();
-	nock(endpoints.figma.API_BASE_URL)
-		.get(`${endpoints.figma.FILE_NODES}/${MOCK_FILE_KEY}/dev_resources`)
-		.query({ node_ids: MOCK_NODE_ID })
+	fileKey = generateFigmaFileKey(),
+	nodeId = generateFigmaNodeId(),
+	response = generateGetDevResourcesResponse(),
+}: {
+	fileKey?: string;
+	nodeId?: string;
+	response?: GetDevResourcesResponse;
+} = {}) => {
+	nock(FIGMA_API_BASE_URL)
+		.get(`/v1/files/${fileKey}/dev_resources`)
+		.query({ node_ids: nodeId })
 		.reply(HttpStatusCode.Ok, response);
 };
 
 const mockDeleteDevResourcesEndpoint = ({
-	success = true,
+	fileKey = generateFigmaFileKey(),
+	devResourceId = uuidv4(),
+	status = HttpStatusCode.Ok,
 }: {
-	success?: boolean;
+	fileKey?: string;
+	devResourceId?: string;
+	status?: HttpStatusCode;
 } = {}) => {
-	const statusCode = success ? HttpStatusCode.Ok : HttpStatusCode.NotFound;
-	nock(endpoints.figma.API_BASE_URL)
-		.delete(
-			`${endpoints.figma.FILE_NODES}/${MOCK_FILE_KEY}/dev_resources/${MOCK_DEV_RESOURCE_ID}`,
-		)
-		.reply(statusCode);
+	nock(FIGMA_API_BASE_URL)
+		.delete(`/v1/files/${fileKey}/dev_resources/${devResourceId}`)
+		.reply(status);
 };
 
-const MOCK_ASSOCIATE_REQUEST: AssociateEntityRequestParams = {
+const generateAssociateEntityRequest = ({
+	issueId = generateIssueId(),
+	figmaDesignUrl = generateFigmaDesignUrl({
+		fileKey: generateFigmaFileKey(),
+		nodeId: generateFigmaNodeId(),
+	}),
+} = {}): AssociateEntityRequestParams => ({
 	entity: {
-		url: generateFigmaDesignUrl({
-			fileKey: MOCK_FILE_KEY,
-			nodeId: MOCK_NODE_ID,
-		}),
+		url: figmaDesignUrl,
 	},
 	associateWith: {
 		ati: JIRA_ISSUE_ATI,
-		ari: generateIssueAri(MOCK_ISSUE_ID),
+		ari: generateIssueAri(issueId),
 		cloudId: uuidv4(),
-		id: MOCK_ISSUE_ID,
+		id: issueId,
 	},
-};
+});
 
-const MOCK_DISASSOCIATE_REQUEST: DisassociateEntityRequestParams = {
+const generateDisassociateEntityRequest = ({
+	issueId = generateIssueId(),
+	entityId = `${generateFigmaFileKey()}/${generateFigmaNodeId()}`,
+} = {}): DisassociateEntityRequestParams => ({
 	entity: {
 		ari: 'TODO',
-		id: `${MOCK_FILE_KEY}/${MOCK_NODE_ID}`,
+		id: entityId,
 	},
 	disassociateFrom: {
 		ati: JIRA_ISSUE_ATI,
-		ari: generateIssueAri(MOCK_ISSUE_ID),
+		ari: generateIssueAri(issueId),
 		cloudId: uuidv4(),
-		id: MOCK_ISSUE_ID,
+		id: issueId,
 	},
-};
-
-const getMockDesignFromFileNodesResponse = (
-	fileNodesResponse: FileNodesResponse,
-): AtlassianDesign =>
-	transformNodeToAtlassianDesign({
-		fileKey: MOCK_FILE_KEY,
-		nodeId: MOCK_NODE_ID,
-		fileNodesResponse,
-	});
+});
 
 const setupSuccessCaseTests = async (
 	validCredentialsParams: FigmaUserCredentialsCreateParams,
@@ -309,59 +293,174 @@ describe('/entities', () => {
 				await cleanupSuccessCaseTests(validCredentialsParams);
 			});
 
-			it('should respond with created design entity', async () => {
+			it('should associate Figma file and respond with created design entity', async () => {
+				const fileName = generateFigmaFileName();
+				const fileKey = generateFigmaFileKey();
+				const issueId = generateIssueId();
+				const inputFigmaDesignUrl = generateFigmaDesignUrl({
+					fileKey,
+					fileName,
+					mode: 'dev',
+				});
+				const normalizedFigmaDesignUrl = generateFigmaDesignUrl({
+					fileKey,
+					fileName,
+				});
+				const fileResponse = generateGetFileResponse({
+					name: fileName,
+				});
 				const credentials = await figmaOAuth2UserCredentialsRepository.get(
 					validCredentialsParams.atlassianUserId,
 				);
-				const mockFileNodesResponse = generateGetFileNodesResponse();
-				const mockDesign = getMockDesignFromFileNodesResponse(
-					mockFileNodesResponse,
-				);
 
 				mockMeEndpoint({ success: true, times: 2 });
-				mockGetFileNodesEndpoint({
+				mockGetFileEndpoint({
+					fileKey: fileKey,
 					accessToken: credentials?.accessToken,
-					response: mockFileNodesResponse,
+					query: { depth: '1' },
+					response: fileResponse,
 				});
-				mockGetIssueEndpoint();
+				mockGetIssueEndpoint({
+					issueId,
+				});
 				mockSubmitDesignsEndpoint();
 				mockCreateDevResourcesEndpoint();
 
 				mockGetIssuePropertyEndpoint({
+					issueId,
 					propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
-					success: false,
-					errorCode: HttpStatusCode.NotFound,
+					status: HttpStatusCode.NotFound,
 				});
 				mockSetIssuePropertyEndpoint({
+					issueId,
 					propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
-					value: JSON.stringify(mockDesign.url),
+					value: JSON.stringify(normalizedFigmaDesignUrl),
 				});
-
 				mockGetIssuePropertyEndpoint({
+					issueId,
 					propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
-					success: false,
-					errorCode: HttpStatusCode.NotFound,
+					status: HttpStatusCode.NotFound,
 				});
 				mockSetIssuePropertyEndpoint({
+					issueId,
 					propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 					value: JSON.stringify(
 						JSON.stringify([
-							{ url: mockDesign.url, name: mockDesign.displayName },
+							{
+								url: normalizedFigmaDesignUrl,
+								name: fileName,
+							},
+						]),
+					),
+				});
+
+				const expectedResponse = {
+					design: transformFileToAtlassianDesign({
+						fileKey,
+						fileResponse,
+					}),
+				};
+
+				return request(app)
+					.post(endpoints.ASSOCIATE_ENTITY)
+					.send(
+						generateAssociateEntityRequest({
+							issueId,
+							figmaDesignUrl: inputFigmaDesignUrl,
+						}),
+					)
+					.set('Authorization', ASSOCIATE_JWT_TOKEN)
+					.set('Content-Type', 'application/json')
+					.set('User-Id', validCredentialsParams.atlassianUserId)
+					.expect(HttpStatusCode.Ok)
+					.expect(expectedResponse);
+			});
+
+			it('should associate Figma node and respond with created design entity', async () => {
+				const fileName = generateFigmaFileName();
+				const fileKey = generateFigmaFileKey();
+				const nodeId = generateFigmaNodeId();
+				const node = { ...MOCK_CHILD_NODE, id: nodeId };
+				const issueId = generateIssueId();
+				const inputFigmaDesignUrl = generateFigmaDesignUrl({
+					fileKey,
+					fileName,
+					nodeId,
+					mode: 'dev',
+				});
+				const normalizedFigmaDesignUrl = generateFigmaDesignUrl({
+					fileKey,
+					fileName,
+					nodeId,
+				});
+				const fileResponse = generateGetFileResponseWithNode({
+					name: fileName,
+					node,
+				});
+				const credentials = await figmaOAuth2UserCredentialsRepository.get(
+					validCredentialsParams.atlassianUserId,
+				);
+
+				mockMeEndpoint({ success: true, times: 2 });
+				mockGetFileEndpoint({
+					fileKey: fileKey,
+					accessToken: credentials?.accessToken,
+					query: {
+						ids: nodeId,
+						node_last_modified: 'true',
+					},
+					response: fileResponse,
+				});
+				mockGetIssueEndpoint({
+					issueId,
+				});
+				mockSubmitDesignsEndpoint();
+				mockCreateDevResourcesEndpoint();
+
+				mockGetIssuePropertyEndpoint({
+					issueId,
+					propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+					status: HttpStatusCode.NotFound,
+				});
+				mockSetIssuePropertyEndpoint({
+					issueId,
+					propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+					value: JSON.stringify(normalizedFigmaDesignUrl),
+				});
+				mockGetIssuePropertyEndpoint({
+					issueId,
+					propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+					status: HttpStatusCode.NotFound,
+				});
+				mockSetIssuePropertyEndpoint({
+					issueId,
+					propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify(
+						JSON.stringify([
+							{
+								url: normalizedFigmaDesignUrl,
+								name: node.name,
+							},
 						]),
 					),
 				});
 
 				const expectedResponse = {
 					design: transformNodeToAtlassianDesign({
-						fileKey: MOCK_FILE_KEY,
-						nodeId: MOCK_NODE_ID,
-						fileNodesResponse: mockFileNodesResponse,
+						fileKey,
+						nodeId,
+						fileResponseWithNode: fileResponse,
 					}),
 				};
 
 				return request(app)
 					.post(endpoints.ASSOCIATE_ENTITY)
-					.send(MOCK_ASSOCIATE_REQUEST)
+					.send(
+						generateAssociateEntityRequest({
+							issueId,
+							figmaDesignUrl: inputFigmaDesignUrl,
+						}),
+					)
 					.set('Authorization', ASSOCIATE_JWT_TOKEN)
 					.set('Content-Type', 'application/json')
 					.set('User-Id', validCredentialsParams.atlassianUserId)
@@ -382,18 +481,19 @@ describe('/entities', () => {
 			it('should respond with 401 "User-Id" header is not set', () => {
 				return request(app)
 					.post(endpoints.ASSOCIATE_ENTITY)
-					.send(MOCK_ASSOCIATE_REQUEST)
+					.send(generateAssociateEntityRequest())
 					.set('Authorization', ASSOCIATE_JWT_TOKEN)
 					.set('Content-Type', 'application/json')
 					.expect(HttpStatusCode.Unauthorized);
 			});
 
 			it('should respond with 403 if credentials are not found', () => {
-				mockGetIssueEndpoint();
+				const issueId = generateIssueId();
+				mockGetIssueEndpoint({ issueId });
 
 				return request(app)
 					.post(endpoints.ASSOCIATE_ENTITY)
-					.send(MOCK_ASSOCIATE_REQUEST)
+					.send(generateAssociateEntityRequest({ issueId }))
 					.set('Authorization', ASSOCIATE_JWT_TOKEN)
 					.set('Content-Type', 'application/json')
 					.set('User-Id', validCredentialsParams.atlassianUserId)
@@ -414,20 +514,32 @@ describe('/entities', () => {
 				});
 
 				it('should respond with 500 if fetching design details fails', async () => {
+					const fileKey = generateFigmaFileKey();
+					const issueId = generateIssueId();
+					const figmaDesignUrl = generateFigmaDesignUrl({
+						fileKey,
+					});
 					const credentials = await figmaOAuth2UserCredentialsRepository.get(
 						validCredentialsParams.atlassianUserId,
 					);
 
 					mockMeEndpoint({ success: true });
-					mockGetIssueEndpoint();
-					mockGetFileNodesEndpoint({
+					mockGetIssueEndpoint({ issueId });
+					mockGetFileEndpoint({
+						fileKey,
 						accessToken: credentials?.accessToken,
+						query: { depth: '1' },
 						success: false,
 					});
 
 					return request(app)
 						.post(endpoints.ASSOCIATE_ENTITY)
-						.send(MOCK_ASSOCIATE_REQUEST)
+						.send(
+							generateAssociateEntityRequest({
+								issueId,
+								figmaDesignUrl,
+							}),
+						)
 						.set('Authorization', ASSOCIATE_JWT_TOKEN)
 						.set('Content-Type', 'application/json')
 						.set('User-Id', validCredentialsParams.atlassianUserId)
@@ -435,18 +547,32 @@ describe('/entities', () => {
 				});
 
 				it('should respond with 500 if fetching issue details fails', async () => {
+					const fileKey = generateFigmaFileKey();
+					const issueId = generateIssueId();
+					const figmaDesignUrl = generateFigmaDesignUrl({ fileKey });
 					const credentials = await figmaOAuth2UserCredentialsRepository.get(
 						validCredentialsParams.atlassianUserId,
 					);
-					mockGetFileNodesEndpoint({
+
+					mockGetFileEndpoint({
+						fileKey,
 						accessToken: credentials?.accessToken,
+						query: { depth: '1' },
 					});
 					mockMeEndpoint();
-					mockGetIssueEndpoint({ success: false });
+					mockGetIssueEndpoint({
+						issueId,
+						status: HttpStatusCode.InternalServerError,
+					});
 
 					return request(app)
 						.post(endpoints.ASSOCIATE_ENTITY)
-						.send(MOCK_ASSOCIATE_REQUEST)
+						.send(
+							generateAssociateEntityRequest({
+								issueId,
+								figmaDesignUrl,
+							}),
+						)
 						.set('Authorization', ASSOCIATE_JWT_TOKEN)
 						.set('Content-Type', 'application/json')
 						.set('User-Id', validCredentialsParams.atlassianUserId)
@@ -454,26 +580,29 @@ describe('/entities', () => {
 				});
 
 				it('should respond with 500 if design ingestion fails', async () => {
+					const fileName = generateFigmaFileName();
+					const fileKey = generateFigmaFileKey();
+					const issueId = generateIssueId();
+					const figmaDesignUrl = generateFigmaDesignUrl({ fileKey, fileName });
+					const fileResponse = generateGetFileResponse({ name: fileName });
 					const credentials = await figmaOAuth2UserCredentialsRepository.get(
 						validCredentialsParams.atlassianUserId,
 					);
-					const mockFileNodesResponse = generateGetFileNodesResponse();
-					const mockDesign = getMockDesignFromFileNodesResponse(
-						mockFileNodesResponse,
-					);
 
 					mockMeEndpoint({ success: true, times: 2 });
-					mockGetFileNodesEndpoint({
+					mockGetFileEndpoint({
+						fileKey,
 						accessToken: credentials?.accessToken,
-						response: mockFileNodesResponse,
+						query: { depth: '1' },
+						response: fileResponse,
 					});
-					mockGetIssueEndpoint();
-
+					mockGetIssueEndpoint({ issueId });
 					mockGetIssuePropertyEndpoint({
+						issueId,
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
 					});
-
 					mockGetIssuePropertyEndpoint({
+						issueId,
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 						response: generateGetIssuePropertyResponse({
 							key: propertyKeys.ATTACHED_DESIGN_URL_V2,
@@ -481,20 +610,27 @@ describe('/entities', () => {
 						}),
 					});
 					mockSetIssuePropertyEndpoint({
+						issueId,
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 						value: JSON.stringify(
 							JSON.stringify([
-								{ url: mockDesign.url, name: mockDesign.displayName },
+								{ url: figmaDesignUrl, name: fileResponse.name },
 							]),
 						),
 					});
-
 					mockCreateDevResourcesEndpoint();
-					mockSubmitDesignsEndpoint({ success: false });
+					mockSubmitDesignsEndpoint({
+						status: HttpStatusCode.InternalServerError,
+					});
 
 					return request(app)
 						.post(endpoints.ASSOCIATE_ENTITY)
-						.send(MOCK_ASSOCIATE_REQUEST)
+						.send(
+							generateAssociateEntityRequest({
+								issueId,
+								figmaDesignUrl,
+							}),
+						)
 						.set('Authorization', ASSOCIATE_JWT_TOKEN)
 						.set('Content-Type', 'application/json')
 						.set('User-Id', validCredentialsParams.atlassianUserId)
@@ -502,26 +638,29 @@ describe('/entities', () => {
 				});
 
 				it('should respond with 500 if createDevResource request fails', async () => {
+					const fileName = generateFigmaFileName();
+					const fileKey = generateFigmaFileKey();
+					const issueId = generateIssueId();
+					const figmaDesignUrl = generateFigmaDesignUrl({ fileKey, fileName });
+					const fileResponse = generateGetFileResponse({ name: fileName });
 					const credentials = await figmaOAuth2UserCredentialsRepository.get(
 						validCredentialsParams.atlassianUserId,
 					);
-					const mockFileNodesResponse = generateGetFileNodesResponse();
-					const mockDesign = getMockDesignFromFileNodesResponse(
-						mockFileNodesResponse,
-					);
 
 					mockMeEndpoint({ success: true, times: 2 });
-					mockGetFileNodesEndpoint({
+					mockGetFileEndpoint({
+						fileKey,
 						accessToken: credentials?.accessToken,
-						response: mockFileNodesResponse,
+						query: { depth: '1' },
+						response: fileResponse,
 					});
-					mockGetIssueEndpoint();
-
+					mockGetIssueEndpoint({ issueId });
 					mockGetIssuePropertyEndpoint({
+						issueId,
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
 					});
-
 					mockGetIssuePropertyEndpoint({
+						issueId,
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 						response: generateGetIssuePropertyResponse({
 							key: propertyKeys.ATTACHED_DESIGN_URL_V2,
@@ -529,20 +668,27 @@ describe('/entities', () => {
 						}),
 					});
 					mockSetIssuePropertyEndpoint({
+						issueId,
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 						value: JSON.stringify(
 							JSON.stringify([
-								{ url: mockDesign.url, name: mockDesign.displayName },
+								{ url: figmaDesignUrl, name: fileResponse.name },
 							]),
 						),
 					});
-
 					mockSubmitDesignsEndpoint();
-					mockCreateDevResourcesEndpoint({ success: false });
+					mockCreateDevResourcesEndpoint({
+						status: HttpStatusCode.InternalServerError,
+					});
 
 					return request(app)
 						.post(endpoints.ASSOCIATE_ENTITY)
-						.send(MOCK_ASSOCIATE_REQUEST)
+						.send(
+							generateAssociateEntityRequest({
+								issueId,
+								figmaDesignUrl,
+							}),
+						)
 						.set('Authorization', ASSOCIATE_JWT_TOKEN)
 						.set('Content-Type', 'application/json')
 						.set('User-Id', validCredentialsParams.atlassianUserId)
@@ -550,27 +696,30 @@ describe('/entities', () => {
 				});
 
 				it('should respond with 500 if setting any attached-design-url property fails', async () => {
+					const fileName = generateFigmaFileName();
+					const fileKey = generateFigmaFileKey();
+					const issueId = generateIssueId();
+					const figmaDesignUrl = generateFigmaDesignUrl({ fileKey, fileName });
+					const fileResponse = generateGetFileResponse({ name: fileName });
 					const credentials = await figmaOAuth2UserCredentialsRepository.get(
 						validCredentialsParams.atlassianUserId,
 					);
-					const mockFileNodesResponse = generateGetFileNodesResponse();
-					const mockDesign = getMockDesignFromFileNodesResponse(
-						mockFileNodesResponse,
-					);
 
 					mockMeEndpoint({ success: true, times: 2 });
-					mockGetFileNodesEndpoint({
+					mockGetFileEndpoint({
+						fileKey,
 						accessToken: credentials?.accessToken,
-						response: mockFileNodesResponse,
+						query: { depth: '1' },
+						response: fileResponse,
 					});
-					mockGetIssueEndpoint();
-
+					mockGetIssueEndpoint({ issueId });
 					mockGetIssuePropertyEndpoint({
+						issueId,
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
-						success: false,
+						status: HttpStatusCode.InternalServerError,
 					});
-
 					mockGetIssuePropertyEndpoint({
+						issueId,
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 						response: generateGetIssuePropertyResponse({
 							key: propertyKeys.ATTACHED_DESIGN_URL_V2,
@@ -578,20 +727,25 @@ describe('/entities', () => {
 						}),
 					});
 					mockSetIssuePropertyEndpoint({
+						issueId,
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 						value: JSON.stringify(
 							JSON.stringify([
-								{ url: mockDesign.url, name: mockDesign.displayName },
+								{ url: figmaDesignUrl, name: fileResponse.name },
 							]),
 						),
 					});
-
 					mockSubmitDesignsEndpoint();
 					mockCreateDevResourcesEndpoint();
 
 					return request(app)
 						.post(endpoints.ASSOCIATE_ENTITY)
-						.send(MOCK_ASSOCIATE_REQUEST)
+						.send(
+							generateAssociateEntityRequest({
+								issueId,
+								figmaDesignUrl,
+							}),
+						)
 						.set('Authorization', ASSOCIATE_JWT_TOKEN)
 						.set('Content-Type', 'application/json')
 						.set('User-Id', validCredentialsParams.atlassianUserId)
@@ -611,35 +765,47 @@ describe('/entities', () => {
 				await cleanupSuccessCaseTests(validCredentialsParams);
 			});
 
-			it('should respond with created design entity', async () => {
+			it('should disassociate Figma file and respond with created design entity', async () => {
+				const fileName = generateFigmaFileName();
+				const fileKey = generateFigmaFileKey();
+				const issueId = generateIssueId();
+				const devResourceId = uuidv4();
+				const figmaDesignUrl = generateFigmaDesignUrl({
+					fileKey,
+					fileName,
+				});
+				const fileResponse = generateGetFileResponse({
+					name: fileName,
+				});
 				const credentials = await figmaOAuth2UserCredentialsRepository.get(
 					validCredentialsParams.atlassianUserId,
 				);
-				const mockFileNodesResponse = generateGetFileNodesResponse();
-				const mockDesign = getMockDesignFromFileNodesResponse(
-					mockFileNodesResponse,
-				);
 
 				mockMeEndpoint({ success: true, times: 2 });
-				mockGetFileNodesEndpoint({
+				mockGetFileEndpoint({
+					fileKey,
 					accessToken: credentials?.accessToken,
-					response: mockFileNodesResponse,
+					query: { depth: '1' },
+					response: fileResponse,
 				});
-
-				mockGetIssueEndpoint();
+				mockGetIssueEndpoint({ issueId });
 				mockSubmitDesignsEndpoint();
-				mockGetDevResourcesEndpoint();
-
-				mockDeleteDevResourcesEndpoint();
-
+				mockGetDevResourcesEndpoint({
+					fileKey,
+					nodeId: '0:0',
+					response: generateGetDevResourcesResponse({ id: devResourceId }),
+				});
+				mockDeleteDevResourcesEndpoint({ fileKey, devResourceId });
 				mockGetIssuePropertyEndpoint({
+					issueId,
 					propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
 					response: generateGetIssuePropertyResponse({
 						key: propertyKeys.ATTACHED_DESIGN_URL,
-						value: mockDesign.url,
+						value: figmaDesignUrl,
 					}),
 				});
 				mockDeleteIssuePropertyEndpoint({
+					issueId,
 					propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
 				});
 
@@ -650,10 +816,11 @@ describe('/entities', () => {
 					};
 				const attachedDesignUrlV2Values: AttachedDesignUrlV2IssuePropertyValue[] =
 					[
-						{ url: mockDesign.url, name: mockDesign.displayName },
+						{ url: figmaDesignUrl, name: fileResponse.name },
 						expectedDesignUrlV2Value,
 					];
 				mockGetIssuePropertyEndpoint({
+					issueId,
 					propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 					response: generateGetIssuePropertyResponse({
 						key: propertyKeys.ATTACHED_DESIGN_URL_V2,
@@ -661,21 +828,121 @@ describe('/entities', () => {
 					}),
 				});
 				mockSetIssuePropertyEndpoint({
+					issueId,
+					propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify(JSON.stringify([expectedDesignUrlV2Value])),
+				});
+
+				const expectedResponse = {
+					design: transformFileToAtlassianDesign({
+						fileKey,
+						fileResponse,
+					}),
+				};
+
+				return request(app)
+					.post(endpoints.DISASSOCIATE_ENTITY)
+					.send(
+						generateDisassociateEntityRequest({
+							issueId,
+							entityId: fileKey,
+						}),
+					)
+					.set('Authorization', DISASSOCIATE_JWT_TOKEN)
+					.set('Content-Type', 'application/json')
+					.set('User-Id', validCredentialsParams.atlassianUserId)
+					.expect(HttpStatusCode.Ok)
+					.expect(expectedResponse);
+			});
+
+			it('should disassociate Figma node and respond with created design entity', async () => {
+				const fileName = generateFigmaFileName();
+				const fileKey = generateFigmaFileKey();
+				const nodeId = generateFigmaNodeId();
+				const node = { ...MOCK_CHILD_NODE, id: nodeId };
+				const issueId = generateIssueId();
+				const devResourceId = uuidv4();
+				const figmaDesignUrl = generateFigmaDesignUrl({
+					fileKey,
+					fileName,
+					nodeId,
+				});
+				const fileResponse = generateGetFileResponseWithNode({
+					name: fileName,
+					node,
+				});
+				const credentials = await figmaOAuth2UserCredentialsRepository.get(
+					validCredentialsParams.atlassianUserId,
+				);
+
+				mockMeEndpoint({ success: true, times: 2 });
+				mockGetFileEndpoint({
+					fileKey,
+					accessToken: credentials?.accessToken,
+					query: { ids: nodeId, node_last_modified: 'true' },
+					response: fileResponse,
+				});
+				mockGetIssueEndpoint({ issueId });
+				mockSubmitDesignsEndpoint();
+				mockGetDevResourcesEndpoint({
+					fileKey,
+					nodeId,
+					response: generateGetDevResourcesResponse({ id: devResourceId }),
+				});
+				mockDeleteDevResourcesEndpoint({ fileKey, devResourceId });
+				mockGetIssuePropertyEndpoint({
+					issueId,
+					propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+					response: generateGetIssuePropertyResponse({
+						key: propertyKeys.ATTACHED_DESIGN_URL,
+						value: figmaDesignUrl,
+					}),
+				});
+				mockDeleteIssuePropertyEndpoint({
+					issueId,
+					propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+				});
+
+				const expectedDesignUrlV2Value: AttachedDesignUrlV2IssuePropertyValue =
+					{
+						url: 'https://should-not-be-deleted.com',
+						name: 'should not be deleted',
+					};
+				const attachedDesignUrlV2Values: AttachedDesignUrlV2IssuePropertyValue[] =
+					[
+						{ url: figmaDesignUrl, name: fileResponse.name },
+						expectedDesignUrlV2Value,
+					];
+				mockGetIssuePropertyEndpoint({
+					issueId,
+					propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+					response: generateGetIssuePropertyResponse({
+						key: propertyKeys.ATTACHED_DESIGN_URL_V2,
+						value: JSON.stringify(attachedDesignUrlV2Values),
+					}),
+				});
+				mockSetIssuePropertyEndpoint({
+					issueId,
 					propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 					value: JSON.stringify(JSON.stringify([expectedDesignUrlV2Value])),
 				});
 
 				const expectedResponse = {
 					design: transformNodeToAtlassianDesign({
-						fileKey: MOCK_FILE_KEY,
-						nodeId: MOCK_NODE_ID,
-						fileNodesResponse: mockFileNodesResponse,
+						fileKey,
+						nodeId,
+						fileResponseWithNode: fileResponse,
 					}),
 				};
 
 				return request(app)
 					.post(endpoints.DISASSOCIATE_ENTITY)
-					.send(MOCK_DISASSOCIATE_REQUEST)
+					.send(
+						generateDisassociateEntityRequest({
+							issueId,
+							entityId: `${fileKey}/${nodeId}`,
+						}),
+					)
 					.set('Authorization', DISASSOCIATE_JWT_TOKEN)
 					.set('Content-Type', 'application/json')
 					.set('User-Id', validCredentialsParams.atlassianUserId)
@@ -696,18 +963,19 @@ describe('/entities', () => {
 			it('should respond with 401 "User-Id" header is not set', () => {
 				return request(app)
 					.post(endpoints.DISASSOCIATE_ENTITY)
-					.send(MOCK_DISASSOCIATE_REQUEST)
+					.send(generateDisassociateEntityRequest())
 					.set('Authorization', DISASSOCIATE_JWT_TOKEN)
 					.set('Content-Type', 'application/json')
 					.expect(HttpStatusCode.Unauthorized);
 			});
 
 			it('should respond with 403 if credentials are not found', () => {
-				mockGetIssueEndpoint();
+				const issueId = generateIssueId();
+				mockGetIssueEndpoint({ issueId });
 
 				return request(app)
 					.post(endpoints.DISASSOCIATE_ENTITY)
-					.send(MOCK_DISASSOCIATE_REQUEST)
+					.send(generateDisassociateEntityRequest({ issueId }))
 					.set('Authorization', DISASSOCIATE_JWT_TOKEN)
 					.set('Content-Type', 'application/json')
 					.set('User-Id', validCredentialsParams.atlassianUserId)
@@ -728,20 +996,29 @@ describe('/entities', () => {
 				});
 
 				it('should respond with 500 if fetching design details fails', async () => {
+					const fileKey = generateFigmaFileKey();
+					const issueId = generateIssueId();
 					const credentials = await figmaOAuth2UserCredentialsRepository.get(
 						validCredentialsParams.atlassianUserId,
 					);
 
 					mockMeEndpoint({ success: true });
-					mockGetIssueEndpoint();
-					mockGetFileNodesEndpoint({
+					mockGetIssueEndpoint({ issueId });
+					mockGetFileEndpoint({
+						fileKey,
 						accessToken: credentials?.accessToken,
+						query: { depth: '1' },
 						success: false,
 					});
 
 					return request(app)
 						.post(endpoints.DISASSOCIATE_ENTITY)
-						.send(MOCK_DISASSOCIATE_REQUEST)
+						.send(
+							generateDisassociateEntityRequest({
+								issueId,
+								entityId: fileKey,
+							}),
+						)
 						.set('Authorization', DISASSOCIATE_JWT_TOKEN)
 						.set('Content-Type', 'application/json')
 						.set('User-Id', validCredentialsParams.atlassianUserId)
@@ -749,18 +1026,33 @@ describe('/entities', () => {
 				});
 
 				it('should respond with 500 if fetching issue details fails', async () => {
+					const fileName = generateFigmaFileName();
+					const fileKey = generateFigmaFileKey();
+					const issueId = generateIssueId();
+					const fileResponse = generateGetFileResponse({ name: fileName });
 					const credentials = await figmaOAuth2UserCredentialsRepository.get(
 						validCredentialsParams.atlassianUserId,
 					);
-					mockGetFileNodesEndpoint({
+					mockGetFileEndpoint({
+						fileKey,
 						accessToken: credentials?.accessToken,
+						query: { depth: '1' },
+						response: fileResponse,
 					});
 					mockMeEndpoint();
-					mockGetIssueEndpoint({ success: false });
+					mockGetIssueEndpoint({
+						issueId,
+						status: HttpStatusCode.InternalServerError,
+					});
 
 					return request(app)
 						.post(endpoints.DISASSOCIATE_ENTITY)
-						.send(MOCK_DISASSOCIATE_REQUEST)
+						.send(
+							generateDisassociateEntityRequest({
+								issueId,
+								entityId: fileKey,
+							}),
+						)
 						.set('Authorization', DISASSOCIATE_JWT_TOKEN)
 						.set('Content-Type', 'application/json')
 						.set('User-Id', validCredentialsParams.atlassianUserId)
@@ -768,34 +1060,49 @@ describe('/entities', () => {
 				});
 
 				it('should respond with 500 if design ingestion fails', async () => {
+					const fileName = generateFigmaFileName();
+					const fileKey = generateFigmaFileKey();
+					const issueId = generateIssueId();
+					const fileResponse = generateGetFileResponse({ name: fileName });
 					const credentials = await figmaOAuth2UserCredentialsRepository.get(
 						validCredentialsParams.atlassianUserId,
 					);
-					const mockFileNodesResponse = generateGetFileNodesResponse();
 
 					mockMeEndpoint({ success: true, times: 2 });
-					mockGetFileNodesEndpoint({
+					mockGetFileEndpoint({
+						fileKey,
 						accessToken: credentials?.accessToken,
-						response: mockFileNodesResponse,
+						query: { depth: '1' },
+						response: fileResponse,
 					});
-					mockGetIssueEndpoint();
-					mockGetDevResourcesEndpoint();
-					mockDeleteDevResourcesEndpoint();
+					mockGetIssueEndpoint({ issueId });
+					mockGetDevResourcesEndpoint({
+						fileKey,
+						nodeId: '0:0',
+						response: generateEmptyDevResourcesResponse(),
+					});
 					mockGetIssuePropertyEndpoint({
+						issueId,
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
-						success: false,
-						errorCode: HttpStatusCode.NotFound,
+						status: HttpStatusCode.NotFound,
 					});
 					mockGetIssuePropertyEndpoint({
+						issueId,
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
-						success: false,
-						errorCode: HttpStatusCode.NotFound,
+						status: HttpStatusCode.NotFound,
 					});
-					mockSubmitDesignsEndpoint({ success: false });
+					mockSubmitDesignsEndpoint({
+						status: HttpStatusCode.InternalServerError,
+					});
 
 					return request(app)
 						.post(endpoints.DISASSOCIATE_ENTITY)
-						.send(MOCK_DISASSOCIATE_REQUEST)
+						.send(
+							generateDisassociateEntityRequest({
+								issueId,
+								entityId: fileKey,
+							}),
+						)
 						.set('Authorization', DISASSOCIATE_JWT_TOKEN)
 						.set('Content-Type', 'application/json')
 						.set('User-Id', validCredentialsParams.atlassianUserId)
@@ -803,33 +1110,47 @@ describe('/entities', () => {
 				});
 
 				it('should respond with 200 if getDevResource returns no resources', async () => {
+					const fileName = generateFigmaFileName();
+					const fileKey = generateFigmaFileKey();
+					const issueId = generateIssueId();
+					const fileResponse = generateGetFileResponse({ name: fileName });
 					const credentials = await figmaOAuth2UserCredentialsRepository.get(
 						validCredentialsParams.atlassianUserId,
 					);
-					const mockFileNodesResponse = generateGetFileNodesResponse();
 
 					mockMeEndpoint({ success: true, times: 2 });
-					mockGetFileNodesEndpoint({
+					mockGetFileEndpoint({
+						fileKey,
 						accessToken: credentials?.accessToken,
-						response: mockFileNodesResponse,
+						query: { depth: '1' },
+						response: fileResponse,
 					});
-					mockGetIssueEndpoint();
+					mockGetIssueEndpoint({ issueId });
 					mockSubmitDesignsEndpoint();
 					mockGetIssuePropertyEndpoint({
+						issueId,
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
-						success: false,
-						errorCode: HttpStatusCode.NotFound,
+						status: HttpStatusCode.NotFound,
 					});
 					mockGetIssuePropertyEndpoint({
+						issueId,
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
-						success: false,
-						errorCode: HttpStatusCode.NotFound,
+						status: HttpStatusCode.NotFound,
 					});
-					mockGetDevResourcesEndpoint({ withDevResources: false });
+					mockGetDevResourcesEndpoint({
+						fileKey,
+						nodeId: '0:0',
+						response: generateEmptyDevResourcesResponse(),
+					});
 
 					return request(app)
 						.post(endpoints.DISASSOCIATE_ENTITY)
-						.send(MOCK_DISASSOCIATE_REQUEST)
+						.send(
+							generateDisassociateEntityRequest({
+								issueId,
+								entityId: fileKey,
+							}),
+						)
 						.set('Authorization', DISASSOCIATE_JWT_TOKEN)
 						.set('Content-Type', 'application/json')
 						.set('User-Id', validCredentialsParams.atlassianUserId)
@@ -837,34 +1158,53 @@ describe('/entities', () => {
 				});
 
 				it('should respond with 500 if deleteDevResource request fails', async () => {
+					const fileName = generateFigmaFileName();
+					const fileKey = generateFigmaFileKey();
+					const issueId = generateIssueId();
+					const fileResponse = generateGetFileResponse({ name: fileName });
+					const devResourceId = uuidv4();
 					const credentials = await figmaOAuth2UserCredentialsRepository.get(
 						validCredentialsParams.atlassianUserId,
 					);
-					const mockFileNodesResponse = generateGetFileNodesResponse();
 
 					mockMeEndpoint({ success: true, times: 2 });
-					mockGetFileNodesEndpoint({
+					mockGetFileEndpoint({
+						fileKey,
 						accessToken: credentials?.accessToken,
-						response: mockFileNodesResponse,
+						query: { depth: '1' },
+						response: fileResponse,
 					});
-					mockGetIssueEndpoint();
+					mockGetIssueEndpoint({ issueId });
 					mockSubmitDesignsEndpoint();
-					mockGetDevResourcesEndpoint();
+					mockGetDevResourcesEndpoint({
+						fileKey,
+						nodeId: '0:0',
+						response: generateGetDevResourcesResponse({ id: devResourceId }),
+					});
 					mockGetIssuePropertyEndpoint({
+						issueId,
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
-						success: false,
-						errorCode: HttpStatusCode.NotFound,
+						status: HttpStatusCode.NotFound,
 					});
 					mockGetIssuePropertyEndpoint({
+						issueId,
 						propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
-						success: false,
-						errorCode: HttpStatusCode.NotFound,
+						status: HttpStatusCode.NotFound,
 					});
-					mockDeleteDevResourcesEndpoint({ success: false });
+					mockDeleteDevResourcesEndpoint({
+						fileKey,
+						devResourceId,
+						status: HttpStatusCode.InternalServerError,
+					});
 
 					return request(app)
 						.post(endpoints.DISASSOCIATE_ENTITY)
-						.send(MOCK_DISASSOCIATE_REQUEST)
+						.send(
+							generateDisassociateEntityRequest({
+								issueId,
+								entityId: fileKey,
+							}),
+						)
 						.set('Authorization', DISASSOCIATE_JWT_TOKEN)
 						.set('Content-Type', 'application/json')
 						.set('User-Id', validCredentialsParams.atlassianUserId)

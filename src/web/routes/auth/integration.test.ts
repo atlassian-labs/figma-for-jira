@@ -11,7 +11,7 @@ import {
 	generateGetOAuth2TokenResponse,
 	generateRefreshOAuth2TokenQueryParams,
 	generateRefreshOAuth2TokenResponse,
-} from '../../../infrastructure/figma/testing';
+} from '../../../infrastructure/figma/figma-client/testing';
 import { figmaOAuth2UserCredentialsRepository } from '../../../infrastructure/repositories';
 
 import { FAILURE_PAGE_URL, SUCCESS_PAGE_URL } from './index';

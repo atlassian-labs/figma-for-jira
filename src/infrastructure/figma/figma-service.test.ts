@@ -13,15 +13,16 @@ import type {
 	MeResponse,
 } from './figma-client';
 import { figmaClient } from './figma-client';
+import {
+	generateGetFileResponse,
+	generateGetFileResponseWithNode,
+	MOCK_CHILD_NODE,
+} from './figma-client/testing';
 import { buildIssueTitle, figmaService } from './figma-service';
 import {
 	transformFileToAtlassianDesign,
 	transformNodeToAtlassianDesign,
-} from './figma-transformer';
-import {
-	generateGetFileNodesResponse,
-	generateGetFileResponse,
-} from './testing';
+} from './transformers';
 
 import * as configModule from '../../config';
 import { mockConfig } from '../../config/testing';
@@ -136,8 +137,8 @@ describe('FigmaService', () => {
 	describe('fetchDesignById', () => {
 		it('should return a valid design entity if design id points out to node', async () => {
 			const credentials = generateFigmaOAuth2UserCredentials();
-			const mockResponse = generateGetFileNodesResponse({
-				nodeId: MOCK_FIGMA_NODE_IDENTITY.nodeId,
+			const mockResponse = generateGetFileResponseWithNode({
+				node: { ...MOCK_CHILD_NODE, id: MOCK_FIGMA_NODE_IDENTITY.nodeId! },
 			});
 
 			jest
@@ -146,9 +147,9 @@ describe('FigmaService', () => {
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
-			jest.spyOn(figmaClient, 'getFileNodes').mockResolvedValue(mockResponse);
+			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
 
-			const res = await figmaService.fetchDesignById(
+			const result = await figmaService.fetchDesignById(
 				MOCK_FIGMA_NODE_IDENTITY,
 				ATLASSIAN_USER_ID,
 			);
@@ -156,9 +157,9 @@ describe('FigmaService', () => {
 			const expectedEntity = transformNodeToAtlassianDesign({
 				fileKey: MOCK_FIGMA_NODE_IDENTITY.fileKey,
 				nodeId: MOCK_FIGMA_NODE_IDENTITY.nodeId!,
-				fileNodesResponse: mockResponse,
+				fileResponseWithNode: mockResponse,
 			});
-			expect(res).toStrictEqual({
+			expect(result).toStrictEqual({
 				...expectedEntity,
 				lastUpdated: expect.anything(),
 			});
