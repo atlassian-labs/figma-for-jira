@@ -10,7 +10,7 @@ import type { AtlassianDesign } from '../../domain/entities';
 import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
-	FigmaDesignIdentity,
+	FigmaDesignIdentifier,
 } from '../../domain/entities';
 
 /**
@@ -129,7 +129,7 @@ export const transformNodeToAtlassianDesign = ({
 	nodeId,
 	fileNodesResponse,
 }: TransformNodeToAtlassianDesignParams): AtlassianDesign => {
-	const designId = new FigmaDesignIdentity(fileKey, nodeId);
+	const designId = new FigmaDesignIdentifier(fileKey, nodeId);
 	const node = fileNodesResponse.nodes[nodeId].document;
 	const fileName = fileNodesResponse.name;
 	return {
@@ -157,7 +157,7 @@ export const transformFileToAtlassianDesign = ({
 	fileKey,
 	fileResponse,
 }: TransformFileToAtlassianDesignParams): AtlassianDesign => {
-	const designId = new FigmaDesignIdentity(fileKey);
+	const designId = new FigmaDesignIdentifier(fileKey);
 	const fileName = fileResponse.name;
 	return {
 		id: designId.toAtlassianDesignId(),
