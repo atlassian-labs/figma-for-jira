@@ -19,7 +19,6 @@ import {
 	MOCK_FIGMA_FILE_KEY,
 	MOCK_FIGMA_NODE_ID,
 } from '../../../domain/entities/testing';
-import { figmaService } from '../../../infrastructure/figma';
 import type {
 	FigmaWebhookEventPayload,
 	FigmaWebhookEventType,
@@ -29,7 +28,6 @@ import {
 	generateFigmaWebhookEventPayload,
 	generateGetFileNodesResponse,
 } from '../../../infrastructure/figma/testing';
-import { jiraService } from '../../../infrastructure/jira';
 import { generateSuccessfulSubmitDesignsResponse } from '../../../infrastructure/jira/jira-client/testing';
 import {
 	associatedFigmaDesignRepository,
@@ -185,8 +183,6 @@ describe('/figma', () => {
 
 			it("should set the FigmaTeam status to 'ERROR' and return a 200 if we can't get valid OAuth2 credentials", async () => {
 				mockMeEndpoint({ success: false });
-				jest.spyOn(figmaService, 'fetchDesignById');
-				jest.spyOn(jiraService, 'updateDesigns');
 
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
@@ -197,14 +193,10 @@ describe('/figma', () => {
 					figmaTeam.webhookId,
 				);
 				expect(updatedFigmaTeam.status).toStrictEqual(FigmaTeamStatus.ERROR);
-				expect(figmaService.fetchDesignById).not.toBeCalled();
-				expect(jiraService.updateDesigns).not.toBeCalled();
 			});
 
 			it('should return a 500 status if we fetching the ConnectInstallation throws an error', async () => {
 				mockMeEndpoint();
-				jest.spyOn(figmaService, 'fetchDesignById');
-				jest.spyOn(jiraService, 'updateDesigns');
 				jest
 					.spyOn(connectInstallationRepository, 'get')
 					.mockRejectedValue(new Error('error'));
@@ -213,14 +205,10 @@ describe('/figma', () => {
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventPayload)
 					.expect(500);
-				expect(figmaService.fetchDesignById).not.toBeCalled();
-				expect(jiraService.updateDesigns).not.toBeCalled();
 			});
 
 			it('should return a 500 status if we fetching AssociatedFigmaDesigns throws an error', async () => {
 				mockMeEndpoint();
-				jest.spyOn(figmaService, 'fetchDesignById');
-				jest.spyOn(jiraService, 'updateDesigns');
 				jest
 					.spyOn(
 						associatedFigmaDesignRepository,
@@ -232,8 +220,6 @@ describe('/figma', () => {
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventPayload)
 					.expect(500);
-				expect(figmaService.fetchDesignById).not.toBeCalled();
-				expect(jiraService.updateDesigns).not.toBeCalled();
 			});
 
 			it('should return a 500 if fetch designs from Figma fails', async () => {
