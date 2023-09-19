@@ -3,9 +3,6 @@ import type { Request, Response } from 'express';
 
 import { getConfig } from '../../config';
 
-const figmaScope =
-	'files:read,file_dev_resources:read,file_dev_resources:write';
-
 export const connectDescriptorGet = (_: Request, res: Response) => {
 	res.status(HttpStatusCode.Ok).json(connectAppDescriptor);
 };
@@ -105,17 +102,23 @@ export const connectAppDescriptor = {
 				disassociateEntity: {
 					templateUrl: `${getConfig().app.baseUrl}/entities/disassociateEntity`,
 				},
+				checkAuth: {
+					templateUrl: `${
+						getConfig().app.baseUrl
+					}/auth/checkAuth?userId={userId}`,
+				},
+				// TODO: Remove the actions below when the `checkAuth` action support is available in Jira.
 				grant3LO: {
 					templateUrl: `${getConfig().figma.apiBaseUrl}/oauth?client_id=${
 						getConfig().figma.clientId
-					}&redirect_uri=${
-						getConfig().app.baseUrl
-					}/auth/callback&scope=${figmaScope}&state={state}&response_type=code`,
+					}&redirect_uri=${getConfig().app.baseUrl}/auth/callback&scope=${
+						getConfig().figma.scope
+					}&state={state}&response_type=code`,
 				},
 				check3LO: {
 					templateUrl: `${
 						getConfig().app.baseUrl
-					}/auth/check3LO?userId={userId}`,
+					}/auth/checkAuth?userId={userId}`,
 				},
 			},
 		},

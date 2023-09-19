@@ -6,6 +6,7 @@ import app from '../../../app';
 import { Duration } from '../../../common/duration';
 import { getConfig } from '../../../config';
 import { generateFigmaUserCredentialsCreateParams } from '../../../domain/entities/testing';
+import { figmaAuthService } from '../../../infrastructure/figma';
 import {
 	generateGetOAuth2TokenQueryParams,
 	generateGetOAuth2TokenResponse,
@@ -22,7 +23,7 @@ const FIGMA_OAUTH_API_BASE_URL = getConfig().figma.oauthApiBaseUrl;
 const FIGMA_OAUTH_TOKEN_ENDPOINT = '/api/oauth/token';
 const FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT = '/api/oauth/refresh';
 const FIGMA_ME_ENDPOINT = '/v1/me';
-const CHECK_3LO_ENDPOINT = '/auth/check3LO';
+const CHECK_AUTH_ENDPOINT = '/auth/checkAuth';
 const AUTH_CALLBACK_ENDPOINT = '/auth/callback';
 
 const cleanupToken = async (atlassianUserId: string) => {
@@ -32,7 +33,7 @@ const cleanupToken = async (atlassianUserId: string) => {
 };
 
 describe('/auth', () => {
-	describe('/check3LO', () => {
+	describe('/checkAuth', () => {
 		describe('with valid OAuth credentials stored', () => {
 			const validCredentialsParams = generateFigmaUserCredentialsCreateParams();
 
@@ -46,30 +47,40 @@ describe('/auth', () => {
 				await cleanupToken(validCredentialsParams.atlassianUserId);
 			});
 
-			it('should respond with "authorized: true" if the /me endpoint responds with a non-error response code', () => {
+			it('should return a response indicating that user is authorized if /me endpoint responds with a non-error response code', () => {
 				nock(FIGMA_API_BASE_URL)
 					.get(FIGMA_ME_ENDPOINT)
 					.reply(HttpStatusCode.Ok);
 
 				return request(app)
 					.get(
-						`${CHECK_3LO_ENDPOINT}?userId=${validCredentialsParams.atlassianUserId}`,
+						`${CHECK_AUTH_ENDPOINT}?userId=${validCredentialsParams.atlassianUserId}`,
 					)
 					.expect(HttpStatusCode.Ok)
-					.expect({ authorized: true });
+					.expect({ type: '3LO', authorized: true });
 			});
 
-			it('should respond with "authorized: false" if the /me endpoint responds with a 403', () => {
+			it('should return a response indicating that user is not authorized if the /me endpoint responds with a 403', () => {
 				nock(FIGMA_API_BASE_URL)
 					.get(FIGMA_ME_ENDPOINT)
 					.reply(HttpStatusCode.Forbidden);
 
 				return request(app)
 					.get(
-						`${CHECK_3LO_ENDPOINT}?userId=${validCredentialsParams.atlassianUserId}`,
+						`${CHECK_AUTH_ENDPOINT}?userId=${validCredentialsParams.atlassianUserId}`,
 					)
 					.expect(HttpStatusCode.Ok)
-					.expect({ authorized: false });
+					.expect({
+						type: '3LO',
+						authorized: false,
+						grant: {
+							authorizationEndpoint:
+								figmaAuthService.buildAuthorizationEndpoint(
+									validCredentialsParams.atlassianUserId,
+									`${getConfig().app.baseUrl}/auth/callback`,
+								),
+						},
+					});
 			});
 		});
 
@@ -98,7 +109,7 @@ describe('/auth', () => {
 				await cleanupToken(expiredCredentialsParams.atlassianUserId);
 			});
 
-			it('should respond with "authorized: true" if the /me endpoint responds with a non-error response code', async () => {
+			it('should return a response indicating that user is authorized if credentials were refreshed', async () => {
 				const refreshTokenResponse = generateRefreshOAuth2TokenResponse();
 				nock(FIGMA_OAUTH_API_BASE_URL)
 					.post(FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT)
@@ -110,10 +121,10 @@ describe('/auth', () => {
 
 				await request(app)
 					.get(
-						`${CHECK_3LO_ENDPOINT}?userId=${expiredCredentialsParams.atlassianUserId}`,
+						`${CHECK_AUTH_ENDPOINT}?userId=${expiredCredentialsParams.atlassianUserId}`,
 					)
 					.expect(HttpStatusCode.Ok)
-					.expect({ authorized: true });
+					.expect({ type: '3LO', authorized: true });
 
 				const credentials = await figmaOAuth2UserCredentialsRepository.get(
 					expiredCredentialsParams.atlassianUserId,
@@ -124,7 +135,7 @@ describe('/auth', () => {
 				expect(credentials?.isExpired()).toBeFalsy();
 			});
 
-			it('should respond with "authorized: false" if the credentials could not be refreshed', () => {
+			it('should return a response indicating that user is not authorized if credentials could not be refreshed', () => {
 				nock(FIGMA_OAUTH_API_BASE_URL)
 					.post(FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT)
 					.query(refreshTokenQueryParams)
@@ -132,21 +143,41 @@ describe('/auth', () => {
 
 				return request(app)
 					.get(
-						`${CHECK_3LO_ENDPOINT}?userId=${expiredCredentialsParams.atlassianUserId}`,
+						`${CHECK_AUTH_ENDPOINT}?userId=${expiredCredentialsParams.atlassianUserId}`,
 					)
 					.expect(HttpStatusCode.Ok)
-					.expect({ authorized: false });
+					.expect({
+						type: '3LO',
+						authorized: false,
+						grant: {
+							authorizationEndpoint:
+								figmaAuthService.buildAuthorizationEndpoint(
+									expiredCredentialsParams.atlassianUserId,
+									`${getConfig().app.baseUrl}/auth/callback`,
+								),
+						},
+					});
 			});
 		});
 
 		describe('without OAuth credentials stored', () => {
-			it('should respond with "authorized: false" if no database entry exists', async () => {
+			it('should return a response indicating that user is not authorized if no database entry exists', async () => {
 				const userId = 'unknown-user-id';
 
 				return request(app)
-					.get(`/auth/check3LO?userId=${userId}`)
+					.get(`${CHECK_AUTH_ENDPOINT}?userId=${userId}`)
 					.expect(HttpStatusCode.Ok)
-					.expect({ authorized: false });
+					.expect({
+						type: '3LO',
+						authorized: false,
+						grant: {
+							authorizationEndpoint:
+								figmaAuthService.buildAuthorizationEndpoint(
+									userId,
+									`${getConfig().app.baseUrl}/auth/callback`,
+								),
+						},
+					});
 			});
 		});
 	});
