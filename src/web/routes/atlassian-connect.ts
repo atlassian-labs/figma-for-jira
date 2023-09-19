@@ -3,8 +3,8 @@ import type { Request, Response } from 'express';
 
 import { getConfig } from '../../config';
 
-// const figmaScope =
-// 	'files:read,file_dev_resources:read,file_dev_resources:write';
+const figmaScope =
+	'files:read,file_dev_resources:read,file_dev_resources:write';
 
 export const connectDescriptorGet = (_: Request, res: Response) => {
 	res.status(HttpStatusCode.Ok).json(connectAppDescriptor);
@@ -92,6 +92,14 @@ export const connectAppDescriptor = {
 				name: {
 					value: 'Designs',
 				},
+				conditions: [
+					{
+						condition: 'feature_flag_service_flag',
+						params: {
+							featureKey: 'atlas.figma-design-section.enabled',
+						},
+					},
+				],
 			},
 		],
 		/**
@@ -99,36 +107,36 @@ export const connectAppDescriptor = {
 		 *
 		 * https://developer.atlassian.com/cloud/jira/software/modules/design/
 		 */
-		// jiraDesignInfoProvider: {
-		// 	homeUrl: 'https://www.figma.com/',
-		// 	name: {
-		// 		value: 'Figma',
-		// 	},
-		// 	key: 'figma-integration',
-		// 	handledDomainName: 'figma.com',
-		// 	logoUrl: `${getConfig().app.baseUrl}/public/figma-logo.svg`,
-		// 	documentationUrl:
-		// 		'https://help.figma.com/hc/en-us/articles/360039827834-Jira-and-Figma',
-		// 	actions: {
-		// 		associateEntity: {
-		// 			templateUrl: `${getConfig().app.baseUrl}/entities/associateEntity`,
-		// 		},
-		// 		disassociateEntity: {
-		// 			templateUrl: `${getConfig().app.baseUrl}/entities/disassociateEntity`,
-		// 		},
-		// 		grant3LO: {
-		// 			templateUrl: `${getConfig().figma.apiBaseUrl}/oauth?client_id=${
-		// 				getConfig().figma.clientId
-		// 			}&redirect_uri=${
-		// 				getConfig().app.baseUrl
-		// 			}/auth/callback&scope=${figmaScope}&state={state}&response_type=code`,
-		// 		},
-		// 		check3LO: {
-		// 			templateUrl: `${
-		// 				getConfig().app.baseUrl
-		// 			}/auth/check3LO?userId={userId}`,
-		// 		},
-		// 	},
-		// },
+		jiraDesignInfoProvider: {
+			homeUrl: 'https://www.figma.com/',
+			name: {
+				value: 'Figma',
+			},
+			key: 'figma-integration',
+			handledDomainName: 'figma.com',
+			logoUrl: `${getConfig().app.baseUrl}/public/figma-logo.svg`,
+			documentationUrl:
+				'https://help.figma.com/hc/en-us/articles/360039827834-Jira-and-Figma',
+			actions: {
+				associateEntity: {
+					templateUrl: `${getConfig().app.baseUrl}/entities/associateEntity`,
+				},
+				disassociateEntity: {
+					templateUrl: `${getConfig().app.baseUrl}/entities/disassociateEntity`,
+				},
+				grant3LO: {
+					templateUrl: `${getConfig().figma.apiBaseUrl}/oauth?client_id=${
+						getConfig().figma.clientId
+					}&redirect_uri=${
+						getConfig().app.baseUrl
+					}/auth/callback&scope=${figmaScope}&state={state}&response_type=code`,
+				},
+				check3LO: {
+					templateUrl: `${
+						getConfig().app.baseUrl
+					}/auth/check3LO?userId={userId}`,
+				},
+			},
+		},
 	},
 };
