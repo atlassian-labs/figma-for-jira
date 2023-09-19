@@ -118,7 +118,7 @@ export const connectAppDescriptor = {
 				check3LO: {
 					templateUrl: `${
 						getConfig().app.baseUrl
-					}/auth/checkAuth?userId={userId}`,
+					}/auth/check3LO?userId={userId}`,
 				},
 			},
 		},

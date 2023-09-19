@@ -38,7 +38,7 @@ export const authRouter = Router();
  * @see https://hello.atlassian.net/wiki/spaces/MDT/pages/2796005496/RFC+-+Extending+generic+containers+specification+for+entity+associations#New-Provider-Actions
  */
 authRouter.get(
-	'/checkAuth',
+	['/checkAuth', '/check3LO'], // TODO: Remove `check3LO` once the action is deleted.
 	function (req: Request, res: Response<CheckAuthResponseBody>, next) {
 		const atlassianUserId = req.query['userId'];
 
