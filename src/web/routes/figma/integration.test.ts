@@ -178,7 +178,7 @@ describe('/figma', () => {
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventPayload)
-					.expect(200);
+					.expect(HttpStatusCode.Ok);
 			});
 
 			it("should set the FigmaTeam status to 'ERROR' and return a 200 if we can't get valid OAuth2 credentials", async () => {
@@ -187,7 +187,7 @@ describe('/figma', () => {
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventPayload)
-					.expect(200);
+					.expect(HttpStatusCode.Ok);
 
 				const updatedFigmaTeam = await figmaTeamRepository.getByWebhookId(
 					figmaTeam.webhookId,
@@ -204,7 +204,7 @@ describe('/figma', () => {
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventPayload)
-					.expect(500);
+					.expect(HttpStatusCode.InternalServerError);
 			});
 
 			it('should return a 500 status if we fetching AssociatedFigmaDesigns throws an error', async () => {
@@ -219,7 +219,7 @@ describe('/figma', () => {
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventPayload)
-					.expect(500);
+					.expect(HttpStatusCode.InternalServerError);
 			});
 
 			it('should return a 500 if fetch designs from Figma fails', async () => {
@@ -276,7 +276,7 @@ describe('/figma', () => {
 					await request(app)
 						.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 						.send(webhookEventPayload)
-						.expect(200);
+						.expect(HttpStatusCode.Ok);
 				},
 			);
 		});
