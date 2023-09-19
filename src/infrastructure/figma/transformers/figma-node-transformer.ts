@@ -1,80 +1,63 @@
-import type {
-	CreateDevResourcesRequest,
-	FileNodesResponse,
-	FileResponse,
-	NodeDevStatus,
-} from '../figma-client';
+import {
+	buildDesignUrl,
+	buildInspectUrl,
+	buildLiveEmbedUrl,
+	getUpdateSequenceNumber,
+} from './utils';
 
-import { getConfig } from '../../../config';
 import type { AtlassianDesign } from '../../../domain/entities';
 import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
 	FigmaDesignIdentity,
 } from '../../../domain/entities';
+import type { FileResponse, Node, NodeDevStatus } from '../figma-client';
 
-/**
- * Builds a URL to a Figma design given Figma file/node metadata.
- */
-export const buildDesignUrl = ({
-	fileKey,
-	fileName,
-	nodeId,
-}: {
-	fileKey: string;
-	fileName: string;
-	nodeId?: string;
-}): string => {
-	const url = new URL(
-		`${getConfig().figma.webBaseUrl}/file/${fileKey}/${fileName}`,
-	);
-	if (nodeId) {
-		url.searchParams.append('node-id', nodeId);
-	}
-	return url.toString();
+type TransformNodeToAtlassianDesignParams = {
+	readonly fileKey: string;
+	readonly nodeId: string;
+	readonly fileResponseWithNode: FileResponse;
 };
 
-/**
- * Builds a Live Embed URL to a Figma design given Figma file/node metadata.
- * Inspect URL is used as this is the preferred mode of display in Jira.
- * @see https://www.figma.com/developers/embed
- */
-export const buildLiveEmbedUrl = ({
+export const transformNodeToAtlassianDesign = ({
 	fileKey,
-	fileName,
 	nodeId,
-}: {
-	fileKey: string;
-	fileName: string;
-	nodeId?: string;
-}): string => {
-	const inspectUrl = buildInspectUrl({ fileKey, fileName, nodeId });
-	const url = new URL(`${getConfig().figma.webBaseUrl}/embed`);
-	url.searchParams.append('embed_host', 'atlassian');
-	url.searchParams.append('url', inspectUrl);
-	return url.toString();
+	fileResponseWithNode,
+}: TransformNodeToAtlassianDesignParams): AtlassianDesign => {
+	const designId = new FigmaDesignIdentity(fileKey, nodeId);
+	const node = findNode(fileResponseWithNode, nodeId);
+	const fileName = fileResponseWithNode.name;
+	return {
+		id: designId.toAtlassianDesignId(),
+		displayName: node.name,
+		url: buildDesignUrl({ fileKey, fileName, nodeId }),
+		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName, nodeId }),
+		inspectUrl: buildInspectUrl({ fileKey, fileName, nodeId }),
+		status: node.devStatus
+			? mapNodeStatusToDevStatus(node.devStatus)
+			: AtlassianDesignStatus.NONE,
+		type: mapNodeTypeToDesignType(node.type),
+		// TODO: lastUpdated should be determined by the nearest parent node's lastModified time once Figma have implemented lastModified
+		lastUpdated: fileResponseWithNode.lastModified,
+		updateSequenceNumber: getUpdateSequenceNumber(fileResponseWithNode.version),
+	};
 };
 
-/**
- * Builds an Inspect Mode URL to a Figma design given Figma file/node metadata.
- */
-export const buildInspectUrl = ({
-	fileKey,
-	fileName,
-	nodeId,
-}: {
-	fileKey: string;
-	fileName: string;
-	nodeId?: string;
-}): string => {
-	const url = new URL(
-		`${getConfig().figma.webBaseUrl}/file/${fileKey}/${fileName}`,
-	);
-	if (nodeId) {
-		url.searchParams.append('node-id', nodeId);
+const findNode = (fileResponseWithNode: FileResponse, nodeId: string): Node => {
+	let targetNode = fileResponseWithNode.document;
+
+	while (targetNode.children?.length) {
+		if (targetNode.children.length > 1)
+			throw new Error(
+				'The response should include only nodes between the root node and the node with the given ID.',
+			);
+		targetNode = targetNode.children[0];
 	}
-	url.searchParams.set('mode', 'dev');
-	return url.toString();
+
+	if (targetNode.id !== nodeId)
+		throw new Error('Response does not contain the node with the given ID.');
+
+	return targetNode;
 };
 
 /**
@@ -95,93 +78,18 @@ export const mapNodeStatusToDevStatus = (
  * @returns
  */
 export const mapNodeTypeToDesignType = (type: string): AtlassianDesignType => {
-	if (type === 'DOCUMENT') {
-		return AtlassianDesignType.FILE;
+	switch (type) {
+		case 'DOCUMENT':
+			return AtlassianDesignType.FILE;
+		case 'CANVAS':
+			return AtlassianDesignType.CANVAS;
+		case 'SECTION':
+			return AtlassianDesignType.GROUP;
+		case 'GROUP':
+			return AtlassianDesignType.GROUP;
+		case 'FRAME':
+			return AtlassianDesignType.NODE;
+		default:
+			return AtlassianDesignType.OTHER;
 	}
-	if (type === 'CANVAS') {
-		return AtlassianDesignType.CANVAS;
-	}
-	if (type === 'SECTION' || type === 'GROUP') {
-		return AtlassianDesignType.GROUP;
-	}
-	if (type === 'FRAME') {
-		return AtlassianDesignType.NODE;
-	}
-	return AtlassianDesignType.OTHER;
-};
-
-const getUpdateSequenceNumber = (input: string): number => {
-	const updateSequenceNumber = parseInt(input, 10);
-	if (isNaN(updateSequenceNumber)) {
-		throw new Error('Could not convert version to update sequence number');
-	}
-	return updateSequenceNumber;
-};
-
-type TransformNodeToAtlassianDesignParams = {
-	readonly fileKey: string;
-	readonly nodeId: string;
-	readonly fileNodesResponse: FileNodesResponse;
-};
-
-export const transformNodeToAtlassianDesign = ({
-	fileKey,
-	nodeId,
-	fileNodesResponse,
-}: TransformNodeToAtlassianDesignParams): AtlassianDesign => {
-	const designId = new FigmaDesignIdentity(fileKey, nodeId);
-	const node = fileNodesResponse.nodes[nodeId].document;
-	const fileName = fileNodesResponse.name;
-	return {
-		id: designId.toAtlassianDesignId(),
-		displayName: node.name,
-		url: buildDesignUrl({ fileKey, fileName, nodeId }),
-		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName, nodeId }),
-		inspectUrl: buildInspectUrl({ fileKey, fileName, nodeId }),
-		status: node.devStatus
-			? mapNodeStatusToDevStatus(node.devStatus)
-			: AtlassianDesignStatus.NONE,
-		type: mapNodeTypeToDesignType(node.type),
-		// TODO: lastUpdated should be determined by the nearest parent node's lastModified time once Figma have implemented lastModified
-		lastUpdated: fileNodesResponse.lastModified,
-		updateSequenceNumber: getUpdateSequenceNumber(fileNodesResponse.version),
-	};
-};
-
-type TransformFileToAtlassianDesignParams = {
-	readonly fileKey: string;
-	readonly fileResponse: FileResponse;
-};
-
-export const transformFileToAtlassianDesign = ({
-	fileKey,
-	fileResponse,
-}: TransformFileToAtlassianDesignParams): AtlassianDesign => {
-	const designId = new FigmaDesignIdentity(fileKey);
-	const fileName = fileResponse.name;
-	return {
-		id: designId.toAtlassianDesignId(),
-		displayName: fileResponse.name,
-		url: buildDesignUrl({ fileKey, fileName }),
-		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName }),
-		inspectUrl: buildInspectUrl({ fileKey, fileName }),
-		status: AtlassianDesignStatus.NONE,
-		type: AtlassianDesignType.FILE,
-		lastUpdated: fileResponse.lastModified,
-		updateSequenceNumber: getUpdateSequenceNumber(fileResponse.version),
-	};
-};
-
-export const buildDevResource = ({
-	name,
-	url,
-	file_key,
-	node_id,
-}: CreateDevResourcesRequest): CreateDevResourcesRequest => {
-	return {
-		name,
-		url,
-		node_id,
-		file_key,
-	};
 };
