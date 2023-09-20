@@ -36,13 +36,13 @@ export class FigmaTeamRepository {
 		return this.mapToDomainModel(result);
 	};
 
-	updateStatus = async (
+	updateAuthStatus = async (
 		id: number,
-		status: FigmaTeamAuthStatus,
+		authStatus: FigmaTeamAuthStatus,
 	): Promise<void> => {
 		try {
 			await prismaClient.get().figmaTeam.update({
-				data: { status },
+				data: { authStatus },
 				where: { id },
 			});
 		} catch (e: unknown) {
@@ -58,15 +58,15 @@ export class FigmaTeamRepository {
 		teamId,
 		teamName,
 		figmaAdminAtlassianUserId,
-		status,
+		authStatus,
 		connectInstallationId,
-	}: PrismaFigmaTeam) => ({
+	}: PrismaFigmaTeam): FigmaTeam => ({
 		id,
 		webhookId,
 		teamId,
 		teamName,
 		figmaAdminAtlassianUserId,
-		status: FigmaTeamAuthStatus[status],
+		authStatus: FigmaTeamAuthStatus[authStatus],
 		connectInstallationId,
 	});
 }

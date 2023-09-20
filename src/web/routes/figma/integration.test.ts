@@ -210,7 +210,7 @@ describe('/figma', () => {
 				const updatedFigmaTeam = await figmaTeamRepository.getByWebhookId(
 					figmaTeam.webhookId,
 				);
-				expect(updatedFigmaTeam.status).toStrictEqual(
+				expect(updatedFigmaTeam.authStatus).toStrictEqual(
 					FigmaTeamAuthStatus.ERROR,
 				);
 			});

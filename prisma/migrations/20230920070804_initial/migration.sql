@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "figma_team_status" AS ENUM ('OK', 'ERROR');
+CREATE TYPE "figma_team_auth_status" AS ENUM ('OK', 'ERROR');
 
 -- CreateTable
 CREATE TABLE "connect_installation" (
@@ -41,7 +41,7 @@ CREATE TABLE "figma_team" (
     "team_id" TEXT NOT NULL,
     "team_name" TEXT NOT NULL,
     "figma_admin_atlassian_user_id" TEXT NOT NULL,
-    "status" "figma_team_status" NOT NULL,
+    "authStatus" "figma_team_auth_status" NOT NULL,
     "connect_installation_id" INTEGER NOT NULL,
 
     CONSTRAINT "figma_team_pkey" PRIMARY KEY ("id")

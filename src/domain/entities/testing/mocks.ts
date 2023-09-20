@@ -202,31 +202,31 @@ export const generateFigmaTeamCreateParams = ({
 	teamId = uuidv4(),
 	teamName = 'Team Name',
 	figmaAdminAtlassianUserId = uuidv4(),
-	status = FigmaTeamAuthStatus.OK,
-	connectInstallationId = generateRandomInteger(),
+	authStatus: status = FigmaTeamAuthStatus.OK,
+	connectInstallationId = getRandomInt(1, 100000),
 }: Partial<FigmaTeamCreateParams> = {}): FigmaTeamCreateParams => ({
 	webhookId,
 	teamId,
 	teamName,
 	figmaAdminAtlassianUserId,
-	status,
+	authStatus: status,
 	connectInstallationId,
 });
 
 export const generateFigmaTeam = ({
-	id = generateRandomInteger(),
+	id = getRandomInt(1, 100000),
 	webhookId = uuidv4(),
 	teamId = uuidv4(),
 	teamName = 'Team Name',
 	figmaAdminAtlassianUserId = uuidv4(),
-	status = FigmaTeamAuthStatus.OK,
-	connectInstallationId = generateRandomInteger(),
+	authStatus: status = FigmaTeamAuthStatus.OK,
+	connectInstallationId = getRandomInt(1, 100000),
 }: Partial<FigmaTeam> = {}): FigmaTeam => ({
 	id,
 	webhookId,
 	teamId,
 	teamName,
 	figmaAdminAtlassianUserId,
-	status,
+	authStatus: status,
 	connectInstallationId,
 });

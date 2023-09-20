@@ -9,7 +9,7 @@ export type FigmaTeam = {
 	readonly teamId: string;
 	readonly teamName: string;
 	readonly figmaAdminAtlassianUserId: string;
-	readonly status: FigmaTeamAuthStatus;
+	readonly authStatus: FigmaTeamAuthStatus;
 	readonly connectInstallationId: number;
 };
 

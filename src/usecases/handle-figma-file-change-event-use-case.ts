@@ -29,7 +29,7 @@ export const handleFigmaFileChangeEventUseCase = {
 				figmaTeam.figmaAdminAtlassianUserId,
 			);
 		} catch (e: unknown) {
-			return figmaTeamRepository.updateStatus(
+			return figmaTeamRepository.updateAuthStatus(
 				figmaTeam.id,
 				FigmaTeamAuthStatus.ERROR,
 			);
