@@ -22,37 +22,36 @@ import {
 	generateConnectInstallation,
 	generateIssueAri,
 	generateJiraIssue,
+	MOCK_FIGMA_DESIGN_IDENTIFIER,
 } from '../../domain/entities/testing';
 import { SchemaValidationError } from '../ajv';
 
 describe('JiraService', () => {
-	describe('submitDesign', () => {
-		it('should submit design', async () => {
+	describe('submitDesigns', () => {
+		it('should submit designs', async () => {
 			const connectInstallation = generateConnectInstallation();
-			const design = generateAtlassianDesign();
+			const design1 = generateAtlassianDesign();
+			const design2 = generateAtlassianDesign();
+			const designs = [design1, design2];
 			const submitDesignsResponse = generateSuccessfulSubmitDesignsResponse(
-				design.id,
+				designs.map((design) => design.id),
 			);
 			jest
 				.spyOn(jiraClient, 'submitDesigns')
 				.mockResolvedValue(submitDesignsResponse);
 
-			await jiraService.submitDesign(
-				{
-					design,
-				},
+			await jiraService.submitDesigns(
+				designs.map((design) => ({ design })),
 				connectInstallation,
 			);
 
 			expect(jiraClient.submitDesigns).toHaveBeenCalledWith(
 				{
-					designs: [
-						{
-							...design,
-							addAssociations: [],
-							removeAssociations: [],
-						},
-					],
+					designs: designs.map((design) => ({
+						...design,
+						addAssociations: null,
+						removeAssociations: null,
+					})),
 				},
 				connectInstallation,
 			);
@@ -60,7 +59,9 @@ describe('JiraService', () => {
 
 		it('should submit design and add/remove associations', async () => {
 			const connectInstallation = generateConnectInstallation();
-			const design = generateAtlassianDesign();
+			const design1 = generateAtlassianDesign();
+			const design2 = generateAtlassianDesign();
+			const designs = [design1, design2];
 			const addAssociations = [
 				AtlassianAssociation.createDesignIssueAssociation(generateIssueAri()),
 			];
@@ -68,30 +69,28 @@ describe('JiraService', () => {
 				AtlassianAssociation.createDesignIssueAssociation(generateIssueAri()),
 			];
 			const submitDesignsResponse = generateSuccessfulSubmitDesignsResponse(
-				design.id,
+				designs.map((design) => design.id),
 			);
 			jest
 				.spyOn(jiraClient, 'submitDesigns')
 				.mockResolvedValue(submitDesignsResponse);
 
-			await jiraService.submitDesign(
-				{
+			await jiraService.submitDesigns(
+				designs.map((design) => ({
 					design,
 					addAssociations,
 					removeAssociations,
-				},
+				})),
 				connectInstallation,
 			);
 
 			expect(jiraClient.submitDesigns).toHaveBeenCalledWith(
 				{
-					designs: [
-						{
-							...design,
-							addAssociations,
-							removeAssociations,
-						},
-					],
+					designs: designs.map((design) => ({
+						...design,
+						addAssociations,
+						removeAssociations,
+					})),
 				},
 				connectInstallation,
 			);
@@ -99,9 +98,11 @@ describe('JiraService', () => {
 
 		it('should throw when design is rejected ', async () => {
 			const connectInstallation = generateConnectInstallation();
-			const design = generateAtlassianDesign();
+			const design1 = generateAtlassianDesign();
+			const design2 = generateAtlassianDesign();
+			const designs = [design1, design2];
 			const submitDesignsResponse = generateFailedSubmitDesignsResponse(
-				design.id,
+				designs.map((design) => design.id),
 			);
 			const expectedError = JiraServiceSubmitDesignError.designRejected(
 				submitDesignsResponse.rejectedEntities[0].key.designId,
@@ -112,13 +113,18 @@ describe('JiraService', () => {
 				.mockResolvedValue(submitDesignsResponse);
 
 			await expect(() =>
-				jiraService.submitDesign({ design }, connectInstallation),
+				jiraService.submitDesigns(
+					designs.map((design) => ({ design })),
+					connectInstallation,
+				),
 			).rejects.toStrictEqual(expectedError);
 		});
 
 		it('should throw when there is unknown issue keys', async () => {
 			const connectInstallation = generateConnectInstallation();
-			const design = generateAtlassianDesign();
+			const design1 = generateAtlassianDesign();
+			const design2 = generateAtlassianDesign();
+			const designs = [design1, design2];
 			const submitDesignsResponse =
 				generateSubmitDesignsResponseWithUnknownData({
 					unknownAssociations: [],
@@ -131,13 +137,18 @@ describe('JiraService', () => {
 				.mockResolvedValue(submitDesignsResponse);
 
 			await expect(() =>
-				jiraService.submitDesign({ design }, connectInstallation),
+				jiraService.submitDesigns(
+					designs.map((design) => ({ design })),
+					connectInstallation,
+				),
 			).rejects.toStrictEqual(expectedError);
 		});
 
 		it('should throw when there is unknown associations', async () => {
 			const connectInstallation = generateConnectInstallation();
-			const design = generateAtlassianDesign();
+			const design1 = generateAtlassianDesign();
+			const design2 = generateAtlassianDesign();
+			const designs = [design1, design2];
 			const submitDesignsResponse =
 				generateSubmitDesignsResponseWithUnknownData({
 					unknownIssueKeys: [],
@@ -150,8 +161,55 @@ describe('JiraService', () => {
 				.mockResolvedValue(submitDesignsResponse);
 
 			await expect(() =>
-				jiraService.submitDesign({ design }, connectInstallation),
+				jiraService.submitDesigns(
+					designs.map((design) => ({ design })),
+					connectInstallation,
+				),
 			).rejects.toStrictEqual(expectedError);
+		});
+	});
+
+	describe('submitDesign', () => {
+		it('should call submitDesigns', async () => {
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign();
+			const addAssociations = [
+				AtlassianAssociation.createDesignIssueAssociation(generateIssueAri()),
+			];
+			const removeAssociations = [
+				AtlassianAssociation.createDesignIssueAssociation(generateIssueAri()),
+			];
+
+			jest.spyOn(jiraService, 'submitDesigns').mockResolvedValue(undefined);
+
+			await jiraService.submitDesign(
+				{ design, addAssociations, removeAssociations },
+				connectInstallation,
+			);
+
+			expect(jiraService.submitDesigns).toBeCalledWith(
+				[{ design, addAssociations, removeAssociations }],
+				connectInstallation,
+			);
+		});
+	});
+
+	describe('deleteDesign', () => {
+		it('should delete design', async () => {
+			const designId = MOCK_FIGMA_DESIGN_IDENTIFIER;
+			const connectInstallation = generateConnectInstallation();
+			jest.spyOn(jiraClient, 'deleteDesign').mockResolvedValue(designId);
+
+			const result = await jiraService.deleteDesign(
+				designId,
+				connectInstallation,
+			);
+
+			expect(result).toBe(designId);
+			expect(jiraClient.deleteDesign).toHaveBeenCalledWith(
+				designId,
+				connectInstallation,
+			);
 		});
 	});
 

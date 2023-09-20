@@ -13,7 +13,10 @@ import {
 } from './testing';
 
 import type { ConnectInstallation } from '../../../domain/entities';
-import { generateConnectInstallation } from '../../../domain/entities/testing';
+import {
+	generateConnectInstallation,
+	MOCK_FIGMA_DESIGN_IDENTIFIER,
+} from '../../../domain/entities/testing';
 import { SchemaValidationError } from '../../ajv';
 
 jest.mock('./jwt-utils');
@@ -34,9 +37,9 @@ describe('JiraClient', () => {
 	describe('submitDesigns', () => {
 		it('should submit designs', async () => {
 			const request = generateSubmitDesignsRequest();
-			const response = generateSuccessfulSubmitDesignsResponse(
+			const response = generateSuccessfulSubmitDesignsResponse([
 				request.designs[0].id,
-			);
+			]);
 			jest.spyOn(axios, 'post').mockResolvedValue({ data: response });
 
 			const result = await jiraClient.submitDesigns(
@@ -65,6 +68,26 @@ describe('JiraClient', () => {
 			await expect(() =>
 				jiraClient.submitDesigns(request, connectInstallation),
 			).rejects.toThrowError(SchemaValidationError);
+		});
+	});
+
+	describe('deleteDesign', () => {
+		it('should delete design', async () => {
+			const designId = MOCK_FIGMA_DESIGN_IDENTIFIER;
+			jest.spyOn(axios, 'delete').mockResolvedValue(undefined);
+
+			const result = await jiraClient.deleteDesign(
+				designId,
+				connectInstallation,
+			);
+
+			expect(result).toBe(designId);
+			expect(axios.delete).toHaveBeenCalledWith(
+				`${
+					connectInstallation.baseUrl
+				}/rest/designs/1.0/design/${designId.toAtlassianDesignId()}`,
+				defaultExpectedRequestHeaders(),
+			);
 		});
 	});
 
