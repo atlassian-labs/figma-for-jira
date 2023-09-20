@@ -1,10 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import type {
+	AssociatedFigmaDesign,
 	AssociatedFigmaDesignCreateParams,
 	AtlassianDesign,
 	ConnectInstallation,
 	ConnectInstallationCreateParams,
+	FigmaTeam,
 	FigmaTeamCreateParams,
 	FigmaUserCredentialsCreateParams,
 	JiraIssue,
@@ -17,6 +19,7 @@ import {
 	FigmaTeamAuthStatus,
 } from '..';
 import { Duration } from '../../../common/duration';
+import { generateRandomInteger } from '../../../common/testing/mocks';
 
 export const MOCK_ISSUE_ID = '10000';
 export const MOCK_ISSUE_KEY = 'FIG-1';
@@ -33,6 +36,15 @@ export const MOCK_FIGMA_NODE_IDENTITY = new FigmaDesignIdentity(
 	MOCK_FIGMA_NODE_ID,
 );
 export const MOCK_FIGMA_DESIGN_IDENTITY = MOCK_FIGMA_FILE_IDENTITY;
+
+export const generateNodeId = (): string =>
+	`${generateRandomInteger()}:${generateRandomInteger()}`;
+
+export const generateFigmaDesignIdentity = ({
+	fileKey = uuidv4(),
+	nodeId = generateNodeId(),
+}: { fileKey?: string; nodeId?: string } = {}) =>
+	new FigmaDesignIdentity(fileKey, nodeId);
 
 export const generateFigmaDesignUrl = ({
 	fileKey = MOCK_FIGMA_FILE_KEY,
@@ -143,8 +155,18 @@ export const generateJiraIssue = ({
 
 export const generateAssociatedFigmaDesignCreateParams = ({
 	designId = MOCK_FIGMA_DESIGN_IDENTITY,
-	connectInstallationId = 1,
+	connectInstallationId = Math.floor(Math.random() * 10000),
 }: Partial<AssociatedFigmaDesignCreateParams> = {}): AssociatedFigmaDesignCreateParams => ({
+	designId,
+	connectInstallationId,
+});
+
+export const generateAssociatedFigmaDesign = ({
+	id = generateRandomInteger(),
+	designId = generateFigmaDesignIdentity(),
+	connectInstallationId = Math.floor(Math.random() * 10000),
+}: Partial<AssociatedFigmaDesign> = {}): AssociatedFigmaDesign => ({
+	id,
 	designId,
 	connectInstallationId,
 });
@@ -155,8 +177,26 @@ export const generateFigmaTeamCreateParams = ({
 	teamName = 'Team Name',
 	figmaAdminAtlassianUserId = uuidv4(),
 	status = FigmaTeamAuthStatus.OK,
-	connectInstallationId = 1,
+	connectInstallationId = generateRandomInteger(),
 }: Partial<FigmaTeamCreateParams> = {}): FigmaTeamCreateParams => ({
+	webhookId,
+	teamId,
+	teamName,
+	figmaAdminAtlassianUserId,
+	status,
+	connectInstallationId,
+});
+
+export const generateFigmaTeam = ({
+	id = generateRandomInteger(),
+	webhookId = uuidv4(),
+	teamId = uuidv4(),
+	teamName = 'Team Name',
+	figmaAdminAtlassianUserId = uuidv4(),
+	status = FigmaTeamAuthStatus.OK,
+	connectInstallationId = generateRandomInteger(),
+}: Partial<FigmaTeam> = {}): FigmaTeam => ({
+	id,
 	webhookId,
 	teamId,
 	teamName,

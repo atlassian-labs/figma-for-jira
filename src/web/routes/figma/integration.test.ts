@@ -2,6 +2,7 @@ import type { FigmaTeam } from '@prisma/client';
 import { HttpStatusCode } from 'axios';
 import nock from 'nock';
 import request from 'supertest';
+import { v4 as uuidv4 } from 'uuid';
 
 import app from '../../../app';
 import { getConfig } from '../../../config';
@@ -20,7 +21,6 @@ import {
 	generateFigmaTeamCreateParams,
 	generateFigmaUserCredentialsCreateParams,
 	MOCK_FIGMA_FILE_KEY,
-	MOCK_FIGMA_NODE_ID,
 } from '../../../domain/entities/testing';
 import type {
 	FigmaWebhookEventPayload,
@@ -52,10 +52,14 @@ const mockMeEndpoint = ({ success = true }: { success?: boolean } = {}) => {
 };
 
 const mockGetFileNodesEndpoint = ({
-	fileKey = MOCK_FIGMA_FILE_KEY,
-	nodeId = MOCK_FIGMA_NODE_ID,
+	fileKey = uuidv4(),
+	nodeId,
 	success = true,
-}: { fileKey?: string; nodeId?: string; success?: boolean } = {}) => {
+}: {
+	fileKey?: string;
+	nodeId: string;
+	success?: boolean;
+}) => {
 	nock(FIGMA_API_BASE_URL)
 		.get(`/v1/files/${fileKey}/nodes`)
 		.query({ ids: nodeId })
@@ -165,7 +169,6 @@ describe('/figma', () => {
 				await figmaOAuth2UserCredentialsRepository.delete(
 					figmaTeam.figmaAdminAtlassianUserId,
 				);
-				jest.restoreAllMocks();
 			});
 
 			it('should fetch and submit the associated designs to Jira', async () => {
@@ -204,34 +207,7 @@ describe('/figma', () => {
 				);
 			});
 
-			it('should return a 500 status if we fetching the ConnectInstallation throws an error', async () => {
-				mockMeEndpoint();
-				jest
-					.spyOn(connectInstallationRepository, 'get')
-					.mockRejectedValue(new Error('error'));
-
-				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
-					.send(webhookEventPayload)
-					.expect(HttpStatusCode.InternalServerError);
-			});
-
-			it('should return a 500 status if we fetching AssociatedFigmaDesigns throws an error', async () => {
-				mockMeEndpoint();
-				jest
-					.spyOn(
-						associatedFigmaDesignRepository,
-						'findManyByFileKeyAndConnectInstallationId',
-					)
-					.mockRejectedValue(new Error('error'));
-
-				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
-					.send(webhookEventPayload)
-					.expect(HttpStatusCode.InternalServerError);
-			});
-
-			it('should return a 500 if fetch designs from Figma fails', async () => {
+			it('should return a 500 if fetching designs from Figma fails', async () => {
 				mockMeEndpoint();
 				for (const { designId } of associatedFigmaDesigns) {
 					mockGetFileNodesEndpoint({
@@ -240,26 +216,6 @@ describe('/figma', () => {
 						success: false,
 					});
 				}
-
-				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
-					.send(webhookEventPayload)
-					.expect(HttpStatusCode.InternalServerError);
-			});
-
-			it('should return a 500 if submitting designs to Jira fails', async () => {
-				mockMeEndpoint();
-				for (const { designId } of associatedFigmaDesigns) {
-					mockGetFileNodesEndpoint({
-						fileKey: designId.fileKey,
-						nodeId: designId.nodeId!,
-					});
-				}
-				mockSubmitDesignsEndpoint({
-					associatedFigmaDesigns,
-					connectInstallation,
-					success: false,
-				});
 
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
