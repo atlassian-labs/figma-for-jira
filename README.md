@@ -83,7 +83,7 @@ https://www.figma.com/oauth?
   response_type=code
 ```
 
-You should see a created record in `FigmaUserCredential` table and hitting `/auth/check3LO?userId=${USER_ID}` should return `{ authorized: true }`
+You should see a created record in `FigmaUserCredential` table and hitting `/auth/checkAuth?userId=${USER_ID}` should return a response indicating that you are authorized.
 
 ## Installing the App
 

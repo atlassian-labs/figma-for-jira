@@ -8,7 +8,7 @@ import type {
 	AssociatedFigmaDesign,
 	AssociatedFigmaDesignCreateParams,
 } from '../../domain/entities';
-import { FigmaDesignIdentity } from '../../domain/entities';
+import { FigmaDesignIdentifier } from '../../domain/entities';
 
 type PrismaAssociatedFigmaDesignCreateParams = Omit<
 	PrismaAssociatedFigmaDesign,
@@ -47,7 +47,7 @@ export class AssociatedFigmaDesignRepository {
 	};
 
 	deleteByDesignIdAndConnectInstallationId = async (
-		designId: FigmaDesignIdentity,
+		designId: FigmaDesignIdentifier,
 		connectInstallationId: number,
 	): Promise<AssociatedFigmaDesign> => {
 		try {
@@ -77,7 +77,7 @@ export class AssociatedFigmaDesignRepository {
 		connectInstallationId,
 	}: PrismaAssociatedFigmaDesign): AssociatedFigmaDesign => ({
 		id,
-		designId: new FigmaDesignIdentity(
+		designId: new FigmaDesignIdentifier(
 			fileKey,
 			nodeId !== '' ? nodeId : undefined,
 		),

@@ -24,7 +24,7 @@ import {
 	generateConnectInstallation,
 	generateIssueAri,
 	generateJiraIssue,
-	MOCK_FIGMA_DESIGN_IDENTITY,
+	MOCK_FIGMA_DESIGN_IDENTIFIER,
 } from '../../domain/entities/testing';
 import { SchemaValidationError } from '../ajv';
 
@@ -251,7 +251,7 @@ describe('JiraService', () => {
 
 	describe('deleteDesign', () => {
 		it('should delete design', async () => {
-			const designId = MOCK_FIGMA_DESIGN_IDENTITY;
+			const designId = MOCK_FIGMA_DESIGN_IDENTIFIER;
 			const connectInstallation = generateConnectInstallation();
 			jest.spyOn(jiraClient, 'deleteDesign').mockResolvedValue(designId);
 

@@ -18,7 +18,7 @@ import type {
 import { Duration } from '../../../common/duration';
 import type {
 	ConnectInstallation,
-	FigmaDesignIdentity,
+	FigmaDesignIdentifier,
 } from '../../../domain/entities';
 import { assertSchema } from '../../ajv';
 
@@ -66,9 +66,9 @@ class JiraClient {
 	};
 
 	deleteDesign = async (
-		designId: FigmaDesignIdentity,
+		designId: FigmaDesignIdentifier,
 		connectInstallation: ConnectInstallation,
-	): Promise<FigmaDesignIdentity> => {
+	): Promise<FigmaDesignIdentifier> => {
 		const url = new URL(
 			`/rest/designs/1.0/design/${designId.toAtlassianDesignId()}`,
 			connectInstallation.baseUrl,

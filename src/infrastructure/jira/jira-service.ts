@@ -10,7 +10,7 @@ import { ensureString } from '../../common/stringUtils';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
-	FigmaDesignIdentity,
+	FigmaDesignIdentifier,
 	JiraIssue,
 } from '../../domain/entities';
 import { AtlassianAssociation } from '../../domain/entities';
@@ -73,9 +73,9 @@ class JiraService {
 	};
 
 	deleteDesign = async (
-		designId: FigmaDesignIdentity,
+		designId: FigmaDesignIdentifier,
 		connectInstallation: ConnectInstallation,
-	): Promise<FigmaDesignIdentity> => {
+	): Promise<FigmaDesignIdentifier> => {
 		return await jiraClient.deleteDesign(designId, connectInstallation);
 	};
 

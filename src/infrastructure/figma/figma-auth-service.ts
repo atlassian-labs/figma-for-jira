@@ -1,5 +1,6 @@
 import { figmaClient } from './figma-client';
 
+import { getConfig } from '../../config';
 import type { FigmaOAuth2UserCredentials } from '../../domain/entities';
 import { figmaOAuth2UserCredentialsRepository } from '../repositories';
 
@@ -49,6 +50,31 @@ export class FigmaAuthService {
 			}
 		}
 		return credentials;
+	};
+
+	/**
+	 * Returns an OAuth 2.0 authorization endpoint for the given user.
+	 *
+	 * @see https://www.figma.com/developers/api#oauth2
+	 */
+	buildAuthorizationEndpoint = (
+		atlassianUserId: string,
+		redirectUri: string,
+	): string => {
+		const authorizationEndpoint = new URL(
+			'/oauth',
+			getConfig().figma.oauthApiBaseUrl,
+		);
+
+		authorizationEndpoint.search = new URLSearchParams({
+			client_id: getConfig().figma.clientId,
+			redirect_uri: redirectUri,
+			scope: getConfig().figma.scope,
+			state: atlassianUserId, // TODO: MDTZ-1014: Use an anti-forgery state token to prevent Cross-Site Request Forgery (CSRF) attacks.
+			response_type: 'code',
+		}).toString();
+
+		return authorizationEndpoint.toString();
 	};
 
 	private refreshCredentials = async (

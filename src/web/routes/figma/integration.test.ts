@@ -11,7 +11,7 @@ import type {
 	ConnectInstallation,
 } from '../../../domain/entities';
 import {
-	FigmaDesignIdentity,
+	FigmaDesignIdentifier,
 	FigmaTeamAuthStatus,
 } from '../../../domain/entities';
 import {
@@ -26,11 +26,12 @@ import type {
 	FigmaWebhookEventPayload,
 	FigmaWebhookEventType,
 } from '../../../infrastructure/figma';
-import { transformNodeToAtlassianDesign } from '../../../infrastructure/figma/figma-transformer';
+import type { Node } from '../../../infrastructure/figma/figma-client';
 import {
 	generateFigmaWebhookEventPayload,
-	generateGetFileNodesResponse,
-} from '../../../infrastructure/figma/testing';
+	generateGetFileResponseWithNode,
+} from '../../../infrastructure/figma/figma-client/testing';
+import { transformNodeToAtlassianDesign } from '../../../infrastructure/figma/transformers';
 import { generateSuccessfulUpdateDesignsResponse } from '../../../infrastructure/jira/jira-client/testing';
 import {
 	associatedFigmaDesignRepository,
@@ -61,15 +62,11 @@ const mockGetFileNodesEndpoint = ({
 	success?: boolean;
 }) => {
 	nock(FIGMA_API_BASE_URL)
-		.get(`/v1/files/${fileKey}/nodes`)
-		.query({ ids: nodeId })
+		.get(`/v1/files/${fileKey}`)
+		.query({ ids: nodeId, node_last_modified: true })
 		.reply(
 			success ? HttpStatusCode.Ok : HttpStatusCode.InternalServerError,
-			success
-				? generateGetFileNodesResponse({
-						nodeId: nodeId,
-				  })
-				: undefined,
+			success ? generateGetFileResponseForNodeId(nodeId) : undefined,
 		);
 };
 
@@ -83,13 +80,13 @@ const mockSubmitDesignsEndpoint = ({
 	success?: boolean;
 } = {}) => {
 	const fileResponses = associatedFigmaDesigns.map((design) =>
-		generateGetFileNodesResponse({ nodeId: design.designId.nodeId }),
+		generateGetFileResponseForNodeId(design.designId.nodeId!),
 	);
 	const atlassianDesigns = fileResponses.map((response, i) =>
 		transformNodeToAtlassianDesign({
 			fileKey: associatedFigmaDesigns[i].designId.fileKey,
 			nodeId: associatedFigmaDesigns[i].designId.nodeId!,
-			fileNodesResponse: response,
+			fileResponseWithNode: response,
 		}),
 	);
 	nock(connectInstallation.baseUrl)
@@ -108,6 +105,17 @@ const mockSubmitDesignsEndpoint = ({
 				  )
 				: undefined,
 		);
+};
+
+const generateGetFileResponseForNodeId = (nodeId: string) => {
+	const node: Node = {
+		id: nodeId,
+		name: `Node ${nodeId}`,
+		type: 'RECTANGLE',
+	};
+	return generateGetFileResponseWithNode({
+		node,
+	});
 };
 
 describe('/figma', () => {
@@ -141,7 +149,7 @@ describe('/figma', () => {
 				for (let i = 1; i <= 5; i++) {
 					const associatedFigmaDesignCreateParams =
 						generateAssociatedFigmaDesignCreateParams({
-							designId: new FigmaDesignIdentity(
+							designId: new FigmaDesignIdentifier(
 								MOCK_FIGMA_FILE_KEY,
 								`${i}:${i}`,
 							),

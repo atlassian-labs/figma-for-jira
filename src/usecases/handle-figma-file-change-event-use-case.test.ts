@@ -6,7 +6,7 @@ import {
 	generateAssociatedFigmaDesign,
 	generateAtlassianDesign,
 	generateConnectInstallation,
-	generateFigmaDesignIdentity,
+	generateFigmaDesignIdentifier,
 	generateFigmaOAuth2UserCredentials,
 	generateFigmaTeam,
 } from '../domain/entities/testing';
@@ -28,7 +28,7 @@ describe('handleFigmaFileChangeEventUseCase', () => {
 		const fileKey = uuidv4();
 		const associatedFigmaDesigns = [1, 2, 3].map((i) =>
 			generateAssociatedFigmaDesign({
-				designId: generateFigmaDesignIdentity({
+				designId: generateFigmaDesignIdentifier({
 					fileKey,
 					nodeId: `${i}:${i}`,
 				}),
