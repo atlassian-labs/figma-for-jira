@@ -4,7 +4,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { RepositoryRecordNotFoundError } from './errors';
 import { prismaClient } from './prisma-client';
 
-import { FigmaTeamStatus } from '../../domain/entities';
+import { FigmaTeamAuthStatus } from '../../domain/entities';
 import type { FigmaTeam, FigmaTeamCreateParams } from '../../domain/entities';
 
 export class FigmaTeamRepository {
@@ -36,7 +36,10 @@ export class FigmaTeamRepository {
 		return this.mapToDomainModel(result);
 	};
 
-	updateStatus = async (id: number, status: FigmaTeamStatus): Promise<void> => {
+	updateStatus = async (
+		id: number,
+		status: FigmaTeamAuthStatus,
+	): Promise<void> => {
 		try {
 			await prismaClient.get().figmaTeam.update({
 				data: { status },
@@ -63,7 +66,7 @@ export class FigmaTeamRepository {
 		teamId,
 		teamName,
 		figmaAdminAtlassianUserId,
-		status: FigmaTeamStatus[status],
+		status: FigmaTeamAuthStatus[status],
 		connectInstallationId,
 	});
 }

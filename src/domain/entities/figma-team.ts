@@ -1,4 +1,4 @@
-export enum FigmaTeamStatus {
+export enum FigmaTeamAuthStatus {
 	OK = 'OK',
 	ERROR = 'ERROR',
 }
@@ -9,7 +9,7 @@ export type FigmaTeam = {
 	readonly teamId: string;
 	readonly teamName: string;
 	readonly figmaAdminAtlassianUserId: string;
-	readonly status: FigmaTeamStatus;
+	readonly status: FigmaTeamAuthStatus;
 	readonly connectInstallationId: number;
 };
 

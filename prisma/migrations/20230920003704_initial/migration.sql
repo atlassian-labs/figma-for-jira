@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "figma_team_status" AS ENUM ('PENDING', 'ACTIVE', 'PAUSED', 'ERROR');
+CREATE TYPE "figma_team_status" AS ENUM ('OK', 'ERROR');
 
 -- CreateTable
 CREATE TABLE "connect_installation" (

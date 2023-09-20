@@ -9,7 +9,10 @@ import type {
 	AssociatedFigmaDesign,
 	ConnectInstallation,
 } from '../../../domain/entities';
-import { FigmaDesignIdentity, FigmaTeamStatus } from '../../../domain/entities';
+import {
+	FigmaDesignIdentity,
+	FigmaTeamAuthStatus,
+} from '../../../domain/entities';
 import {
 	generateAssociatedFigmaDesignCreateParams,
 	generateConnectInstallation,
@@ -196,7 +199,9 @@ describe('/figma', () => {
 				const updatedFigmaTeam = await figmaTeamRepository.getByWebhookId(
 					figmaTeam.webhookId,
 				);
-				expect(updatedFigmaTeam.status).toStrictEqual(FigmaTeamStatus.ERROR);
+				expect(updatedFigmaTeam.status).toStrictEqual(
+					FigmaTeamAuthStatus.ERROR,
+				);
 			});
 
 			it('should return a 500 status if we fetching the ConnectInstallation throws an error', async () => {

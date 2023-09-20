@@ -14,7 +14,7 @@ import {
 	AtlassianDesignType,
 	FigmaDesignIdentity,
 	FigmaOAuth2UserCredentials,
-	FigmaTeamStatus,
+	FigmaTeamAuthStatus,
 } from '..';
 import { Duration } from '../../../common/duration';
 
@@ -154,7 +154,7 @@ export const generateFigmaTeamCreateParams = ({
 	teamId = uuidv4(),
 	teamName = 'Team Name',
 	figmaAdminAtlassianUserId = uuidv4(),
-	status = FigmaTeamStatus.OK,
+	status = FigmaTeamAuthStatus.OK,
 	connectInstallationId = 1,
 }: Partial<FigmaTeamCreateParams> = {}): FigmaTeamCreateParams => ({
 	webhookId,

@@ -1,4 +1,4 @@
-import { FigmaTeamStatus } from '../domain/entities';
+import { FigmaTeamAuthStatus } from '../domain/entities';
 import type { FigmaWebhookEventType } from '../infrastructure/figma';
 import { figmaService } from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
@@ -31,7 +31,7 @@ export const handleFigmaFileChangeEventUseCase = {
 		} catch (e: unknown) {
 			return figmaTeamRepository.updateStatus(
 				figmaTeam.id,
-				FigmaTeamStatus.ERROR,
+				FigmaTeamAuthStatus.ERROR,
 			);
 		}
 
