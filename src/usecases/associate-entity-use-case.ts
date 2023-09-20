@@ -1,7 +1,10 @@
 import type { AtlassianEntity } from './types';
 
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
-import { AtlassianAssociation, FigmaDesignIdentity } from '../domain/entities';
+import {
+	AtlassianAssociation,
+	FigmaDesignIdentifier,
+} from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
 import { buildIssueUrl, jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
@@ -22,7 +25,7 @@ export const associateEntityUseCase = {
 		atlassianUserId,
 		connectInstallation,
 	}: AssociateEntityUseCaseParams): Promise<AtlassianDesign> => {
-		const figmaDesignId = FigmaDesignIdentity.fromFigmaDesignUrl(entity.url);
+		const figmaDesignId = FigmaDesignIdentifier.fromFigmaDesignUrl(entity.url);
 
 		const [design, issue] = await Promise.all([
 			figmaService.fetchDesignById(figmaDesignId, atlassianUserId),

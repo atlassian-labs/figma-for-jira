@@ -79,14 +79,14 @@ const mockMeEndpoint = ({
 };
 
 const mockGetFileEndpoint = ({
-	fileKey = generateFigmaFileKey(),
+	fileKey,
 	accessToken,
-	query,
+	query = {},
 	success = true,
 	response,
 }: {
-	fileKey?: string;
-	accessToken?: string;
+	fileKey: string;
+	accessToken: string;
 	query?: Record<string, string>;
 	success?: boolean;
 	response?: Record<string, unknown>;
@@ -100,19 +100,19 @@ const mockGetFileEndpoint = ({
 		},
 	})
 		.get(`/v1/files/${fileKey}`)
-		.query(query ?? {})
+		.query(query)
 		.reply(statusCode, response ?? {});
 };
 
 const mockGetIssueEndpoint = ({
-	issueId = generateIssueId(),
+	issueId,
 	status = HttpStatusCode.Ok,
 	response = generateGetIssueResponse({ id: issueId }),
 }: {
-	issueId?: string;
+	issueId: string;
 	status?: HttpStatusCode;
 	response?: Record<string, unknown>;
-} = {}) => {
+}) => {
 	nock(MOCK_CONNECT_INSTALLATION.baseUrl)
 		.get(`/rest/agile/1.0/issue/${issueId}`)
 		.reply(status, response);
@@ -139,39 +139,39 @@ const mockGetIssuePropertyEndpoint = ({
 	status = HttpStatusCode.Ok,
 	response = generateGetIssuePropertyResponse(),
 }: {
-	issueId?: string;
-	propertyKey?: string;
+	issueId: string;
+	propertyKey: string;
 	status?: HttpStatusCode;
 	response?: GetIssuePropertyResponse;
-} = {}) => {
+}) => {
 	nock(MOCK_CONNECT_INSTALLATION.baseUrl)
 		.get(`/rest/api/2/issue/${issueId}/properties/${propertyKey}`)
 		.reply(status, status === HttpStatusCode.Ok ? response : undefined);
 };
 
 const mockSetIssuePropertyEndpoint = ({
-	issueId = generateIssueId(),
-	propertyKey = '',
-	value = {},
+	issueId,
+	propertyKey,
+	value,
 	status = HttpStatusCode.Ok,
 }: {
-	issueId?: string;
-	propertyKey?: string;
-	value?: RequestBodyMatcher;
+	issueId: string;
+	propertyKey: string;
+	value: RequestBodyMatcher;
 	status?: HttpStatusCode;
-} = {}) => {
+}) => {
 	nock(MOCK_CONNECT_INSTALLATION.baseUrl)
 		.put(`/rest/api/2/issue/${issueId}/properties/${propertyKey}`, value)
 		.reply(status);
 };
 
 const mockDeleteIssuePropertyEndpoint = ({
-	issueId = generateIssueId(),
+	issueId,
 	propertyKey,
 }: {
-	issueId?: string;
+	issueId: string;
 	propertyKey?: string;
-} = {}) => {
+}) => {
 	nock(MOCK_CONNECT_INSTALLATION.baseUrl)
 		.delete(`/rest/api/2/issue/${issueId}/properties/${propertyKey}`)
 		.reply(200);
@@ -186,14 +186,14 @@ const mockCreateDevResourcesEndpoint = ({
 };
 
 const mockGetDevResourcesEndpoint = ({
-	fileKey = generateFigmaFileKey(),
-	nodeId = generateFigmaNodeId(),
+	fileKey,
+	nodeId,
 	response = generateGetDevResourcesResponse(),
 }: {
-	fileKey?: string;
-	nodeId?: string;
+	fileKey: string;
+	nodeId: string;
 	response?: GetDevResourcesResponse;
-} = {}) => {
+}) => {
 	nock(FIGMA_API_BASE_URL)
 		.get(`/v1/files/${fileKey}/dev_resources`)
 		.query({ node_ids: nodeId })
@@ -201,14 +201,14 @@ const mockGetDevResourcesEndpoint = ({
 };
 
 const mockDeleteDevResourcesEndpoint = ({
-	fileKey = generateFigmaFileKey(),
-	devResourceId = uuidv4(),
+	fileKey,
+	devResourceId,
 	status = HttpStatusCode.Ok,
 }: {
-	fileKey?: string;
-	devResourceId?: string;
+	fileKey: string;
+	devResourceId: string;
 	status?: HttpStatusCode;
-} = {}) => {
+}) => {
 	nock(FIGMA_API_BASE_URL)
 		.delete(`/v1/files/${fileKey}/dev_resources/${devResourceId}`)
 		.reply(status);
@@ -216,10 +216,10 @@ const mockDeleteDevResourcesEndpoint = ({
 
 const generateAssociateEntityRequest = ({
 	issueId = generateIssueId(),
-	figmaDesignUrl = generateFigmaDesignUrl({
-		fileKey: generateFigmaFileKey(),
-		nodeId: generateFigmaNodeId(),
-	}),
+	figmaDesignUrl = generateFigmaDesignUrl(),
+}: {
+	issueId?: string;
+	figmaDesignUrl?: string;
 } = {}): AssociateEntityRequestParams => ({
 	entity: {
 		url: figmaDesignUrl,
@@ -234,7 +234,10 @@ const generateAssociateEntityRequest = ({
 
 const generateDisassociateEntityRequest = ({
 	issueId = generateIssueId(),
-	entityId = `${generateFigmaFileKey()}/${generateFigmaNodeId()}`,
+	entityId = generateFigmaFileKey(),
+}: {
+	issueId?: string;
+	entityId?: string;
 } = {}): DisassociateEntityRequestParams => ({
 	entity: {
 		ari: 'TODO',

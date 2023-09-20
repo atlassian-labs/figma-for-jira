@@ -14,7 +14,7 @@ import {
 
 import type {
 	AtlassianDesign,
-	FigmaDesignIdentity,
+	FigmaDesignIdentifier,
 	FigmaOAuth2UserCredentials,
 } from '../../domain/entities';
 import { getLogger } from '../logger';
@@ -50,7 +50,7 @@ export class FigmaService {
 	};
 
 	fetchDesignById = async (
-		designId: FigmaDesignIdentity,
+		designId: FigmaDesignIdentifier,
 		atlassianUserId: string,
 	): Promise<AtlassianDesign> => {
 		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
@@ -91,7 +91,7 @@ export class FigmaService {
 		issueTitle,
 		atlassianUserId,
 	}: {
-		designId: FigmaDesignIdentity;
+		designId: FigmaDesignIdentifier;
 		issueUrl: string;
 		issueKey: string;
 		issueTitle: string;
@@ -128,7 +128,7 @@ export class FigmaService {
 		issueUrl,
 		atlassianUserId,
 	}: {
-		designId: FigmaDesignIdentity;
+		designId: FigmaDesignIdentifier;
 		issueUrl: string;
 		atlassianUserId: string;
 	}): Promise<void> => {

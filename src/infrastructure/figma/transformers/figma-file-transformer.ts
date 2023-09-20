@@ -9,7 +9,7 @@ import type { AtlassianDesign } from '../../../domain/entities';
 import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
-	FigmaDesignIdentity,
+	FigmaDesignIdentifier,
 } from '../../../domain/entities';
 import type { FileResponse } from '../figma-client';
 
@@ -22,7 +22,7 @@ export const transformFileToAtlassianDesign = ({
 	fileKey,
 	fileResponse,
 }: TransformFileToAtlassianDesignParams): AtlassianDesign => {
-	const designId = new FigmaDesignIdentity(fileKey);
+	const designId = new FigmaDesignIdentifier(fileKey);
 	const fileName = fileResponse.name;
 	return {
 		id: designId.toAtlassianDesignId(),

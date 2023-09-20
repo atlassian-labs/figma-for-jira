@@ -1,6 +1,14 @@
 const FIGMA_DOCUMENT_NODE_ID = '0:0';
 
-export class FigmaDesignIdentity {
+/**
+ * Represents an identifier of a Figma design, which can be associated with
+ * an Atlassian entity (e.g., Jira issue).
+ *
+ * An identifier can point out to:
+ * - A Figma file
+ * - A specific node within Figma file.
+ */
+export class FigmaDesignIdentifier {
 	constructor(
 		readonly fileKey: string,
 		readonly nodeId?: string,
@@ -10,22 +18,22 @@ export class FigmaDesignIdentity {
 	}
 
 	/**
-	 * Creates {@link FigmaDesignIdentity} from the given {@link AtlassianDesign} ID.
+	 * Creates {@link FigmaDesignIdentifier} from the given {@link AtlassianDesign} ID.
 	 */
-	static fromAtlassianDesignId = (id: string): FigmaDesignIdentity => {
+	static fromAtlassianDesignId = (id: string): FigmaDesignIdentifier => {
 		const [fileKey, nodeId] = id.split('/');
 		if (!fileKey) {
 			throw new Error(`Received invalid Design ID: ${id}`);
 		}
-		return new FigmaDesignIdentity(fileKey, nodeId);
+		return new FigmaDesignIdentifier(fileKey, nodeId);
 	};
 
 	/**
-	 * Creates {@link FigmaDesignIdentity} from the given Figma's design URL.
+	 * Creates {@link FigmaDesignIdentifier} from the given Figma's design URL.
 	 *
-	 * The method parses the URL and extracts data required for building {@link FigmaDesignIdentity}.
+	 * The method parses the URL and extracts data required for building {@link FigmaDesignIdentifier}.
 	 */
-	static fromFigmaDesignUrl = (url: string): FigmaDesignIdentity => {
+	static fromFigmaDesignUrl = (url: string): FigmaDesignIdentifier => {
 		const parsedUrl = new URL(url);
 
 		const pathComponents = parsedUrl.pathname.split('/');
@@ -36,7 +44,7 @@ export class FigmaDesignIdentity {
 
 		if (!fileKey) throw new Error(`Received invalid Figma URL: ${url}`);
 
-		return new FigmaDesignIdentity(fileKey, nodeId);
+		return new FigmaDesignIdentifier(fileKey, nodeId);
 	};
 
 	/**
@@ -47,7 +55,7 @@ export class FigmaDesignIdentity {
 	}
 
 	/**
-	 * Returns an {@link AtlassianDesign} that corresponds to this {@link FigmaDesignIdentity}.
+	 * Returns an {@link AtlassianDesign} that corresponds to this {@link FigmaDesignIdentifier}.
 	 *
 	 * An ID has the following format:
 	 * - `fileKey/nodeId` when {@link nodeId} is defined.

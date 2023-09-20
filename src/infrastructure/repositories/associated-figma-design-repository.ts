@@ -6,7 +6,7 @@ import type {
 	AssociatedFigmaDesign,
 	AssociatedFigmaDesignCreateParams,
 } from '../../domain/entities';
-import { FigmaDesignIdentity } from '../../domain/entities';
+import { FigmaDesignIdentifier } from '../../domain/entities';
 
 type PrismaAssociatedFigmaDesignCreateParams = Omit<
 	PrismaAssociatedFigmaDesign,
@@ -40,7 +40,7 @@ export class AssociatedFigmaDesignRepository {
 		connectInstallationId,
 	}: PrismaAssociatedFigmaDesign): AssociatedFigmaDesign => ({
 		id,
-		designId: new FigmaDesignIdentity(
+		designId: new FigmaDesignIdentifier(
 			fileKey,
 			nodeId !== '' ? nodeId : undefined,
 		),

@@ -3,7 +3,7 @@ import {
 	FigmaServiceCredentialsError,
 } from '../infrastructure/figma';
 
-export const check3loUseCase = {
+export const checkUserFigmaAuthUseCase = {
 	execute: async (atlassianUserId: string): Promise<boolean> => {
 		try {
 			await figmaService.getValidCredentialsOrThrow(atlassianUserId);

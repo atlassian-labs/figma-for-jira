@@ -10,7 +10,7 @@ import type {
 import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
-	FigmaDesignIdentity,
+	FigmaDesignIdentifier,
 	FigmaOAuth2UserCredentials,
 } from '..';
 import { Duration } from '../../../common/duration';
@@ -22,14 +22,14 @@ export const MOCK_ISSUE_TITLE = 'Test Jira Issue';
 
 export const MOCK_FIGMA_FILE_KEY = '5BnX6YnPJOvOHRdiB0seWx';
 export const MOCK_FIGMA_NODE_ID = '100:42';
-export const MOCK_FIGMA_FILE_IDENTITY = new FigmaDesignIdentity(
+export const MOCK_FILE_FIGMA_DESIGN_IDENTIFIER = new FigmaDesignIdentifier(
 	MOCK_FIGMA_FILE_KEY,
 );
-export const MOCK_FIGMA_NODE_IDENTITY = new FigmaDesignIdentity(
+export const MOCK_NODE_FIGMA_DESIGN_IDENTIFIER = new FigmaDesignIdentifier(
 	MOCK_FIGMA_FILE_KEY,
 	MOCK_FIGMA_NODE_ID,
 );
-export const MOCK_FIGMA_DESIGN_IDENTITY = MOCK_FIGMA_FILE_IDENTITY;
+export const MOCK_FIGMA_DESIGN_IDENTIFIER = MOCK_FILE_FIGMA_DESIGN_IDENTIFIER;
 
 function getRandomInt(min: number, max: number): number {
 	min = Math.ceil(min);
@@ -46,10 +46,15 @@ export const generateFigmaNodeId = () =>
 	`${getRandomInt(1, 100)}:${getRandomInt(1, 100)}`;
 
 export const generateFigmaDesignUrl = ({
-	fileKey = MOCK_FIGMA_FILE_KEY,
-	nodeId = undefined as string | undefined,
-	fileName = 'test-design-1',
-	mode = undefined as string | undefined,
+	fileKey = generateFigmaFileKey(),
+	nodeId = generateFigmaNodeId(),
+	fileName = generateFigmaFileName(),
+	mode,
+}: {
+	fileKey?: string;
+	nodeId?: string;
+	fileName?: string;
+	mode?: string;
 } = {}) => {
 	const url = new URL(`https://www.figma.com/file/${fileKey}/${fileName}`);
 	if (nodeId) {
