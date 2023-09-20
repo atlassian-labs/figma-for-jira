@@ -1,6 +1,7 @@
 import type { FigmaTeam as PrismaFigmaTeam } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
+import { PrismaErrorCode } from './constants';
 import { RepositoryRecordNotFoundError } from './errors';
 import { prismaClient } from './prisma-client';
 
@@ -46,7 +47,10 @@ export class FigmaTeamRepository {
 				where: { id },
 			});
 		} catch (e: unknown) {
-			if (e instanceof PrismaClientKnownRequestError && e.code === 'P2025') {
+			if (
+				e instanceof PrismaClientKnownRequestError &&
+				e.code === PrismaErrorCode.RecordNotFound
+			) {
 				throw new RepositoryRecordNotFoundError(e.message);
 			}
 		}
