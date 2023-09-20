@@ -3,7 +3,7 @@ import type { AtlassianEntity } from './types';
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
 import {
 	AtlassianAssociation,
-	FigmaDesignIdentity,
+	FigmaDesignIdentifier,
 	JIRA_ISSUE_ATI,
 } from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
@@ -30,7 +30,9 @@ export const disassociateEntityUseCase = {
 			throw new Error('Unrecognised ATI');
 		}
 
-		const figmaDesignId = FigmaDesignIdentity.fromAtlassianDesignId(entity.id);
+		const figmaDesignId = FigmaDesignIdentifier.fromAtlassianDesignId(
+			entity.id,
+		);
 
 		const [design, issue] = await Promise.all([
 			figmaService.fetchDesignById(figmaDesignId, atlassianUserId),
