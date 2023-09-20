@@ -2,13 +2,15 @@ import { AxiosError, HttpStatusCode } from 'axios';
 
 import { FigmaServiceCredentialsError } from './errors';
 import { figmaAuthService } from './figma-auth-service';
-import type { CreateDevResourcesResponse } from './figma-client';
+import type {
+	CreateDevResourcesRequest,
+	CreateDevResourcesResponse,
+} from './figma-client';
 import { figmaClient } from './figma-client';
 import {
-	buildDevResource,
 	transformFileToAtlassianDesign,
 	transformNodeToAtlassianDesign,
-} from './figma-transformer';
+} from './transformers';
 
 import type {
 	AtlassianDesign,
@@ -56,19 +58,23 @@ export class FigmaService {
 		const { accessToken } = credentials;
 
 		if (designId.nodeId) {
-			const fileNodesResponse = await figmaClient.getFileNodes(
+			const fileResponseWithNode = await figmaClient.getFile(
 				designId.fileKey,
-				designId.nodeId,
+				{
+					ids: [designId.nodeId],
+					node_last_modified: true,
+				},
 				accessToken,
 			);
 			return transformNodeToAtlassianDesign({
 				fileKey: designId.fileKey,
 				nodeId: designId.nodeId,
-				fileNodesResponse,
+				fileResponseWithNode,
 			});
 		} else {
 			const fileResponse = await figmaClient.getFile(
 				designId.fileKey,
+				{ depth: 1 },
 				accessToken,
 			);
 			return transformFileToAtlassianDesign({
@@ -95,12 +101,12 @@ export class FigmaService {
 
 		const { accessToken } = credentials;
 
-		const devResource = buildDevResource({
+		const devResource: CreateDevResourcesRequest = {
 			name: buildIssueTitle(issueKey, issueTitle),
 			url: issueUrl,
 			file_key: designId.fileKey,
 			node_id: designId.nodeIdOrDefaultDocumentId,
-		});
+		};
 
 		const response = await figmaClient.createDevResources(
 			[devResource],

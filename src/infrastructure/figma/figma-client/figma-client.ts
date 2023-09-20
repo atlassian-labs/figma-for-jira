@@ -1,96 +1,19 @@
 import axios from 'axios';
 
-import { getConfig } from '../../config';
-
-export type GetOAuth2TokenResponse = {
-	readonly access_token: string;
-	readonly refresh_token: string;
-	readonly expires_in: number;
-};
-
-export type RefreshOAuth2TokenResponse = Omit<
+import type {
+	CreateDevResourcesRequest,
+	CreateDevResourcesResponse,
+	DeleteDevResourceRequest,
+	FileResponse,
+	GetDevResourcesRequest,
+	GetDevResourcesResponse,
+	GetFileParams,
 	GetOAuth2TokenResponse,
-	'refresh_token'
->;
+	MeResponse,
+	RefreshOAuth2TokenResponse,
+} from './types';
 
-export type MeResponse = {
-	readonly id: string;
-	readonly email: string;
-	readonly handle: string;
-	readonly img_url: string;
-};
-
-export type FileResponse = {
-	readonly name: string;
-	readonly role: string;
-	readonly version: string;
-	readonly lastModified: string;
-	readonly editorType: string;
-	readonly thumbnailUrl: string;
-} & FileNode;
-
-export type FileNode = {
-	readonly document: NodeDetails;
-};
-
-export type NodeDetails = {
-	readonly id: string;
-	readonly name: string;
-	readonly type: string;
-	readonly devStatus?: NodeDevStatus;
-};
-
-export type NodeDevStatus = {
-	readonly type: string;
-};
-
-export type FileNodesResponse = {
-	readonly name: string;
-	readonly role: string;
-	readonly version: string;
-	readonly lastModified: string;
-	readonly editorType: string;
-	readonly thumbnailUrl: string;
-	readonly err: string;
-	readonly nodes: Record<string, FileNode>;
-};
-
-export type DevResource = {
-	readonly id: string;
-	readonly name: string;
-	readonly url: string;
-	readonly file_key: string;
-	readonly node_id: string;
-};
-
-export type CreateDevResourcesRequest = Omit<DevResource, 'id'>;
-
-type CreateDevResourceError = {
-	readonly file_key: string | null;
-	readonly node_id: string | null;
-	readonly error: string;
-};
-
-export type CreateDevResourcesResponse = {
-	readonly links_created: DevResource[];
-	readonly errors: CreateDevResourceError[];
-};
-
-type GetDevResourcesRequest = {
-	readonly fileKey: string;
-	readonly nodeIds?: string;
-	readonly accessToken: string;
-};
-
-export type GetDevResourcesResponse = {
-	readonly dev_resources: DevResource[];
-};
-
-type DeleteDevResourceRequest = {
-	readonly fileKey: string;
-	readonly devResourceId: string;
-	readonly accessToken: string;
-};
+import { getConfig } from '../../../config';
 
 /**
  * A generic Figma API client.
@@ -164,47 +87,35 @@ export class FigmaClient {
 	};
 
 	/**
-	 * Returns a JSON object representing a Figma file/document including metadata about that file.
+	 * Returns a Figma file/document including metadata about that file.
 	 *
 	 * @see https://www.figma.com/developers/api#get-files-endpoint
 	 */
 	getFile = async (
 		fileKey: string,
+		params: GetFileParams,
 		accessToken: string,
 	): Promise<FileResponse> => {
-		const response = await axios.get<FileResponse>(
-			`${getConfig().figma.apiBaseUrl}/v1/files/${fileKey}`,
-			{
-				headers: {
-					['Authorization']: `Bearer ${accessToken}`,
-				},
-			},
-		);
+		const url = new URL(`${getConfig().figma.apiBaseUrl}/v1/files/${fileKey}`);
 
-		return response.data;
-	};
+		if (params.ids != null) {
+			url.searchParams.append('ids', params.ids.join(','));
+		}
+		if (params.depth != null) {
+			url.searchParams.append('depth', params.depth.toString());
+		}
+		if (params.node_last_modified != null) {
+			url.searchParams.append(
+				'node_last_modified',
+				params.node_last_modified.toString(),
+			);
+		}
 
-	/**
-	 * Returns metadata about a Figma file and nodes in that file referenced by ids.
-	 *
-	 * @see https://www.figma.com/developers/api#get-file-nodes-endpoint
-	 */
-	getFileNodes = async (
-		fileKey: string,
-		nodeIds: string,
-		accessToken: string,
-	): Promise<FileNodesResponse> => {
-		const response = await axios.get<FileNodesResponse>(
-			`${getConfig().figma.apiBaseUrl}/v1/files/${fileKey}/nodes`,
-			{
-				params: {
-					ids: nodeIds,
-				},
-				headers: {
-					['Authorization']: `Bearer ${accessToken}`,
-				},
+		const response = await axios.get<FileResponse>(url.toString(), {
+			headers: {
+				['Authorization']: `Bearer ${accessToken}`,
 			},
-		);
+		});
 
 		return response.data;
 	};

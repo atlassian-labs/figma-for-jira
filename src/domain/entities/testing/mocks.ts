@@ -31,20 +31,46 @@ export const MOCK_NODE_FIGMA_DESIGN_IDENTIFIER = new FigmaDesignIdentifier(
 );
 export const MOCK_FIGMA_DESIGN_IDENTIFIER = MOCK_FILE_FIGMA_DESIGN_IDENTIFIER;
 
+function getRandomInt(min: number, max: number): number {
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min) + min);
+}
+
+export const generateFigmaFileName = () => uuidv4();
+
+export const generateFigmaFileKey = () =>
+	Buffer.from(uuidv4()).toString('base64');
+
+export const generateFigmaNodeId = () =>
+	`${getRandomInt(1, 100)}:${getRandomInt(1, 100)}`;
+
 export const generateFigmaDesignUrl = ({
-	fileKey = MOCK_FIGMA_FILE_KEY,
-	nodeId = MOCK_FIGMA_NODE_ID as string | undefined,
-	fileName = 'test-design-1',
+	fileKey = generateFigmaFileKey(),
+	nodeId,
+	fileName = generateFigmaFileName(),
+	mode,
+}: {
+	fileKey?: string;
+	nodeId?: string;
+	fileName?: string;
+	mode?: string;
 } = {}) => {
 	const url = new URL(`https://www.figma.com/file/${fileKey}/${fileName}`);
 	if (nodeId) {
 		url.searchParams.append('node-id', nodeId);
 	}
-	url.searchParams.append('mode', 'dev');
+	if (mode) {
+		url.searchParams.append('mode', mode);
+	}
+
 	return url.toString();
 };
 
-export const generateIssueAri = (issueId = Date.now().toString()) =>
+export const generateIssueId = () =>
+	getRandomInt(1000, Number.MAX_SAFE_INTEGER).toString();
+
+export const generateIssueAri = (issueId = generateIssueId()) =>
 	`ari:cloud:jira:${uuidv4()}:issue/${issueId}`;
 
 export const generateFigmaOAuth2UserCredentials = ({
