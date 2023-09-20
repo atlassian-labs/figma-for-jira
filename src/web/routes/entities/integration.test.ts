@@ -318,7 +318,7 @@ describe('/entities', () => {
 
 				mockMeEndpoint({ success: true, times: 2 });
 				mockGetFileEndpoint({
-					fileKey: fileKey,
+					fileKey,
 					accessToken: credentials?.accessToken,
 					query: { depth: '1' },
 					response: fileResponse,
@@ -406,7 +406,7 @@ describe('/entities', () => {
 
 				mockMeEndpoint({ success: true, times: 2 });
 				mockGetFileEndpoint({
-					fileKey: fileKey,
+					fileKey,
 					accessToken: credentials?.accessToken,
 					query: {
 						ids: nodeId,

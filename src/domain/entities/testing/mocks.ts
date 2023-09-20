@@ -47,7 +47,7 @@ export const generateFigmaNodeId = () =>
 
 export const generateFigmaDesignUrl = ({
 	fileKey = generateFigmaFileKey(),
-	nodeId = generateFigmaNodeId(),
+	nodeId,
 	fileName = generateFigmaFileName(),
 	mode,
 }: {
