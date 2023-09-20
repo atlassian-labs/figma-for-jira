@@ -35,36 +35,25 @@ export const propertyKeys = {
 
 class JiraService {
 	submitDesign = async (
-		{ design, addAssociations, removeAssociations }: SubmitDesignParams,
+		params: SubmitDesignParams,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
-		const response = await jiraClient.submitDesigns(
-			{
-				designs: [
-					{
-						...design,
-						addAssociations: addAssociations ?? [],
-						removeAssociations: removeAssociations ?? [],
-					},
-				],
-			},
-			connectInstallation,
-		);
-
-		this.throwIfSubmitDesignResponseHasErrors(response);
+		return this.submitDesigns([params], connectInstallation);
 	};
 
-	updateDesigns = async (
-		designs: AtlassianDesign[],
+	submitDesigns = async (
+		designs: SubmitDesignParams[],
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		const response = await jiraClient.submitDesigns(
 			{
-				designs: designs.map((design) => ({
-					...design,
-					addAssociations: null,
-					removeAssociations: null,
-				})),
+				designs: designs.map(
+					({ design, addAssociations, removeAssociations }) => ({
+						...design,
+						addAssociations: addAssociations ?? null,
+						removeAssociations: removeAssociations ?? null,
+					}),
+				),
 			},
 			connectInstallation,
 		);

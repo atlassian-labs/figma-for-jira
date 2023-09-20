@@ -155,7 +155,7 @@ describe('handleFigmaFileChangeEventUseCase', () => {
 						generateAtlassianDesign({ id: designId.toAtlassianDesignId() }),
 					),
 				);
-			jest.spyOn(jiraService, 'updateDesigns').mockRejectedValue(error);
+			jest.spyOn(jiraService, 'submitDesigns').mockRejectedValue(error);
 
 			await expect(
 				handleFigmaFileChangeEventUseCase.execute(

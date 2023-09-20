@@ -37,9 +37,9 @@ describe('JiraClient', () => {
 	describe('submitDesigns', () => {
 		it('should submit designs', async () => {
 			const request = generateSubmitDesignsRequest();
-			const response = generateSuccessfulSubmitDesignsResponse(
+			const response = generateSuccessfulSubmitDesignsResponse([
 				request.designs[0].id,
-			);
+			]);
 			jest.spyOn(axios, 'post').mockResolvedValue({ data: response });
 
 			const result = await jiraClient.submitDesigns(

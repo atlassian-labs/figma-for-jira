@@ -32,7 +32,7 @@ import {
 	generateGetFileResponseWithNode,
 } from '../../../infrastructure/figma/figma-client/testing';
 import { transformNodeToAtlassianDesign } from '../../../infrastructure/figma/transformers';
-import { generateSuccessfulUpdateDesignsResponse } from '../../../infrastructure/jira/jira-client/testing';
+import { generateSuccessfulSubmitDesignsResponse } from '../../../infrastructure/jira/jira-client/testing';
 import {
 	associatedFigmaDesignRepository,
 	connectInstallationRepository,
@@ -100,7 +100,7 @@ const mockSubmitDesignsEndpoint = ({
 		.reply(
 			success ? HttpStatusCode.Ok : HttpStatusCode.InternalServerError,
 			success
-				? generateSuccessfulUpdateDesignsResponse(
+				? generateSuccessfulSubmitDesignsResponse(
 						atlassianDesigns.map((design) => design.id),
 				  )
 				: undefined,
