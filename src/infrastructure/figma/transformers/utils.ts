@@ -63,11 +63,3 @@ export const buildInspectUrl = ({
 	url.searchParams.set('mode', 'dev');
 	return url.toString();
 };
-
-export const getUpdateSequenceNumber = (input: string): number => {
-	const updateSequenceNumber = parseInt(input, 10);
-	if (isNaN(updateSequenceNumber)) {
-		throw new Error('Could not convert version to update sequence number');
-	}
-	return updateSequenceNumber;
-};

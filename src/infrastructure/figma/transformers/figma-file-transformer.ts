@@ -1,9 +1,4 @@
-import {
-	buildDesignUrl,
-	buildInspectUrl,
-	buildLiveEmbedUrl,
-	getUpdateSequenceNumber,
-} from './utils';
+import { buildDesignUrl, buildInspectUrl, buildLiveEmbedUrl } from './utils';
 
 import type { AtlassianDesign } from '../../../domain/entities';
 import {
@@ -18,6 +13,9 @@ type TransformFileToAtlassianDesignParams = {
 	readonly fileResponse: FileResponse;
 };
 
+/**
+ * Transforms a Figma file to {@link AtlassianDesign}.
+ */
 export const transformFileToAtlassianDesign = ({
 	fileKey,
 	fileResponse,
@@ -33,6 +31,6 @@ export const transformFileToAtlassianDesign = ({
 		status: AtlassianDesignStatus.NONE,
 		type: AtlassianDesignType.FILE,
 		lastUpdated: fileResponse.lastModified,
-		updateSequenceNumber: getUpdateSequenceNumber(fileResponse.version),
+		updateSequenceNumber: new Date(fileResponse.lastModified).getTime(),
 	};
 };

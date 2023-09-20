@@ -58,7 +58,7 @@ export class FigmaService {
 		const { accessToken } = credentials;
 
 		if (designId.nodeId) {
-			const fileResponseWithNode = await figmaClient.getFile(
+			const fileResponse = await figmaClient.getFile(
 				designId.fileKey,
 				{
 					ids: [designId.nodeId],
@@ -69,7 +69,7 @@ export class FigmaService {
 			return transformNodeToAtlassianDesign({
 				fileKey: designId.fileKey,
 				nodeId: designId.nodeId,
-				fileResponseWithNode,
+				fileResponse,
 			});
 		} else {
 			const fileResponse = await figmaClient.getFile(

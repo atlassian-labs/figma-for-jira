@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import type {
+	FileResponse,
 	GetDevResourcesResponse,
 	GetOAuth2TokenResponse,
 	Node,
@@ -8,32 +9,41 @@ import type {
 } from '..';
 import { Duration } from '../../../../common/duration';
 import {
-	MOCK_FIGMA_FILE_KEY,
-	MOCK_FIGMA_NODE_ID,
-	MOCK_ISSUE_URL,
+	generateFigmaFileKey,
+	generateFigmaFileName,
+	generateFigmaNodeId,
+	generateJiraIssueUrl,
 } from '../../../../domain/entities/testing';
 
-export const MOCK_FILE_KEY = MOCK_FIGMA_FILE_KEY;
-export const MOCK_NODE_ID = MOCK_FIGMA_NODE_ID;
-export const MOCK_FILE_NAME = 'Test-File';
-export const MOCK_LAST_MODIFIED = '2023-08-29T03:17:29Z';
-export const MOCK_VERSION = '4067551197';
-export const MOCK_DEV_RESOURCE_ID = uuidv4();
 export const MOCK_DOCUMENT: Node = {
 	id: '0:0',
 	name: 'Document',
 	type: 'DOCUMENT',
 };
-export const MOCK_FRAME: Node = {
-	id: '1:2',
-	name: 'Test Frame 1:2',
+
+export const generateFrameNode = ({
+	id = generateFigmaNodeId(),
+	lastModified,
+	children = [],
+}: {
+	id?: string;
+	lastModified?: Date;
+	children?: Node[];
+} = {}): Node => ({
+	id,
+	name: `Test Frame ${id}`,
 	type: 'FRAME',
-};
-export const MOCK_CHILD_NODE: Node = {
-	id: '1:3',
-	name: 'Test Rectangle 1:3',
+	lastModified: lastModified?.toISOString(),
+	children,
+});
+
+export const generateChildNode = ({
+	id = generateFigmaNodeId(),
+} = {}): Node => ({
+	id,
+	name: `Test Rectangle ${id}`,
 	type: 'RECTANGLE',
-};
+});
 
 export const generateGetOAuth2TokenResponse = ({
 	accessToken = uuidv4(),
@@ -78,51 +88,38 @@ export const generateRefreshOAuth2TokenQueryParams = ({
 });
 
 export const generateGetFileResponse = ({
-	name = MOCK_FILE_NAME,
-	lastModified = MOCK_LAST_MODIFIED,
-	version = MOCK_VERSION,
+	name = generateFigmaFileName(),
+	lastModified = new Date(),
 	document = MOCK_DOCUMENT,
-} = {}) => ({
+} = {}): FileResponse => ({
 	name,
-	lastModified,
-	thumbnailUrl: '',
-	version,
+	lastModified: lastModified.toISOString(),
 	role: 'editor',
 	editorType: 'figma',
-	linkAccess: 'org_edit',
 	document: document,
 });
 
 export const generateGetFileResponseWithNode = ({
-	name = MOCK_FILE_NAME,
-	lastModified = MOCK_LAST_MODIFIED,
-	version = MOCK_VERSION,
-	node = MOCK_CHILD_NODE,
-} = {}) => ({
+	name = generateFigmaFileName(),
+	lastModified = new Date(),
+	node = generateChildNode(),
+} = {}): FileResponse => ({
 	name,
-	lastModified,
-	thumbnailUrl: '',
-	version,
+	lastModified: lastModified.toISOString(),
 	role: 'editor',
 	editorType: 'figma',
-	linkAccess: 'org_edit',
 	document: {
 		...MOCK_DOCUMENT,
-		children: [
-			{
-				...MOCK_FRAME,
-				children: [node],
-			},
-		],
+		children: [node],
 	},
 });
 
 export const generateGetDevResourcesResponse = ({
-	id = MOCK_DEV_RESOURCE_ID,
+	id = uuidv4(),
 	name = 'Mock dev resource',
-	url = MOCK_ISSUE_URL,
-	file_key = MOCK_ISSUE_URL,
-	node_id = MOCK_ISSUE_URL,
+	url = generateJiraIssueUrl(),
+	file_key = generateFigmaFileKey(),
+	node_id = generateFigmaNodeId(),
 }: {
 	id?: string;
 	name?: string;

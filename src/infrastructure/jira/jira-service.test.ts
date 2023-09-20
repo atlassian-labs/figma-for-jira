@@ -20,8 +20,8 @@ import { AtlassianAssociation } from '../../domain/entities';
 import {
 	generateAtlassianDesign,
 	generateConnectInstallation,
-	generateIssueAri,
 	generateJiraIssue,
+	generateJiraIssueAri,
 } from '../../domain/entities/testing';
 import { SchemaValidationError } from '../ajv';
 
@@ -62,10 +62,14 @@ describe('JiraService', () => {
 			const connectInstallation = generateConnectInstallation();
 			const design = generateAtlassianDesign();
 			const addAssociations = [
-				AtlassianAssociation.createDesignIssueAssociation(generateIssueAri()),
+				AtlassianAssociation.createDesignIssueAssociation(
+					generateJiraIssueAri(),
+				),
 			];
 			const removeAssociations = [
-				AtlassianAssociation.createDesignIssueAssociation(generateIssueAri()),
+				AtlassianAssociation.createDesignIssueAssociation(
+					generateJiraIssueAri(),
+				),
 			];
 			const submitDesignsResponse = generateSuccessfulSubmitDesignsResponse(
 				design.id,
