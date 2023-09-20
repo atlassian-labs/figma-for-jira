@@ -19,7 +19,6 @@ import {
 	FigmaTeamAuthStatus,
 } from '..';
 import { Duration } from '../../../common/duration';
-import { generateRandomInteger } from '../../../common/testing/mocks';
 
 export const MOCK_ISSUE_ID = '10000';
 export const MOCK_ISSUE_KEY = 'FIG-1';
@@ -51,12 +50,9 @@ export const generateFigmaFileKey = () =>
 export const generateFigmaNodeId = () =>
 	`${getRandomInt(1, 100)}:${getRandomInt(1, 100)}`;
 
-export const generateNodeId = (): string =>
-	`${generateRandomInteger()}:${generateRandomInteger()}`;
-
 export const generateFigmaDesignIdentifier = ({
 	fileKey = uuidv4(),
-	nodeId = generateNodeId(),
+	nodeId = generateFigmaNodeId(),
 }: { fileKey?: string; nodeId?: string } = {}) =>
 	new FigmaDesignIdentifier(fileKey, nodeId);
 
@@ -181,16 +177,16 @@ export const generateJiraIssue = ({
 
 export const generateAssociatedFigmaDesignCreateParams = ({
 	designId = generateFigmaDesignIdentifier(),
-	connectInstallationId = Math.floor(Math.random() * 10000),
+	connectInstallationId = getRandomInt(1, 100000),
 }: Partial<AssociatedFigmaDesignCreateParams> = {}): AssociatedFigmaDesignCreateParams => ({
 	designId,
 	connectInstallationId,
 });
 
 export const generateAssociatedFigmaDesign = ({
-	id = generateRandomInteger(),
+	id = getRandomInt(1, 100000),
 	designId = generateFigmaDesignIdentifier(),
-	connectInstallationId = Math.floor(Math.random() * 10000),
+	connectInstallationId = getRandomInt(1, 100000),
 }: Partial<AssociatedFigmaDesign> = {}): AssociatedFigmaDesign => ({
 	id,
 	designId,
