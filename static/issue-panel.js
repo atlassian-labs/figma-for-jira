@@ -1243,7 +1243,7 @@ var FigmaAddon = (function () {
 			_this.showPage(Page.SHOW_DESIGN, { url: url });
 			_this.pages.showDesign.iframe = document.createElement('iframe');
 			_this.pages.showDesign.iframe.src =
-				'/embed?url=' + url + '&embed_host=figma-jira-add-on';
+				'https://figma.com/embed?url=' + url + '&embed_host=figma-jira-add-on';
 			_this.pages.showDesign.iframe.onload = function () {
 				logInfo('viewer iframe loaded');
 				AP.resize();
