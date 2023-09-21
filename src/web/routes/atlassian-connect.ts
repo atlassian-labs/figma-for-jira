@@ -98,7 +98,7 @@ export const connectAppDescriptor = {
 					{
 						condition: 'feature_flag_service_flag',
 						params: {
-							featureKey: 'atlas.figma-design-section.enabled',
+							featureKey: 'figma-for-jira-upgrade-test',
 						},
 					},
 				],
