@@ -4,6 +4,9 @@ import nock from 'nock';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
+import { generateFigmaWebhookEventPayload } from './testing/mocks';
+import type { FigmaWebhookEventPayload, FigmaWebhookEventType } from './types';
+
 import app from '../../../app';
 import { getConfig } from '../../../config';
 import type {
@@ -20,14 +23,9 @@ import {
 	generateFigmaTeamCreateParams,
 	generateFigmaUserCredentialsCreateParams,
 } from '../../../domain/entities/testing';
-import type {
-	FigmaWebhookEventPayload,
-	FigmaWebhookEventType,
-} from '../../../infrastructure/figma';
 import type { FileResponse } from '../../../infrastructure/figma/figma-client';
 import {
 	generateChildNode,
-	generateFigmaWebhookEventPayload,
 	generateGetFileResponseWithNode,
 	generateGetFileResponseWithNodeId,
 } from '../../../infrastructure/figma/figma-client/testing';

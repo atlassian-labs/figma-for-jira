@@ -1,5 +1,4 @@
 import { FigmaTeamAuthStatus } from '../domain/entities';
-import type { FigmaWebhookEventType } from '../infrastructure/figma';
 import { figmaService } from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
 import {
@@ -8,19 +7,8 @@ import {
 	figmaTeamRepository,
 } from '../infrastructure/repositories';
 
-export const handleFigmaFileChangeEventUseCase = {
-	execute: async (
-		webhookId: string,
-		fileKey: string,
-		eventType: FigmaWebhookEventType,
-	): Promise<void> => {
-		// If an error is thrown while handling a webhook, Figma will retry
-		// sending the event up to 3 times at 5/30/180 minutes.
-
-		if (eventType !== 'FILE_UPDATE') {
-			return;
-		}
-
+export const handleFigmaFileUpdateEventUseCase = {
+	execute: async (webhookId: string, fileKey: string): Promise<void> => {
 		const figmaTeam = await figmaTeamRepository.getByWebhookId(webhookId);
 
 		// Ensure team admin OAuth2 credentials are still valid

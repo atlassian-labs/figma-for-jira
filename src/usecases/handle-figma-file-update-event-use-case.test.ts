@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { handleFigmaFileChangeEventUseCase } from './handle-figma-file-change-event-use-case';
+import { handleFigmaFileUpdateEventUseCase } from './handle-figma-file-update-event-use-case';
 
 import {
 	generateAssociatedFigmaDesign,
@@ -18,7 +18,7 @@ import {
 	figmaTeamRepository,
 } from '../infrastructure/repositories';
 
-describe('handleFigmaFileChangeEventUseCase', () => {
+describe('handleFigmaFileUpdateEventUseCase', () => {
 	describe('error handling', () => {
 		const figmaOAuth2Credentials = generateFigmaOAuth2UserCredentials();
 		const connectInstallation = generateConnectInstallation();
@@ -43,11 +43,7 @@ describe('handleFigmaFileChangeEventUseCase', () => {
 				.mockRejectedValue(error);
 
 			await expect(
-				handleFigmaFileChangeEventUseCase.execute(
-					figmaTeam.webhookId,
-					fileKey,
-					'FILE_UPDATE',
-				),
+				handleFigmaFileUpdateEventUseCase.execute(figmaTeam.webhookId, fileKey),
 			).rejects.toStrictEqual(error);
 		});
 
@@ -68,11 +64,7 @@ describe('handleFigmaFileChangeEventUseCase', () => {
 				.mockResolvedValue(associatedFigmaDesigns);
 
 			await expect(
-				handleFigmaFileChangeEventUseCase.execute(
-					figmaTeam.webhookId,
-					fileKey,
-					'FILE_UPDATE',
-				),
+				handleFigmaFileUpdateEventUseCase.execute(figmaTeam.webhookId, fileKey),
 			).rejects.toStrictEqual(error);
 		});
 
@@ -95,11 +87,7 @@ describe('handleFigmaFileChangeEventUseCase', () => {
 				.mockRejectedValue(error);
 
 			await expect(
-				handleFigmaFileChangeEventUseCase.execute(
-					figmaTeam.webhookId,
-					fileKey,
-					'FILE_UPDATE',
-				),
+				handleFigmaFileUpdateEventUseCase.execute(figmaTeam.webhookId, fileKey),
 			).rejects.toStrictEqual(error);
 		});
 
@@ -123,11 +111,7 @@ describe('handleFigmaFileChangeEventUseCase', () => {
 			jest.spyOn(figmaService, 'fetchDesignById').mockRejectedValue(error);
 
 			await expect(
-				handleFigmaFileChangeEventUseCase.execute(
-					figmaTeam.webhookId,
-					fileKey,
-					'FILE_UPDATE',
-				),
+				handleFigmaFileUpdateEventUseCase.execute(figmaTeam.webhookId, fileKey),
 			).rejects.toStrictEqual(error);
 		});
 
@@ -158,11 +142,7 @@ describe('handleFigmaFileChangeEventUseCase', () => {
 			jest.spyOn(jiraService, 'submitDesigns').mockRejectedValue(error);
 
 			await expect(
-				handleFigmaFileChangeEventUseCase.execute(
-					figmaTeam.webhookId,
-					fileKey,
-					'FILE_UPDATE',
-				),
+				handleFigmaFileUpdateEventUseCase.execute(figmaTeam.webhookId, fileKey),
 			).rejects.toStrictEqual(error);
 		});
 	});
