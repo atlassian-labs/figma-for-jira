@@ -37,7 +37,7 @@ export const buildLiveEmbedUrl = ({
 }): string => {
 	const inspectUrl = buildInspectUrl({ fileKey, fileName, nodeId });
 	const url = new URL(`${getConfig().figma.webBaseUrl}/embed`);
-	url.searchParams.append('embed_host', 'atlassian');
+	url.searchParams.append('embed_host', 'figma-jira-add-on');
 	url.searchParams.append('url', inspectUrl);
 	return url.toString();
 };

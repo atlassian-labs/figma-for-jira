@@ -35,7 +35,7 @@ describe('buildLiveEmbedUrl', () => {
 			mode: 'dev',
 		});
 		const expected = new URL('https://www.figma.com/embed');
-		expected.searchParams.append('embed_host', 'atlassian');
+		expected.searchParams.append('embed_host', 'figma-jira-add-on');
 		expected.searchParams.append('url', inspectUrl);
 
 		const result = buildLiveEmbedUrl({
