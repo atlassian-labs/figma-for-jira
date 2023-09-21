@@ -6,6 +6,7 @@ import { join } from 'path';
 import { connectDescriptorGet } from './atlassian-connect';
 import { authRouter } from './auth';
 import { entitiesRouter } from './entities';
+import { figmaRouter } from './figma';
 import { lifecycleEventsRouter } from './lifecycle-events';
 
 export const rootRouter = Router();
@@ -27,3 +28,6 @@ rootRouter.use('/lifecycleEvents', lifecycleEventsRouter);
 rootRouter.use('/auth', authRouter);
 
 rootRouter.use('/entities', entitiesRouter);
+
+// Endpoints to handle requests from Figma
+rootRouter.use('/figma', figmaRouter);

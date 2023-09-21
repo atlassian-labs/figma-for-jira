@@ -1,5 +1,8 @@
 import type { AssociatedFigmaDesign as PrismaAssociatedFigmaDesign } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
+import { PrismaErrorCode } from './constants';
+import { RepositoryRecordNotFoundError } from './errors';
 import { prismaClient } from './prisma-client';
 
 import type {
@@ -31,6 +34,44 @@ export class AssociatedFigmaDesignRepository {
 			},
 		});
 		return this.mapToDomainModel(result);
+	};
+
+	findManyByFileKeyAndConnectInstallationId = async (
+		fileKey: string,
+		connectInstallationId: number,
+	): Promise<AssociatedFigmaDesign[]> => {
+		const result = await prismaClient.get().associatedFigmaDesign.findMany({
+			where: { fileKey, connectInstallationId },
+		});
+
+		return result.map(this.mapToDomainModel);
+	};
+
+	deleteByDesignIdAndConnectInstallationId = async (
+		designId: FigmaDesignIdentifier,
+		connectInstallationId: number,
+	): Promise<AssociatedFigmaDesign> => {
+		try {
+			const result = await prismaClient.get().associatedFigmaDesign.delete({
+				where: {
+					fileKey_nodeId_connectInstallationId: {
+						fileKey: designId.fileKey,
+						nodeId: designId.nodeId ?? '',
+						connectInstallationId,
+					},
+				},
+			});
+
+			return this.mapToDomainModel(result);
+		} catch (e: unknown) {
+			if (
+				e instanceof PrismaClientKnownRequestError &&
+				e.code === PrismaErrorCode.RecordNotFound
+			) {
+				throw new RepositoryRecordNotFoundError(e.message);
+			}
+			throw e;
+		}
 	};
 
 	private mapToDomainModel = ({

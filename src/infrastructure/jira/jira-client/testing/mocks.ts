@@ -58,26 +58,20 @@ export const generateSubmitDesignsRequest = ({
 });
 
 export const generateSuccessfulSubmitDesignsResponse = (
-	designId = uuidv4(),
+	designIds = [uuidv4()],
 ): SubmitDesignsResponse => ({
-	acceptedEntities: [{ designId }],
+	acceptedEntities: designIds.map((designId) => ({ designId })),
 	rejectedEntities: [],
 });
 
 export const generateFailedSubmitDesignsResponse = (
-	designId = uuidv4(),
+	designIds = [uuidv4()],
 ): SubmitDesignsResponse => ({
 	acceptedEntities: [],
-	rejectedEntities: [
-		{
-			key: { designId },
-			errors: [
-				{
-					message: 'Failure',
-				},
-			],
-		},
-	],
+	rejectedEntities: designIds.map((designId) => ({
+		key: { designId },
+		errors: [{ message: 'Failure' }],
+	})),
 });
 
 export const generateSubmitDesignsResponseWithUnknownData = ({

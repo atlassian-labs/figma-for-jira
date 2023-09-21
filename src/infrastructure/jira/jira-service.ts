@@ -1,5 +1,8 @@
 import { JiraServiceSubmitDesignError } from './errors';
-import type { GetIssuePropertyResponse } from './jira-client';
+import type {
+	GetIssuePropertyResponse,
+	SubmitDesignsResponse,
+} from './jira-client';
 import { jiraClient, JiraClientNotFoundError } from './jira-client';
 import { ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA } from './schemas';
 
@@ -7,6 +10,7 @@ import { ensureString } from '../../common/stringUtils';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
+	FigmaDesignIdentifier,
 	JiraIssue,
 } from '../../domain/entities';
 import { AtlassianAssociation } from '../../domain/entities';
@@ -31,41 +35,37 @@ export const propertyKeys = {
 
 class JiraService {
 	submitDesign = async (
-		{ design, addAssociations, removeAssociations }: SubmitDesignParams,
+		params: SubmitDesignParams,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> => {
+		return this.submitDesigns([params], connectInstallation);
+	};
+
+	submitDesigns = async (
+		designs: SubmitDesignParams[],
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		const response = await jiraClient.submitDesigns(
 			{
-				designs: [
-					{
+				designs: designs.map(
+					({ design, addAssociations, removeAssociations }) => ({
 						...design,
-						addAssociations: addAssociations ?? [],
-						removeAssociations: removeAssociations ?? [],
-					},
-				],
+						addAssociations: addAssociations ?? null,
+						removeAssociations: removeAssociations ?? null,
+					}),
+				),
 			},
 			connectInstallation,
 		);
 
-		if (response.rejectedEntities.length) {
-			const { key, errors } = response.rejectedEntities[0];
-			throw JiraServiceSubmitDesignError.designRejected(key.designId, errors);
-		}
+		this.throwIfSubmitDesignResponseHasErrors(response);
+	};
 
-		// TODO: Confirm whether we need to consider the use case below as a failure and throw or just leave a warning.
-		if (response.unknownIssueKeys?.length) {
-			throw JiraServiceSubmitDesignError.unknownIssueKeys(
-				response.unknownIssueKeys,
-			);
-		}
-
-		if (response.unknownAssociations?.length) {
-			throw JiraServiceSubmitDesignError.unknownAssociations(
-				response.unknownAssociations.map(
-					(x) => new AtlassianAssociation(x.associationType, x.values),
-				),
-			);
-		}
+	deleteDesign = async (
+		designId: FigmaDesignIdentifier,
+		connectInstallation: ConnectInstallation,
+	): Promise<FigmaDesignIdentifier> => {
+		return await jiraClient.deleteDesign(designId, connectInstallation);
 	};
 
 	getIssue = async (
@@ -310,6 +310,30 @@ class JiraService {
 	) {
 		return JSON.stringify(JSON.stringify(issuePropertyValue));
 	}
+
+	private throwIfSubmitDesignResponseHasErrors = (
+		response: SubmitDesignsResponse,
+	) => {
+		if (response.rejectedEntities.length) {
+			const { key, errors } = response.rejectedEntities[0];
+			throw JiraServiceSubmitDesignError.designRejected(key.designId, errors);
+		}
+
+		// TODO: Confirm whether we need to consider the use case below as a failure and throw or just leave a warning.
+		if (response.unknownIssueKeys?.length) {
+			throw JiraServiceSubmitDesignError.unknownIssueKeys(
+				response.unknownIssueKeys,
+			);
+		}
+
+		if (response.unknownAssociations?.length) {
+			throw JiraServiceSubmitDesignError.unknownAssociations(
+				response.unknownAssociations.map(
+					(x) => new AtlassianAssociation(x.associationType, x.values),
+				),
+			);
+		}
+	};
 }
 
 export const jiraService = new JiraService();

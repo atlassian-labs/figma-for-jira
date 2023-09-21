@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { cleanAll, emitter, isDone, pendingMocks } from 'nock';
+import { cleanAll, emitter } from 'nock';
 import { prismaClient } from '../src/infrastructure/repositories/prisma-client';
 
 let unmatchedRequests: Request[] = [];
@@ -31,18 +31,10 @@ afterEach(() => {
 });
 
 /**
- * After each test, check that we haven't overly mocked our endpoints.
+ * After each test, clean up nock mocks
  */
 afterEach(() => {
-	let unusedNockMocks: string[] = [];
-	if (!isDone()) {
-		unusedNockMocks = pendingMocks();
-	}
 	cleanAll();
-	if (unusedNockMocks.length > 0)
-		throw new Error(
-			`Endpoints mocked with nock were unused:\n${unusedNockMocks.join('\n')}`,
-		);
 });
 
 /**

@@ -14,6 +14,7 @@ import {
 	generateFigmaNodeId,
 	generateJiraIssueUrl,
 } from '../../../../domain/entities/testing';
+import type { FigmaWebhookEventPayload } from '../../schemas';
 
 export const MOCK_DOCUMENT: Node = {
 	id: '0:0',
@@ -114,6 +115,13 @@ export const generateGetFileResponseWithNode = ({
 	},
 });
 
+export const generateGetFileResponseWithNodeId = (
+	nodeId: string,
+): FileResponse =>
+	generateGetFileResponseWithNode({
+		node: generateChildNode({ id: nodeId }),
+	});
+
 export const generateGetDevResourcesResponse = ({
 	id = uuidv4(),
 	name = 'Mock dev resource',
@@ -134,3 +142,25 @@ export const generateEmptyDevResourcesResponse =
 	(): GetDevResourcesResponse => ({
 		dev_resources: [],
 	});
+
+export const generateFigmaWebhookEventPayload = ({
+	event_type = 'FILE_UPDATE',
+	file_key = generateFigmaFileKey(),
+	file_name = generateFigmaFileName(),
+	passcode = 'passcode',
+	protocol_version = '2',
+	retries = 0,
+	timestamp = new Date().toISOString(),
+	webhook_id = uuidv4(),
+	triggered_by = undefined,
+}: Partial<FigmaWebhookEventPayload> = {}): FigmaWebhookEventPayload => ({
+	event_type,
+	file_key,
+	file_name,
+	passcode,
+	protocol_version,
+	retries,
+	timestamp,
+	webhook_id,
+	triggered_by,
+});
