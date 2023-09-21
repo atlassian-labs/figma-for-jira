@@ -20,9 +20,9 @@ import { AtlassianAssociation } from '../../domain/entities';
 import {
 	generateAtlassianDesign,
 	generateConnectInstallation,
-	generateIssueAri,
+	generateFigmaDesignIdentifier,
 	generateJiraIssue,
-	MOCK_FIGMA_DESIGN_IDENTIFIER,
+	generateJiraIssueAri,
 } from '../../domain/entities/testing';
 import { SchemaValidationError } from '../ajv';
 
@@ -63,10 +63,14 @@ describe('JiraService', () => {
 			const design2 = generateAtlassianDesign();
 			const designs = [design1, design2];
 			const addAssociations = [
-				AtlassianAssociation.createDesignIssueAssociation(generateIssueAri()),
+				AtlassianAssociation.createDesignIssueAssociation(
+					generateJiraIssueAri(),
+				),
 			];
 			const removeAssociations = [
-				AtlassianAssociation.createDesignIssueAssociation(generateIssueAri()),
+				AtlassianAssociation.createDesignIssueAssociation(
+					generateJiraIssueAri(),
+				),
 			];
 			const submitDesignsResponse = generateSuccessfulSubmitDesignsResponse(
 				designs.map((design) => design.id),
@@ -174,10 +178,14 @@ describe('JiraService', () => {
 			const connectInstallation = generateConnectInstallation();
 			const design = generateAtlassianDesign();
 			const addAssociations = [
-				AtlassianAssociation.createDesignIssueAssociation(generateIssueAri()),
+				AtlassianAssociation.createDesignIssueAssociation(
+					generateJiraIssueAri(),
+				),
 			];
 			const removeAssociations = [
-				AtlassianAssociation.createDesignIssueAssociation(generateIssueAri()),
+				AtlassianAssociation.createDesignIssueAssociation(
+					generateJiraIssueAri(),
+				),
 			];
 
 			jest.spyOn(jiraService, 'submitDesigns').mockResolvedValue(undefined);
@@ -196,7 +204,7 @@ describe('JiraService', () => {
 
 	describe('deleteDesign', () => {
 		it('should delete design', async () => {
-			const designId = MOCK_FIGMA_DESIGN_IDENTIFIER;
+			const designId = generateFigmaDesignIdentifier();
 			const connectInstallation = generateConnectInstallation();
 			jest.spyOn(jiraClient, 'deleteDesign').mockResolvedValue(designId);
 

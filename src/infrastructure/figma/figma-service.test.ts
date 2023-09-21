@@ -14,9 +14,9 @@ import type {
 } from './figma-client';
 import { figmaClient } from './figma-client';
 import {
+	generateChildNode,
 	generateGetFileResponse,
 	generateGetFileResponseWithNode,
-	MOCK_CHILD_NODE,
 } from './figma-client/testing';
 import { buildIssueTitle, figmaService } from './figma-service';
 import {
@@ -27,13 +27,11 @@ import {
 import * as configModule from '../../config';
 import { mockConfig } from '../../config/testing';
 import {
+	generateFigmaDesignIdentifier,
+	generateFigmaNodeId,
 	generateFigmaOAuth2UserCredentials,
-	MOCK_FIGMA_DESIGN_IDENTIFIER,
-	MOCK_FILE_FIGMA_DESIGN_IDENTIFIER,
-	MOCK_ISSUE_KEY,
-	MOCK_ISSUE_TITLE,
-	MOCK_ISSUE_URL,
-	MOCK_NODE_FIGMA_DESIGN_IDENTIFIER,
+	generateJiraIssueKey,
+	generateJiraIssueUrl,
 } from '../../domain/entities/testing';
 
 const ATLASSIAN_USER_ID = uuidv4();
@@ -136,13 +134,11 @@ describe('FigmaService', () => {
 
 	describe('fetchDesignById', () => {
 		it('should return a valid design entity if design id points out to node', async () => {
+			const nodeId = generateFigmaNodeId();
+			const node = generateChildNode({ id: nodeId });
+			const designId = generateFigmaDesignIdentifier({ nodeId });
 			const credentials = generateFigmaOAuth2UserCredentials();
-			const mockResponse = generateGetFileResponseWithNode({
-				node: {
-					...MOCK_CHILD_NODE,
-					id: MOCK_NODE_FIGMA_DESIGN_IDENTIFIER.nodeId!,
-				},
-			});
+			const mockResponse = generateGetFileResponseWithNode({ node });
 
 			jest
 				.spyOn(figmaService, 'getValidCredentialsOrThrow')
@@ -153,14 +149,14 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
 
 			const result = await figmaService.fetchDesignById(
-				MOCK_NODE_FIGMA_DESIGN_IDENTIFIER,
+				designId,
 				ATLASSIAN_USER_ID,
 			);
 
 			const expectedEntity = transformNodeToAtlassianDesign({
-				fileKey: MOCK_NODE_FIGMA_DESIGN_IDENTIFIER.fileKey,
-				nodeId: MOCK_NODE_FIGMA_DESIGN_IDENTIFIER.nodeId!,
-				fileResponseWithNode: mockResponse,
+				fileKey: designId.fileKey,
+				nodeId: designId.nodeId!,
+				fileResponse: mockResponse,
 			});
 			expect(result).toStrictEqual({
 				...expectedEntity,
@@ -169,6 +165,7 @@ describe('FigmaService', () => {
 		});
 
 		it('should return a valid design entity if design id points out to file', async () => {
+			const designId = generateFigmaDesignIdentifier();
 			const credentials = generateFigmaOAuth2UserCredentials();
 			const mockResponse = generateGetFileResponse();
 
@@ -181,12 +178,12 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
 
 			const res = await figmaService.fetchDesignById(
-				MOCK_FILE_FIGMA_DESIGN_IDENTIFIER,
+				designId,
 				ATLASSIAN_USER_ID,
 			);
 
 			const expectedEntity = transformFileToAtlassianDesign({
-				fileKey: MOCK_FILE_FIGMA_DESIGN_IDENTIFIER.fileKey,
+				fileKey: designId.fileKey,
 				fileResponse: mockResponse,
 			});
 			expect(res).toStrictEqual({
@@ -196,6 +193,7 @@ describe('FigmaService', () => {
 		});
 
 		it('should throw when a request to a figma api fails', async () => {
+			const designId = generateFigmaDesignIdentifier();
 			const credentials = generateFigmaOAuth2UserCredentials();
 			const mockError = new Error('Figma API failed');
 
@@ -208,25 +206,22 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'getFile').mockRejectedValue(mockError);
 
 			await expect(
-				figmaService.fetchDesignById(
-					MOCK_FIGMA_DESIGN_IDENTIFIER,
-					ATLASSIAN_USER_ID,
-				),
+				figmaService.fetchDesignById(designId, ATLASSIAN_USER_ID),
 			).rejects.toStrictEqual(mockError);
 		});
 
 		it('should throw if the atlassian user is not authorized', async () => {
+			const designId = generateFigmaDesignIdentifier();
+
 			await expect(() =>
-				figmaService.fetchDesignById(
-					MOCK_FIGMA_DESIGN_IDENTIFIER,
-					ATLASSIAN_USER_ID,
-				),
+				figmaService.fetchDesignById(designId, ATLASSIAN_USER_ID),
 			).rejects.toBeInstanceOf(FigmaServiceCredentialsError);
 		});
 	});
 
 	describe('createDevResource', () => {
 		const MOCK_CREDENTIALS = generateFigmaOAuth2UserCredentials();
+
 		beforeEach(() => {
 			jest
 				.spyOn(figmaService, 'getValidCredentialsOrThrow')
@@ -236,23 +231,27 @@ describe('FigmaService', () => {
 				.mockResolvedValue(MOCK_CREDENTIALS);
 		});
 		it('should call figmaClient to create a dev_resource when design points out to file', async () => {
+			const issueKey = generateJiraIssueKey();
+			const issueUrl = generateJiraIssueUrl();
+			const issueTitle = uuidv4();
+			const designId = generateFigmaDesignIdentifier();
 			jest.spyOn(figmaClient, 'createDevResources').mockResolvedValue({
 				links_created: [],
 				errors: [],
 			} as CreateDevResourcesResponse);
 
 			await figmaService.createDevResource({
-				designId: MOCK_FILE_FIGMA_DESIGN_IDENTIFIER,
-				issueUrl: MOCK_ISSUE_URL,
-				issueKey: MOCK_ISSUE_KEY,
-				issueTitle: MOCK_ISSUE_TITLE,
+				designId,
+				issueUrl,
+				issueKey,
+				issueTitle,
 				atlassianUserId: ATLASSIAN_USER_ID,
 			});
 
 			const expectedDevResource: CreateDevResourcesRequest = {
-				name: buildIssueTitle(MOCK_ISSUE_KEY, MOCK_ISSUE_TITLE),
-				url: MOCK_ISSUE_URL,
-				file_key: MOCK_FILE_FIGMA_DESIGN_IDENTIFIER.fileKey,
+				name: buildIssueTitle(issueKey, issueTitle),
+				url: issueUrl,
+				file_key: designId.fileKey,
 				node_id: '0:0',
 			};
 			expect(figmaClient.createDevResources).toHaveBeenCalledWith(
@@ -262,24 +261,29 @@ describe('FigmaService', () => {
 		});
 
 		it('should call figmaClient to create a dev_resource when design points out to node', async () => {
+			const issueKey = generateJiraIssueKey();
+			const issueUrl = generateJiraIssueUrl();
+			const issueTitle = uuidv4();
+			const nodeId = generateFigmaNodeId();
+			const designId = generateFigmaDesignIdentifier({ nodeId });
 			jest.spyOn(figmaClient, 'createDevResources').mockResolvedValue({
 				links_created: [],
 				errors: [],
 			} as CreateDevResourcesResponse);
 
 			await figmaService.createDevResource({
-				designId: MOCK_NODE_FIGMA_DESIGN_IDENTIFIER,
-				issueUrl: MOCK_ISSUE_URL,
-				issueKey: MOCK_ISSUE_KEY,
-				issueTitle: MOCK_ISSUE_TITLE,
+				designId,
+				issueUrl,
+				issueKey,
+				issueTitle,
 				atlassianUserId: ATLASSIAN_USER_ID,
 			});
 
 			const expectedDevResource: CreateDevResourcesRequest = {
-				name: buildIssueTitle(MOCK_ISSUE_KEY, MOCK_ISSUE_TITLE),
-				url: MOCK_ISSUE_URL,
-				file_key: MOCK_NODE_FIGMA_DESIGN_IDENTIFIER.fileKey,
-				node_id: MOCK_NODE_FIGMA_DESIGN_IDENTIFIER.nodeId!,
+				name: buildIssueTitle(issueKey, issueTitle),
+				url: issueUrl,
+				file_key: designId.fileKey,
+				node_id: designId.nodeId!,
 			};
 			expect(figmaClient.createDevResources).toHaveBeenCalledWith(
 				[expectedDevResource],
@@ -288,6 +292,10 @@ describe('FigmaService', () => {
 		});
 
 		it('should throw when dev_resource creation fails', async () => {
+			const issueKey = generateJiraIssueKey();
+			const issueUrl = generateJiraIssueUrl();
+			const issueTitle = uuidv4();
+			const designId = generateFigmaDesignIdentifier();
 			const expectedError = new Error('Dev resource create failed');
 			jest
 				.spyOn(figmaClient, 'createDevResources')
@@ -295,28 +303,33 @@ describe('FigmaService', () => {
 
 			await expect(() =>
 				figmaService.createDevResource({
-					designId: MOCK_FIGMA_DESIGN_IDENTIFIER,
-					issueUrl: MOCK_ISSUE_URL,
-					issueKey: MOCK_ISSUE_KEY,
-					issueTitle: MOCK_ISSUE_TITLE,
+					designId,
+					issueUrl,
+					issueKey,
+					issueTitle,
 					atlassianUserId: ATLASSIAN_USER_ID,
 				}),
 			).rejects.toThrow(expectedError);
 		});
 
 		it('should throw if the atlassian user is not authorized', async () => {
+			const issueKey = generateJiraIssueKey();
+			const issueUrl = generateJiraIssueUrl();
+			const issueTitle = uuidv4();
+			const designId = generateFigmaDesignIdentifier();
 			const credentialsError = new FigmaServiceCredentialsError(
 				ATLASSIAN_USER_ID,
 			);
 			jest
 				.spyOn(figmaService, 'getValidCredentialsOrThrow')
 				.mockRejectedValue(credentialsError);
+
 			await expect(() =>
 				figmaService.createDevResource({
-					designId: MOCK_FIGMA_DESIGN_IDENTIFIER,
-					issueUrl: MOCK_ISSUE_URL,
-					issueKey: MOCK_ISSUE_KEY,
-					issueTitle: MOCK_ISSUE_TITLE,
+					designId,
+					issueUrl,
+					issueKey,
+					issueTitle,
 					atlassianUserId: ATLASSIAN_USER_ID,
 				}),
 			).rejects.toStrictEqual(credentialsError);

@@ -19,28 +19,10 @@ import {
 	FigmaTeamAuthStatus,
 } from '..';
 import { Duration } from '../../../common/duration';
-
-export const MOCK_ISSUE_ID = '10000';
-export const MOCK_ISSUE_KEY = 'FIG-1';
-export const MOCK_ISSUE_URL = `https://myjirainstance.atlassian.net/browse/${MOCK_ISSUE_KEY}`;
-export const MOCK_ISSUE_TITLE = 'Test Jira Issue';
-
-export const MOCK_FIGMA_FILE_KEY = '5BnX6YnPJOvOHRdiB0seWx';
-export const MOCK_FIGMA_NODE_ID = '100:42';
-export const MOCK_FILE_FIGMA_DESIGN_IDENTIFIER = new FigmaDesignIdentifier(
-	MOCK_FIGMA_FILE_KEY,
-);
-export const MOCK_NODE_FIGMA_DESIGN_IDENTIFIER = new FigmaDesignIdentifier(
-	MOCK_FIGMA_FILE_KEY,
-	MOCK_FIGMA_NODE_ID,
-);
-export const MOCK_FIGMA_DESIGN_IDENTIFIER = MOCK_FILE_FIGMA_DESIGN_IDENTIFIER;
-
-function getRandomInt(min: number, max: number): number {
-	min = Math.ceil(min);
-	max = Math.floor(max);
-	return Math.floor(Math.random() * (max - min) + min);
-}
+import {
+	getRandomInt,
+	getRandomPositiveInt,
+} from '../../../common/testing/utils';
 
 export const generateFigmaFileName = () => uuidv4();
 
@@ -51,10 +33,12 @@ export const generateFigmaNodeId = () =>
 	`${getRandomInt(1, 100)}:${getRandomInt(1, 100)}`;
 
 export const generateFigmaDesignIdentifier = ({
-	fileKey = uuidv4(),
-	nodeId = generateFigmaNodeId(),
-}: { fileKey?: string; nodeId?: string } = {}) =>
-	new FigmaDesignIdentifier(fileKey, nodeId);
+	fileKey = generateFigmaFileKey(),
+	nodeId = undefined,
+}: {
+	fileKey?: string;
+	nodeId?: string;
+} = {}) => new FigmaDesignIdentifier(fileKey, nodeId);
 
 export const generateFigmaDesignUrl = ({
 	fileKey = generateFigmaFileKey(),
@@ -77,12 +61,6 @@ export const generateFigmaDesignUrl = ({
 
 	return url.toString();
 };
-
-export const generateIssueId = () =>
-	getRandomInt(1000, Number.MAX_SAFE_INTEGER).toString();
-
-export const generateIssueAri = (issueId = generateIssueId()) =>
-	`ari:cloud:jira:${uuidv4()}:issue/${issueId}`;
 
 export const generateFigmaOAuth2UserCredentials = ({
 	id = Date.now(),
@@ -126,7 +104,7 @@ export const generateConnectInstallationCreateParams = ({
 });
 
 export const generateConnectInstallation = ({
-	id = Date.now(),
+	id = getRandomInt(1, 1000),
 	key = uuidv4(),
 	clientKey = uuidv4(),
 	sharedSecret = uuidv4(),
@@ -161,12 +139,24 @@ export const generateAtlassianDesign = ({
 	updateSequenceNumber,
 });
 
+export const generateJiraIssueId = () => getRandomPositiveInt().toString();
+
+export const generateJiraIssueKey = () => `KEY-${getRandomPositiveInt()}`;
+
+export const generateJiraIssueUrl = ({
+	baseUrl = `https://${uuidv4()}.atlassian.net`,
+	key = generateJiraIssueKey(),
+} = {}) => new URL(`/browse/${key}`, baseUrl).toString();
+
+export const generateJiraIssueAri = (issueId = generateJiraIssueId()) =>
+	`ari:cloud:jira:${uuidv4()}:issue/${issueId}`;
+
 export const generateJiraIssue = ({
-	id = uuidv4(),
-	key = uuidv4(),
-	self = 'https://myjirainstance.atlassian.net/browse/FIG-1',
+	id = generateJiraIssueId(),
+	key = generateJiraIssueKey(),
+	self = generateJiraIssueUrl({ key }),
 	fields = {
-		summary: `Issue ${uuidv4()}`,
+		summary: `Issue ${key}`,
 	},
 } = {}): JiraIssue => ({
 	id,

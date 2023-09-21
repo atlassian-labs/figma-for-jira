@@ -25,10 +25,8 @@ export type GetFileParams = {
 export type FileResponse = {
 	readonly name: string;
 	readonly role: string;
-	readonly version: string;
 	readonly lastModified: string;
 	readonly editorType: string;
-	readonly thumbnailUrl: string;
 	readonly document: Node;
 };
 
@@ -37,6 +35,13 @@ export type Node = {
 	readonly name: string;
 	readonly type: string;
 	readonly devStatus?: NodeDevStatus;
+	/**
+	 * Available only for top-level nodes (e.g., page nodes, top-level frames/components/instances, etc.).
+	 *
+	 * Older files that were created before `lastModified` got tracked might not have `lastModified`,
+	 * so do not assume that it exists.
+	 */
+	readonly lastModified?: string;
 	readonly children?: Node[];
 };
 

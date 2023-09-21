@@ -15,7 +15,7 @@ import {
 import type { ConnectInstallation } from '../../../domain/entities';
 import {
 	generateConnectInstallation,
-	MOCK_FIGMA_DESIGN_IDENTIFIER,
+	generateFigmaDesignIdentifier,
 } from '../../../domain/entities/testing';
 import { SchemaValidationError } from '../../ajv';
 
@@ -73,7 +73,7 @@ describe('JiraClient', () => {
 
 	describe('deleteDesign', () => {
 		it('should delete design', async () => {
-			const designId = MOCK_FIGMA_DESIGN_IDENTIFIER;
+			const designId = generateFigmaDesignIdentifier();
 			jest.spyOn(axios, 'delete').mockResolvedValue(undefined);
 
 			const result = await jiraClient.deleteDesign(

@@ -1,9 +1,9 @@
 import { FigmaDesignIdentifier } from './figma-design-identifier';
 import {
-	MOCK_FIGMA_FILE_KEY,
-	MOCK_FIGMA_NODE_ID,
-	MOCK_FILE_FIGMA_DESIGN_IDENTIFIER,
-	MOCK_NODE_FIGMA_DESIGN_IDENTIFIER,
+	generateFigmaDesignIdentifier,
+	generateFigmaDesignUrl,
+	generateFigmaFileKey,
+	generateFigmaNodeId,
 } from './testing';
 
 describe('FigmaDesignIdentifier', () => {
@@ -14,29 +14,27 @@ describe('FigmaDesignIdentifier', () => {
 
 		it('should throw when nodeId is empty string', () => {
 			expect(
-				() => new FigmaDesignIdentifier(MOCK_FIGMA_FILE_KEY, ''),
+				() => new FigmaDesignIdentifier(generateFigmaFileKey(), ''),
 			).toThrow();
 		});
 	});
 
 	describe('fromAtlassianDesignId', () => {
 		it('should return identifier when Atlassian design ID does not contain node part', () => {
-			const result =
-				FigmaDesignIdentifier.fromAtlassianDesignId(MOCK_FIGMA_FILE_KEY);
+			const fileKey = generateFigmaFileKey();
+			const result = FigmaDesignIdentifier.fromAtlassianDesignId(fileKey);
 
-			expect(result).toStrictEqual(
-				new FigmaDesignIdentifier(MOCK_FIGMA_FILE_KEY),
-			);
+			expect(result).toStrictEqual(new FigmaDesignIdentifier(fileKey));
 		});
 
 		it('should return identifier when Atlassian design ID contains node part', () => {
+			const fileKey = generateFigmaFileKey();
+			const nodeId = generateFigmaNodeId();
 			const result = FigmaDesignIdentifier.fromAtlassianDesignId(
-				`${MOCK_FIGMA_FILE_KEY}/${MOCK_FIGMA_NODE_ID}`,
+				`${fileKey}/${nodeId}`,
 			);
 
-			expect(result).toStrictEqual(
-				new FigmaDesignIdentifier(MOCK_FIGMA_FILE_KEY, MOCK_FIGMA_NODE_ID),
-			);
+			expect(result).toStrictEqual(new FigmaDesignIdentifier(fileKey, nodeId));
 		});
 
 		it('should throw when Atlassian design ID has unexpected format', () => {
@@ -46,51 +44,42 @@ describe('FigmaDesignIdentifier', () => {
 
 	describe('fromFigmaDesignUrl', () => {
 		it('should return identifier when URL does not contain node_id', () => {
-			const designUrl = new URL(
-				`https://www.figma.com/file/${MOCK_FIGMA_FILE_KEY}`,
-			).toString();
+			const fileKey = generateFigmaFileKey();
+			const designUrl = generateFigmaDesignUrl({ fileKey });
 
 			const result = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
 
-			expect(result).toStrictEqual(
-				new FigmaDesignIdentifier(MOCK_FIGMA_FILE_KEY),
-			);
+			expect(result).toStrictEqual(new FigmaDesignIdentifier(fileKey));
 		});
 
 		it('should return identifier when URL contains node_id with ":" separator', () => {
-			const designUrl = new URL(
-				`https://www.figma.com/file/${MOCK_FIGMA_FILE_KEY}?node-id=42:1`,
-			).toString();
+			const fileKey = generateFigmaFileKey();
+			const nodeId = '42:1';
+			const designUrl = `https://www.figma.com/file/${fileKey}?node-id=${nodeId}`;
 
 			const result = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
 
-			expect(result).toStrictEqual(
-				new FigmaDesignIdentifier(MOCK_FIGMA_FILE_KEY, '42:1'),
-			);
+			expect(result).toStrictEqual(new FigmaDesignIdentifier(fileKey, nodeId));
 		});
 
 		it('should return identifier when URL contains node_id with encoded ":" separator', () => {
-			const designUrl = new URL(
-				`https://www.figma.com/file/${MOCK_FIGMA_FILE_KEY}?node-id=42%3A1`,
-			).toString();
+			const fileKey = generateFigmaFileKey();
+			const nodeId = '42:1';
+			const designUrl = `https://www.figma.com/file/${fileKey}?node-id=42%3A1`;
 
 			const result = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
 
-			expect(result).toStrictEqual(
-				new FigmaDesignIdentifier(MOCK_FIGMA_FILE_KEY, '42:1'),
-			);
+			expect(result).toStrictEqual(new FigmaDesignIdentifier(fileKey, nodeId));
 		});
 
 		it('should return identifier when URL contains node_id with "-" separator', () => {
-			const designUrl = new URL(
-				`https://www.figma.com/file/${MOCK_FIGMA_FILE_KEY}?node-id=42-1`,
-			).toString();
+			const fileKey = generateFigmaFileKey();
+			const nodeId = '42:1';
+			const designUrl = `https://www.figma.com/file/${fileKey}?node-id=42-1`;
 
 			const result = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
 
-			expect(result).toStrictEqual(
-				new FigmaDesignIdentifier(MOCK_FIGMA_FILE_KEY, '42:1'),
-			);
+			expect(result).toStrictEqual(new FigmaDesignIdentifier(fileKey, nodeId));
 		});
 
 		it.each([
@@ -105,33 +94,39 @@ describe('FigmaDesignIdentifier', () => {
 
 	describe('nodeIdOrDefaultDocumentId', () => {
 		it('should return document ID when nodeId is missing', () => {
-			const result =
-				MOCK_FILE_FIGMA_DESIGN_IDENTIFIER.nodeIdOrDefaultDocumentId;
+			const designId = generateFigmaDesignIdentifier();
+
+			const result = designId.nodeIdOrDefaultDocumentId;
 
 			expect(result).toBe('0:0');
 		});
 
 		it('should return document ID when nodeId is presented', () => {
-			const result =
-				MOCK_NODE_FIGMA_DESIGN_IDENTIFIER.nodeIdOrDefaultDocumentId;
+			const nodeId = generateFigmaNodeId();
+			const designId = generateFigmaDesignIdentifier({ nodeId });
 
-			expect(result).toBe(MOCK_NODE_FIGMA_DESIGN_IDENTIFIER.nodeId);
+			const result = designId.nodeIdOrDefaultDocumentId;
+
+			expect(result).toBe(nodeId);
 		});
 	});
 
 	describe('toAtlassianDesignId', () => {
 		it('should return Atlassian design ID when nodeId is missing', () => {
-			const result = MOCK_FILE_FIGMA_DESIGN_IDENTIFIER.toAtlassianDesignId();
+			const designId = generateFigmaDesignIdentifier();
 
-			expect(result).toBe(MOCK_NODE_FIGMA_DESIGN_IDENTIFIER.fileKey);
+			const result = designId.toAtlassianDesignId();
+
+			expect(result).toBe(designId.fileKey);
 		});
 
 		it('should return Atlassian design ID when nodeId is presented', () => {
-			const result = MOCK_NODE_FIGMA_DESIGN_IDENTIFIER.toAtlassianDesignId();
+			const nodeId = generateFigmaNodeId();
+			const designId = generateFigmaDesignIdentifier({ nodeId });
 
-			expect(result).toBe(
-				`${MOCK_NODE_FIGMA_DESIGN_IDENTIFIER.fileKey}/${MOCK_NODE_FIGMA_DESIGN_IDENTIFIER.nodeId}`,
-			);
+			const result = designId.toAtlassianDesignId();
+
+			expect(result).toBe(`${designId.fileKey}/${designId.nodeId}`);
 		});
 	});
 });

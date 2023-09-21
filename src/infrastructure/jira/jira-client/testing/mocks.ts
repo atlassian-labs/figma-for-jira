@@ -1,7 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { Duration } from '../../../../common/duration';
-import { MOCK_ISSUE_KEY } from '../../../../domain/entities/testing';
+import {
+	generateJiraIssueId,
+	generateJiraIssueKey,
+	generateJiraIssueUrl,
+} from '../../../../domain/entities/testing';
 import type { JwtTokenParams } from '../jwt-utils';
 import type {
 	GetIssuePropertyResponse,
@@ -86,11 +90,11 @@ export const generateSubmitDesignsResponseWithUnknownData = ({
 });
 
 export const generateGetIssueResponse = ({
-	id = uuidv4(),
-	key = MOCK_ISSUE_KEY,
-	self = 'https://myjirainstance.atlassian.net/browse/FIG-1',
+	id = generateJiraIssueId(),
+	key = generateJiraIssueKey(),
+	self = generateJiraIssueUrl({ key }),
 	fields = {
-		summary: `Issue ${uuidv4()}`,
+		summary: `Issue ${key}`,
 	},
 } = {}): GetIssueResponse => ({
 	id,

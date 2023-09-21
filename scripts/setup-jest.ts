@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { cleanAll, emitter, isDone, pendingMocks } from 'nock';
+import { cleanAll, emitter } from 'nock';
 import { prismaClient } from '../src/infrastructure/repositories/prisma-client';
 
 let unmatchedRequests: Request[] = [];

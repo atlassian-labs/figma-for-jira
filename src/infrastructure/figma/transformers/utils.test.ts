@@ -2,12 +2,12 @@ import { buildLiveEmbedUrl } from './utils';
 
 import * as configModule from '../../../config';
 import { mockConfig } from '../../../config/testing';
-import { generateFigmaDesignUrl } from '../../../domain/entities/testing';
 import {
-	MOCK_FILE_KEY,
-	MOCK_FILE_NAME,
-	MOCK_NODE_ID,
-} from '../figma-client/testing';
+	generateFigmaDesignUrl,
+	generateFigmaFileKey,
+	generateFigmaFileName,
+	generateFigmaNodeId,
+} from '../../../domain/entities/testing';
 
 jest.mock('../../../config', () => {
 	return {
@@ -25,21 +25,25 @@ describe('buildLiveEmbedUrl', () => {
 	});
 
 	it('should return a correctly formatted url', () => {
+		const fileKey = generateFigmaFileKey();
+		const fileName = generateFigmaFileName();
+		const nodeId = generateFigmaNodeId();
 		const inspectUrl = generateFigmaDesignUrl({
-			fileKey: MOCK_FILE_KEY,
-			nodeId: MOCK_NODE_ID,
-			fileName: MOCK_FILE_NAME,
+			fileKey,
+			fileName,
+			nodeId,
 			mode: 'dev',
 		});
 		const expected = new URL('https://www.figma.com/embed');
 		expected.searchParams.append('embed_host', 'atlassian');
 		expected.searchParams.append('url', inspectUrl);
-		expect(
-			buildLiveEmbedUrl({
-				fileKey: MOCK_FILE_KEY,
-				fileName: MOCK_FILE_NAME,
-				nodeId: MOCK_NODE_ID,
-			}),
-		).toEqual(expected.toString());
+
+		const result = buildLiveEmbedUrl({
+			fileKey,
+			fileName,
+			nodeId,
+		});
+
+		expect(result).toEqual(expected.toString());
 	});
 });
