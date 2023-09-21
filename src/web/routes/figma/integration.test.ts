@@ -9,7 +9,6 @@ import { getConfig } from '../../../config';
 import type {
 	AssociatedFigmaDesign,
 	ConnectInstallation,
-	FigmaDesignIdentifier,
 } from '../../../domain/entities';
 import { FigmaTeamAuthStatus } from '../../../domain/entities';
 import {
@@ -50,31 +49,19 @@ const FIGMA_API_ME_ENDPOINT = '/v1/me';
 
 const FIGMA_WEBHOOK_EVENT_ENDPOINT = '/figma/webhook';
 
-const generateSubmitDesignsRequest = ({
-	designIdAndFileResponseEntries,
-}: {
-	designIdAndFileResponseEntries: {
-		designId: FigmaDesignIdentifier;
-		fileResponse: FileResponse;
-	}[];
-}): SubmitDesignsRequest => {
-	const designs = designIdAndFileResponseEntries.map(
-		({ designId, fileResponse }) =>
-			transformNodeToAtlassianDesign({
-				fileKey: designId.fileKey,
-				nodeId: designId.nodeId!,
-				fileResponse,
-			}),
-	);
+function generateDesignAndFileResponseAndAtlassianDesign(
+	associatedFigmaDesign: AssociatedFigmaDesign,
+) {
+	const { designId } = associatedFigmaDesign;
+	const fileResponse = generateGetFileResponseWithNodeId(designId.nodeId!);
+	const atlassianDesign = transformNodeToAtlassianDesign({
+		fileKey: designId.fileKey,
+		nodeId: designId.nodeId!,
+		fileResponse,
+	});
 
-	return {
-		designs: designs.map((design) => ({
-			...design,
-			addAssociations: null,
-			removeAssociations: null,
-		})),
-	};
-};
+	return { designId, fileResponse, atlassianDesign };
+}
 
 const mockMeEndpoint = ({ success = true }: { success?: boolean } = {}) => {
 	nock(FIGMA_API_BASE_URL)
@@ -187,32 +174,27 @@ describe('/figma', () => {
 			});
 
 			it('should fetch and submit the associated designs to Jira', async () => {
-				mockMeEndpoint();
-				const designIdAndFileResponseEntries = associatedFigmaDesigns.map(
-					(associatedFigmaDesign) => {
-						const { designId } = associatedFigmaDesign;
-						const fileResponse = generateGetFileResponseWithNodeId(
-							associatedFigmaDesign.designId.nodeId!,
-						);
-
-						return { designId, fileResponse };
-					},
+				const entries = associatedFigmaDesigns.map(
+					generateDesignAndFileResponseAndAtlassianDesign,
 				);
-				for (const designIdAndFileResponse of designIdAndFileResponseEntries) {
+				mockMeEndpoint();
+				for (const { designId, fileResponse } of entries) {
 					mockGetFileWithNodesEndpoint({
-						fileKey: designIdAndFileResponse.designId.fileKey,
-						nodeId: designIdAndFileResponse.designId.nodeId!,
-						response: designIdAndFileResponse.fileResponse,
+						fileKey: designId.fileKey,
+						nodeId: designId.nodeId!,
+						response: fileResponse,
 					});
 				}
 				mockSubmitDesignsEndpoint({
-					request: generateSubmitDesignsRequest({
-						designIdAndFileResponseEntries,
-					}),
+					request: {
+						designs: entries.map(({ atlassianDesign }) => ({
+							...atlassianDesign,
+							addAssociations: null,
+							removeAssociations: null,
+						})),
+					},
 					response: generateSuccessfulSubmitDesignsResponse(
-						designIdAndFileResponseEntries.map(({ designId }) =>
-							designId.toAtlassianDesignId(),
-						),
+						entries.map(({ atlassianDesign }) => atlassianDesign.id),
 					),
 					connectInstallation,
 				});
