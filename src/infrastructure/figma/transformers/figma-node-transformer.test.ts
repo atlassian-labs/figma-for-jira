@@ -94,7 +94,7 @@ describe('transformNodeToAtlassianDesign', () => {
 	});
 });
 
-describe('transformNodeToAtlassianDesign', () => {
+describe('getNodeAndNodeLastModified', () => {
 	it('should return node and file lastModified if nodes do not contain lastModified', () => {
 		const targetNode = generateChildNode({ id: '100:1' });
 		const targetLastModified = new Date();
