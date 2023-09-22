@@ -2,7 +2,6 @@ import type { AssociatedFigmaDesign as PrismaAssociatedFigmaDesign } from '@pris
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 import { PrismaErrorCode } from './constants';
-import { RepositoryRecordNotFoundError } from './errors';
 import { prismaClient } from './prisma-client';
 
 import type {
@@ -22,53 +21,95 @@ export class AssociatedFigmaDesignRepository {
 	): Promise<AssociatedFigmaDesign> => {
 		const dbModel = this.mapToDbModel(associatedFigmaDesign);
 
-		const result = await prismaClient.get().associatedFigmaDesign.upsert({
+		const record = await prismaClient.get().associatedFigmaDesign.upsert({
 			create: dbModel,
 			update: dbModel,
 			where: {
-				fileKey_nodeId_connectInstallationId: {
+				fileKey_nodeId_associatedWithAri_connectInstallationId: {
 					fileKey: dbModel.fileKey,
 					nodeId: dbModel.nodeId,
+					associatedWithAri: dbModel.associatedWithAri,
 					connectInstallationId: dbModel.connectInstallationId,
 				},
 			},
 		});
-		return this.mapToDomainModel(result);
+		return this.mapToDomainModel(record);
+	};
+
+	/**
+	 * @remarks
+	 * Required for tests only.
+	 */
+	find = async (id: number): Promise<AssociatedFigmaDesign | null> => {
+		const record = await prismaClient.get().associatedFigmaDesign.findFirst({
+			where: {
+				id,
+			},
+		});
+
+		if (record === null) return null;
+
+		return this.mapToDomainModel(record);
 	};
 
 	findManyByFileKeyAndConnectInstallationId = async (
 		fileKey: string,
 		connectInstallationId: number,
 	): Promise<AssociatedFigmaDesign[]> => {
-		const result = await prismaClient.get().associatedFigmaDesign.findMany({
+		const records = await prismaClient.get().associatedFigmaDesign.findMany({
 			where: { fileKey, connectInstallationId },
 		});
 
-		return result.map(this.mapToDomainModel);
+		return records.map(this.mapToDomainModel);
 	};
 
-	deleteByDesignIdAndConnectInstallationId = async (
+	/**
+	 * @remarks
+	 * Required for integration tests only.
+	 */
+	findByDesignIdAndAssociatedWithAriAndConnectInstallationId = async (
 		designId: FigmaDesignIdentifier,
+		associatedWithAri: string,
 		connectInstallationId: number,
-	): Promise<AssociatedFigmaDesign> => {
+	): Promise<AssociatedFigmaDesign | null> => {
+		const record = await prismaClient.get().associatedFigmaDesign.findFirst({
+			where: {
+				fileKey: designId.fileKey,
+				nodeId: designId.nodeId ?? '',
+				associatedWithAri: associatedWithAri,
+				connectInstallationId,
+			},
+		});
+
+		if (record === null) return null;
+
+		return this.mapToDomainModel(record);
+	};
+
+	deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId = async (
+		designId: FigmaDesignIdentifier,
+		associatedWithAri: string,
+		connectInstallationId: number,
+	): Promise<AssociatedFigmaDesign | null> => {
 		try {
-			const result = await prismaClient.get().associatedFigmaDesign.delete({
+			const record = await prismaClient.get().associatedFigmaDesign.delete({
 				where: {
-					fileKey_nodeId_connectInstallationId: {
+					fileKey_nodeId_associatedWithAri_connectInstallationId: {
 						fileKey: designId.fileKey,
 						nodeId: designId.nodeId ?? '',
+						associatedWithAri: associatedWithAri,
 						connectInstallationId,
 					},
 				},
 			});
 
-			return this.mapToDomainModel(result);
+			return this.mapToDomainModel(record);
 		} catch (e: unknown) {
 			if (
 				e instanceof PrismaClientKnownRequestError &&
 				e.code === PrismaErrorCode.RecordNotFound
 			) {
-				throw new RepositoryRecordNotFoundError(e.message);
+				return null;
 			}
 			throw e;
 		}
@@ -78,6 +119,7 @@ export class AssociatedFigmaDesignRepository {
 		id,
 		fileKey,
 		nodeId,
+		associatedWithAri,
 		connectInstallationId,
 	}: PrismaAssociatedFigmaDesign): AssociatedFigmaDesign => ({
 		id,
@@ -85,15 +127,18 @@ export class AssociatedFigmaDesignRepository {
 			fileKey,
 			nodeId !== '' ? nodeId : undefined,
 		),
+		associatedWithAri,
 		connectInstallationId,
 	});
 
 	private mapToDbModel = ({
 		designId,
+		associatedWithAri,
 		connectInstallationId,
 	}: AssociatedFigmaDesignCreateParams): PrismaAssociatedFigmaDesignCreateParams => ({
 		fileKey: designId.fileKey,
 		nodeId: designId.nodeId ?? '',
+		associatedWithAri,
 		connectInstallationId,
 	});
 }

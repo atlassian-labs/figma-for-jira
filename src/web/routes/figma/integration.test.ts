@@ -1,4 +1,3 @@
-import type { FigmaTeam } from '@prisma/client';
 import { HttpStatusCode } from 'axios';
 import nock from 'nock';
 import request from 'supertest';
@@ -12,6 +11,7 @@ import { getConfig } from '../../../config';
 import type {
 	AssociatedFigmaDesign,
 	ConnectInstallation,
+	FigmaTeam,
 } from '../../../domain/entities';
 import { FigmaTeamAuthStatus } from '../../../domain/entities';
 import {

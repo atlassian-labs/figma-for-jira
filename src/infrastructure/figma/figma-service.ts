@@ -2,10 +2,7 @@ import { AxiosError, HttpStatusCode } from 'axios';
 
 import { FigmaServiceCredentialsError } from './errors';
 import { figmaAuthService } from './figma-auth-service';
-import type {
-	CreateDevResourcesRequest,
-	CreateDevResourcesResponse,
-} from './figma-client';
+import type { CreateDevResourcesRequest } from './figma-client';
 import { figmaClient } from './figma-client';
 import {
 	transformFileToAtlassianDesign,
@@ -96,7 +93,7 @@ export class FigmaService {
 		issueKey: string;
 		issueTitle: string;
 		atlassianUserId: string;
-	}): Promise<CreateDevResourcesResponse> => {
+	}): Promise<void> => {
 		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
 
 		const { accessToken } = credentials;
@@ -119,8 +116,6 @@ export class FigmaService {
 				'Created dev resources with errors',
 			);
 		}
-
-		return response;
 	};
 
 	deleteDevResourceIfExists = async ({
@@ -153,7 +148,7 @@ export class FigmaService {
 			return;
 		}
 
-		return await figmaClient.deleteDevResource({
+		await figmaClient.deleteDevResource({
 			fileKey: designId.fileKey,
 			devResourceId: devResourceToDelete.id,
 			accessToken,

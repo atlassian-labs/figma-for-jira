@@ -18,6 +18,7 @@ CREATE TABLE "associated_figma_design" (
     "id" SERIAL NOT NULL,
     "file_key" TEXT NOT NULL,
     "node_id" TEXT NOT NULL,
+    "associated-with-ari" TEXT NOT NULL,
     "connect_installation_id" INTEGER NOT NULL,
 
     CONSTRAINT "associated_figma_design_pkey" PRIMARY KEY ("id")
@@ -51,7 +52,7 @@ CREATE TABLE "figma_team" (
 CREATE UNIQUE INDEX "connect_installation_client_key_key" ON "connect_installation"("client_key");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "associated_figma_design_file_key_node_id_connect_installati_key" ON "associated_figma_design"("file_key", "node_id", "connect_installation_id");
+CREATE UNIQUE INDEX "associated_figma_design_file_key_node_id_associated-with-ar_key" ON "associated_figma_design"("file_key", "node_id", "associated-with-ari", "connect_installation_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "figma_oauth2_user_credentials_atlassian_user_id_key" ON "figma_oauth2_user_credentials"("atlassian_user_id");
