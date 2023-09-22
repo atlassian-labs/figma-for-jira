@@ -865,6 +865,7 @@ describe('/entities', () => {
 			it('should disassociate Figma file and respond with created design entity', async () => {
 				const fileName = generateFigmaFileName();
 				const fileKey = generateFigmaFileKey();
+				const designId = new FigmaDesignIdentifier(fileKey);
 				const issueId = generateJiraIssueId();
 				const issueAri = generateJiraIssueAri({ issueId });
 				const issue = generateJiraIssue({ id: issueId });
@@ -880,6 +881,11 @@ describe('/entities', () => {
 					validCredentialsParams.atlassianUserId,
 				);
 
+				await associatedFigmaDesignRepository.upsert({
+					designId,
+					associatedWithAri: issueAri,
+					connectInstallationId: MOCK_CONNECT_INSTALLATION.id,
+				});
 				mockMeEndpoint({ success: true, times: 2 });
 				mockGetFileEndpoint({
 					fileKey,
@@ -971,7 +977,7 @@ describe('/entities', () => {
 					.expect(expectedResponse);
 				expect(
 					await associatedFigmaDesignRepository.findByDesignIdAndAssociatedWithAriAndConnectInstallationId(
-						new FigmaDesignIdentifier(fileKey),
+						designId,
 						issueAri,
 						MOCK_CONNECT_INSTALLATION.id,
 					),
@@ -983,6 +989,7 @@ describe('/entities', () => {
 				const fileKey = generateFigmaFileKey();
 				const nodeId = generateFigmaNodeId();
 				const node = generateChildNode({ id: nodeId });
+				const designId = new FigmaDesignIdentifier(fileKey, nodeId);
 				const issueId = generateJiraIssueId();
 				const issueAri = generateJiraIssueAri({ issueId });
 				const issue = generateJiraIssue({ id: issueId });
@@ -1000,6 +1007,11 @@ describe('/entities', () => {
 					validCredentialsParams.atlassianUserId,
 				);
 
+				await associatedFigmaDesignRepository.upsert({
+					designId,
+					associatedWithAri: issueAri,
+					connectInstallationId: MOCK_CONNECT_INSTALLATION.id,
+				});
 				mockMeEndpoint({ success: true, times: 2 });
 				mockGetFileEndpoint({
 					fileKey,
@@ -1092,7 +1104,7 @@ describe('/entities', () => {
 					.expect(expectedResponse);
 				expect(
 					await associatedFigmaDesignRepository.findByDesignIdAndAssociatedWithAriAndConnectInstallationId(
-						new FigmaDesignIdentifier(fileKey, nodeId),
+						designId,
 						issueAri,
 						MOCK_CONNECT_INSTALLATION.id,
 					),
