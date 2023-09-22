@@ -87,22 +87,22 @@ export type DeleteDevResourceRequest = {
 };
 
 export type CreateWebhookRequest = {
-	event_type: string;
-	team_id: string;
-	endpoint: string;
-	passcode: string;
-	status?: string;
-	description?: string;
+	readonly event_type: string;
+	readonly team_id: string;
+	readonly endpoint: string;
+	readonly passcode: string;
+	readonly status?: string;
+	readonly description?: string;
 };
 
 export type CreateWebhookResponse = {
-	id: string;
-	team_id: string;
-	event_type: string;
-	client_id: string;
-	endpoint: string;
-	passcode: string;
-	status: string;
-	description: string | null;
-	protocol_version: string;
+	readonly id: string;
+	readonly team_id: string;
+	readonly event_type: string;
+	readonly client_id: string;
+	readonly endpoint: string;
+	readonly passcode: string;
+	readonly status: string;
+	readonly description: string | null;
+	readonly protocol_version: string;
 };
