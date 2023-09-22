@@ -13,6 +13,13 @@ beforeAll(() => {
 	});
 });
 
+beforeEach(async () => {
+	await prismaClient.get().associatedFigmaDesign.deleteMany({});
+	await prismaClient.get().figmaTeam.deleteMany({});
+	await prismaClient.get().figmaOAuth2UserCredentials.deleteMany({});
+	await prismaClient.get().connectInstallation.deleteMany({});
+});
+
 /**
  *  After each test, check for requests that went through
  *  without being mocked by nock.
@@ -28,13 +35,6 @@ afterEach(() => {
 		unmatchedRequests = [];
 		throw new Error(`${numberOfUnmatchedRequests} Unmatched Requests`);
 	}
-});
-
-beforeEach(async () => {
-	await prismaClient.get().associatedFigmaDesign.deleteMany({});
-	await prismaClient.get().figmaTeam.deleteMany({});
-	await prismaClient.get().figmaOAuth2UserCredentials.deleteMany({});
-	await prismaClient.get().connectInstallation.deleteMany({});
 });
 
 /**
