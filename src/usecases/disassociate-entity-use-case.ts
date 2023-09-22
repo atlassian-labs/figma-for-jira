@@ -65,8 +65,9 @@ export const disassociateEntityUseCase = {
 			}),
 		]);
 
-		await associatedFigmaDesignRepository.deleteByDesignIdAndConnectInstallationId(
+		await associatedFigmaDesignRepository.deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId(
 			figmaDesignId,
+			disassociateFrom.ari,
 			connectInstallation.id,
 		);
 

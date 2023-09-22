@@ -15,7 +15,10 @@ import type {
 	ConnectInstallation,
 	FigmaUserCredentialsCreateParams,
 } from '../../../domain/entities';
-import { JIRA_ISSUE_ATI } from '../../../domain/entities';
+import {
+	FigmaDesignIdentifier,
+	JIRA_ISSUE_ATI,
+} from '../../../domain/entities';
 import {
 	generateConnectInstallation,
 	generateFigmaDesignUrl,
@@ -49,6 +52,7 @@ import {
 	generateSuccessfulSubmitDesignsResponse,
 } from '../../../infrastructure/jira/jira-client/testing';
 import {
+	associatedFigmaDesignRepository,
 	connectInstallationRepository,
 	figmaOAuth2UserCredentialsRepository,
 } from '../../../infrastructure/repositories';
@@ -222,9 +226,11 @@ const mockDeleteDevResourcesEndpoint = ({
 
 const generateAssociateEntityRequest = ({
 	issueId = generateJiraIssueId(),
+	issueAri = generateJiraIssueId(),
 	figmaDesignUrl = generateFigmaDesignUrl(),
 }: {
 	issueId?: string;
+	issueAri?: string;
 	figmaDesignUrl?: string;
 } = {}): AssociateEntityRequestParams => ({
 	entity: {
@@ -232,7 +238,7 @@ const generateAssociateEntityRequest = ({
 	},
 	associateWith: {
 		ati: JIRA_ISSUE_ATI,
-		ari: generateJiraIssueAri(issueId),
+		ari: issueAri,
 		cloudId: uuidv4(),
 		id: issueId,
 	},
@@ -240,9 +246,11 @@ const generateAssociateEntityRequest = ({
 
 const generateDisassociateEntityRequest = ({
 	issueId = generateJiraIssueId(),
+	issueAri = generateJiraIssueId(),
 	entityId = generateFigmaFileKey(),
 }: {
 	issueId?: string;
+	issueAri?: string;
 	entityId?: string;
 } = {}): DisassociateEntityRequestParams => ({
 	entity: {
@@ -251,7 +259,7 @@ const generateDisassociateEntityRequest = ({
 	},
 	disassociateFrom: {
 		ati: JIRA_ISSUE_ATI,
-		ari: generateJiraIssueAri(issueId),
+		ari: issueAri,
 		cloudId: uuidv4(),
 		id: issueId,
 	},
@@ -318,6 +326,7 @@ describe('/entities', () => {
 				const fileName = generateFigmaFileName();
 				const fileKey = generateFigmaFileKey();
 				const issueId = generateJiraIssueId();
+				const issueAri = generateJiraIssueAri({ issueId });
 				const inputFigmaDesignUrl = generateFigmaDesignUrl({
 					fileKey,
 					fileName,
@@ -389,11 +398,12 @@ describe('/entities', () => {
 					}),
 				};
 
-				return request(app)
+				await request(app)
 					.post('/entities/associateEntity')
 					.send(
 						generateAssociateEntityRequest({
 							issueId,
+							issueAri,
 							figmaDesignUrl: inputFigmaDesignUrl,
 						}),
 					)
@@ -402,6 +412,13 @@ describe('/entities', () => {
 					.set('User-Id', validCredentialsParams.atlassianUserId)
 					.expect(HttpStatusCode.Ok)
 					.expect(expectedResponse);
+				expect(
+					await associatedFigmaDesignRepository.findByDesignIdAndAssociatedWithAriAndConnectInstallationId(
+						new FigmaDesignIdentifier(fileKey),
+						issueAri,
+						MOCK_CONNECT_INSTALLATION.id,
+					),
+				).toBeTruthy();
 			});
 
 			it('should associate Figma node and respond with created design entity', async () => {
@@ -410,6 +427,7 @@ describe('/entities', () => {
 				const nodeId = generateFigmaNodeId();
 				const node = generateChildNode({ id: nodeId });
 				const issueId = generateJiraIssueId();
+				const issueAri = generateJiraIssueAri({ issueId });
 				const inputFigmaDesignUrl = generateFigmaDesignUrl({
 					fileKey,
 					fileName,
@@ -488,11 +506,12 @@ describe('/entities', () => {
 					}),
 				};
 
-				return request(app)
+				await request(app)
 					.post('/entities/associateEntity')
 					.send(
 						generateAssociateEntityRequest({
 							issueId,
+							issueAri,
 							figmaDesignUrl: inputFigmaDesignUrl,
 						}),
 					)
@@ -501,6 +520,13 @@ describe('/entities', () => {
 					.set('User-Id', validCredentialsParams.atlassianUserId)
 					.expect(HttpStatusCode.Ok)
 					.expect(expectedResponse);
+				expect(
+					await associatedFigmaDesignRepository.findByDesignIdAndAssociatedWithAriAndConnectInstallationId(
+						new FigmaDesignIdentifier(fileKey, nodeId),
+						issueAri,
+						MOCK_CONNECT_INSTALLATION.id,
+					),
+				).toBeTruthy();
 			});
 		});
 
@@ -840,6 +866,7 @@ describe('/entities', () => {
 				const fileName = generateFigmaFileName();
 				const fileKey = generateFigmaFileKey();
 				const issueId = generateJiraIssueId();
+				const issueAri = generateJiraIssueAri({ issueId });
 				const issue = generateJiraIssue({ id: issueId });
 				const devResourceId = uuidv4();
 				const figmaDesignUrl = generateFigmaDesignUrl({
@@ -928,11 +955,12 @@ describe('/entities', () => {
 					}),
 				};
 
-				return request(app)
+				await request(app)
 					.post('/entities/disassociateEntity')
 					.send(
 						generateDisassociateEntityRequest({
 							issueId,
+							issueAri,
 							entityId: fileKey,
 						}),
 					)
@@ -941,6 +969,13 @@ describe('/entities', () => {
 					.set('User-Id', validCredentialsParams.atlassianUserId)
 					.expect(HttpStatusCode.Ok)
 					.expect(expectedResponse);
+				expect(
+					await associatedFigmaDesignRepository.findByDesignIdAndAssociatedWithAriAndConnectInstallationId(
+						new FigmaDesignIdentifier(fileKey),
+						issueAri,
+						MOCK_CONNECT_INSTALLATION.id,
+					),
+				).toBeNull();
 			});
 
 			it('should disassociate Figma node and respond with created design entity', async () => {
@@ -949,6 +984,7 @@ describe('/entities', () => {
 				const nodeId = generateFigmaNodeId();
 				const node = generateChildNode({ id: nodeId });
 				const issueId = generateJiraIssueId();
+				const issueAri = generateJiraIssueAri({ issueId });
 				const issue = generateJiraIssue({ id: issueId });
 				const devResourceId = uuidv4();
 				const figmaDesignUrl = generateFigmaDesignUrl({
@@ -1040,11 +1076,12 @@ describe('/entities', () => {
 					}),
 				};
 
-				return request(app)
+				await request(app)
 					.post('/entities/disassociateEntity')
 					.send(
 						generateDisassociateEntityRequest({
 							issueId,
+							issueAri,
 							entityId: `${fileKey}/${nodeId}`,
 						}),
 					)
@@ -1053,6 +1090,13 @@ describe('/entities', () => {
 					.set('User-Id', validCredentialsParams.atlassianUserId)
 					.expect(HttpStatusCode.Ok)
 					.expect(expectedResponse);
+				expect(
+					await associatedFigmaDesignRepository.findByDesignIdAndAssociatedWithAriAndConnectInstallationId(
+						new FigmaDesignIdentifier(fileKey, nodeId),
+						issueAri,
+						MOCK_CONNECT_INSTALLATION.id,
+					),
+				).toBeNull();
 			});
 		});
 

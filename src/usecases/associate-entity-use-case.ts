@@ -61,6 +61,7 @@ export const associateEntityUseCase = {
 
 		await associatedFigmaDesignRepository.upsert({
 			designId: figmaDesignId,
+			associatedWithAri: associateWith.ari,
 			connectInstallationId: connectInstallation.id,
 		});
 
