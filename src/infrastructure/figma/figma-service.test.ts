@@ -10,6 +10,8 @@ import {
 import type {
 	CreateDevResourcesRequest,
 	CreateDevResourcesResponse,
+	CreateWebhookRequest,
+	CreateWebhookResponse,
 	MeResponse,
 } from './figma-client';
 import { figmaClient } from './figma-client';
@@ -332,6 +334,92 @@ describe('FigmaService', () => {
 					issueTitle,
 					atlassianUserId: ATLASSIAN_USER_ID,
 				}),
+			).rejects.toStrictEqual(credentialsError);
+		});
+	});
+
+	describe('createFileUpdateWebhook', () => {
+		const MOCK_CREDENTIALS = generateFigmaOAuth2UserCredentials();
+
+		beforeEach(() => {
+			jest
+				.spyOn(figmaService, 'getValidCredentialsOrThrow')
+				.mockResolvedValue(MOCK_CREDENTIALS);
+		});
+
+		it('should call figmaClient to create a webhook', async () => {
+			const webhookId = uuidv4();
+			const teamId = uuidv4();
+			const endpoint = `${mockConfig.app.baseUrl}/figma/webhook`;
+			const passcode = 'passcode';
+			const description = 'Figma for Jira Cloud';
+			const connectInstallationSecret = uuidv4();
+
+			jest
+				.spyOn(figmaService, 'generateWebhookPasscode')
+				.mockReturnValue(passcode);
+			jest.spyOn(figmaClient, 'createWebhook').mockResolvedValue({
+				id: webhookId,
+				team_id: teamId,
+				event_type: 'FILE_UPDATE',
+				client_id: mockConfig.figma.clientId,
+				endpoint,
+				passcode,
+				status: 'ACTIVE',
+				description,
+				protocol_version: '2',
+			} as CreateWebhookResponse);
+
+			await figmaService.createFileUpdateWebhook(
+				teamId,
+				MOCK_CREDENTIALS.atlassianUserId,
+				connectInstallationSecret,
+			);
+
+			const expectedCreateWebhookRequest: CreateWebhookRequest = {
+				event_type: 'FILE_UPDATE',
+				team_id: teamId,
+				endpoint,
+				passcode,
+				description,
+			};
+			expect(figmaClient.createWebhook).toHaveBeenCalledWith(
+				expectedCreateWebhookRequest,
+				MOCK_CREDENTIALS.accessToken,
+			);
+		});
+
+		it('should throw when webhook creation fails', async () => {
+			const teamId = uuidv4();
+			const connectInstallationSecret = uuidv4();
+			const expectedError = new Error('Webhook create failed');
+			jest.spyOn(figmaClient, 'createWebhook').mockRejectedValue(expectedError);
+
+			await expect(() =>
+				figmaService.createFileUpdateWebhook(
+					teamId,
+					MOCK_CREDENTIALS.atlassianUserId,
+					connectInstallationSecret,
+				),
+			).rejects.toThrow(expectedError);
+		});
+
+		it('should throw if the atlassian user is not authorized', async () => {
+			const teamId = uuidv4();
+			const connectInstallationSecret = uuidv4();
+			const credentialsError = new FigmaServiceCredentialsError(
+				ATLASSIAN_USER_ID,
+			);
+			jest
+				.spyOn(figmaService, 'getValidCredentialsOrThrow')
+				.mockRejectedValue(credentialsError);
+
+			await expect(() =>
+				figmaService.createFileUpdateWebhook(
+					teamId,
+					MOCK_CREDENTIALS.atlassianUserId,
+					connectInstallationSecret,
+				),
 			).rejects.toStrictEqual(credentialsError);
 		});
 	});

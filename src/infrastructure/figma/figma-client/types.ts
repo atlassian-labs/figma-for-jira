@@ -85,3 +85,24 @@ export type DeleteDevResourceRequest = {
 	readonly devResourceId: string;
 	readonly accessToken: string;
 };
+
+export type CreateWebhookRequest = {
+	event_type: string;
+	team_id: string;
+	endpoint: string;
+	passcode: string;
+	status?: string;
+	description?: string;
+};
+
+export type CreateWebhookResponse = {
+	id: string;
+	team_id: string;
+	event_type: string;
+	client_id: string;
+	endpoint: string;
+	passcode: string;
+	status: string;
+	description: string | null;
+	protocol_version: string;
+};

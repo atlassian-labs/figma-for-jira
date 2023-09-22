@@ -35,6 +35,11 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				connectInstallationId: connectInstallation.id,
 			}),
 		);
+		const passcode = uuidv4();
+
+		beforeEach(() => {
+			jest.spyOn(figmaService, 'validateWebhookPasscode').mockReturnValue(true);
+		});
 
 		it('should rethrow error if getting FigmaTeam fails', async () => {
 			const error = new Error('db error');
@@ -43,7 +48,11 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				.mockRejectedValue(error);
 
 			await expect(
-				handleFigmaFileUpdateEventUseCase.execute(figmaTeam.webhookId, fileKey),
+				handleFigmaFileUpdateEventUseCase.execute(
+					figmaTeam.webhookId,
+					fileKey,
+					passcode,
+				),
 			).rejects.toStrictEqual(error);
 		});
 
@@ -64,7 +73,11 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				.mockResolvedValue(associatedFigmaDesigns);
 
 			await expect(
-				handleFigmaFileUpdateEventUseCase.execute(figmaTeam.webhookId, fileKey),
+				handleFigmaFileUpdateEventUseCase.execute(
+					figmaTeam.webhookId,
+					fileKey,
+					passcode,
+				),
 			).rejects.toStrictEqual(error);
 		});
 
@@ -87,7 +100,11 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				.mockRejectedValue(error);
 
 			await expect(
-				handleFigmaFileUpdateEventUseCase.execute(figmaTeam.webhookId, fileKey),
+				handleFigmaFileUpdateEventUseCase.execute(
+					figmaTeam.webhookId,
+					fileKey,
+					passcode,
+				),
 			).rejects.toStrictEqual(error);
 		});
 
@@ -111,7 +128,11 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 			jest.spyOn(figmaService, 'fetchDesignById').mockRejectedValue(error);
 
 			await expect(
-				handleFigmaFileUpdateEventUseCase.execute(figmaTeam.webhookId, fileKey),
+				handleFigmaFileUpdateEventUseCase.execute(
+					figmaTeam.webhookId,
+					fileKey,
+					passcode,
+				),
 			).rejects.toStrictEqual(error);
 		});
 
@@ -142,7 +163,11 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 			jest.spyOn(jiraService, 'submitDesigns').mockRejectedValue(error);
 
 			await expect(
-				handleFigmaFileUpdateEventUseCase.execute(figmaTeam.webhookId, fileKey),
+				handleFigmaFileUpdateEventUseCase.execute(
+					figmaTeam.webhookId,
+					fileKey,
+					passcode,
+				),
 			).rejects.toStrictEqual(error);
 		});
 	});

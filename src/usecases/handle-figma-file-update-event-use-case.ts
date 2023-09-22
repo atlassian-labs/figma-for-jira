@@ -8,8 +8,29 @@ import {
 } from '../infrastructure/repositories';
 
 export const handleFigmaFileUpdateEventUseCase = {
-	execute: async (webhookId: string, fileKey: string): Promise<void> => {
+	execute: async (
+		webhookId: string,
+		fileKey: string,
+		passcode: string,
+	): Promise<void> => {
 		const figmaTeam = await figmaTeamRepository.getByWebhookId(webhookId);
+		const [connectInstallation, associatedFigmaDesigns] = await Promise.all([
+			connectInstallationRepository.get(figmaTeam.connectInstallationId),
+			associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
+				fileKey,
+				figmaTeam.connectInstallationId,
+			),
+		]);
+
+		if (
+			!figmaService.validateWebhookPasscode(passcode, {
+				atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,
+				figmaTeamId: figmaTeam.teamId,
+				connectInstallationSecret: connectInstallation.sharedSecret,
+			})
+		) {
+			return;
+		}
 
 		// Ensure team admin OAuth2 credentials are still valid
 		try {
@@ -22,14 +43,6 @@ export const handleFigmaFileUpdateEventUseCase = {
 				FigmaTeamAuthStatus.ERROR,
 			);
 		}
-
-		const [connectInstallation, associatedFigmaDesigns] = await Promise.all([
-			connectInstallationRepository.get(figmaTeam.connectInstallationId),
-			associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
-				fileKey,
-				figmaTeam.connectInstallationId,
-			),
-		]);
 
 		const designs = await Promise.all(
 			associatedFigmaDesigns.map((design) =>

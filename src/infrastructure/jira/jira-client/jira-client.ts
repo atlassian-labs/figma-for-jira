@@ -215,7 +215,7 @@ class JiraClient {
 		url: URL,
 		method: Method,
 		{
-			key: connectClientKey,
+			key: connectAppKey,
 			sharedSecret: connectSharedSecret,
 		}: ConnectInstallation,
 	) {
@@ -225,7 +225,7 @@ class JiraClient {
 				pathname: url.pathname,
 			},
 			expiresIn: TOKEN_EXPIRES_IN,
-			connectClientKey,
+			connectAppKey,
 			connectSharedSecret,
 		});
 		return `JWT ${jwtToken}`;
