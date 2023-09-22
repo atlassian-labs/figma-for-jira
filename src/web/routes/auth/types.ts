@@ -1,6 +1,9 @@
 import type { Request, Response } from 'express';
 
-export type AuthCallbackQueryParameters = { code: string; state: string };
+export type AuthCallbackQueryParameters = {
+	readonly code: string;
+	readonly state: string;
+};
 
 export type AuthCallbackRequest = Request<
 	Record<string, never>,
@@ -10,7 +13,7 @@ export type AuthCallbackRequest = Request<
 	Record<string, never>
 >;
 
-export type CheckAuthQueryParameters = { userId: string };
+export type CheckAuthQueryParameters = { readonly userId: string };
 
 export type CheckAuthResponseBody = {
 	readonly type: '3LO';
@@ -24,7 +27,7 @@ export type CheckAuthRequest = Request<
 	Record<string, never>,
 	CheckAuthResponseBody,
 	never,
-	{ userId: string },
+	CheckAuthQueryParameters,
 	Record<string, never>
 >;
 

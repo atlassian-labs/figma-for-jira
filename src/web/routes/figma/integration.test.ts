@@ -23,6 +23,7 @@ import {
 	generateFigmaTeamCreateParams,
 	generateFigmaUserCredentialsCreateParams,
 } from '../../../domain/entities/testing';
+import { figmaService } from '../../../infrastructure/figma';
 import type { FileResponse } from '../../../infrastructure/figma/figma-client';
 import {
 	generateChildNode,
@@ -158,6 +159,11 @@ describe('/figma', () => {
 				webhookEventPayload = generateFigmaWebhookEventPayload({
 					webhook_id: figmaTeam.webhookId,
 					file_key: fileKey,
+					passcode: figmaService.generateWebhookPasscode({
+						atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,
+						figmaTeamId: figmaTeam.teamId,
+						connectInstallationSecret: connectInstallation.sharedSecret,
+					}),
 				});
 			});
 
@@ -217,6 +223,19 @@ describe('/figma', () => {
 				expect(updatedFigmaTeam.authStatus).toStrictEqual(
 					FigmaTeamAuthStatus.ERROR,
 				);
+			});
+
+			it('should return a 200 if the passcode is invalid', async () => {
+				const invalidPasscodePayload = generateFigmaWebhookEventPayload({
+					webhook_id: figmaTeam.webhookId,
+					file_key: associatedFigmaDesigns[0].designId.fileKey,
+					passcode: 'invalid',
+				});
+
+				await request(app)
+					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.send(invalidPasscodePayload)
+					.expect(HttpStatusCode.Ok);
 			});
 
 			it('should return a 500 if fetching designs from Figma fails', async () => {

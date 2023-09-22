@@ -52,16 +52,25 @@ import {
 	connectInstallationRepository,
 	figmaOAuth2UserCredentialsRepository,
 } from '../../../infrastructure/repositories';
+import { generateInboundRequestJwtToken } from '../../testing';
 
 const MOCK_CONNECT_INSTALLATION = generateConnectInstallation({
 	key: 'com.figma.jira-addon-dev',
 	clientKey: '4561b8be-e38b-43d4-84d9-f09e8195d117',
 	sharedSecret: '903b6b9e-b82b-48ea-a9b2-40b9e700df32',
 });
-const ASSOCIATE_JWT_TOKEN =
-	'JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2OTM5NTcyMDUsImV4cCI6NjAwMDAwMDE2OTM5NTcxNDQsImlzcyI6IjQ1NjFiOGJlLWUzOGItNDNkNC04NGQ5LWYwOWU4MTk1ZDExNyIsInFzaCI6IjQ2ZDE3MDU4OWU0MjM2Y2U0YTQ5MTFlMGQ1YWE4YjdkOWYzZjNlODZlN2E0ZTgzMzFhM2MyNWE5NTI0MWNjMmYifQ.E71S-uGRlVmEY8-iEEj4bl3SiOcDUlJ-36XGoq8tDHE';
-const DISASSOCIATE_JWT_TOKEN =
-	'JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2OTQ0MzU0NjcsImV4cCI6NjAwMDAwMDE2OTQ0MzU0MDAsImlzcyI6IjQ1NjFiOGJlLWUzOGItNDNkNC04NGQ5LWYwOWU4MTk1ZDExNyIsInFzaCI6ImEzYTcwOGIxNDQwMjdlM2U2ZWRjYWYzY2MzZTBkNzYzYWRhMzI4NDgwMTFjNzMzNGQwMjRkZGE2ZGQ5OWU2NWUifQ.j_Bb4M76LpldZglEY7wQE7KY1KsMIsuvTyqppQd2wBY';
+
+const ASSOCIATE_JWT_TOKEN = `JWT ${generateInboundRequestJwtToken({
+	pathname: '/entities/associateEntity',
+	method: 'POST',
+	connectInstallation: MOCK_CONNECT_INSTALLATION,
+})}`;
+
+const DISASSOCIATE_JWT_TOKEN = `JWT ${generateInboundRequestJwtToken({
+	pathname: '/entities/disassociateEntity',
+	method: 'POST',
+	connectInstallation: MOCK_CONNECT_INSTALLATION,
+})}`;
 
 const FIGMA_API_BASE_URL = getConfig().figma.apiBaseUrl;
 

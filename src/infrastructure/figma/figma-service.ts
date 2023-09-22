@@ -1,17 +1,22 @@
 import { AxiosError, HttpStatusCode } from 'axios';
 
+import { createHash } from 'node:crypto';
+
 import { FigmaServiceCredentialsError } from './errors';
 import { figmaAuthService } from './figma-auth-service';
 import type {
 	CreateDevResourcesRequest,
 	CreateDevResourcesResponse,
+	CreateWebhookRequest,
 } from './figma-client';
 import { figmaClient } from './figma-client';
 import {
 	transformFileToAtlassianDesign,
 	transformNodeToAtlassianDesign,
 } from './transformers';
+import type { WebhookPasscodeInput } from './types';
 
+import { getConfig } from '../../config';
 import type {
 	AtlassianDesign,
 	FigmaDesignIdentifier,
@@ -158,6 +163,49 @@ export class FigmaService {
 			devResourceId: devResourceToDelete.id,
 			accessToken,
 		});
+	};
+
+	createFileUpdateWebhook = async (
+		teamId: string,
+		atlassianUserId: string,
+		connectInstallationSecret: string,
+	): Promise<{ webhookId: string; teamId: string }> => {
+		const { accessToken } =
+			await this.getValidCredentialsOrThrow(atlassianUserId);
+
+		const passcode = this.generateWebhookPasscode({
+			atlassianUserId,
+			figmaTeamId: teamId,
+			connectInstallationSecret,
+		});
+
+		const request: CreateWebhookRequest = {
+			event_type: 'FILE_UPDATE',
+			team_id: teamId,
+			endpoint: `${getConfig().app.baseUrl}/figma/webhook`,
+			passcode,
+			description: 'Figma for Jira Cloud',
+		};
+
+		const result = await figmaClient.createWebhook(request, accessToken);
+		return { webhookId: result.id, teamId: result.team_id };
+	};
+
+	validateWebhookPasscode = (passcode, input: WebhookPasscodeInput) => {
+		return passcode === this.generateWebhookPasscode(input);
+	};
+
+	/**
+	 * @internal
+	 * Visible for testing only.
+	 */
+	generateWebhookPasscode = ({
+		atlassianUserId,
+		figmaTeamId,
+		connectInstallationSecret,
+	}: WebhookPasscodeInput): string => {
+		const input = atlassianUserId + figmaTeamId + connectInstallationSecret;
+		return createHash('sha256').update(input).digest('hex');
 	};
 }
 
