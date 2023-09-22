@@ -8,7 +8,6 @@ const config: Config = {
 	roots: ['<rootDir>/src'],
 	testRegex: '(\\.|/)(test|spec)\\.tsx?$',
 	setupFiles: ['dotenv-expand/config'],
-	setupFilesAfterEnv: ['<rootDir>/scripts/setup-jest.ts'],
 	clearMocks: true,
 };
 

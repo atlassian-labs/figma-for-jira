@@ -30,11 +30,11 @@ afterEach(() => {
 	}
 });
 
-beforeEach(() => {
-	prismaClient.get().associatedFigmaDesign.deleteMany({});
-	prismaClient.get().figmaTeam.deleteMany({});
-	prismaClient.get().figmaOAuth2UserCredentials.deleteMany({});
-	prismaClient.get().connectInstallation.deleteMany({});
+beforeEach(async () => {
+	await prismaClient.get().associatedFigmaDesign.deleteMany({});
+	await prismaClient.get().figmaTeam.deleteMany({});
+	await prismaClient.get().figmaOAuth2UserCredentials.deleteMany({});
+	await prismaClient.get().connectInstallation.deleteMany({});
 });
 
 /**
