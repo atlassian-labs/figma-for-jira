@@ -5,8 +5,8 @@ import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
 import type {
-	AssociateEntityRequestParams,
-	DisassociateEntityRequestParams,
+	AssociateEntityRequestBody,
+	DisassociateEntityRequestBody,
 } from './types';
 
 import app from '../../../app';
@@ -226,7 +226,7 @@ const generateAssociateEntityRequest = ({
 }: {
 	issueId?: string;
 	figmaDesignUrl?: string;
-} = {}): AssociateEntityRequestParams => ({
+} = {}): AssociateEntityRequestBody => ({
 	entity: {
 		url: figmaDesignUrl,
 	},
@@ -244,7 +244,7 @@ const generateDisassociateEntityRequest = ({
 }: {
 	issueId?: string;
 	entityId?: string;
-} = {}): DisassociateEntityRequestParams => ({
+} = {}): DisassociateEntityRequestBody => ({
 	entity: {
 		ari: 'TODO',
 		id: entityId,

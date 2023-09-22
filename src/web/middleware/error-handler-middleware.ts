@@ -1,11 +1,12 @@
 import { HttpStatusCode } from 'axios';
 import type { NextFunction, Request, Response } from 'express';
 
+import { UnauthorizedError } from './errors';
 import { JwtVerificationError } from './jwt-utils';
 
+import { SchemaValidationError } from '../../infrastructure';
 import { FigmaServiceCredentialsError } from '../../infrastructure/figma';
 import { RepositoryRecordNotFoundError } from '../../infrastructure/repositories';
-import { UnauthorizedError } from '../routes/entities';
 
 export const errorHandlerMiddleware = (
 	err: Error,
@@ -27,6 +28,8 @@ export const errorHandlerMiddleware = (
 		res.status(HttpStatusCode.NotFound).send(err.message);
 	} else if (err instanceof FigmaServiceCredentialsError) {
 		res.status(HttpStatusCode.Forbidden).send(err.message);
+	} else if (err instanceof SchemaValidationError) {
+		res.status(HttpStatusCode.BadRequest);
 	} else {
 		res.sendStatus(HttpStatusCode.InternalServerError);
 	}
