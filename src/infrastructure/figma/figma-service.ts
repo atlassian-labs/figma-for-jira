@@ -188,7 +188,7 @@ export class FigmaService {
 		return { webhookId: result.id, teamId: result.team_id };
 	};
 
-	validateWebhookPasscode = (passcode, input: WebhookPasscodeInput) => {
+	validateWebhookPasscode = (passcode: string, input: WebhookPasscodeInput) => {
 		return passcode === this.generateWebhookPasscode(input);
 	};
 
