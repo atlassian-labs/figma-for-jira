@@ -2,7 +2,6 @@ import type { AssociatedFigmaDesign as PrismaAssociatedFigmaDesign } from '@pris
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 import { PrismaErrorCode } from './constants';
-import { RepositoryRecordNotFoundError } from './errors';
 import { prismaClient } from './prisma-client';
 
 import type {
@@ -50,7 +49,7 @@ export class AssociatedFigmaDesignRepository {
 	deleteByDesignIdAndConnectInstallationId = async (
 		designId: FigmaDesignIdentifier,
 		connectInstallationId: number,
-	): Promise<AssociatedFigmaDesign> => {
+	): Promise<AssociatedFigmaDesign | undefined> => {
 		try {
 			const result = await prismaClient.get().associatedFigmaDesign.delete({
 				where: {
@@ -68,7 +67,7 @@ export class AssociatedFigmaDesignRepository {
 				e instanceof PrismaClientKnownRequestError &&
 				e.code === PrismaErrorCode.RecordNotFound
 			) {
-				throw new RepositoryRecordNotFoundError(e.message);
+				return;
 			}
 			throw e;
 		}

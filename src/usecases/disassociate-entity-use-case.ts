@@ -8,6 +8,7 @@ import {
 } from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
 import { buildIssueUrl, jiraService } from '../infrastructure/jira';
+import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
 export type DisassociateEntityUseCaseParams = {
 	readonly entity: {
@@ -63,6 +64,11 @@ export const disassociateEntityUseCase = {
 				atlassianUserId,
 			}),
 		]);
+
+		await associatedFigmaDesignRepository.deleteByDesignIdAndConnectInstallationId(
+			figmaDesignId,
+			connectInstallation.id,
+		);
 
 		return design;
 	},
