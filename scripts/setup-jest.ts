@@ -30,6 +30,13 @@ afterEach(() => {
 	}
 });
 
+beforeEach(() => {
+	prismaClient.get().associatedFigmaDesign.deleteMany({});
+	prismaClient.get().figmaTeam.deleteMany({});
+	prismaClient.get().figmaOAuth2UserCredentials.deleteMany({});
+	prismaClient.get().connectInstallation.deleteMany({});
+});
+
 /**
  * After each test, clean up nock mocks
  */

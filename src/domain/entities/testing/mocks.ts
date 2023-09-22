@@ -63,7 +63,7 @@ export const generateFigmaDesignUrl = ({
 };
 
 export const generateFigmaOAuth2UserCredentials = ({
-	id = Date.now(),
+	id = getRandomInt(1, 10000),
 	atlassianUserId = uuidv4(),
 	accessToken = uuidv4(),
 	refreshToken = uuidv4(),
@@ -149,8 +149,9 @@ export const generateJiraIssueUrl = ({
 } = {}) => new URL(`/browse/${key}`, baseUrl).toString();
 
 export const generateJiraIssueAri = ({
+	cloudId = uuidv4(),
 	issueId = generateJiraIssueId(),
-} = {}) => `ari:cloud:jira:${uuidv4()}:issue/${issueId}`;
+} = {}) => `ari:cloud:jira:${cloudId}:issue/${issueId}`;
 
 export const generateJiraIssue = ({
 	id = generateJiraIssueId(),
