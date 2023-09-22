@@ -41,7 +41,7 @@ describe('disassociateEntityUseCase', () => {
 				associatedFigmaDesignRepository,
 				'deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId',
 			)
-			.mockResolvedValue(undefined);
+			.mockResolvedValue(null);
 
 		await disassociateEntityUseCase.execute(params);
 

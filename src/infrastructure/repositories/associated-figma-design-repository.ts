@@ -36,6 +36,22 @@ export class AssociatedFigmaDesignRepository {
 		return this.mapToDomainModel(record);
 	};
 
+	/**
+	 * @remarks
+	 * Required for tests only.
+	 */
+	find = async (id: number): Promise<AssociatedFigmaDesign | null> => {
+		const record = await prismaClient.get().associatedFigmaDesign.findFirst({
+			where: {
+				id,
+			},
+		});
+
+		if (record === null) return null;
+
+		return this.mapToDomainModel(record);
+	};
+
 	findManyByFileKeyAndConnectInstallationId = async (
 		fileKey: string,
 		connectInstallationId: number,
@@ -47,6 +63,10 @@ export class AssociatedFigmaDesignRepository {
 		return records.map(this.mapToDomainModel);
 	};
 
+	/**
+	 * @remarks
+	 * Required for integration tests only.
+	 */
 	findByDesignIdAndAssociatedWithAriAndConnectInstallationId = async (
 		designId: FigmaDesignIdentifier,
 		associatedWithAri: string,
@@ -70,7 +90,7 @@ export class AssociatedFigmaDesignRepository {
 		designId: FigmaDesignIdentifier,
 		associatedWithAri: string,
 		connectInstallationId: number,
-	): Promise<AssociatedFigmaDesign | undefined> => {
+	): Promise<AssociatedFigmaDesign | null> => {
 		try {
 			const record = await prismaClient.get().associatedFigmaDesign.delete({
 				where: {
@@ -89,7 +109,7 @@ export class AssociatedFigmaDesignRepository {
 				e instanceof PrismaClientKnownRequestError &&
 				e.code === PrismaErrorCode.RecordNotFound
 			) {
-				return;
+				return null;
 			}
 			throw e;
 		}
