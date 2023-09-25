@@ -14,7 +14,7 @@ import type {
 	CreateWebhookResponse,
 	MeResponse,
 } from './figma-client';
-import { figmaClient } from './figma-client';
+import { figmaClient, FigmaClientNotFoundError } from './figma-client';
 import {
 	generateChildNode,
 	generateGetFileResponse,
@@ -421,6 +421,42 @@ describe('FigmaService', () => {
 					connectInstallationSecret,
 				),
 			).rejects.toStrictEqual(credentialsError);
+		});
+	});
+
+	describe('deleteWebhook', () => {
+		const MOCK_CREDENTIALS = generateFigmaOAuth2UserCredentials();
+
+		beforeEach(() => {
+			jest
+				.spyOn(figmaService, 'getValidCredentialsOrThrow')
+				.mockResolvedValue(MOCK_CREDENTIALS);
+		});
+
+		it('should call figmaClient to delete a webhook', async () => {
+			const webhookId = uuidv4();
+			jest.spyOn(figmaClient, 'deleteWebhook').mockResolvedValue();
+
+			await figmaService.deleteWebhook(
+				webhookId,
+				MOCK_CREDENTIALS.atlassianUserId,
+			);
+
+			expect(figmaClient.deleteWebhook).toHaveBeenCalledWith(
+				webhookId,
+				MOCK_CREDENTIALS.accessToken,
+			);
+		});
+
+		it('should not throw when webhook is not found', async () => {
+			const webhookId = uuidv4();
+			jest
+				.spyOn(figmaClient, 'deleteWebhook')
+				.mockRejectedValue(new FigmaClientNotFoundError());
+
+			await expect(
+				figmaService.deleteWebhook(webhookId, MOCK_CREDENTIALS.atlassianUserId),
+			).resolves.toBeUndefined();
 		});
 	});
 });

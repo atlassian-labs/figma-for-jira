@@ -20,7 +20,7 @@ import {
 	figmaTeamRepository,
 	RepositoryRecordNotFoundError,
 } from '../../../infrastructure/repositories';
-import { generateInboundRequestJwtToken } from '../../testing';
+import { generateInboundRequestSymmetricJwtToken } from '../../testing';
 
 const mockCreateWebhookEndpoint = ({
 	webhookId = uuidv4(),
@@ -93,7 +93,7 @@ describe('/configure', () => {
 		it('should create a webhook and FigmaTeam record', async () => {
 			const teamId = uuidv4();
 			const webhookId = uuidv4();
-			const jwt = generateInboundRequestJwtToken({
+			const jwt = generateInboundRequestSymmetricJwtToken({
 				method: 'POST',
 				pathname: CONFIGURE_TEAM_ENDPOINT,
 				connectInstallation,
@@ -124,7 +124,7 @@ describe('/configure', () => {
 		it('should return a 500 and not create a FigmaTeam when creating the webhook fails', async () => {
 			const teamId = uuidv4();
 			const webhookId = uuidv4();
-			const jwt = generateInboundRequestJwtToken({
+			const jwt = generateInboundRequestSymmetricJwtToken({
 				method: 'POST',
 				pathname: CONFIGURE_TEAM_ENDPOINT,
 				connectInstallation,

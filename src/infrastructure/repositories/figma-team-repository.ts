@@ -5,12 +5,12 @@ import { PrismaErrorCode } from './constants';
 import { RepositoryRecordNotFoundError } from './errors';
 import { prismaClient } from './prisma-client';
 
-import { FigmaTeamAuthStatus } from '../../domain/entities';
 import type { FigmaTeam, FigmaTeamCreateParams } from '../../domain/entities';
+import { FigmaTeamAuthStatus } from '../../domain/entities';
 
 export class FigmaTeamRepository {
 	upsert = async (figmaTeam: FigmaTeamCreateParams): Promise<FigmaTeam> => {
-		const result = await prismaClient.get().figmaTeam.upsert({
+		const record = await prismaClient.get().figmaTeam.upsert({
 			create: figmaTeam,
 			update: figmaTeam,
 			where: {
@@ -20,21 +20,31 @@ export class FigmaTeamRepository {
 				},
 			},
 		});
-		return this.mapToDomainModel(result);
+		return this.mapToDomainModel(record);
 	};
 
 	getByWebhookId = async (webhookId: string): Promise<FigmaTeam> => {
-		const result = await prismaClient
+		const record = await prismaClient
 			.get()
 			.figmaTeam.findFirst({ where: { webhookId } });
 
-		if (result === null) {
+		if (record === null) {
 			throw new RepositoryRecordNotFoundError(
 				`Failed to find FigmaTeam for webhookId ${webhookId}`,
 			);
 		}
 
-		return this.mapToDomainModel(result);
+		return this.mapToDomainModel(record);
+	};
+
+	findManyByConnectInstallationId = async (
+		connectInstallationId: number,
+	): Promise<FigmaTeam[]> => {
+		const records = await prismaClient
+			.get()
+			.figmaTeam.findMany({ where: { connectInstallationId } });
+
+		return records.map((record) => this.mapToDomainModel(record));
 	};
 
 	updateAuthStatus = async (

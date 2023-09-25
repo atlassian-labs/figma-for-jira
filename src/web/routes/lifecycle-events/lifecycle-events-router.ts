@@ -15,6 +15,11 @@ import { authHeaderAsymmetricJwtMiddleware } from '../../middleware';
 
 export const lifecycleEventsRouter = Router();
 
+/**
+ * Handles an "Installed" lifecycle event.
+ *
+ * @see https://developer.atlassian.com/cloud/jira/platform/connect-app-descriptor/#lifecycle
+ */
 lifecycleEventsRouter.post(
 	'/installed',
 	authHeaderAsymmetricJwtMiddleware,
@@ -40,6 +45,17 @@ lifecycleEventsRouter.post(
 	},
 );
 
+/**
+ * Handles an "Uninstalled" lifecycle event.
+ *
+ * @see https://developer.atlassian.com/cloud/jira/platform/connect-app-descriptor/#lifecycle
+ *
+ * @remarks
+ * Currently, Jira does not retry the "Uninstall" event in case of a failure.
+ * Therefore, there is a risk of getting stale data in the database or not disposed resources (e.g.,
+ * Figma webhook)  in case of a failure.
+ * Consider using a queue (e.g., SQS) to make a use case execution retryable.
+ */
 lifecycleEventsRouter.post(
 	'/uninstalled',
 	authHeaderAsymmetricJwtMiddleware,

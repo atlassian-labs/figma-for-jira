@@ -52,7 +52,7 @@ import {
 	connectInstallationRepository,
 	figmaOAuth2UserCredentialsRepository,
 } from '../../../infrastructure/repositories';
-import { generateInboundRequestJwtToken } from '../../testing';
+import { generateInboundRequestSymmetricJwtToken } from '../../testing';
 
 const MOCK_CONNECT_INSTALLATION_CREATE_PARAMS =
 	generateConnectInstallationCreateParams({
@@ -61,13 +61,13 @@ const MOCK_CONNECT_INSTALLATION_CREATE_PARAMS =
 		sharedSecret: '903b6b9e-b82b-48ea-a9b2-40b9e700df32',
 	});
 
-const ASSOCIATE_JWT_TOKEN = `JWT ${generateInboundRequestJwtToken({
+const ASSOCIATE_JWT_TOKEN = `JWT ${generateInboundRequestSymmetricJwtToken({
 	pathname: '/entities/associateEntity',
 	method: 'POST',
 	connectInstallation: MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
 })}`;
 
-const DISASSOCIATE_JWT_TOKEN = `JWT ${generateInboundRequestJwtToken({
+const DISASSOCIATE_JWT_TOKEN = `JWT ${generateInboundRequestSymmetricJwtToken({
 	pathname: '/entities/disassociateEntity',
 	method: 'POST',
 	connectInstallation: MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
