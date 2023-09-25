@@ -63,7 +63,7 @@ export const generateFigmaDesignUrl = ({
 };
 
 export const generateFigmaOAuth2UserCredentials = ({
-	id = Date.now(),
+	id = getRandomInt(1, 10000),
 	atlassianUserId = uuidv4(),
 	accessToken = uuidv4(),
 	refreshToken = uuidv4(),
@@ -148,8 +148,10 @@ export const generateJiraIssueUrl = ({
 	key = generateJiraIssueKey(),
 } = {}) => new URL(`/browse/${key}`, baseUrl).toString();
 
-export const generateJiraIssueAri = (issueId = generateJiraIssueId()) =>
-	`ari:cloud:jira:${uuidv4()}:issue/${issueId}`;
+export const generateJiraIssueAri = ({
+	cloudId = uuidv4(),
+	issueId = generateJiraIssueId(),
+} = {}) => `ari:cloud:jira:${cloudId}:issue/${issueId}`;
 
 export const generateJiraIssue = ({
 	id = generateJiraIssueId(),
@@ -167,19 +169,23 @@ export const generateJiraIssue = ({
 
 export const generateAssociatedFigmaDesignCreateParams = ({
 	designId = generateFigmaDesignIdentifier(),
+	associatedWithAri = generateJiraIssueAri(),
 	connectInstallationId = getRandomInt(1, 100000),
 }: Partial<AssociatedFigmaDesignCreateParams> = {}): AssociatedFigmaDesignCreateParams => ({
 	designId,
+	associatedWithAri,
 	connectInstallationId,
 });
 
 export const generateAssociatedFigmaDesign = ({
 	id = getRandomInt(1, 100000),
 	designId = generateFigmaDesignIdentifier(),
+	associatedWithAri = generateJiraIssueAri(),
 	connectInstallationId = getRandomInt(1, 100000),
 }: Partial<AssociatedFigmaDesign> = {}): AssociatedFigmaDesign => ({
 	id,
 	designId,
+	associatedWithAri,
 	connectInstallationId,
 });
 

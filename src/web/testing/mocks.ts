@@ -1,8 +1,6 @@
 import { createQueryStringHash, encodeSymmetric } from 'atlassian-jwt';
 import type { Method } from 'axios';
 
-import type { ConnectInstallation } from '../../domain/entities';
-
 /**
  * Generates a JWT token that can be used to authorise inbound requests in
  * integration tests.
@@ -14,7 +12,10 @@ export const generateInboundRequestJwtToken = ({
 }: {
 	pathname: string;
 	method: Method;
-	connectInstallation: ConnectInstallation;
+	connectInstallation: {
+		clientKey: string;
+		sharedSecret: string;
+	};
 }) => {
 	const nowInSeconds = Math.floor(Date.now() / 1000);
 	return encodeSymmetric(
