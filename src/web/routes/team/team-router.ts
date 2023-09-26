@@ -15,15 +15,15 @@ import {
 	extractUserIdFromHeadersMiddleware,
 } from '../../middleware';
 
-export const configureRouter = Router();
+export const teamRouter = Router();
 
-configureRouter.use(
+teamRouter.use(
 	extractUserIdFromHeadersMiddleware,
 	authHeaderSymmetricJwtMiddleware,
 );
 
-configureRouter.post(
-	'/team',
+teamRouter.post(
+	'/configure',
 	(
 		req: ConfigureFigmaTeamsRequest,
 		res: ConfigureFigmaTeamsResponse,

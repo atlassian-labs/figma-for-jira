@@ -5,10 +5,10 @@ import { join } from 'path';
 
 import { connectDescriptorGet } from './atlassian-connect';
 import { authRouter } from './auth';
-import { configureRouter } from './configure';
 import { entitiesRouter } from './entities';
 import { figmaRouter } from './figma';
 import { lifecycleEventsRouter } from './lifecycle-events';
+import { teamRouter } from './team';
 
 export const rootRouter = Router();
 
@@ -30,7 +30,7 @@ rootRouter.use('/auth', authRouter);
 
 rootRouter.use('/entities', entitiesRouter);
 
-rootRouter.use('/configure', configureRouter);
+rootRouter.use('/team', teamRouter);
 
 // Endpoints to handle requests from Figma
 rootRouter.use('/figma', figmaRouter);

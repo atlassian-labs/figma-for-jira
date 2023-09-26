@@ -59,10 +59,10 @@ const mockMeEndpoint = ({ success = true }: { success?: boolean } = {}) => {
 const FIGMA_API_BASE_URL = getConfig().figma.apiBaseUrl;
 const FIGMA_API_ME_ENDPOINT = '/v1/me';
 
-const CONFIGURE_TEAM_ENDPOINT = '/configure/team';
+const TEAM_CONFIGURE_ENDPOINT = '/team/configure';
 
-describe('/configure', () => {
-	describe('/team', () => {
+describe('/team', () => {
+	describe('/configure', () => {
 		let connectInstallation: ConnectInstallation;
 		let figmaOAuth2UserCredentials: FigmaOAuth2UserCredentials;
 
@@ -95,7 +95,7 @@ describe('/configure', () => {
 			const webhookId = uuidv4();
 			const jwt = generateInboundRequestJwtToken({
 				method: 'POST',
-				pathname: CONFIGURE_TEAM_ENDPOINT,
+				pathname: TEAM_CONFIGURE_ENDPOINT,
 				connectInstallation,
 			});
 
@@ -103,7 +103,7 @@ describe('/configure', () => {
 			mockCreateWebhookEndpoint({ webhookId, teamId });
 
 			await request(app)
-				.post(CONFIGURE_TEAM_ENDPOINT)
+				.post(TEAM_CONFIGURE_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
 				.set('User-Id', figmaOAuth2UserCredentials.atlassianUserId)
 				.send({ teamId })
@@ -127,7 +127,7 @@ describe('/configure', () => {
 			const webhookId = uuidv4();
 			const jwt = generateInboundRequestJwtToken({
 				method: 'POST',
-				pathname: CONFIGURE_TEAM_ENDPOINT,
+				pathname: TEAM_CONFIGURE_ENDPOINT,
 				connectInstallation,
 			});
 
@@ -135,7 +135,7 @@ describe('/configure', () => {
 			mockCreateWebhookEndpoint({ webhookId, teamId, success: false });
 
 			await request(app)
-				.post(CONFIGURE_TEAM_ENDPOINT)
+				.post(TEAM_CONFIGURE_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
 				.set('User-Id', figmaOAuth2UserCredentials.atlassianUserId)
 				.send({ teamId })
