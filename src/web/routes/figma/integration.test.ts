@@ -3,7 +3,7 @@ import nock from 'nock';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
-import { generateFigmaWebhookEventPayload } from './testing/mocks';
+import { generateFigmaWebhookEventPayload } from './testing';
 import type { FigmaWebhookEventPayload } from './types';
 
 import app from '../../../app';

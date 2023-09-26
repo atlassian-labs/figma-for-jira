@@ -51,36 +51,37 @@ describe('AssociatedFigmaDesignRepository', () => {
 		});
 
 		it('should return null if target entity does not exist', async () => {
-			const nonExistingEntity = generateAssociatedFigmaDesign();
+			const nonExistingAssociatedFigmaDesign = generateAssociatedFigmaDesign();
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
-			const [entity1, entity2] = await Promise.all([
-				associatedFigmaDesignRepository.upsert(
-					generateAssociatedFigmaDesignCreateParams({
-						connectInstallationId: connectInstallation.id,
-					}),
-				),
-				associatedFigmaDesignRepository.upsert(
-					generateAssociatedFigmaDesignCreateParams({
-						connectInstallationId: connectInstallation.id,
-					}),
-				),
-			]);
+			const [associatedFigmaDesign1, associatedFigmaDesign2] =
+				await Promise.all([
+					associatedFigmaDesignRepository.upsert(
+						generateAssociatedFigmaDesignCreateParams({
+							connectInstallationId: connectInstallation.id,
+						}),
+					),
+					associatedFigmaDesignRepository.upsert(
+						generateAssociatedFigmaDesignCreateParams({
+							connectInstallationId: connectInstallation.id,
+						}),
+					),
+				]);
 
 			const result =
 				await associatedFigmaDesignRepository.deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId(
-					nonExistingEntity.designId,
-					nonExistingEntity.associatedWithAri,
-					nonExistingEntity.connectInstallationId,
+					nonExistingAssociatedFigmaDesign.designId,
+					nonExistingAssociatedFigmaDesign.associatedWithAri,
+					nonExistingAssociatedFigmaDesign.connectInstallationId,
 				);
 
 			expect(result).toBeNull();
 			expect(
-				await associatedFigmaDesignRepository.find(entity1.id),
+				await associatedFigmaDesignRepository.find(associatedFigmaDesign1.id),
 			).toBeTruthy();
 			expect(
-				await associatedFigmaDesignRepository.find(entity2.id),
+				await associatedFigmaDesignRepository.find(associatedFigmaDesign2.id),
 			).toBeTruthy();
 		});
 	});

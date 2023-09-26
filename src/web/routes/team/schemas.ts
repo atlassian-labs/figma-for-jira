@@ -1,6 +1,6 @@
 import type { ConfigureFigmaTeamRequestBody } from './types';
 
-import type { JSONSchemaTypeWithId } from '../../../infrastructure/ajv';
+import type { JSONSchemaTypeWithId } from '../../../infrastructure';
 
 export const CONFIGURE_FIGMA_TEAMS_REQUEST_BODY: JSONSchemaTypeWithId<ConfigureFigmaTeamRequestBody> =
 	{

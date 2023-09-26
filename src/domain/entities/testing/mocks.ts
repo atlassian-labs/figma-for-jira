@@ -6,9 +6,9 @@ import type {
 	AtlassianDesign,
 	ConnectInstallation,
 	ConnectInstallationCreateParams,
+	FigmaOAuth2UserCredentialsCreateParams,
 	FigmaTeam,
 	FigmaTeamCreateParams,
-	FigmaUserCredentialsCreateParams,
 	JiraIssue,
 } from '..';
 import {
@@ -20,8 +20,8 @@ import {
 } from '..';
 import { Duration } from '../../../common/duration';
 import {
+	generateNumericStringId,
 	getRandomInt,
-	getRandomPositiveInt,
 } from '../../../common/testing/utils';
 
 export const generateFigmaFileName = () => uuidv4();
@@ -30,7 +30,7 @@ export const generateFigmaFileKey = () =>
 	Buffer.from(uuidv4()).toString('base64');
 
 export const generateFigmaNodeId = () =>
-	`${getRandomInt(1, 100)}:${getRandomInt(1, 100)}`;
+	`${getRandomInt(1, 1000)}:${getRandomInt(1, 1000)}`;
 
 export const generateFigmaDesignIdentifier = ({
 	fileKey = generateFigmaFileKey(),
@@ -63,7 +63,7 @@ export const generateFigmaDesignUrl = ({
 };
 
 export const generateFigmaOAuth2UserCredentials = ({
-	id = getRandomInt(1, 10000),
+	id = generateNumericStringId(),
 	atlassianUserId = uuidv4(),
 	accessToken = uuidv4(),
 	refreshToken = uuidv4(),
@@ -82,7 +82,7 @@ export const generateFigmaUserCredentialsCreateParams = ({
 	accessToken = uuidv4(),
 	refreshToken = uuidv4(),
 	expiresAt = new Date(Date.now() + Duration.ofMinutes(120).asMilliseconds),
-} = {}): FigmaUserCredentialsCreateParams => ({
+} = {}): FigmaOAuth2UserCredentialsCreateParams => ({
 	atlassianUserId,
 	accessToken,
 	refreshToken,
@@ -104,7 +104,7 @@ export const generateConnectInstallationCreateParams = ({
 });
 
 export const generateConnectInstallation = ({
-	id = getRandomInt(1, 1000),
+	id = generateNumericStringId(),
 	key = uuidv4(),
 	clientKey = uuidv4(),
 	sharedSecret = uuidv4(),
@@ -139,9 +139,9 @@ export const generateAtlassianDesign = ({
 	updateSequenceNumber,
 });
 
-export const generateJiraIssueId = () => getRandomPositiveInt().toString();
+export const generateJiraIssueId = () => generateNumericStringId();
 
-export const generateJiraIssueKey = () => `KEY-${getRandomPositiveInt()}`;
+export const generateJiraIssueKey = () => `KEY-${generateNumericStringId()}`;
 
 export const generateJiraIssueUrl = ({
 	baseUrl = `https://${uuidv4()}.atlassian.net`,
@@ -170,7 +170,7 @@ export const generateJiraIssue = ({
 export const generateAssociatedFigmaDesignCreateParams = ({
 	designId = generateFigmaDesignIdentifier(),
 	associatedWithAri = generateJiraIssueAri(),
-	connectInstallationId = getRandomInt(1, 100000),
+	connectInstallationId = generateNumericStringId(),
 }: Partial<AssociatedFigmaDesignCreateParams> = {}): AssociatedFigmaDesignCreateParams => ({
 	designId,
 	associatedWithAri,
@@ -178,10 +178,10 @@ export const generateAssociatedFigmaDesignCreateParams = ({
 });
 
 export const generateAssociatedFigmaDesign = ({
-	id = getRandomInt(1, 100000),
+	id = generateNumericStringId(),
 	designId = generateFigmaDesignIdentifier(),
 	associatedWithAri = generateJiraIssueAri(),
-	connectInstallationId = getRandomInt(1, 100000),
+	connectInstallationId = generateNumericStringId(),
 }: Partial<AssociatedFigmaDesign> = {}): AssociatedFigmaDesign => ({
 	id,
 	designId,
@@ -196,7 +196,7 @@ export const generateFigmaTeamCreateParams = ({
 	teamName = 'Team Name',
 	figmaAdminAtlassianUserId = uuidv4(),
 	authStatus: status = FigmaTeamAuthStatus.OK,
-	connectInstallationId = getRandomInt(1, 100000),
+	connectInstallationId = generateNumericStringId(),
 }: Partial<FigmaTeamCreateParams> = {}): FigmaTeamCreateParams => ({
 	webhookId,
 	webhookPasscode,
@@ -208,14 +208,14 @@ export const generateFigmaTeamCreateParams = ({
 });
 
 export const generateFigmaTeam = ({
-	id = getRandomInt(1, 100000),
+	id = generateNumericStringId(),
 	webhookId = uuidv4(),
 	webhookPasscode = uuidv4(),
 	teamId = uuidv4(),
 	teamName = 'Team Name',
 	figmaAdminAtlassianUserId = uuidv4(),
 	authStatus: status = FigmaTeamAuthStatus.OK,
-	connectInstallationId = getRandomInt(1, 100000),
+	connectInstallationId = generateNumericStringId(),
 }: Partial<FigmaTeam> = {}): FigmaTeam => ({
 	id,
 	webhookId,

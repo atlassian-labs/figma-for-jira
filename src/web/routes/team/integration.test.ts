@@ -1,7 +1,3 @@
-import type {
-	ConnectInstallation,
-	FigmaOAuth2UserCredentials,
-} from '@prisma/client';
 import { HttpStatusCode } from 'axios';
 import nock from 'nock';
 import request from 'supertest';
@@ -9,6 +5,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 import app from '../../../app';
 import { getConfig } from '../../../config';
+import type {
+	ConnectInstallation,
+	FigmaOAuth2UserCredentials,
+} from '../../../domain/entities';
 import { FigmaTeamAuthStatus } from '../../../domain/entities';
 import {
 	generateConnectInstallationCreateParams,
@@ -67,16 +67,12 @@ describe('/team', () => {
 		let figmaOAuth2UserCredentials: FigmaOAuth2UserCredentials;
 
 		beforeEach(async () => {
-			const connectInstallationCreateParams =
-				generateConnectInstallationCreateParams();
 			connectInstallation = await connectInstallationRepository.upsert(
-				connectInstallationCreateParams,
+				generateConnectInstallationCreateParams(),
 			);
-
-			const validCredentialsParams = generateFigmaUserCredentialsCreateParams();
 			figmaOAuth2UserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
-					validCredentialsParams,
+					generateFigmaUserCredentialsCreateParams(),
 				);
 		});
 

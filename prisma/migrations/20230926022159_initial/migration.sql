@@ -3,7 +3,7 @@ CREATE TYPE "figma_team_auth_status" AS ENUM ('OK', 'ERROR');
 
 -- CreateTable
 CREATE TABLE "connect_installation" (
-    "id" SERIAL NOT NULL,
+    "id" BIGSERIAL NOT NULL,
     "key" TEXT NOT NULL,
     "client_key" TEXT NOT NULL,
     "shared_secret" TEXT NOT NULL,
@@ -15,18 +15,18 @@ CREATE TABLE "connect_installation" (
 
 -- CreateTable
 CREATE TABLE "associated_figma_design" (
-    "id" SERIAL NOT NULL,
+    "id" BIGSERIAL NOT NULL,
     "file_key" TEXT NOT NULL,
     "node_id" TEXT NOT NULL,
     "associated-with-ari" TEXT NOT NULL,
-    "connect_installation_id" INTEGER NOT NULL,
+    "connect_installation_id" BIGINT NOT NULL,
 
     CONSTRAINT "associated_figma_design_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "figma_oauth2_user_credentials" (
-    "id" SERIAL NOT NULL,
+    "id" BIGSERIAL NOT NULL,
     "atlassian_user_id" TEXT NOT NULL,
     "access_token" TEXT NOT NULL,
     "refresh_token" TEXT NOT NULL,
@@ -37,14 +37,14 @@ CREATE TABLE "figma_oauth2_user_credentials" (
 
 -- CreateTable
 CREATE TABLE "figma_team" (
-    "id" SERIAL NOT NULL,
+    "id" BIGSERIAL NOT NULL,
     "webhook_id" TEXT NOT NULL,
     "webhook_passcode" TEXT NOT NULL,
     "team_id" TEXT NOT NULL,
     "team_name" TEXT NOT NULL,
     "figma_admin_atlassian_user_id" TEXT NOT NULL,
     "authStatus" "figma_team_auth_status" NOT NULL,
-    "connect_installation_id" INTEGER NOT NULL,
+    "connect_installation_id" BIGINT NOT NULL,
 
     CONSTRAINT "figma_team_pkey" PRIMARY KEY ("id")
 );
