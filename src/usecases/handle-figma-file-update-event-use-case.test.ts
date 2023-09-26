@@ -4,7 +4,6 @@ import { handleFigmaFileUpdateEventUseCase } from './handle-figma-file-update-ev
 
 import {
 	generateAssociatedFigmaDesign,
-	generateAtlassianDesign,
 	generateConnectInstallation,
 	generateFigmaDesignIdentifier,
 	generateFigmaOAuth2UserCredentials,
@@ -36,25 +35,11 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 			}),
 		);
 
-		it('should rethrow error if getting FigmaTeam fails', async () => {
-			const error = new Error('db error');
-			jest
-				.spyOn(figmaTeamRepository, 'getByWebhookId')
-				.mockRejectedValue(error);
-
-			await expect(
-				handleFigmaFileUpdateEventUseCase.execute(figmaTeam.webhookId, fileKey),
-			).rejects.toStrictEqual(error);
-		});
-
 		it('should rethrow error if getting ConnectInstallation fails', async () => {
 			const error = new Error('db error');
 			jest
 				.spyOn(figmaTeamRepository, 'getByWebhookId')
 				.mockResolvedValue(figmaTeam);
-			jest
-				.spyOn(figmaService, 'getValidCredentialsOrThrow')
-				.mockResolvedValue(figmaOAuth2Credentials);
 			jest.spyOn(connectInstallationRepository, 'get').mockRejectedValue(error);
 			jest
 				.spyOn(
@@ -62,10 +47,16 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 					'findManyByFileKeyAndConnectInstallationId',
 				)
 				.mockResolvedValue(associatedFigmaDesigns);
+			jest.spyOn(figmaService, 'getValidCredentialsOrThrow');
+			jest.spyOn(figmaService, 'fetchDesignById');
+			jest.spyOn(jiraService, 'submitDesigns');
 
 			await expect(
-				handleFigmaFileUpdateEventUseCase.execute(figmaTeam.webhookId, fileKey),
+				handleFigmaFileUpdateEventUseCase.execute(figmaTeam, fileKey),
 			).rejects.toStrictEqual(error);
+			expect(figmaService.getValidCredentialsOrThrow).not.toBeCalled();
+			expect(figmaService.fetchDesignById).not.toBeCalled();
+			expect(jiraService.submitDesigns).not.toBeCalled();
 		});
 
 		it('should rethrow error if getting AssociatedDesigns fails', async () => {
@@ -73,9 +64,6 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 			jest
 				.spyOn(figmaTeamRepository, 'getByWebhookId')
 				.mockResolvedValue(figmaTeam);
-			jest
-				.spyOn(figmaService, 'getValidCredentialsOrThrow')
-				.mockResolvedValue(figmaOAuth2Credentials);
 			jest
 				.spyOn(connectInstallationRepository, 'get')
 				.mockResolvedValue(connectInstallation);
@@ -85,13 +73,19 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 					'findManyByFileKeyAndConnectInstallationId',
 				)
 				.mockRejectedValue(error);
+			jest.spyOn(figmaService, 'getValidCredentialsOrThrow');
+			jest.spyOn(figmaService, 'fetchDesignById');
+			jest.spyOn(jiraService, 'submitDesigns');
 
 			await expect(
-				handleFigmaFileUpdateEventUseCase.execute(figmaTeam.webhookId, fileKey),
+				handleFigmaFileUpdateEventUseCase.execute(figmaTeam, fileKey),
 			).rejects.toStrictEqual(error);
+			expect(figmaService.getValidCredentialsOrThrow).not.toBeCalled();
+			expect(figmaService.fetchDesignById).not.toBeCalled();
+			expect(jiraService.submitDesigns).not.toBeCalled();
 		});
 
-		it('should rethrow error if fetching Figma designs fails', async () => {
+		it('should rethrow error and not submit designs if fetching any Figma designs fails', async () => {
 			const error = new Error('fetch design error');
 			jest
 				.spyOn(figmaTeamRepository, 'getByWebhookId')
@@ -109,41 +103,12 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				)
 				.mockResolvedValue(associatedFigmaDesigns);
 			jest.spyOn(figmaService, 'fetchDesignById').mockRejectedValue(error);
+			jest.spyOn(jiraService, 'submitDesigns');
 
 			await expect(
-				handleFigmaFileUpdateEventUseCase.execute(figmaTeam.webhookId, fileKey),
+				handleFigmaFileUpdateEventUseCase.execute(figmaTeam, fileKey),
 			).rejects.toStrictEqual(error);
-		});
-
-		it('should rethrow error if submitting designs to Jira fails', async () => {
-			const error = new Error('submit design error');
-			jest
-				.spyOn(figmaTeamRepository, 'getByWebhookId')
-				.mockResolvedValue(figmaTeam);
-			jest
-				.spyOn(figmaService, 'getValidCredentialsOrThrow')
-				.mockResolvedValue(figmaOAuth2Credentials);
-			jest
-				.spyOn(connectInstallationRepository, 'get')
-				.mockResolvedValue(connectInstallation);
-			jest
-				.spyOn(
-					associatedFigmaDesignRepository,
-					'findManyByFileKeyAndConnectInstallationId',
-				)
-				.mockResolvedValue(associatedFigmaDesigns);
-			jest
-				.spyOn(figmaService, 'fetchDesignById')
-				.mockImplementation((designId) =>
-					Promise.resolve(
-						generateAtlassianDesign({ id: designId.toAtlassianDesignId() }),
-					),
-				);
-			jest.spyOn(jiraService, 'submitDesigns').mockRejectedValue(error);
-
-			await expect(
-				handleFigmaFileUpdateEventUseCase.execute(figmaTeam.webhookId, fileKey),
-			).rejects.toStrictEqual(error);
+			expect(jiraService.submitDesigns).not.toBeCalled();
 		});
 	});
 });

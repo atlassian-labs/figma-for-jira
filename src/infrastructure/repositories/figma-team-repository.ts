@@ -59,6 +59,7 @@ export class FigmaTeamRepository {
 	private mapToDomainModel = ({
 		id,
 		webhookId,
+		webhookPasscode,
 		teamId,
 		teamName,
 		figmaAdminAtlassianUserId,
@@ -67,6 +68,7 @@ export class FigmaTeamRepository {
 	}: PrismaFigmaTeam): FigmaTeam => ({
 		id,
 		webhookId,
+		webhookPasscode,
 		teamId,
 		teamName,
 		figmaAdminAtlassianUserId,

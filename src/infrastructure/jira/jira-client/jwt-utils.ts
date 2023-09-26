@@ -9,7 +9,7 @@ export type JwtTokenParams = {
 		readonly query?: Record<string, unknown>;
 		readonly body?: Record<string, unknown>;
 	};
-	readonly connectClientKey: string;
+	readonly connectAppKey: string;
 	readonly connectSharedSecret: string;
 	readonly expiresIn: Duration;
 };
@@ -25,7 +25,7 @@ export const createJwtToken = (params: JwtTokenParams): string => {
 		{
 			iat: nowInSeconds,
 			exp: nowInSeconds + params.expiresIn.asSeconds,
-			iss: params.connectClientKey,
+			iss: params.connectAppKey,
 			qsh: createQueryStringHash(params.request),
 		},
 		params.connectSharedSecret,
