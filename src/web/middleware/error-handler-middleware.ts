@@ -7,6 +7,7 @@ import { JwtVerificationError } from './jwt-utils';
 import { SchemaValidationError } from '../../infrastructure';
 import {
 	FigmaServiceCredentialsError,
+	FigmaWebhookAuthValidationError,
 	FigmaWebhookEventTypeValidationError,
 	FigmaWebhookPasscodeValidationError,
 } from '../../infrastructure/figma';
@@ -32,7 +33,10 @@ export const errorHandlerMiddleware = (
 		res.status(HttpStatusCode.NotFound).send(err.message);
 	} else if (err instanceof FigmaServiceCredentialsError) {
 		res.status(HttpStatusCode.Forbidden).send(err.message);
-	} else if (err instanceof FigmaWebhookEventTypeValidationError) {
+	} else if (
+		err instanceof FigmaWebhookEventTypeValidationError ||
+		err instanceof FigmaWebhookAuthValidationError
+	) {
 		res.sendStatus(HttpStatusCode.Ok);
 	} else if (
 		err instanceof FigmaWebhookPasscodeValidationError ||

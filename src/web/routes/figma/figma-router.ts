@@ -6,7 +6,7 @@ import { FIGMA_WEBHOOK_PAYLOAD_SCHEMA } from './schemas';
 import { assertSchema } from '../../../infrastructure';
 import {
 	handleFigmaFileUpdateEventUseCase,
-	validateWebhookPayloadUseCase,
+	validateFigmaWebhookEventUseCase,
 } from '../../../usecases';
 
 export const figmaRouter = Router();
@@ -20,7 +20,7 @@ figmaRouter.post('/webhook', (req, res, next) => {
 
 	const { event_type, file_key, webhook_id, passcode } = req.body;
 
-	validateWebhookPayloadUseCase
+	validateFigmaWebhookEventUseCase
 		.execute(event_type, webhook_id, passcode)
 		.then((figmaTeam) => {
 			switch (event_type) {

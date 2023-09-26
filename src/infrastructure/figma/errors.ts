@@ -11,12 +11,19 @@ export class FigmaServiceCredentialsError extends FigmaServiceError {
 
 export class FigmaWebhookValidationError extends Error {}
 
-export class FigmaWebhookEventTypeValidationError extends Error {
+export class FigmaWebhookEventTypeValidationError extends FigmaWebhookValidationError {
 	constructor(webhookId: string) {
 		super(`Received webhook event for ${webhookId} with invalid event type`);
 	}
 }
-export class FigmaWebhookPasscodeValidationError extends Error {
+
+export class FigmaWebhookAuthValidationError extends FigmaWebhookValidationError {
+	constructor(webhookId: string) {
+		super(`Figma team admin auth token for webhook ${webhookId} is invalid`);
+	}
+}
+
+export class FigmaWebhookPasscodeValidationError extends FigmaWebhookValidationError {
 	constructor(webhookId: string) {
 		super(`Received webhook event for ${webhookId} with invalid passcode`);
 	}
