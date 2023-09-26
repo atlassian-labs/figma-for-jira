@@ -25,12 +25,13 @@ figmaRouter.post('/webhook', (req, res, next) => {
 		.then((figmaTeam) => {
 			switch (event_type) {
 				case 'FILE_UPDATE':
-					return handleFigmaFileUpdateEventUseCase
-						.execute(figmaTeam, file_key)
-						.then(() => res.sendStatus(HttpStatusCode.Ok));
+					return handleFigmaFileUpdateEventUseCase.execute(figmaTeam, file_key);
 				default:
-					return res.sendStatus(HttpStatusCode.Ok);
+					return Promise.resolve();
 			}
+		})
+		.then(() => {
+			res.sendStatus(HttpStatusCode.Ok);
 		})
 		.catch(next);
 });
