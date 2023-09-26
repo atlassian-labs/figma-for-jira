@@ -11,8 +11,8 @@ import { FigmaTeamAuthStatus } from '../../domain/entities';
 type PrismaFigmaTeamCreateParams = Omit<PrismaFigmaTeam, 'id'>;
 
 export class FigmaTeamRepository {
-	upsert = async (figmaTeam: FigmaTeamCreateParams): Promise<FigmaTeam> => {
-		const createParamsDbModel = this.mapCreateParamsToDbModel(figmaTeam);
+	upsert = async (createParams: FigmaTeamCreateParams): Promise<FigmaTeam> => {
+		const createParamsDbModel = this.mapCreateParamsToDbModel(createParams);
 
 		const dbModel = await prismaClient.get().figmaTeam.upsert({
 			create: createParamsDbModel,
@@ -28,17 +28,17 @@ export class FigmaTeamRepository {
 	};
 
 	getByWebhookId = async (webhookId: string): Promise<FigmaTeam> => {
-		const result = await prismaClient
+		const dbModel = await prismaClient
 			.get()
 			.figmaTeam.findFirst({ where: { webhookId } });
 
-		if (result === null) {
+		if (dbModel === null) {
 			throw new RepositoryRecordNotFoundError(
 				`Failed to find FigmaTeam for webhookId ${webhookId}`,
 			);
 		}
 
-		return this.mapToDomainModel(result);
+		return this.mapToDomainModel(dbModel);
 	};
 
 	updateAuthStatus = async (
@@ -62,6 +62,7 @@ export class FigmaTeamRepository {
 
 	private mapCreateParamsToDbModel = ({
 		webhookId,
+		webhookPasscode,
 		teamId,
 		teamName,
 		figmaAdminAtlassianUserId,
@@ -69,6 +70,7 @@ export class FigmaTeamRepository {
 		connectInstallationId,
 	}: FigmaTeamCreateParams): PrismaFigmaTeamCreateParams => ({
 		webhookId,
+		webhookPasscode,
 		teamId,
 		teamName,
 		figmaAdminAtlassianUserId,
@@ -79,6 +81,7 @@ export class FigmaTeamRepository {
 	private mapToDomainModel = ({
 		id,
 		webhookId,
+		webhookPasscode,
 		teamId,
 		teamName,
 		figmaAdminAtlassianUserId,
@@ -87,6 +90,7 @@ export class FigmaTeamRepository {
 	}: PrismaFigmaTeam): FigmaTeam => ({
 		id: id.toString(),
 		webhookId,
+		webhookPasscode,
 		teamId,
 		teamName,
 		figmaAdminAtlassianUserId,

@@ -53,6 +53,7 @@ enum FigmaTeamAuthStatus {
 model FigmaTeam {
   id                        BigInt              @id @default(autoincrement())
   webhookId                 String              @unique @map("webhook_id")
+  webhookPasscode           String              @map("webhook_passcode")
   teamId                    String              @map("team_id")
   teamName                  String              @map("team_name")
   figmaAdminAtlassianUserId String              @map("figma_admin_atlassian_user_id")  // Atlassian user ID of the Figma team admin that configured the webhook

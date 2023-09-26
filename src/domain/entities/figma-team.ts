@@ -6,6 +6,7 @@ export enum FigmaTeamAuthStatus {
 export type FigmaTeam = {
 	readonly id: string;
 	readonly webhookId: string;
+	readonly webhookPasscode: string;
 	readonly teamId: string;
 	readonly teamName: string;
 	readonly figmaAdminAtlassianUserId: string;

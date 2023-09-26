@@ -8,6 +8,7 @@ import { authRouter } from './auth';
 import { entitiesRouter } from './entities';
 import { figmaRouter } from './figma';
 import { lifecycleEventsRouter } from './lifecycle-events';
+import { teamRouter } from './team';
 
 export const rootRouter = Router();
 
@@ -28,6 +29,8 @@ rootRouter.use('/lifecycleEvents', lifecycleEventsRouter);
 rootRouter.use('/auth', authRouter);
 
 rootRouter.use('/entities', entitiesRouter);
+
+rootRouter.use('/team', teamRouter);
 
 // Endpoints to handle requests from Figma
 rootRouter.use('/figma', figmaRouter);

@@ -3,6 +3,8 @@ import axios from 'axios';
 import type {
 	CreateDevResourcesRequest,
 	CreateDevResourcesResponse,
+	CreateWebhookRequest,
+	CreateWebhookResponse,
 	DeleteDevResourceRequest,
 	FileResponse,
 	GetDevResourcesRequest,
@@ -183,6 +185,28 @@ export class FigmaClient {
 			`${
 				getConfig().figma.apiBaseUrl
 			}/v1/files/${fileKey}/dev_resources/${devResourceId}`,
+			{
+				headers: {
+					['Authorization']: `Bearer ${accessToken}`,
+				},
+			},
+		);
+
+		return response.data;
+	};
+
+	/**
+	 * Creates a new Figma webhook using the POST webhook endpoint
+	 *
+	 * @see https://www.figma.com/developers/api#webhooks-v2-post-endpoint
+	 */
+	createWebhook = async (
+		request: CreateWebhookRequest,
+		accessToken: string,
+	): Promise<CreateWebhookResponse> => {
+		const response = await axios.post<CreateWebhookResponse>(
+			`${getConfig().figma.apiBaseUrl}/v2/webhooks`,
+			request,
 			{
 				headers: {
 					['Authorization']: `Bearer ${accessToken}`,

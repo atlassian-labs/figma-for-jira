@@ -39,6 +39,7 @@ CREATE TABLE "figma_oauth2_user_credentials" (
 CREATE TABLE "figma_team" (
     "id" BIGSERIAL NOT NULL,
     "webhook_id" TEXT NOT NULL,
+    "webhook_passcode" TEXT NOT NULL,
     "team_id" TEXT NOT NULL,
     "team_name" TEXT NOT NULL,
     "figma_admin_atlassian_user_id" TEXT NOT NULL,

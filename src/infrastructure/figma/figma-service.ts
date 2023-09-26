@@ -2,13 +2,17 @@ import { AxiosError, HttpStatusCode } from 'axios';
 
 import { FigmaServiceCredentialsError } from './errors';
 import { figmaAuthService } from './figma-auth-service';
-import type { CreateDevResourcesRequest } from './figma-client';
+import type {
+	CreateDevResourcesRequest,
+	CreateWebhookRequest,
+} from './figma-client';
 import { figmaClient } from './figma-client';
 import {
 	transformFileToAtlassianDesign,
 	transformNodeToAtlassianDesign,
 } from './transformers';
 
+import { getConfig } from '../../config';
 import type {
 	AtlassianDesign,
 	FigmaDesignIdentifier,
@@ -153,6 +157,26 @@ export class FigmaService {
 			devResourceId: devResourceToDelete.id,
 			accessToken,
 		});
+	};
+
+	createFileUpdateWebhook = async (
+		teamId: string,
+		atlassianUserId: string,
+		passcode: string,
+	): Promise<{ webhookId: string; teamId: string }> => {
+		const { accessToken } =
+			await this.getValidCredentialsOrThrow(atlassianUserId);
+
+		const request: CreateWebhookRequest = {
+			event_type: 'FILE_UPDATE',
+			team_id: teamId,
+			endpoint: `${getConfig().app.baseUrl}/figma/webhook`,
+			passcode,
+			description: 'Figma for Jira Cloud',
+		};
+
+		const result = await figmaClient.createWebhook(request, accessToken);
+		return { webhookId: result.id, teamId: result.team_id };
 	};
 }
 

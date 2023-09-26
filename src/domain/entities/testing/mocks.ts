@@ -191,6 +191,7 @@ export const generateAssociatedFigmaDesign = ({
 
 export const generateFigmaTeamCreateParams = ({
 	webhookId = uuidv4(),
+	webhookPasscode = uuidv4(),
 	teamId = uuidv4(),
 	teamName = 'Team Name',
 	figmaAdminAtlassianUserId = uuidv4(),
@@ -198,6 +199,7 @@ export const generateFigmaTeamCreateParams = ({
 	connectInstallationId = generateNumericStringId(),
 }: Partial<FigmaTeamCreateParams> = {}): FigmaTeamCreateParams => ({
 	webhookId,
+	webhookPasscode,
 	teamId,
 	teamName,
 	figmaAdminAtlassianUserId,
@@ -208,6 +210,7 @@ export const generateFigmaTeamCreateParams = ({
 export const generateFigmaTeam = ({
 	id = generateNumericStringId(),
 	webhookId = uuidv4(),
+	webhookPasscode = uuidv4(),
 	teamId = uuidv4(),
 	teamName = 'Team Name',
 	figmaAdminAtlassianUserId = uuidv4(),
@@ -216,6 +219,7 @@ export const generateFigmaTeam = ({
 }: Partial<FigmaTeam> = {}): FigmaTeam => ({
 	id,
 	webhookId,
+	webhookPasscode,
 	teamId,
 	teamName,
 	figmaAdminAtlassianUserId,
