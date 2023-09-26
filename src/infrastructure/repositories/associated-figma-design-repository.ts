@@ -17,50 +17,50 @@ type PrismaAssociatedFigmaDesignCreateParams = Omit<
 
 export class AssociatedFigmaDesignRepository {
 	upsert = async (
-		associatedFigmaDesign: AssociatedFigmaDesignCreateParams,
+		createParams: AssociatedFigmaDesignCreateParams,
 	): Promise<AssociatedFigmaDesign> => {
-		const dbModel = this.mapToDbModel(associatedFigmaDesign);
+		const createParamsDbModel = this.mapCreateParamsToDbModel(createParams);
 
-		const record = await prismaClient.get().associatedFigmaDesign.upsert({
-			create: dbModel,
-			update: dbModel,
+		const dbModel = await prismaClient.get().associatedFigmaDesign.upsert({
+			create: createParamsDbModel,
+			update: createParamsDbModel,
 			where: {
 				fileKey_nodeId_associatedWithAri_connectInstallationId: {
-					fileKey: dbModel.fileKey,
-					nodeId: dbModel.nodeId,
-					associatedWithAri: dbModel.associatedWithAri,
-					connectInstallationId: dbModel.connectInstallationId,
+					fileKey: createParamsDbModel.fileKey,
+					nodeId: createParamsDbModel.nodeId,
+					associatedWithAri: createParamsDbModel.associatedWithAri,
+					connectInstallationId: createParamsDbModel.connectInstallationId,
 				},
 			},
 		});
-		return this.mapToDomainModel(record);
+		return this.mapToDomainModel(dbModel);
 	};
 
 	/**
 	 * @remarks
 	 * Required for tests only.
 	 */
-	find = async (id: bigint): Promise<AssociatedFigmaDesign | null> => {
-		const record = await prismaClient.get().associatedFigmaDesign.findFirst({
+	find = async (id: string): Promise<AssociatedFigmaDesign | null> => {
+		const dbModel = await prismaClient.get().associatedFigmaDesign.findFirst({
 			where: {
-				id,
+				id: BigInt(id),
 			},
 		});
 
-		if (record === null) return null;
+		if (dbModel === null) return null;
 
-		return this.mapToDomainModel(record);
+		return this.mapToDomainModel(dbModel);
 	};
 
 	findManyByFileKeyAndConnectInstallationId = async (
 		fileKey: string,
-		connectInstallationId: bigint,
+		connectInstallationId: string,
 	): Promise<AssociatedFigmaDesign[]> => {
-		const records = await prismaClient.get().associatedFigmaDesign.findMany({
-			where: { fileKey, connectInstallationId },
+		const dbModels = await prismaClient.get().associatedFigmaDesign.findMany({
+			where: { fileKey, connectInstallationId: BigInt(connectInstallationId) },
 		});
 
-		return records.map(this.mapToDomainModel);
+		return dbModels.map(this.mapToDomainModel);
 	};
 
 	/**
@@ -70,26 +70,26 @@ export class AssociatedFigmaDesignRepository {
 	findByDesignIdAndAssociatedWithAriAndConnectInstallationId = async (
 		designId: FigmaDesignIdentifier,
 		associatedWithAri: string,
-		connectInstallationId: bigint,
+		connectInstallationId: string,
 	): Promise<AssociatedFigmaDesign | null> => {
-		const record = await prismaClient.get().associatedFigmaDesign.findFirst({
+		const dbModel = await prismaClient.get().associatedFigmaDesign.findFirst({
 			where: {
 				fileKey: designId.fileKey,
 				nodeId: designId.nodeId ?? '',
 				associatedWithAri: associatedWithAri,
-				connectInstallationId,
+				connectInstallationId: BigInt(connectInstallationId),
 			},
 		});
 
-		if (record === null) return null;
+		if (dbModel === null) return null;
 
-		return this.mapToDomainModel(record);
+		return this.mapToDomainModel(dbModel);
 	};
 
 	deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId = async (
 		designId: FigmaDesignIdentifier,
 		associatedWithAri: string,
-		connectInstallationId: bigint,
+		connectInstallationId: string,
 	): Promise<AssociatedFigmaDesign | null> => {
 		try {
 			const record = await prismaClient.get().associatedFigmaDesign.delete({
@@ -98,7 +98,7 @@ export class AssociatedFigmaDesignRepository {
 						fileKey: designId.fileKey,
 						nodeId: designId.nodeId ?? '',
 						associatedWithAri: associatedWithAri,
-						connectInstallationId,
+						connectInstallationId: BigInt(connectInstallationId),
 					},
 				},
 			});
@@ -122,16 +122,16 @@ export class AssociatedFigmaDesignRepository {
 		associatedWithAri,
 		connectInstallationId,
 	}: PrismaAssociatedFigmaDesign): AssociatedFigmaDesign => ({
-		id,
+		id: id.toString(),
 		designId: new FigmaDesignIdentifier(
 			fileKey,
 			nodeId !== '' ? nodeId : undefined,
 		),
 		associatedWithAri,
-		connectInstallationId,
+		connectInstallationId: connectInstallationId.toString(),
 	});
 
-	private mapToDbModel = ({
+	private mapCreateParamsToDbModel = ({
 		designId,
 		associatedWithAri,
 		connectInstallationId,
@@ -139,7 +139,7 @@ export class AssociatedFigmaDesignRepository {
 		fileKey: designId.fileKey,
 		nodeId: designId.nodeId ?? '',
 		associatedWithAri,
-		connectInstallationId,
+		connectInstallationId: BigInt(connectInstallationId),
 	});
 }
 

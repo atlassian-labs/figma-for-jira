@@ -4,8 +4,12 @@ export function getRandomInt(min: number, max: number): number {
 	return Math.floor(Math.random() * (max - min) + min);
 }
 
-export function getRandomNumericId(): bigint {
+export function generateNumericId(): string {
 	const id = getRandomInt(1, Number.MAX_SAFE_INTEGER);
 
-	return BigInt(id);
+	return BigInt(id).toString();
+}
+
+export function generateNumericStringId(): string {
+	return generateNumericId().toString();
 }

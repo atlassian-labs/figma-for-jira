@@ -8,19 +8,23 @@ import { prismaClient } from './prisma-client';
 import type { FigmaTeam, FigmaTeamCreateParams } from '../../domain/entities';
 import { FigmaTeamAuthStatus } from '../../domain/entities';
 
+type PrismaFigmaTeamCreateParams = Omit<PrismaFigmaTeam, 'id'>;
+
 export class FigmaTeamRepository {
 	upsert = async (figmaTeam: FigmaTeamCreateParams): Promise<FigmaTeam> => {
-		const result = await prismaClient.get().figmaTeam.upsert({
-			create: figmaTeam,
-			update: figmaTeam,
+		const createParamsDbModel = this.mapCreateParamsToDbModel(figmaTeam);
+
+		const dbModel = await prismaClient.get().figmaTeam.upsert({
+			create: createParamsDbModel,
+			update: createParamsDbModel,
 			where: {
 				teamId_connectInstallationId: {
-					teamId: figmaTeam.teamId,
-					connectInstallationId: figmaTeam.connectInstallationId,
+					teamId: createParamsDbModel.teamId,
+					connectInstallationId: createParamsDbModel.connectInstallationId,
 				},
 			},
 		});
-		return this.mapToDomainModel(result);
+		return this.mapToDomainModel(dbModel);
 	};
 
 	getByWebhookId = async (webhookId: string): Promise<FigmaTeam> => {
@@ -38,13 +42,13 @@ export class FigmaTeamRepository {
 	};
 
 	updateAuthStatus = async (
-		id: bigint,
+		id: string,
 		authStatus: FigmaTeamAuthStatus,
 	): Promise<void> => {
 		try {
 			await prismaClient.get().figmaTeam.update({
 				data: { authStatus },
-				where: { id },
+				where: { id: BigInt(id) },
 			});
 		} catch (e: unknown) {
 			if (
@@ -56,6 +60,22 @@ export class FigmaTeamRepository {
 		}
 	};
 
+	private mapCreateParamsToDbModel = ({
+		webhookId,
+		teamId,
+		teamName,
+		figmaAdminAtlassianUserId,
+		authStatus,
+		connectInstallationId,
+	}: FigmaTeamCreateParams): PrismaFigmaTeamCreateParams => ({
+		webhookId,
+		teamId,
+		teamName,
+		figmaAdminAtlassianUserId,
+		authStatus,
+		connectInstallationId: BigInt(connectInstallationId),
+	});
+
 	private mapToDomainModel = ({
 		id,
 		webhookId,
@@ -65,13 +85,13 @@ export class FigmaTeamRepository {
 		authStatus,
 		connectInstallationId,
 	}: PrismaFigmaTeam): FigmaTeam => ({
-		id,
+		id: id.toString(),
 		webhookId,
 		teamId,
 		teamName,
 		figmaAdminAtlassianUserId,
 		authStatus: FigmaTeamAuthStatus[authStatus],
-		connectInstallationId,
+		connectInstallationId: connectInstallationId.toString(),
 	});
 }
 

@@ -1,6 +1,6 @@
 import { installedUseCase } from './installed-use-case';
 
-import { getRandomNumericId } from '../common/testing/utils';
+import { generateNumericStringId } from '../common/testing/utils';
 import { generateConnectInstallationCreateParams } from '../domain/entities/testing';
 import { connectInstallationRepository } from '../infrastructure/repositories';
 
@@ -9,7 +9,7 @@ describe('installedUseCase', () => {
 		const installationCreateParams = generateConnectInstallationCreateParams();
 		jest.spyOn(connectInstallationRepository, 'upsert').mockResolvedValue({
 			...installationCreateParams,
-			id: getRandomNumericId(),
+			id: generateNumericStringId(),
 		});
 
 		await installedUseCase.execute(installationCreateParams);
