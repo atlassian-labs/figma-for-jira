@@ -4,7 +4,7 @@ import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
 import { generateFigmaWebhookEventPayload } from './testing/mocks';
-import type { FigmaWebhookEventPayload, FigmaWebhookEventType } from './types';
+import type { FigmaWebhookEventPayload } from './types';
 
 import app from '../../../app';
 import { getConfig } from '../../../config';
@@ -12,6 +12,7 @@ import type {
 	AssociatedFigmaDesign,
 	ConnectInstallation,
 	FigmaTeam,
+	FigmaWebhookEventType,
 } from '../../../domain/entities';
 import { FigmaTeamAuthStatus } from '../../../domain/entities';
 import {
@@ -23,7 +24,6 @@ import {
 	generateFigmaTeamCreateParams,
 	generateFigmaUserCredentialsCreateParams,
 } from '../../../domain/entities/testing';
-import { figmaService } from '../../../infrastructure/figma';
 import type { FileResponse } from '../../../infrastructure/figma/figma-client';
 import {
 	generateChildNode,
@@ -159,11 +159,7 @@ describe('/figma', () => {
 				webhookEventPayload = generateFigmaWebhookEventPayload({
 					webhook_id: figmaTeam.webhookId,
 					file_key: fileKey,
-					passcode: figmaService.generateWebhookPasscode({
-						atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,
-						figmaTeamId: figmaTeam.teamId,
-						connectInstallationSecret: connectInstallation.sharedSecret,
-					}),
+					passcode: figmaTeam.webhookPasscode,
 				});
 			});
 
@@ -225,7 +221,7 @@ describe('/figma', () => {
 				);
 			});
 
-			it('should return a 200 if the passcode is invalid', async () => {
+			it('should return a 400 if the passcode is invalid', async () => {
 				const invalidPasscodePayload = generateFigmaWebhookEventPayload({
 					webhook_id: figmaTeam.webhookId,
 					file_key: associatedFigmaDesigns[0].designId.fileKey,
@@ -235,7 +231,7 @@ describe('/figma', () => {
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(invalidPasscodePayload)
-					.expect(HttpStatusCode.Ok);
+					.expect(HttpStatusCode.BadRequest);
 			});
 
 			it('should return a 500 if fetching designs from Figma fails', async () => {

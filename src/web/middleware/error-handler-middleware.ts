@@ -5,7 +5,11 @@ import { UnauthorizedError } from './errors';
 import { JwtVerificationError } from './jwt-utils';
 
 import { SchemaValidationError } from '../../infrastructure';
-import { FigmaServiceCredentialsError } from '../../infrastructure/figma';
+import {
+	FigmaServiceCredentialsError,
+	FigmaWebhookEventTypeValidationError,
+	FigmaWebhookPasscodeValidationError,
+} from '../../infrastructure/figma';
 import { RepositoryRecordNotFoundError } from '../../infrastructure/repositories';
 
 export const errorHandlerMiddleware = (
@@ -28,8 +32,13 @@ export const errorHandlerMiddleware = (
 		res.status(HttpStatusCode.NotFound).send(err.message);
 	} else if (err instanceof FigmaServiceCredentialsError) {
 		res.status(HttpStatusCode.Forbidden).send(err.message);
-	} else if (err instanceof SchemaValidationError) {
-		res.status(HttpStatusCode.BadRequest);
+	} else if (err instanceof FigmaWebhookEventTypeValidationError) {
+		res.sendStatus(HttpStatusCode.Ok);
+	} else if (
+		err instanceof FigmaWebhookPasscodeValidationError ||
+		err instanceof SchemaValidationError
+	) {
+		res.sendStatus(HttpStatusCode.BadRequest);
 	} else {
 		res.sendStatus(HttpStatusCode.InternalServerError);
 	}

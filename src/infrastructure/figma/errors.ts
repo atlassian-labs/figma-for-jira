@@ -8,3 +8,16 @@ export class FigmaServiceCredentialsError extends FigmaServiceError {
 		this.cause = cause;
 	}
 }
+
+export class FigmaWebhookValidationError extends Error {}
+
+export class FigmaWebhookEventTypeValidationError extends Error {
+	constructor(webhookId: string) {
+		super(`Received webhook event for ${webhookId} with invalid event type`);
+	}
+}
+export class FigmaWebhookPasscodeValidationError extends Error {
+	constructor(webhookId: string) {
+		super(`Received webhook event for ${webhookId} with invalid passcode`);
+	}
+}

@@ -21,10 +21,10 @@ model ConnectInstallation {
 }
 
 model AssociatedFigmaDesign {
-  id                    Int                 @id @default(autoincrement())
-  fileKey               String              @map("file_key")
-  nodeId                String              @map("node_id") // Prisma does not support nullable columns with the composite indexes: https://github.com/prisma/prisma/issues/3197
-  associatedWithAri     String              @map("associated-with-ari")
+  id                Int    @id @default(autoincrement())
+  fileKey           String @map("file_key")
+  nodeId            String @map("node_id") // Prisma does not support nullable columns with the composite indexes: https://github.com/prisma/prisma/issues/3197
+  associatedWithAri String @map("associated-with-ari")
 
   connectInstallation   ConnectInstallation @relation(fields: [connectInstallationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   connectInstallationId Int                 @map("connect_installation_id")
@@ -53,13 +53,14 @@ enum FigmaTeamAuthStatus {
 model FigmaTeam {
   id                        Int                 @id @default(autoincrement())
   webhookId                 String              @unique @map("webhook_id")
+  webhookPasscode           String              @map("webhook_passcode")
   teamId                    String              @map("team_id")
   teamName                  String              @map("team_name")
   figmaAdminAtlassianUserId String              @map("figma_admin_atlassian_user_id") // Atlassian user ID of the Figma team admin that configured the webhook
   authStatus                FigmaTeamAuthStatus
 
-  connectInstallation       ConnectInstallation @relation(fields: [connectInstallationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  connectInstallationId     Int                 @map("connect_installation_id")
+  connectInstallation   ConnectInstallation @relation(fields: [connectInstallationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  connectInstallationId Int                 @map("connect_installation_id")
 
   @@unique([teamId, connectInstallationId])
   @@map("figma_team")

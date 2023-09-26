@@ -113,6 +113,7 @@ describe('/configure', () => {
 			expect(figmaTeam).toEqual({
 				id: expect.anything(),
 				webhookId,
+				webhookPasscode: figmaTeam.webhookPasscode,
 				teamId,
 				teamName: 'TODO',
 				figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,

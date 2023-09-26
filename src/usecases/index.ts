@@ -6,5 +6,6 @@ export * from './associate-entity-use-case';
 export * from './disassociate-entity-use-case';
 export * from './handle-figma-file-update-event-use-case';
 export * from './configure-figma-teams-use-case';
+export * from './validate-webhook-payload-use-case';
 export * from './types';
 export * from './schemas';

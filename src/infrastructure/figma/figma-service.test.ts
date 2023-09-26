@@ -351,13 +351,9 @@ describe('FigmaService', () => {
 			const webhookId = uuidv4();
 			const teamId = uuidv4();
 			const endpoint = `${mockConfig.app.baseUrl}/figma/webhook`;
-			const passcode = 'passcode';
+			const passcode = uuidv4();
 			const description = 'Figma for Jira Cloud';
-			const connectInstallationSecret = uuidv4();
 
-			jest
-				.spyOn(figmaService, 'generateWebhookPasscode')
-				.mockReturnValue(passcode);
 			jest.spyOn(figmaClient, 'createWebhook').mockResolvedValue({
 				id: webhookId,
 				team_id: teamId,
@@ -373,7 +369,7 @@ describe('FigmaService', () => {
 			await figmaService.createFileUpdateWebhook(
 				teamId,
 				MOCK_CREDENTIALS.atlassianUserId,
-				connectInstallationSecret,
+				passcode,
 			);
 
 			const expectedCreateWebhookRequest: CreateWebhookRequest = {

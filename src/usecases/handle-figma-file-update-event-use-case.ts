@@ -1,3 +1,4 @@
+import type { FigmaTeam } from '../domain/entities';
 import { FigmaTeamAuthStatus } from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
@@ -8,12 +9,7 @@ import {
 } from '../infrastructure/repositories';
 
 export const handleFigmaFileUpdateEventUseCase = {
-	execute: async (
-		webhookId: string,
-		fileKey: string,
-		passcode: string,
-	): Promise<void> => {
-		const figmaTeam = await figmaTeamRepository.getByWebhookId(webhookId);
+	execute: async (figmaTeam: FigmaTeam, fileKey: string): Promise<void> => {
 		const [connectInstallation, associatedFigmaDesigns] = await Promise.all([
 			connectInstallationRepository.get(figmaTeam.connectInstallationId),
 			associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
@@ -21,16 +17,6 @@ export const handleFigmaFileUpdateEventUseCase = {
 				figmaTeam.connectInstallationId,
 			),
 		]);
-
-		if (
-			!figmaService.validateWebhookPasscode(passcode, {
-				atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,
-				figmaTeamId: figmaTeam.teamId,
-				connectInstallationSecret: connectInstallation.sharedSecret,
-			})
-		) {
-			return;
-		}
 
 		// Ensure team admin OAuth2 credentials are still valid
 		try {
