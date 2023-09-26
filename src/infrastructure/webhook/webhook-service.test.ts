@@ -1,18 +1,18 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { validateFigmaWebhookEventUseCase } from './validate-figma-webhook-event-use-case';
-
-import type { FigmaWebhookEventType } from '../domain/entities';
-import { generateFigmaTeam } from '../domain/entities/testing';
 import {
-	figmaService,
-	FigmaWebhookAuthValidationError,
-	FigmaWebhookEventTypeValidationError,
-	FigmaWebhookPasscodeValidationError,
-} from '../infrastructure/figma';
-import { figmaTeamRepository } from '../infrastructure/repositories';
+	WebhookServiceAuthValidationError,
+	WebhookServiceEventTypeValidationError,
+	WebhookServicePasscodeValidationError,
+} from './errors';
+import { webhookService } from './webhook-service';
 
-describe('validateFigmaWebhookEventUseCase', () => {
+import type { FigmaWebhookEventType } from '../../domain/entities';
+import { generateFigmaTeam } from '../../domain/entities/testing';
+import { figmaService } from '../figma';
+import { figmaTeamRepository } from '../repositories';
+
+describe('WebhookService', () => {
 	it.each([
 		'PING',
 		'FILE_VERSION_UPDATE',
@@ -20,17 +20,19 @@ describe('validateFigmaWebhookEventUseCase', () => {
 		'LIBRARY_PUBLISH',
 		'FILE_COMMENT',
 	] as FigmaWebhookEventType[])(
-		'should throw a FigmaWebhookEventTypeValidationError for unsupported event types',
+		'should throw a WebhookServiceEventTypeValidationError for unsupported event types',
 		async (eventType: FigmaWebhookEventType) => {
 			const webhookId = uuidv4();
 			const passcode = uuidv4();
-			const expectedError = new FigmaWebhookEventTypeValidationError(webhookId);
+			const expectedError = new WebhookServiceEventTypeValidationError(
+				webhookId,
+			);
 
 			jest.spyOn(figmaTeamRepository, 'getByWebhookId');
 			jest.spyOn(figmaService, 'getValidCredentialsOrThrow');
 
 			await expect(
-				validateFigmaWebhookEventUseCase.execute(
+				webhookService.validateFigmaWebhookEvent(
 					eventType,
 					webhookId,
 					passcode,
@@ -46,7 +48,7 @@ describe('validateFigmaWebhookEventUseCase', () => {
 		const webhookId = uuidv4();
 		const invalidPasscode = uuidv4();
 		const figmaTeam = generateFigmaTeam({ webhookId });
-		const expectedError = new FigmaWebhookPasscodeValidationError(webhookId);
+		const expectedError = new WebhookServicePasscodeValidationError(webhookId);
 
 		jest
 			.spyOn(figmaTeamRepository, 'getByWebhookId')
@@ -54,7 +56,7 @@ describe('validateFigmaWebhookEventUseCase', () => {
 		jest.spyOn(figmaService, 'getValidCredentialsOrThrow');
 
 		await expect(
-			validateFigmaWebhookEventUseCase.execute(
+			webhookService.validateFigmaWebhookEvent(
 				eventType,
 				webhookId,
 				invalidPasscode,
@@ -67,7 +69,7 @@ describe('validateFigmaWebhookEventUseCase', () => {
 		const eventType: FigmaWebhookEventType = 'FILE_UPDATE';
 		const webhookId = uuidv4();
 		const figmaTeam = generateFigmaTeam({ webhookId });
-		const expectedError = new FigmaWebhookAuthValidationError(webhookId);
+		const expectedError = new WebhookServiceAuthValidationError(webhookId);
 
 		jest
 			.spyOn(figmaTeamRepository, 'getByWebhookId')
@@ -77,7 +79,7 @@ describe('validateFigmaWebhookEventUseCase', () => {
 			.mockRejectedValue(new Error('auth error'));
 
 		await expect(
-			validateFigmaWebhookEventUseCase.execute(
+			webhookService.validateFigmaWebhookEvent(
 				eventType,
 				webhookId,
 				figmaTeam.webhookPasscode,

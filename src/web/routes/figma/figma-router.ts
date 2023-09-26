@@ -4,10 +4,8 @@ import { Router } from 'express';
 import { FIGMA_WEBHOOK_PAYLOAD_SCHEMA } from './schemas';
 
 import { assertSchema } from '../../../infrastructure';
-import {
-	handleFigmaFileUpdateEventUseCase,
-	validateFigmaWebhookEventUseCase,
-} from '../../../usecases';
+import { webhookService } from '../../../infrastructure/webhook';
+import { handleFigmaFileUpdateEventUseCase } from '../../../usecases';
 
 export const figmaRouter = Router();
 
@@ -20,8 +18,8 @@ figmaRouter.post('/webhook', (req, res, next) => {
 
 	const { event_type, file_key, webhook_id, passcode } = req.body;
 
-	validateFigmaWebhookEventUseCase
-		.execute(event_type, webhook_id, passcode)
+	webhookService
+		.validateFigmaWebhookEvent(event_type, webhook_id, passcode)
 		.then((figmaTeam) => {
 			switch (event_type) {
 				case 'FILE_UPDATE':
