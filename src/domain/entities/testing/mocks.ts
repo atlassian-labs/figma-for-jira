@@ -139,7 +139,7 @@ export const generateAtlassianDesign = ({
 	updateSequenceNumber,
 });
 
-export const generateJiraIssueId = () => generateNumericStringId().toString();
+export const generateJiraIssueId = () => generateNumericStringId();
 
 export const generateJiraIssueKey = () => `KEY-${generateNumericStringId()}`;
 
