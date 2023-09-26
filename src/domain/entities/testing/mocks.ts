@@ -21,7 +21,7 @@ import {
 import { Duration } from '../../../common/duration';
 import {
 	getRandomInt,
-	getRandomPositiveInt,
+	getRandomNumericId,
 } from '../../../common/testing/utils';
 
 export const generateFigmaFileName = () => uuidv4();
@@ -30,7 +30,7 @@ export const generateFigmaFileKey = () =>
 	Buffer.from(uuidv4()).toString('base64');
 
 export const generateFigmaNodeId = () =>
-	`${getRandomInt(1, 100)}:${getRandomInt(1, 100)}`;
+	`${getRandomInt(1, 1000)}:${getRandomInt(1, 1000)}`;
 
 export const generateFigmaDesignIdentifier = ({
 	fileKey = generateFigmaFileKey(),
@@ -63,7 +63,7 @@ export const generateFigmaDesignUrl = ({
 };
 
 export const generateFigmaOAuth2UserCredentials = ({
-	id = getRandomInt(1, 10000),
+	id = getRandomNumericId(),
 	atlassianUserId = uuidv4(),
 	accessToken = uuidv4(),
 	refreshToken = uuidv4(),
@@ -104,7 +104,7 @@ export const generateConnectInstallationCreateParams = ({
 });
 
 export const generateConnectInstallation = ({
-	id = getRandomInt(1, 1000),
+	id = getRandomNumericId(),
 	key = uuidv4(),
 	clientKey = uuidv4(),
 	sharedSecret = uuidv4(),
@@ -139,9 +139,9 @@ export const generateAtlassianDesign = ({
 	updateSequenceNumber,
 });
 
-export const generateJiraIssueId = () => getRandomPositiveInt().toString();
+export const generateJiraIssueId = () => getRandomNumericId().toString();
 
-export const generateJiraIssueKey = () => `KEY-${getRandomPositiveInt()}`;
+export const generateJiraIssueKey = () => `KEY-${getRandomNumericId()}`;
 
 export const generateJiraIssueUrl = ({
 	baseUrl = `https://${uuidv4()}.atlassian.net`,
@@ -170,7 +170,7 @@ export const generateJiraIssue = ({
 export const generateAssociatedFigmaDesignCreateParams = ({
 	designId = generateFigmaDesignIdentifier(),
 	associatedWithAri = generateJiraIssueAri(),
-	connectInstallationId = getRandomInt(1, 100000),
+	connectInstallationId = getRandomNumericId(),
 }: Partial<AssociatedFigmaDesignCreateParams> = {}): AssociatedFigmaDesignCreateParams => ({
 	designId,
 	associatedWithAri,
@@ -178,10 +178,10 @@ export const generateAssociatedFigmaDesignCreateParams = ({
 });
 
 export const generateAssociatedFigmaDesign = ({
-	id = getRandomInt(1, 100000),
+	id = getRandomNumericId(),
 	designId = generateFigmaDesignIdentifier(),
 	associatedWithAri = generateJiraIssueAri(),
-	connectInstallationId = getRandomInt(1, 100000),
+	connectInstallationId = getRandomNumericId(),
 }: Partial<AssociatedFigmaDesign> = {}): AssociatedFigmaDesign => ({
 	id,
 	designId,
@@ -195,7 +195,7 @@ export const generateFigmaTeamCreateParams = ({
 	teamName = 'Team Name',
 	figmaAdminAtlassianUserId = uuidv4(),
 	authStatus: status = FigmaTeamAuthStatus.OK,
-	connectInstallationId = getRandomInt(1, 100000),
+	connectInstallationId = getRandomNumericId(),
 }: Partial<FigmaTeamCreateParams> = {}): FigmaTeamCreateParams => ({
 	webhookId,
 	teamId,
@@ -206,13 +206,13 @@ export const generateFigmaTeamCreateParams = ({
 });
 
 export const generateFigmaTeam = ({
-	id = getRandomInt(1, 100000),
+	id = getRandomNumericId(),
 	webhookId = uuidv4(),
 	teamId = uuidv4(),
 	teamName = 'Team Name',
 	figmaAdminAtlassianUserId = uuidv4(),
 	authStatus: status = FigmaTeamAuthStatus.OK,
-	connectInstallationId = getRandomInt(1, 100000),
+	connectInstallationId = getRandomNumericId(),
 }: Partial<FigmaTeam> = {}): FigmaTeam => ({
 	id,
 	webhookId,

@@ -11,7 +11,7 @@ import type {
 } from '../../domain/entities';
 
 export class ConnectInstallationRepository {
-	get = async (id: number): Promise<ConnectInstallation> => {
+	get = async (id: bigint): Promise<ConnectInstallation> => {
 		const result = await prismaClient.get().connectInstallation.findFirst({
 			where: { id },
 		});

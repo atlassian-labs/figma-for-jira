@@ -5,8 +5,8 @@ import { PrismaErrorCode } from './constants';
 import { RepositoryRecordNotFoundError } from './errors';
 import { prismaClient } from './prisma-client';
 
-import { FigmaTeamAuthStatus } from '../../domain/entities';
 import type { FigmaTeam, FigmaTeamCreateParams } from '../../domain/entities';
+import { FigmaTeamAuthStatus } from '../../domain/entities';
 
 export class FigmaTeamRepository {
 	upsert = async (figmaTeam: FigmaTeamCreateParams): Promise<FigmaTeam> => {
@@ -38,7 +38,7 @@ export class FigmaTeamRepository {
 	};
 
 	updateAuthStatus = async (
-		id: number,
+		id: bigint,
 		authStatus: FigmaTeamAuthStatus,
 	): Promise<void> => {
 		try {

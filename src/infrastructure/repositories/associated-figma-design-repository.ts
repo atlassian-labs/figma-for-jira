@@ -40,7 +40,7 @@ export class AssociatedFigmaDesignRepository {
 	 * @remarks
 	 * Required for tests only.
 	 */
-	find = async (id: number): Promise<AssociatedFigmaDesign | null> => {
+	find = async (id: bigint): Promise<AssociatedFigmaDesign | null> => {
 		const record = await prismaClient.get().associatedFigmaDesign.findFirst({
 			where: {
 				id,
@@ -54,7 +54,7 @@ export class AssociatedFigmaDesignRepository {
 
 	findManyByFileKeyAndConnectInstallationId = async (
 		fileKey: string,
-		connectInstallationId: number,
+		connectInstallationId: bigint,
 	): Promise<AssociatedFigmaDesign[]> => {
 		const records = await prismaClient.get().associatedFigmaDesign.findMany({
 			where: { fileKey, connectInstallationId },
@@ -70,7 +70,7 @@ export class AssociatedFigmaDesignRepository {
 	findByDesignIdAndAssociatedWithAriAndConnectInstallationId = async (
 		designId: FigmaDesignIdentifier,
 		associatedWithAri: string,
-		connectInstallationId: number,
+		connectInstallationId: bigint,
 	): Promise<AssociatedFigmaDesign | null> => {
 		const record = await prismaClient.get().associatedFigmaDesign.findFirst({
 			where: {
@@ -89,7 +89,7 @@ export class AssociatedFigmaDesignRepository {
 	deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId = async (
 		designId: FigmaDesignIdentifier,
 		associatedWithAri: string,
-		connectInstallationId: number,
+		connectInstallationId: bigint,
 	): Promise<AssociatedFigmaDesign | null> => {
 		try {
 			const record = await prismaClient.get().associatedFigmaDesign.delete({

@@ -4,13 +4,13 @@ export enum FigmaTeamAuthStatus {
 }
 
 export type FigmaTeam = {
-	readonly id: number;
+	readonly id: bigint;
 	readonly webhookId: string;
 	readonly teamId: string;
 	readonly teamName: string;
 	readonly figmaAdminAtlassianUserId: string;
 	readonly authStatus: FigmaTeamAuthStatus;
-	readonly connectInstallationId: number;
+	readonly connectInstallationId: bigint;
 };
 
 export type FigmaTeamCreateParams = Omit<FigmaTeam, 'id'>;
