@@ -110,11 +110,11 @@ export type CreateWebhookResponse = {
 };
 
 export type Project = {
-	id: string;
-	name: string;
+	readonly id: string;
+	readonly name: string;
 };
 
 export type GetTeamProjectsResponse = {
-	name: string;
-	projects: Project[];
+	readonly name: string;
+	readonly projects: Project[];
 };
