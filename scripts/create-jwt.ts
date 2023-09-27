@@ -15,7 +15,7 @@ const jwt = createJwtToken({
 		method,
 		pathname: url.pathname,
 	},
-	connectClientKey: INSTALLATION_CLIENT_KEY,
+	connectAppKey: INSTALLATION_CLIENT_KEY,
 	connectSharedSecret: INSTALLATION_CLIENT_SECRET,
 	expiresIn: Duration.ofMinutes(99999),
 });

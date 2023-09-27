@@ -1,15 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import {
-	generateFigmaFileKey,
-	generateFigmaFileName,
-} from '../../../../domain/entities/testing';
 import type { FigmaWebhookEventPayload } from '../types';
 
 export const generateFigmaWebhookEventPayload = ({
 	event_type = 'FILE_UPDATE',
-	file_key = generateFigmaFileKey(),
-	file_name = generateFigmaFileName(),
+	file_key,
+	file_name,
 	passcode = 'passcode',
 	protocol_version = '2',
 	retries = 0,

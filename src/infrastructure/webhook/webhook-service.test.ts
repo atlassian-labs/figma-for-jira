@@ -74,6 +74,7 @@ describe('WebhookService', () => {
 		jest
 			.spyOn(figmaTeamRepository, 'getByWebhookId')
 			.mockResolvedValue(figmaTeam);
+		jest.spyOn(figmaTeamRepository, 'updateAuthStatus').mockResolvedValue();
 		jest
 			.spyOn(figmaService, 'getValidCredentialsOrThrow')
 			.mockRejectedValue(new Error('auth error'));
