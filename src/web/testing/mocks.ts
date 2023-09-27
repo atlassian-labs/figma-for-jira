@@ -13,6 +13,11 @@ import { promisify } from 'util';
  * Generates an asymmetric JWT token that can be used to authorise lifecycle event requests in
  * integration tests.
  *
+ * @remarks
+ * In order to use a generated token in integration tests, you might also need to mock the
+ * `https://connect-install-keys.atlassian.com/:kid` endpoint:
+ * https://developer.atlassian.com/cloud/jira/platform/security-for-connect-apps/#validating-installation-lifecycle-requests
+ *
  * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#types-of-jwt-token
  */
 export const generateInboundRequestAsymmetricJwtToken = async ({
