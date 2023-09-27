@@ -108,3 +108,13 @@ export type CreateWebhookResponse = {
 	readonly description: string | null;
 	readonly protocol_version: string;
 };
+
+export type Project = {
+	id: string;
+	name: string;
+};
+
+export type GetTeamProjectsResponse = {
+	name: string;
+	projects: Project[];
+};

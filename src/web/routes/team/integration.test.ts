@@ -49,6 +49,23 @@ const mockCreateWebhookEndpoint = ({
 		});
 };
 
+const mockGetTeamProjectsEndpoint = ({
+	teamId = uuidv4(),
+	teamName = uuidv4(),
+	success = true,
+}: {
+	teamId?: string;
+	teamName?: string;
+	success?: boolean;
+} = {}) => {
+	const statusCode = success
+		? HttpStatusCode.Ok
+		: HttpStatusCode.InternalServerError;
+	nock(FIGMA_API_BASE_URL)
+		.get(`/v1/teams/${teamId}/projects`)
+		.reply(statusCode, { name: teamName, projects: [] });
+};
+
 const mockMeEndpoint = ({ success = true }: { success?: boolean } = {}) => {
 	nock(FIGMA_API_BASE_URL)
 		.get(FIGMA_API_ME_ENDPOINT)
@@ -78,6 +95,7 @@ describe('/team', () => {
 
 		it('should create a webhook and FigmaTeam record', async () => {
 			const teamId = uuidv4();
+			const teamName = uuidv4();
 			const webhookId = uuidv4();
 			const jwt = generateInboundRequestSymmetricJwtToken({
 				method: 'POST',
@@ -86,6 +104,7 @@ describe('/team', () => {
 			});
 
 			mockMeEndpoint();
+			mockGetTeamProjectsEndpoint({ teamId, teamName });
 			mockCreateWebhookEndpoint({ webhookId, teamId });
 
 			await request(app)
@@ -101,7 +120,7 @@ describe('/team', () => {
 				webhookId,
 				webhookPasscode: figmaTeam.webhookPasscode,
 				teamId,
-				teamName: 'TODO',
+				teamName,
 				figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				authStatus: FigmaTeamAuthStatus.OK,
 				connectInstallationId: connectInstallation.id,
@@ -110,6 +129,7 @@ describe('/team', () => {
 
 		it('should return a 500 and not create a FigmaTeam when creating the webhook fails', async () => {
 			const teamId = uuidv4();
+			const teamName = uuidv4();
 			const webhookId = uuidv4();
 			const jwt = generateInboundRequestSymmetricJwtToken({
 				method: 'POST',
@@ -118,6 +138,7 @@ describe('/team', () => {
 			});
 
 			mockMeEndpoint();
+			mockGetTeamProjectsEndpoint({ teamId, teamName });
 			mockCreateWebhookEndpoint({ webhookId, teamId, success: false });
 
 			await request(app)

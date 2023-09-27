@@ -70,6 +70,22 @@ export class FigmaTeamRepository {
 		}
 	};
 
+	updateTeamName = async (id: string, teamName: string): Promise<void> => {
+		try {
+			await prismaClient.get().figmaTeam.update({
+				data: { teamName },
+				where: { id: BigInt(id) },
+			});
+		} catch (e: unknown) {
+			if (
+				e instanceof PrismaClientKnownRequestError &&
+				e.code === PrismaErrorCode.RecordNotFound
+			) {
+				throw new RepositoryRecordNotFoundError(e.message);
+			}
+		}
+	};
+
 	private mapCreateParamsToDbModel = ({
 		webhookId,
 		webhookPasscode,
