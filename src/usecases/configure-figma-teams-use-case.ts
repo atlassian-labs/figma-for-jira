@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import {
 	type ConnectInstallation,
 	FigmaTeamAuthStatus,
@@ -11,14 +13,18 @@ export const configureFigmaTeamUseCase = {
 		atlassianUserId: string,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
+		const webhookPasscode = uuidv4();
+
 		const { webhookId, teamId: figmaTeamId } =
 			await figmaService.createFileUpdateWebhook(
 				teamId,
 				atlassianUserId,
-				connectInstallation.sharedSecret,
+				webhookPasscode,
 			);
+
 		await figmaTeamRepository.upsert({
 			webhookId,
+			webhookPasscode,
 			teamId: figmaTeamId,
 			teamName: 'TODO',
 			figmaAdminAtlassianUserId: atlassianUserId,

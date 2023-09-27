@@ -3,8 +3,13 @@ import type { FigmaOAuth2UserCredentials as PrismaFigmaOAuth2UserCredentials } f
 import { RepositoryRecordNotFoundError } from './errors';
 import { prismaClient } from './prisma-client';
 
-import type { FigmaUserCredentialsCreateParams } from '../../domain/entities';
+import type { FigmaOAuth2UserCredentialsCreateParams } from '../../domain/entities';
 import { FigmaOAuth2UserCredentials } from '../../domain/entities';
+
+type PrismaFigmaOAuth2UserCredentialsCreateParams = Omit<
+	PrismaFigmaOAuth2UserCredentials,
+	'id'
+>;
 
 export class FigmaOAuth2UserCredentialsRepository {
 	get = async (
@@ -25,31 +30,44 @@ export class FigmaOAuth2UserCredentialsRepository {
 	};
 
 	upsert = async (
-		credentials: FigmaUserCredentialsCreateParams,
+		createParams: FigmaOAuth2UserCredentialsCreateParams,
 	): Promise<FigmaOAuth2UserCredentials> => {
-		const params: Omit<PrismaFigmaOAuth2UserCredentials, 'id'> = credentials;
-		const result = await prismaClient.get().figmaOAuth2UserCredentials.upsert({
-			create: params,
-			update: params,
-			where: { atlassianUserId: credentials.atlassianUserId },
+		const createParamsDbModel = this.mapCreateParamsToDbModel(createParams);
+
+		const dbModel = await prismaClient.get().figmaOAuth2UserCredentials.upsert({
+			create: createParamsDbModel,
+			update: createParamsDbModel,
+			where: { atlassianUserId: createParamsDbModel.atlassianUserId },
 		});
-		return this.mapToDomainModel(result);
+		return this.mapToDomainModel(dbModel);
 	};
 
 	delete = async (
 		atlassianUserId: string,
 	): Promise<FigmaOAuth2UserCredentials> => {
-		const result = await prismaClient.get().figmaOAuth2UserCredentials.delete({
+		const dbModel = await prismaClient.get().figmaOAuth2UserCredentials.delete({
 			where: { atlassianUserId },
 		});
-		return this.mapToDomainModel(result);
+		return this.mapToDomainModel(dbModel);
 	};
+
+	private mapCreateParamsToDbModel = ({
+		atlassianUserId,
+		accessToken,
+		refreshToken,
+		expiresAt,
+	}: FigmaOAuth2UserCredentialsCreateParams): PrismaFigmaOAuth2UserCredentialsCreateParams => ({
+		atlassianUserId,
+		accessToken,
+		refreshToken,
+		expiresAt,
+	});
 
 	private mapToDomainModel = (
 		dbModel: PrismaFigmaOAuth2UserCredentials,
 	): FigmaOAuth2UserCredentials => {
 		return new FigmaOAuth2UserCredentials(
-			dbModel.id,
+			dbModel.id.toString(),
 			dbModel.atlassianUserId,
 			dbModel.accessToken,
 			dbModel.refreshToken,

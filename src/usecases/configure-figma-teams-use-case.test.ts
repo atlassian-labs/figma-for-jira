@@ -30,10 +30,17 @@ describe('configureFigmaTeamUseCase', () => {
 		expect(figmaService.createFileUpdateWebhook).toBeCalledWith(
 			teamId,
 			atlassianUserId,
-			connectInstallation.sharedSecret,
+			expect.anything(),
 		);
+
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+		const generatedPasscode = (
+			figmaService.createFileUpdateWebhook as jest.Mock
+		).mock.calls[0][2];
+
 		expect(figmaTeamRepository.upsert).toBeCalledWith({
 			webhookId,
+			webhookPasscode: generatedPasscode,
 			teamId,
 			teamName: 'TODO',
 			figmaAdminAtlassianUserId: atlassianUserId,
@@ -42,8 +49,9 @@ describe('configureFigmaTeamUseCase', () => {
 		});
 	});
 
-	it('should throw if creating the webhook fails', async () => {
+	it('should throw and not create a FigmaTeam record if creating the webhook fails', async () => {
 		const error = new Error('create webhook failed');
+		jest.spyOn(figmaTeamRepository, 'upsert');
 		jest
 			.spyOn(figmaService, 'createFileUpdateWebhook')
 			.mockRejectedValue(error);
@@ -55,23 +63,7 @@ describe('configureFigmaTeamUseCase', () => {
 				generateConnectInstallation(),
 			),
 		).rejects.toStrictEqual(error);
-	});
 
-	it('should throw if creating the FigmaTeam record fails', async () => {
-		const error = new Error('create FigmaTeam failed');
-		jest
-			.spyOn(figmaService, 'createFileUpdateWebhook')
-			.mockResolvedValue(
-				{} as ReturnType<typeof figmaService.createFileUpdateWebhook>,
-			);
-		jest.spyOn(figmaTeamRepository, 'upsert').mockRejectedValue(error);
-
-		await expect(
-			configureFigmaTeamUseCase.execute(
-				uuidv4(),
-				uuidv4(),
-				generateConnectInstallation(),
-			),
-		).rejects.toStrictEqual(error);
+		expect(figmaTeamRepository.upsert).not.toBeCalled();
 	});
 });

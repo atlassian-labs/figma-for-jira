@@ -1,3 +1,5 @@
+import type { FigmaWebhookEventType } from '../../../domain/entities';
+
 export type GetOAuth2TokenResponse = {
 	readonly access_token: string;
 	readonly refresh_token: string;
@@ -87,7 +89,7 @@ export type DeleteDevResourceRequest = {
 };
 
 export type CreateWebhookRequest = {
-	readonly event_type: string;
+	readonly event_type: FigmaWebhookEventType;
 	readonly team_id: string;
 	readonly endpoint: string;
 	readonly passcode: string;

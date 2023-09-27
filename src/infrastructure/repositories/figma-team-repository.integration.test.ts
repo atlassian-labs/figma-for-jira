@@ -8,7 +8,7 @@ import {
 } from '../../domain/entities/testing';
 
 const figmaTeamComparer = (first: FigmaTeam, second: FigmaTeam) =>
-	first.id - second.id;
+	first.id.localeCompare(second.id);
 
 describe('FigmaTeamRepository', () => {
 	describe('findManyByConnectInstallationId', () => {

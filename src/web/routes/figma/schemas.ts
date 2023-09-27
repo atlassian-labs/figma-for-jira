@@ -1,7 +1,8 @@
 import type { JSONSchemaType } from 'ajv';
 
-import type { FigmaWebhookEventPayload, FigmaWebhookEventType } from './types';
+import type { FigmaWebhookEventPayload } from './types';
 
+import type { FigmaWebhookEventType } from '../../../domain/entities';
 import type { JSONSchemaTypeWithId } from '../../../infrastructure';
 
 export const FIGMA_WEBHOOK_EVENT_TYPE_SCHEMA: JSONSchemaType<FigmaWebhookEventType> =

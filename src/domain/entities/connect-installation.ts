@@ -7,7 +7,7 @@ export type ConnectInstallation = {
 	/**
 	 * A surrogate key to uniquely identify the installation.
 	 */
-	id: number;
+	id: string;
 	/**
 	 * A key of the Connect App that was installed into the Atlassian Product, as it appears in the app's descriptor.
 	 */

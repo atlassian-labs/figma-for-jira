@@ -4,7 +4,7 @@ const TOKEN_EXPIRATION_OFFSET = Duration.ofMinutes(60);
 
 export class FigmaOAuth2UserCredentials {
 	constructor(
-		readonly id: number,
+		readonly id: string,
 		readonly atlassianUserId: string,
 		readonly accessToken: string,
 		readonly refreshToken: string,
@@ -19,7 +19,7 @@ export class FigmaOAuth2UserCredentials {
 	}
 }
 
-export type FigmaUserCredentialsCreateParams = {
+export type FigmaOAuth2UserCredentialsCreateParams = {
 	readonly atlassianUserId: string;
 	readonly accessToken: string;
 	readonly refreshToken: string;

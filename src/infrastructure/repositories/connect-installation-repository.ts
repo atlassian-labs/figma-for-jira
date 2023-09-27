@@ -11,49 +11,49 @@ import type {
 } from '../../domain/entities';
 
 export class ConnectInstallationRepository {
-	get = async (id: number): Promise<ConnectInstallation> => {
-		const result = await prismaClient.get().connectInstallation.findFirst({
-			where: { id },
+	get = async (id: string): Promise<ConnectInstallation> => {
+		const dbModel = await prismaClient.get().connectInstallation.findFirst({
+			where: { id: BigInt(id) },
 		});
-		if (result === null) {
+		if (dbModel === null) {
 			throw new RepositoryRecordNotFoundError(
 				`Failed to find ConnectInstallation for id ${id}`,
 			);
 		}
-		return this.mapToDomainModel(result);
+		return this.mapToDomainModel(dbModel);
 	};
 
 	getByClientKey = async (clientKey: string): Promise<ConnectInstallation> => {
-		const result = await prismaClient.get().connectInstallation.findFirst({
+		const dbModel = await prismaClient.get().connectInstallation.findFirst({
 			where: { clientKey },
 		});
-		if (result === null) {
+		if (dbModel === null) {
 			throw new RepositoryRecordNotFoundError(
 				`Failed to find ConnectInstallation for clientKey ${clientKey}`,
 			);
 		}
-		return this.mapToDomainModel(result);
+		return this.mapToDomainModel(dbModel);
 	};
 
 	upsert = async (
 		installation: ConnectInstallationCreateParams,
 	): Promise<ConnectInstallation> => {
-		const result = await prismaClient.get().connectInstallation.upsert({
+		const dbModel = await prismaClient.get().connectInstallation.upsert({
 			create: installation,
 			update: installation,
 			where: { clientKey: installation.clientKey },
 		});
-		return this.mapToDomainModel(result);
+		return this.mapToDomainModel(dbModel);
 	};
 
 	deleteByClientKey = async (
 		clientKey: string,
 	): Promise<ConnectInstallation> => {
 		try {
-			const result = await prismaClient.get().connectInstallation.delete({
+			const dbModel = await prismaClient.get().connectInstallation.delete({
 				where: { clientKey },
 			});
-			return this.mapToDomainModel(result);
+			return this.mapToDomainModel(dbModel);
 		} catch (e: unknown) {
 			if (
 				e instanceof PrismaClientKnownRequestError &&
@@ -73,7 +73,7 @@ export class ConnectInstallationRepository {
 		baseUrl,
 		displayUrl,
 	}: PrismaConnectInstallation): ConnectInstallation => ({
-		id,
+		id: id.toString(),
 		key,
 		clientKey,
 		sharedSecret,
