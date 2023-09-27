@@ -18,6 +18,9 @@ import {
 } from '../../../infrastructure/repositories';
 import { generateInboundRequestAsymmetricJwtToken } from '../../testing';
 
+/**
+ * @see https://developer.atlassian.com/cloud/jira/platform/security-for-connect-apps/#validating-installation-lifecycle-requests
+ */
 const mockConnectKeyEndpoint = ({
 	baseUrl,
 	keyId,
