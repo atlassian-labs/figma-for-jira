@@ -1,7 +1,10 @@
 import { figmaClient } from './figma-client';
 
 import { getConfig } from '../../config';
-import type { FigmaOAuth2UserCredentials } from '../../domain/entities';
+import type {
+	ConnectUserInfo,
+	FigmaOAuth2UserCredentials,
+} from '../../domain/entities';
 import { figmaOAuth2UserCredentialsRepository } from '../repositories';
 
 export class FigmaAuthService {
@@ -10,15 +13,16 @@ export class FigmaAuthService {
 	 */
 	createCredentials = async (
 		code: string,
-		atlassianUserId: string,
+		user: ConnectUserInfo,
 	): Promise<FigmaOAuth2UserCredentials> => {
 		const response = await figmaClient.getOAuth2Token(code);
 
 		return await figmaOAuth2UserCredentialsRepository.upsert({
-			atlassianUserId,
+			atlassianUserId: user.atlassianUserId,
 			accessToken: response.access_token,
 			refreshToken: response.refresh_token,
 			expiresAt: this.createExpiryDate(response.expires_in),
+			connectInstallationId: user.connectInstallationId,
 		});
 	};
 
@@ -28,15 +32,17 @@ export class FigmaAuthService {
 	 * The method refreshes access token when required, so the caller does not need to handle token expiration.
 	 */
 	getCredentials = async (
-		atlassianUserId: string,
+		user: ConnectUserInfo,
 	): Promise<FigmaOAuth2UserCredentials> => {
 		let credentials: FigmaOAuth2UserCredentials;
 		try {
-			credentials =
-				await figmaOAuth2UserCredentialsRepository.get(atlassianUserId);
+			credentials = await figmaOAuth2UserCredentialsRepository.get(
+				user.atlassianUserId,
+				user.connectInstallationId,
+			);
 		} catch (e: unknown) {
 			throw new NoFigmaCredentialsError(
-				`No credential available for user ${atlassianUserId}`,
+				`No credential available for user ${user.atlassianUserId} within Connect installation ${user.connectInstallationId}.`,
 			);
 		}
 
@@ -45,7 +51,7 @@ export class FigmaAuthService {
 				credentials = await this.refreshCredentials(credentials);
 			} catch (e: unknown) {
 				throw new RefreshFigmaCredentialsError(
-					`Failed to refresh credentials for user ${atlassianUserId}`,
+					`Failed to refresh credentials for user ${user.atlassianUserId} within Connect installation ${user.connectInstallationId}.`,
 				);
 			}
 		}
@@ -58,7 +64,7 @@ export class FigmaAuthService {
 	 * @see https://www.figma.com/developers/api#oauth2
 	 */
 	buildAuthorizationEndpoint = (
-		atlassianUserId: string,
+		user: ConnectUserInfo,
 		redirectUri: string,
 	): string => {
 		const authorizationEndpoint = new URL(
@@ -70,11 +76,28 @@ export class FigmaAuthService {
 			client_id: getConfig().figma.clientId,
 			redirect_uri: redirectUri,
 			scope: getConfig().figma.scope,
-			state: atlassianUserId, // TODO: MDTZ-1014: Use an anti-forgery state token to prevent Cross-Site Request Forgery (CSRF) attacks.
+			state: `${user.connectInstallationId}/${user.atlassianUserId}`, // TODO: MDTZ-1014: Use an anti-forgery state token to prevent Cross-Site Request Forgery (CSRF) attacks.
 			response_type: 'code',
 		}).toString();
 
 		return authorizationEndpoint.toString();
+	};
+
+	/**
+	 * Returns {@link ConnectUserInfo} extracted from the given `state`.
+	 *
+	 * @param state A value of the `state` query parameter bypassed by the authorization server through OAuth 2.0 flow.
+	 * 	 This is the same value, which was created by {@link buildAuthorizationEndpoint}.
+	 *
+	 * @see https://www.figma.com/developers/api#oauth2
+	 */
+	getUserFromAuthorizationCallbackState = (state: string): ConnectUserInfo => {
+		const [connectInstallationId, atlassianUserId] = state.split('/');
+
+		if (!connectInstallationId || !atlassianUserId)
+			throw new Error('Unexpected state.');
+
+		return { atlassianUserId, connectInstallationId };
 	};
 
 	private refreshCredentials = async (
@@ -89,6 +112,7 @@ export class FigmaAuthService {
 			accessToken: response.access_token,
 			refreshToken: credentials.refreshToken,
 			expiresAt: this.createExpiryDate(response.expires_in),
+			connectInstallationId: credentials.connectInstallationId,
 		});
 	};
 

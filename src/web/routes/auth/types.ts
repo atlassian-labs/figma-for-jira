@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { ConnectInstallation } from '../../../domain/entities';
 
 export type AuthCallbackQueryParameters = {
 	readonly code: string;
@@ -23,15 +24,20 @@ export type CheckAuthResponseBody = {
 	};
 };
 
+type CheckAuthRequestLocals = {
+	readonly connectInstallation: ConnectInstallation;
+	readonly atlassianUserId: string;
+};
+
 export type CheckAuthRequest = Request<
 	Record<string, never>,
 	CheckAuthResponseBody,
 	never,
 	CheckAuthQueryParameters,
-	Record<string, never>
+	CheckAuthRequestLocals
 >;
 
 export type CheckAuthResponse = Response<
 	CheckAuthResponseBody,
-	Record<string, never>
+	CheckAuthRequestLocals
 >;

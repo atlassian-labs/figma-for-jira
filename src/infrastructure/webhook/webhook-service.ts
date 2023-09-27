@@ -29,9 +29,10 @@ export class WebhookService {
 
 		// Ensure team admin OAuth2 credentials are still valid
 		try {
-			await figmaService.getValidCredentialsOrThrow(
-				figmaTeam.figmaAdminAtlassianUserId,
-			);
+			await figmaService.getValidCredentialsOrThrow({
+				atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,
+				connectInstallationId: figmaTeam.connectInstallationId,
+			});
 		} catch (e: unknown) {
 			await figmaTeamRepository.updateAuthStatus(
 				figmaTeam.id,

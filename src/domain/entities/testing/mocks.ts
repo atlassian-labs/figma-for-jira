@@ -68,6 +68,7 @@ export const generateFigmaOAuth2UserCredentials = ({
 	accessToken = uuidv4(),
 	refreshToken = uuidv4(),
 	expiresAt = new Date(),
+	connectInstallationId = generateNumericStringId(),
 } = {}): FigmaOAuth2UserCredentials =>
 	new FigmaOAuth2UserCredentials(
 		id,
@@ -75,6 +76,7 @@ export const generateFigmaOAuth2UserCredentials = ({
 		accessToken,
 		refreshToken,
 		expiresAt,
+		connectInstallationId,
 	);
 
 export const generateFigmaUserCredentialsCreateParams = ({
@@ -82,11 +84,13 @@ export const generateFigmaUserCredentialsCreateParams = ({
 	accessToken = uuidv4(),
 	refreshToken = uuidv4(),
 	expiresAt = new Date(Date.now() + Duration.ofMinutes(120).asMilliseconds),
+	connectInstallationId = generateNumericStringId(),
 } = {}): FigmaOAuth2UserCredentialsCreateParams => ({
 	atlassianUserId,
 	accessToken,
 	refreshToken,
 	expiresAt,
+	connectInstallationId,
 });
 
 export const generateConnectInstallationCreateParams = ({

@@ -18,6 +18,7 @@ import {
 	addFigmaOAuthCredentialsUseCase,
 	checkUserFigmaAuthUseCase,
 } from '../../../usecases';
+import { authHeaderSymmetricJwtMiddleware } from '../../middleware';
 
 const AUTH_RESOURCE_BASE_PATH = '/public/index.html';
 export const SUCCESS_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=true`;
@@ -33,12 +34,13 @@ export const authRouter = Router();
  */
 authRouter.get(
 	['/checkAuth', '/check3LO'], // TODO: Remove `check3LO` once the action is deleted.
+	authHeaderSymmetricJwtMiddleware,
 	function (req: CheckAuthRequest, res: CheckAuthResponse, next: NextFunction) {
 		assertSchema(req.query, CHECK_AUTH_QUERY_PARAMETERS_SCHEMA);
-		const atlassianUserId = req.query.userId;
+		const { connectInstallation, atlassianUserId } = res.locals;
 
 		checkUserFigmaAuthUseCase
-			.execute(atlassianUserId)
+			.execute(atlassianUserId, connectInstallation)
 			.then((authorized) => {
 				if (authorized) {
 					return res.send({ type: '3LO', authorized });
@@ -46,7 +48,10 @@ authRouter.get(
 
 				const authorizationEndpoint =
 					figmaAuthService.buildAuthorizationEndpoint(
-						atlassianUserId,
+						{
+							connectInstallationId: connectInstallation.id,
+							atlassianUserId,
+						},
 						`${getConfig().app.baseUrl}/auth/callback`,
 					);
 
@@ -69,8 +74,10 @@ authRouter.get('/callback', function (req: AuthCallbackRequest, res: Response) {
 	assertSchema(req.query, AUTH_CALLBACK_QUERY_PARAMETERS_SCHEMA);
 	const { code, state } = req.query;
 
+	const user = figmaAuthService.getUserFromAuthorizationCallbackState(state);
+
 	addFigmaOAuthCredentialsUseCase
-		.execute(code, state)
+		.execute(code, user)
 		.then(() => {
 			res.redirect(SUCCESS_PAGE_URL);
 		})

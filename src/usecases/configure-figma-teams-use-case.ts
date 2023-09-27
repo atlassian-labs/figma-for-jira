@@ -16,11 +16,10 @@ export const configureFigmaTeamUseCase = {
 		const webhookPasscode = uuidv4();
 
 		const { webhookId, teamId: figmaTeamId } =
-			await figmaService.createFileUpdateWebhook(
-				teamId,
+			await figmaService.createFileUpdateWebhook(teamId, webhookPasscode, {
 				atlassianUserId,
-				webhookPasscode,
-			);
+				connectInstallationId: connectInstallation.id,
+			});
 
 		await figmaTeamRepository.upsert({
 			webhookId,

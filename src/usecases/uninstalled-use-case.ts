@@ -28,10 +28,10 @@ export const uninstalledUseCase = {
 		await connectInstallationRepository.deleteByClientKey(clientKey);
 		await Promise.all(
 			figmaTeams.map((figmaTeam) =>
-				figmaService.deleteWebhook(
-					figmaTeam.webhookId,
-					figmaTeam.figmaAdminAtlassianUserId,
-				),
+				figmaService.deleteWebhook(figmaTeam.webhookId, {
+					atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,
+					connectInstallationId: figmaTeam.connectInstallationId,
+				}),
 			),
 		);
 	},

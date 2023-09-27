@@ -18,10 +18,10 @@ export const handleFigmaFileUpdateEventUseCase = {
 
 		const designs = await Promise.all(
 			associatedFigmaDesigns.map((design) =>
-				figmaService.fetchDesignById(
-					design.designId,
-					figmaTeam.figmaAdminAtlassianUserId,
-				),
+				figmaService.fetchDesignById(design.designId, {
+					atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,
+					connectInstallationId: figmaTeam.connectInstallationId,
+				}),
 			),
 		);
 

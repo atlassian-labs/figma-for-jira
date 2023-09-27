@@ -18,6 +18,7 @@ import type {
 	FigmaDesignIdentifier,
 	FigmaOAuth2UserCredentials,
 } from '../../domain/entities';
+import { ConnectUserInfo } from '../../domain/entities';
 import { getLogger } from '../logger';
 
 export const buildIssueTitle = (issueKey: string, issueSummary: string) => {
@@ -26,11 +27,10 @@ export const buildIssueTitle = (issueKey: string, issueSummary: string) => {
 
 export class FigmaService {
 	getValidCredentialsOrThrow = async (
-		atlassianUserId: string,
+		user: ConnectUserInfo,
 	): Promise<FigmaOAuth2UserCredentials> => {
 		try {
-			const credentials =
-				await figmaAuthService.getCredentials(atlassianUserId);
+			const credentials = await figmaAuthService.getCredentials(user);
 			await figmaClient.me(credentials.accessToken);
 
 			return credentials;
@@ -44,7 +44,7 @@ export class FigmaService {
 			}
 
 			throw new FigmaServiceCredentialsError(
-				atlassianUserId,
+				user.atlassianUserId,
 				e instanceof Error ? e : undefined,
 			);
 		}
@@ -52,11 +52,9 @@ export class FigmaService {
 
 	fetchDesignById = async (
 		designId: FigmaDesignIdentifier,
-		atlassianUserId: string,
+		user: ConnectUserInfo,
 	): Promise<AtlassianDesign> => {
-		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
-
-		const { accessToken } = credentials;
+		const { accessToken } = await this.getValidCredentialsOrThrow(user);
 
 		if (designId.nodeId) {
 			const fileResponse = await figmaClient.getFile(
@@ -90,17 +88,15 @@ export class FigmaService {
 		issueUrl,
 		issueKey,
 		issueTitle,
-		atlassianUserId,
+		user,
 	}: {
 		designId: FigmaDesignIdentifier;
 		issueUrl: string;
 		issueKey: string;
 		issueTitle: string;
-		atlassianUserId: string;
+		user: ConnectUserInfo;
 	}): Promise<void> => {
-		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
-
-		const { accessToken } = credentials;
+		const { accessToken } = await this.getValidCredentialsOrThrow(user);
 
 		const devResource: CreateDevResourcesRequest = {
 			name: buildIssueTitle(issueKey, issueTitle),
@@ -125,15 +121,13 @@ export class FigmaService {
 	deleteDevResourceIfExists = async ({
 		designId,
 		issueUrl,
-		atlassianUserId,
+		user,
 	}: {
 		designId: FigmaDesignIdentifier;
 		issueUrl: string;
-		atlassianUserId: string;
+		user: ConnectUserInfo;
 	}): Promise<void> => {
-		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
-
-		const { accessToken } = credentials;
+		const { accessToken } = await this.getValidCredentialsOrThrow(user);
 
 		const { dev_resources } = await figmaClient.getDevResources({
 			fileKey: designId.fileKey,
@@ -161,11 +155,10 @@ export class FigmaService {
 
 	createFileUpdateWebhook = async (
 		teamId: string,
-		atlassianUserId: string,
 		passcode: string,
+		user: ConnectUserInfo,
 	): Promise<{ webhookId: string; teamId: string }> => {
-		const { accessToken } =
-			await this.getValidCredentialsOrThrow(atlassianUserId);
+		const { accessToken } = await this.getValidCredentialsOrThrow(user);
 
 		const request: CreateWebhookRequest = {
 			event_type: 'FILE_UPDATE',
@@ -181,10 +174,9 @@ export class FigmaService {
 
 	deleteWebhook = async (
 		webhookId: string,
-		atlassianUserId: string,
+		user: ConnectUserInfo,
 	): Promise<void> => {
-		const { accessToken } =
-			await this.getValidCredentialsOrThrow(atlassianUserId);
+		const { accessToken } = await this.getValidCredentialsOrThrow(user);
 
 		try {
 			await figmaClient.deleteWebhook(webhookId, accessToken);
