@@ -39,14 +39,12 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 		);
 
 		it('should log a warning and continue if saving the team name to the database fails', async () => {
-			const associatedAtlassianDesigns: Record<string, AtlassianDesign> =
-				associatedFigmaDesigns.reduce((acc, figmaDesign) => {
-					const atlassianDesignId = figmaDesign.designId.toAtlassianDesignId();
-					acc[atlassianDesignId] = generateAtlassianDesign({
-						id: atlassianDesignId,
-					});
-					return acc;
-				}, {});
+			const associatedAtlassianDesigns: ReadonlyMap<string, AtlassianDesign> =
+				new Map(
+					associatedFigmaDesigns
+						.map((figmaDesign) => figmaDesign.designId.toAtlassianDesignId())
+						.map((id) => [id, generateAtlassianDesign({ id })]),
+				);
 			jest
 				.spyOn(figmaService, 'getTeamName')
 				.mockResolvedValue(figmaTeam.teamName);
@@ -69,7 +67,7 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				.spyOn(figmaService, 'fetchDesignById')
 				.mockImplementation((designId) =>
 					Promise.resolve(
-						associatedAtlassianDesigns[designId.toAtlassianDesignId()],
+						associatedAtlassianDesigns.get(designId.toAtlassianDesignId())!,
 					),
 				);
 			jest.spyOn(jiraService, 'submitDesigns').mockResolvedValue();
@@ -78,7 +76,9 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 
 			expect(getLogger().warn).toBeCalled();
 			expect(jiraService.submitDesigns).toBeCalledWith(
-				Object.values(associatedAtlassianDesigns).map((design) => ({ design })),
+				Array.from(associatedAtlassianDesigns.values()).map((design) => ({
+					design,
+				})),
 				connectInstallation,
 			);
 		});
