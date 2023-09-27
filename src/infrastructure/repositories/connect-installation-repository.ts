@@ -46,6 +46,9 @@ export class ConnectInstallationRepository {
 		return this.mapToDomainModel(dbModel);
 	};
 
+	/**
+	 * Deletes the `ConnectInstallation` and all the related entities (via a cascading deletion).
+	 */
 	deleteByClientKey = async (
 		clientKey: string,
 	): Promise<ConnectInstallation> => {
