@@ -26,7 +26,7 @@ export const uninstalledUseCase = {
 		// Consider deleting `ConnectInstallation` at the end (after deleting webhooks) if you need to make a use case
 		// idempotent and retryable.
 		await connectInstallationRepository.deleteByClientKey(clientKey);
-		await Promise.allSettled(
+		await Promise.all(
 			figmaTeams.map((figmaTeam) =>
 				figmaService.deleteWebhook(
 					figmaTeam.webhookId,
