@@ -23,7 +23,10 @@ figmaRouter.post('/webhook', (req, res, next) => {
 		.then((figmaTeam) => {
 			switch (event_type) {
 				case 'FILE_UPDATE':
-					return handleFigmaFileUpdateEventUseCase.execute(figmaTeam, file_key);
+					return handleFigmaFileUpdateEventUseCase.execute(
+						figmaTeam,
+						file_key!,
+					);
 				default:
 					return Promise.resolve();
 			}

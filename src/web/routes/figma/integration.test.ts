@@ -21,6 +21,7 @@ import {
 	generateConnectInstallationCreateParams,
 	generateFigmaDesignIdentifier,
 	generateFigmaFileKey,
+	generateFigmaFileName,
 	generateFigmaTeamCreateParams,
 	generateFigmaUserCredentialsCreateParams,
 } from '../../../domain/entities/testing';
@@ -159,6 +160,7 @@ describe('/figma', () => {
 				webhookEventPayload = generateFigmaWebhookEventPayload({
 					webhook_id: figmaTeam.webhookId,
 					file_key: fileKey,
+					file_name: generateFigmaFileName(),
 					passcode: figmaTeam.webhookPasscode,
 				});
 			});
@@ -225,6 +227,7 @@ describe('/figma', () => {
 				const invalidPasscodePayload = generateFigmaWebhookEventPayload({
 					webhook_id: figmaTeam.webhookId,
 					file_key: associatedFigmaDesigns[0].designId.fileKey,
+					file_name: generateFigmaFileName(),
 					passcode: 'invalid',
 				});
 
@@ -263,6 +266,8 @@ describe('/figma', () => {
 				async (unsupportedEventType: FigmaWebhookEventType) => {
 					const webhookEventPayload = generateFigmaWebhookEventPayload({
 						event_type: unsupportedEventType,
+						file_key: generateFigmaFileKey(),
+						file_name: generateFigmaFileName(),
 					});
 
 					await request(app)
