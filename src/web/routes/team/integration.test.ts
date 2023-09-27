@@ -20,7 +20,7 @@ import {
 	figmaTeamRepository,
 	RepositoryRecordNotFoundError,
 } from '../../../infrastructure/repositories';
-import { generateInboundRequestJwtToken } from '../../testing';
+import { generateInboundRequestSymmetricJwtToken } from '../../testing';
 
 const mockCreateWebhookEndpoint = ({
 	webhookId = uuidv4(),
@@ -76,20 +76,10 @@ describe('/team', () => {
 				);
 		});
 
-		afterEach(async () => {
-			await connectInstallationRepository.deleteByClientKey(
-				connectInstallation.clientKey,
-			);
-
-			await figmaOAuth2UserCredentialsRepository.delete(
-				figmaOAuth2UserCredentials.atlassianUserId,
-			);
-		});
-
 		it('should create a webhook and FigmaTeam record', async () => {
 			const teamId = uuidv4();
 			const webhookId = uuidv4();
-			const jwt = generateInboundRequestJwtToken({
+			const jwt = generateInboundRequestSymmetricJwtToken({
 				method: 'POST',
 				pathname: TEAM_CONFIGURE_ENDPOINT,
 				connectInstallation,
@@ -121,7 +111,7 @@ describe('/team', () => {
 		it('should return a 500 and not create a FigmaTeam when creating the webhook fails', async () => {
 			const teamId = uuidv4();
 			const webhookId = uuidv4();
-			const jwt = generateInboundRequestJwtToken({
+			const jwt = generateInboundRequestSymmetricJwtToken({
 				method: 'POST',
 				pathname: TEAM_CONFIGURE_ENDPOINT,
 				connectInstallation,

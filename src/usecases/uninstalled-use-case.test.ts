@@ -1,34 +1,50 @@
 import { uninstalledUseCase } from './uninstalled-use-case';
 
-import { generateConnectInstallation } from '../domain/entities/testing';
-import { connectInstallationRepository } from '../infrastructure/repositories';
+import {
+	generateConnectInstallation,
+	generateFigmaTeam,
+} from '../domain/entities/testing';
+import { figmaService } from '../infrastructure/figma';
+import {
+	connectInstallationRepository,
+	figmaTeamRepository,
+} from '../infrastructure/repositories';
 
 describe('uninstalledUseCase', () => {
 	afterEach(() => {
 		jest.clearAllMocks();
 	});
 
-	it('should call repository layer delete', async () => {
-		const installation = generateConnectInstallation();
+	it('should delete Figma webhook and app data', async () => {
+		const connectInstallation = generateConnectInstallation();
+		const [figmaTeam1, figmaTeam2] = [
+			generateFigmaTeam({ connectInstallationId: connectInstallation.id }),
+			generateFigmaTeam({ connectInstallationId: connectInstallation.id }),
+		];
+		jest
+			.spyOn(connectInstallationRepository, 'getByClientKey')
+			.mockResolvedValue(connectInstallation);
+		jest
+			.spyOn(figmaTeamRepository, 'findManyByConnectInstallationId')
+			.mockResolvedValue([figmaTeam1, figmaTeam2]);
+		jest.spyOn(figmaService, 'deleteWebhook').mockResolvedValue();
 		jest
 			.spyOn(connectInstallationRepository, 'deleteByClientKey')
-			.mockResolvedValue(installation);
+			.mockResolvedValue(connectInstallation);
 
-		await uninstalledUseCase.execute(installation.clientKey);
+		await uninstalledUseCase.execute(connectInstallation.clientKey);
 
+		expect(figmaService.deleteWebhook).toHaveBeenCalledTimes(2);
+		expect(figmaService.deleteWebhook).toHaveBeenCalledWith(
+			figmaTeam1.webhookId,
+			figmaTeam1.figmaAdminAtlassianUserId,
+		);
+		expect(figmaService.deleteWebhook).toHaveBeenCalledWith(
+			figmaTeam2.webhookId,
+			figmaTeam2.figmaAdminAtlassianUserId,
+		);
 		expect(
 			connectInstallationRepository.deleteByClientKey,
-		).toHaveBeenCalledWith(installation.clientKey);
-	});
-
-	it('should throw if repository delete call fails', async () => {
-		const deleteError = new Error('error');
-		jest
-			.spyOn(connectInstallationRepository, 'deleteByClientKey')
-			.mockRejectedValue(deleteError);
-
-		await expect(
-			uninstalledUseCase.execute('CLIENT_KEY'),
-		).rejects.toStrictEqual(deleteError);
+		).toHaveBeenCalledWith(connectInstallation.clientKey);
 	});
 });

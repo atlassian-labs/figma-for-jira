@@ -15,6 +15,11 @@ import { authHeaderAsymmetricJwtMiddleware } from '../../middleware';
 
 export const lifecycleEventsRouter = Router();
 
+/**
+ * Handles an "Installed" lifecycle event.
+ *
+ * @see https://developer.atlassian.com/cloud/jira/platform/connect-app-descriptor/#lifecycle
+ */
 lifecycleEventsRouter.post(
 	'/installed',
 	authHeaderAsymmetricJwtMiddleware,
@@ -40,6 +45,29 @@ lifecycleEventsRouter.post(
 	},
 );
 
+/**
+ * Handles an "Uninstalled" lifecycle event.
+ *
+ * @see https://developer.atlassian.com/cloud/jira/platform/connect-app-descriptor/#lifecycle
+ *
+ * @remarks
+ * **Issue 1: An "Uninstall" event is not retryable**
+ *
+ * Currently, Jira does not retry an "Uninstall" event in case of a failure.
+ * Therefore, there is a risk of getting stale data in the database or not disposed resources (e.g.,
+ * Figma webhook) in case of a failure. Consider:
+ * - Design the `/uninstalled` event handler to be idempotent.
+ * - Consider using a queue (e.g., SQS) to retry handling an event in case of failure.
+ *
+ *
+ * **Issue 2: An "Uninstall" event is not dispatched on uninstallation caused by a site import.**
+ *
+ * When a site import occurs, Connect Apps are uninstalled in the target site but "Uninstall" events are not dispatched:
+ * https://community.developer.atlassian.com/t/ensuring-your-atlassian-connect-app-handles-customer-site-imports/41874
+ * Consider one of the following:
+ * - Find and delete stale `ConnectInstallation` records (with related resources) on an "/installed" event.
+ * - Periodically validate `ConnectInstallation`s and delete stale records (with related resources).
+ */
 lifecycleEventsRouter.post(
 	'/uninstalled',
 	authHeaderAsymmetricJwtMiddleware,

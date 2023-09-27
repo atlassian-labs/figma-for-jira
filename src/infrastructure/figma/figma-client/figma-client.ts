@@ -1,5 +1,6 @@
-import axios from 'axios';
+import axios, { HttpStatusCode, isAxiosError } from 'axios';
 
+import { FigmaClientNotFoundError } from './errors';
 import type {
 	CreateDevResourcesRequest,
 	CreateDevResourcesResponse,
@@ -215,6 +216,33 @@ export class FigmaClient {
 		);
 
 		return response.data;
+	};
+
+	/**
+	 * Deletes the specified webhook.
+	 *
+	 * @see https://www.figma.com/developers/api#webhooks-v2-delete-endpoint
+	 */
+	deleteWebhook = async (
+		webhookId: string,
+		accessToken: string,
+	): Promise<void> => {
+		try {
+			await axios.delete<CreateWebhookResponse>(
+				`${getConfig().figma.apiBaseUrl}/v2/webhooks/${webhookId}`,
+				{
+					headers: {
+						['Authorization']: `Bearer ${accessToken}`,
+					},
+				},
+			);
+		} catch (e: unknown) {
+			if (isAxiosError(e) && e.status === HttpStatusCode.NotFound) {
+				throw new FigmaClientNotFoundError();
+			}
+
+			throw e;
+		}
 	};
 }
 

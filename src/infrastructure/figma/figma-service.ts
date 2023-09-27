@@ -6,7 +6,7 @@ import type {
 	CreateDevResourcesRequest,
 	CreateWebhookRequest,
 } from './figma-client';
-import { figmaClient } from './figma-client';
+import { figmaClient, FigmaClientNotFoundError } from './figma-client';
 import {
 	transformFileToAtlassianDesign,
 	transformNodeToAtlassianDesign,
@@ -177,6 +177,22 @@ export class FigmaService {
 
 		const result = await figmaClient.createWebhook(request, accessToken);
 		return { webhookId: result.id, teamId: result.team_id };
+	};
+
+	deleteWebhook = async (
+		webhookId: string,
+		atlassianUserId: string,
+	): Promise<void> => {
+		const { accessToken } =
+			await this.getValidCredentialsOrThrow(atlassianUserId);
+
+		try {
+			await figmaClient.deleteWebhook(webhookId, accessToken);
+		} catch (e) {
+			if (e instanceof FigmaClientNotFoundError) return;
+
+			throw e;
+		}
 	};
 }
 

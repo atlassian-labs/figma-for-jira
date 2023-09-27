@@ -41,6 +41,16 @@ export class FigmaTeamRepository {
 		return this.mapToDomainModel(dbModel);
 	};
 
+	findManyByConnectInstallationId = async (
+		connectInstallationId: string,
+	): Promise<FigmaTeam[]> => {
+		const dbModel = await prismaClient.get().figmaTeam.findMany({
+			where: { connectInstallationId: BigInt(connectInstallationId) },
+		});
+
+		return dbModel.map((record) => this.mapToDomainModel(record));
+	};
+
 	updateAuthStatus = async (
 		id: string,
 		authStatus: FigmaTeamAuthStatus,
