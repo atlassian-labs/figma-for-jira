@@ -67,7 +67,7 @@ describe('disassociateEntityUseCase', () => {
 		);
 		expect(figmaService.deleteDevResourceIfExists).toHaveBeenCalledWith({
 			designId: designId,
-			issueUrl: `${connectInstallation.baseUrl}/browse/${issue.key}`,
+			devResourceUrl: `${connectInstallation.baseUrl}/browse/${issue.key}`,
 			atlassianUserId: params.atlassianUserId,
 		});
 		expect(

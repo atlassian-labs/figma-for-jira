@@ -20,9 +20,10 @@ import type {
 } from '../../domain/entities';
 import { getLogger } from '../logger';
 
-export const buildIssueTitle = (issueKey: string, issueSummary: string) => {
-	return `[${issueKey}] ${issueSummary}`;
-};
+export const buildDevResourceNameFromJiraIssue = (
+	issueKey: string,
+	issueSummary: string,
+) => `[${issueKey}] ${issueSummary}`;
 
 export class FigmaService {
 	getValidCredentialsOrThrow = async (
@@ -85,17 +86,17 @@ export class FigmaService {
 		}
 	};
 
-	createDevResource = async ({
+	createDevResourceForJiraIssue = async ({
 		designId,
-		issueUrl,
-		issueKey,
-		issueTitle,
+		issue,
 		atlassianUserId,
 	}: {
 		designId: FigmaDesignIdentifier;
-		issueUrl: string;
-		issueKey: string;
-		issueTitle: string;
+		issue: {
+			url: string;
+			key: string;
+			title: string;
+		};
 		atlassianUserId: string;
 	}): Promise<void> => {
 		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
@@ -103,8 +104,8 @@ export class FigmaService {
 		const { accessToken } = credentials;
 
 		const devResource: CreateDevResourcesRequest = {
-			name: buildIssueTitle(issueKey, issueTitle),
-			url: issueUrl,
+			name: buildDevResourceNameFromJiraIssue(issue.key, issue.title),
+			url: issue.url,
 			file_key: designId.fileKey,
 			node_id: designId.nodeIdOrDefaultDocumentId,
 		};
@@ -124,11 +125,11 @@ export class FigmaService {
 
 	deleteDevResourceIfExists = async ({
 		designId,
-		issueUrl,
+		devResourceUrl,
 		atlassianUserId,
 	}: {
 		designId: FigmaDesignIdentifier;
-		issueUrl: string;
+		devResourceUrl: string;
 		atlassianUserId: string;
 	}): Promise<void> => {
 		const credentials = await this.getValidCredentialsOrThrow(atlassianUserId);
@@ -142,7 +143,7 @@ export class FigmaService {
 		});
 
 		const devResourceToDelete = dev_resources.find(
-			(devResource) => devResource.url === issueUrl,
+			(devResource) => devResource.url === devResourceUrl,
 		);
 
 		if (!devResourceToDelete) {

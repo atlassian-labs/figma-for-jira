@@ -3,11 +3,12 @@ import type { AtlassianEntity } from './types';
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
 import {
 	AtlassianAssociation,
+	buildJiraIssueUrl,
 	FigmaDesignIdentifier,
 	JIRA_ISSUE_ATI,
 } from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
-import { buildIssueUrl, jiraService } from '../infrastructure/jira';
+import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
 export type DisassociateEntityUseCaseParams = {
@@ -60,7 +61,10 @@ export const disassociateEntityUseCase = {
 			),
 			figmaService.deleteDevResourceIfExists({
 				designId: figmaDesignId,
-				issueUrl: buildIssueUrl(connectInstallation.baseUrl, issueKey),
+				devResourceUrl: buildJiraIssueUrl(
+					connectInstallation.baseUrl,
+					issueKey,
+				),
 				atlassianUserId,
 			}),
 		]);
