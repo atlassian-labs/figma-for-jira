@@ -65,7 +65,7 @@ In order to make authorized calls to Figma REST APIs, this application stores Fi
 Follow the steps [here](https://www.figma.com/developers/api#register-oauth2) to register a Figma OAuth app and callback url, and note down the Client ID and Secret.
 
 - Use `APP_URL` for the website URL
-- Use `${APP_URL}/auth/callback` for the callback URL
+- Use `${APP_URL}/figma/oauth/callback` for the callback URL
 
 ### Testing the OAuth flow
 
@@ -77,7 +77,7 @@ To test the OAuth 3LO flow and store a Figma users' credentials in the app, you 
 ```
 https://www.figma.com/oauth?
   client_id=${CLIENT_ID}&
-  redirect_uri=${APP_URL}/auth/callback&
+  redirect_uri=${APP_URL}/figma/oauth/callback&
   scope=files:read,file_dev_resources:read,file_dev_resources:write&
   state=${ATLASSIAN_USER_ID}&
   response_type=code

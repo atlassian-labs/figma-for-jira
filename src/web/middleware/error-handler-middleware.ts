@@ -5,13 +5,13 @@ import { UnauthorizedError } from './errors';
 import { JwtVerificationError } from './jwt-utils';
 
 import { SchemaValidationError } from '../../infrastructure';
-import { FigmaServiceCredentialsError } from '../../infrastructure/figma';
-import { RepositoryRecordNotFoundError } from '../../infrastructure/repositories';
 import {
-	WebhookServiceAuthValidationError,
-	WebhookServiceEventTypeValidationError,
-	WebhookServicePasscodeValidationError,
-} from '../../infrastructure/webhook';
+	FigmaServiceCredentialsError,
+	FigmaWebhookServiceAuthValidationError,
+	FigmaWebhookServiceEventTypeValidationError,
+	FigmaWebhookServicePasscodeValidationError,
+} from '../../infrastructure/figma';
+import { RepositoryRecordNotFoundError } from '../../infrastructure/repositories';
 
 export const errorHandlerMiddleware = (
 	err: Error,
@@ -34,12 +34,12 @@ export const errorHandlerMiddleware = (
 	} else if (err instanceof FigmaServiceCredentialsError) {
 		res.status(HttpStatusCode.Forbidden).send(err.message);
 	} else if (
-		err instanceof WebhookServiceEventTypeValidationError ||
-		err instanceof WebhookServiceAuthValidationError
+		err instanceof FigmaWebhookServiceEventTypeValidationError ||
+		err instanceof FigmaWebhookServiceAuthValidationError
 	) {
 		res.sendStatus(HttpStatusCode.Ok);
 	} else if (
-		err instanceof WebhookServicePasscodeValidationError ||
+		err instanceof FigmaWebhookServicePasscodeValidationError ||
 		err instanceof SchemaValidationError
 	) {
 		res.sendStatus(HttpStatusCode.BadRequest);

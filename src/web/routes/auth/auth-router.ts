@@ -1,27 +1,13 @@
-import type { NextFunction, Response } from 'express';
+import type { NextFunction } from 'express';
 import { Router } from 'express';
 
-import {
-	AUTH_CALLBACK_QUERY_PARAMETERS_SCHEMA,
-	CHECK_AUTH_QUERY_PARAMETERS_SCHEMA,
-} from './schemas';
-import type {
-	AuthCallbackRequest,
-	CheckAuthRequest,
-	CheckAuthResponse,
-} from './types';
+import { CHECK_AUTH_QUERY_PARAMETERS_SCHEMA } from './schemas';
+import type { CheckAuthRequest, CheckAuthResponse } from './types';
 
 import { getConfig } from '../../../config';
 import { assertSchema } from '../../../infrastructure';
 import { figmaAuthService } from '../../../infrastructure/figma';
-import {
-	addFigmaOAuthCredentialsUseCase,
-	checkUserFigmaAuthUseCase,
-} from '../../../usecases';
-
-const AUTH_RESOURCE_BASE_PATH = '/public/index.html';
-export const SUCCESS_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=true`;
-export const FAILURE_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=false`;
+import { checkUserFigmaAuthUseCase } from '../../../usecases';
 
 export const authRouter = Router();
 
@@ -47,7 +33,7 @@ authRouter.get(
 				const authorizationEndpoint =
 					figmaAuthService.buildAuthorizationEndpoint(
 						atlassianUserId,
-						`${getConfig().app.baseUrl}/auth/callback`,
+						`${getConfig().app.baseUrl}/figma/oauth/callback`,
 					);
 
 				return res.send({
@@ -59,22 +45,3 @@ authRouter.get(
 			.catch((error) => next(error));
 	},
 );
-
-/**
- * A callback called by Figma authentication server with the access token included.
- *
- * @see https://www.figma.com/developers/api#authentication
- */
-authRouter.get('/callback', function (req: AuthCallbackRequest, res: Response) {
-	assertSchema(req.query, AUTH_CALLBACK_QUERY_PARAMETERS_SCHEMA);
-	const { code, state } = req.query;
-
-	addFigmaOAuthCredentialsUseCase
-		.execute(code, state)
-		.then(() => {
-			res.redirect(SUCCESS_PAGE_URL);
-		})
-		.catch(() => {
-			res.redirect(FAILURE_PAGE_URL);
-		});
-});

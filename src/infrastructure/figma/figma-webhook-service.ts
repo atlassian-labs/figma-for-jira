@@ -1,30 +1,30 @@
 import {
-	WebhookServiceAuthValidationError,
-	WebhookServiceEventTypeValidationError,
-	WebhookServicePasscodeValidationError,
+	FigmaWebhookServiceAuthValidationError,
+	FigmaWebhookServiceEventTypeValidationError,
+	FigmaWebhookServicePasscodeValidationError,
 } from './errors';
+import { figmaService } from './figma-service';
 
 import {
 	type FigmaTeam,
 	FigmaTeamAuthStatus,
 	type FigmaWebhookEventType,
 } from '../../domain/entities';
-import { figmaService } from '../figma';
 import { figmaTeamRepository } from '../repositories';
 
-export class WebhookService {
-	validateFigmaWebhookEvent = async (
+export class FigmaWebhookService {
+	validateWebhookEvent = async (
 		eventType: FigmaWebhookEventType,
 		webhookId: string,
 		passcode: string,
 	): Promise<FigmaTeam> => {
 		if (eventType !== 'FILE_UPDATE') {
-			throw new WebhookServiceEventTypeValidationError(webhookId);
+			throw new FigmaWebhookServiceEventTypeValidationError(webhookId);
 		}
 
 		const figmaTeam = await figmaTeamRepository.getByWebhookId(webhookId);
 		if (figmaTeam.webhookPasscode !== passcode) {
-			throw new WebhookServicePasscodeValidationError(webhookId);
+			throw new FigmaWebhookServicePasscodeValidationError(webhookId);
 		}
 
 		// Ensure team admin OAuth2 credentials are still valid
@@ -37,11 +37,11 @@ export class WebhookService {
 				figmaTeam.id,
 				FigmaTeamAuthStatus.ERROR,
 			);
-			throw new WebhookServiceAuthValidationError(webhookId);
+			throw new FigmaWebhookServiceAuthValidationError(webhookId);
 		}
 
 		return figmaTeam;
 	};
 }
 
-export const webhookService = new WebhookService();
+export const figmaWebhookService = new FigmaWebhookService();

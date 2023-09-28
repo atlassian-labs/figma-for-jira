@@ -35,7 +35,10 @@ export class FigmaClient {
 		const params = new URLSearchParams();
 		params.append('client_id', getConfig().figma.clientId);
 		params.append('client_secret', getConfig().figma.clientSecret);
-		params.append('redirect_uri', `${getConfig().app.baseUrl}/auth/callback`);
+		params.append(
+			'redirect_uri',
+			`${getConfig().app.baseUrl}/figma/oauth/callback`,
+		);
 		params.append('code', code);
 		params.append('grant_type', 'authorization_code');
 

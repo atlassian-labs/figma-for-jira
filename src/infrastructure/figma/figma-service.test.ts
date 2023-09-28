@@ -20,7 +20,10 @@ import {
 	generateGetFileResponse,
 	generateGetFileResponseWithNode,
 } from './figma-client/testing';
-import { buildIssueTitle, figmaService } from './figma-service';
+import {
+	buildDevResourceNameFromJiraIssue,
+	figmaService,
+} from './figma-service';
 import {
 	transformFileToAtlassianDesign,
 	transformNodeToAtlassianDesign,
@@ -221,7 +224,7 @@ describe('FigmaService', () => {
 		});
 	});
 
-	describe('createDevResource', () => {
+	describe('createDevResourceForJiraIssue', () => {
 		const MOCK_CREDENTIALS = generateFigmaOAuth2UserCredentials();
 
 		beforeEach(() => {
@@ -242,16 +245,18 @@ describe('FigmaService', () => {
 				errors: [],
 			} as CreateDevResourcesResponse);
 
-			await figmaService.createDevResource({
+			await figmaService.createDevResourceForJiraIssue({
 				designId,
-				issueUrl,
-				issueKey,
-				issueTitle,
+				issue: {
+					url: issueUrl,
+					key: issueKey,
+					title: issueTitle,
+				},
 				atlassianUserId: ATLASSIAN_USER_ID,
 			});
 
 			const expectedDevResource: CreateDevResourcesRequest = {
-				name: buildIssueTitle(issueKey, issueTitle),
+				name: buildDevResourceNameFromJiraIssue(issueKey, issueTitle),
 				url: issueUrl,
 				file_key: designId.fileKey,
 				node_id: '0:0',
@@ -273,16 +278,18 @@ describe('FigmaService', () => {
 				errors: [],
 			} as CreateDevResourcesResponse);
 
-			await figmaService.createDevResource({
+			await figmaService.createDevResourceForJiraIssue({
 				designId,
-				issueUrl,
-				issueKey,
-				issueTitle,
+				issue: {
+					url: issueUrl,
+					key: issueKey,
+					title: issueTitle,
+				},
 				atlassianUserId: ATLASSIAN_USER_ID,
 			});
 
 			const expectedDevResource: CreateDevResourcesRequest = {
-				name: buildIssueTitle(issueKey, issueTitle),
+				name: buildDevResourceNameFromJiraIssue(issueKey, issueTitle),
 				url: issueUrl,
 				file_key: designId.fileKey,
 				node_id: designId.nodeId!,
@@ -304,11 +311,13 @@ describe('FigmaService', () => {
 				.mockRejectedValue(expectedError);
 
 			await expect(() =>
-				figmaService.createDevResource({
+				figmaService.createDevResourceForJiraIssue({
 					designId,
-					issueUrl,
-					issueKey,
-					issueTitle,
+					issue: {
+						url: issueUrl,
+						key: issueKey,
+						title: issueTitle,
+					},
 					atlassianUserId: ATLASSIAN_USER_ID,
 				}),
 			).rejects.toThrow(expectedError);
@@ -316,7 +325,7 @@ describe('FigmaService', () => {
 
 		it('should throw if the atlassian user is not authorized', async () => {
 			const issueKey = generateJiraIssueKey();
-			const issueUrl = generateJiraIssueUrl();
+			const issueUrl = generateJiraIssueUrl({ key: issueKey });
 			const issueTitle = uuidv4();
 			const designId = generateFigmaDesignIdentifier();
 			const credentialsError = new FigmaServiceCredentialsError(
@@ -327,11 +336,13 @@ describe('FigmaService', () => {
 				.mockRejectedValue(credentialsError);
 
 			await expect(() =>
-				figmaService.createDevResource({
+				figmaService.createDevResourceForJiraIssue({
 					designId,
-					issueUrl,
-					issueKey,
-					issueTitle,
+					issue: {
+						url: issueUrl,
+						key: issueKey,
+						title: issueTitle,
+					},
 					atlassianUserId: ATLASSIAN_USER_ID,
 				}),
 			).rejects.toStrictEqual(credentialsError);
