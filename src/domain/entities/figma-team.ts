@@ -15,3 +15,8 @@ export type FigmaTeam = {
 };
 
 export type FigmaTeamCreateParams = Omit<FigmaTeam, 'id'>;
+
+export type FigmaTeamSummary = Pick<
+	FigmaTeam,
+	'teamId' | 'teamName' | 'authStatus'
+>;

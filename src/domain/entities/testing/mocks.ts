@@ -9,6 +9,7 @@ import type {
 	FigmaOAuth2UserCredentialsCreateParams,
 	FigmaTeam,
 	FigmaTeamCreateParams,
+	FigmaTeamSummary,
 	JiraIssue,
 } from '..';
 import {
@@ -225,4 +226,14 @@ export const generateFigmaTeam = ({
 	figmaAdminAtlassianUserId,
 	authStatus: status,
 	connectInstallationId,
+});
+
+export const generateFigmaTeamSummary = ({
+	teamId = uuidv4(),
+	teamName = uuidv4(),
+	authStatus: status = FigmaTeamAuthStatus.OK,
+}: Partial<FigmaTeamSummary> = {}): FigmaTeamSummary => ({
+	teamId,
+	teamName,
+	authStatus: status,
 });
