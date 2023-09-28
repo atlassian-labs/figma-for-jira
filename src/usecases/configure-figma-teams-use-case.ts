@@ -15,6 +15,11 @@ export const configureFigmaTeamUseCase = {
 	): Promise<void> => {
 		const webhookPasscode = uuidv4();
 
+		const teamName = await figmaService.getTeamName(teamId, {
+			atlassianUserId,
+			connectInstallationId: connectInstallation.id,
+		});
+
 		const { webhookId, teamId: figmaTeamId } =
 			await figmaService.createFileUpdateWebhook(teamId, webhookPasscode, {
 				atlassianUserId,
@@ -25,7 +30,7 @@ export const configureFigmaTeamUseCase = {
 			webhookId,
 			webhookPasscode,
 			teamId: figmaTeamId,
-			teamName: 'TODO',
+			teamName,
 			figmaAdminAtlassianUserId: atlassianUserId,
 			authStatus: FigmaTeamAuthStatus.OK,
 			connectInstallationId: connectInstallation.id,

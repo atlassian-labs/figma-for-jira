@@ -57,8 +57,8 @@ import { generateInboundRequestSymmetricJwtToken } from '../../testing';
 const MOCK_CONNECT_INSTALLATION_CREATE_PARAMS =
 	generateConnectInstallationCreateParams({
 		key: 'com.figma.jira-addon-dev',
-		clientKey: '4561b8be-e38b-43d4-84d9-f09e8195d117',
-		sharedSecret: '903b6b9e-b82b-48ea-a9b2-40b9e700df32',
+		clientKey: uuidv4(),
+		sharedSecret: uuidv4(),
 	});
 
 const ASSOCIATE_JWT_TOKEN = `JWT ${generateInboundRequestSymmetricJwtToken({

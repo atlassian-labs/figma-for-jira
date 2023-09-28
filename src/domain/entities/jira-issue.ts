@@ -16,3 +16,7 @@ export type JiraIssue = {
 		readonly summary: string;
 	};
 };
+
+export const buildJiraIssueUrl = (baseUrl: string, issueKey: string) => {
+	return `${baseUrl}/browse/${issueKey}`;
+};

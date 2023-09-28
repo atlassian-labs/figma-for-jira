@@ -135,7 +135,9 @@ export const connectAppDescriptor = {
 				grant3LO: {
 					templateUrl: `${getConfig().figma.apiBaseUrl}/oauth?client_id=${
 						getConfig().figma.clientId
-					}&redirect_uri=${getConfig().app.baseUrl}/auth/callback&scope=${
+					}&redirect_uri=${
+						getConfig().app.baseUrl
+					}/figma/oauth/callback&scope=${
 						getConfig().figma.scope
 					}&state={state}&response_type=code`,
 				},

@@ -10,10 +10,12 @@ import { configureFigmaTeamUseCase } from '.';
 describe('configureFigmaTeamUseCase', () => {
 	it('should create a webhook and FigmaTeam record', async () => {
 		const teamId = uuidv4();
-		const connectInstallation = generateConnectInstallation();
+		const teamName = uuidv4();
 		const atlassianUserId = uuidv4();
+		const connectInstallation = generateConnectInstallation();
 		const webhookId = uuidv4();
 
+		jest.spyOn(figmaService, 'getTeamName').mockResolvedValue(teamName);
 		jest
 			.spyOn(figmaService, 'createFileUpdateWebhook')
 			.mockResolvedValue({ teamId, webhookId });
@@ -42,7 +44,7 @@ describe('configureFigmaTeamUseCase', () => {
 			webhookId,
 			webhookPasscode: generatedPasscode,
 			teamId,
-			teamName: 'TODO',
+			teamName,
 			figmaAdminAtlassianUserId: atlassianUserId,
 			authStatus: FigmaTeamAuthStatus.OK,
 			connectInstallationId: connectInstallation.id,

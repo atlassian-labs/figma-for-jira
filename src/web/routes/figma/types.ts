@@ -1,3 +1,5 @@
+import type { Request } from 'express';
+
 import type { FigmaWebhookEventType } from '../../../domain/entities';
 
 export type FigmaWebhookEventPayload = {
@@ -14,3 +16,16 @@ export type FigmaWebhookEventPayload = {
 		readonly handle: string;
 	};
 };
+
+export type FigmaAuthCallbackQueryParameters = {
+	readonly code: string;
+	readonly state: string;
+};
+
+export type FigmaAuthCallbackRequest = Request<
+	Record<string, never>,
+	never,
+	never,
+	FigmaAuthCallbackQueryParameters,
+	Record<string, never>
+>;

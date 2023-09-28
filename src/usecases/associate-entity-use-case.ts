@@ -3,10 +3,11 @@ import type { AtlassianEntity } from './types';
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
 import {
 	AtlassianAssociation,
+	buildJiraIssueUrl,
 	FigmaDesignIdentifier,
 } from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
-import { buildIssueUrl, jiraService } from '../infrastructure/jira';
+import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
 export type AssociateEntityUseCaseParams = {
@@ -38,8 +39,6 @@ export const associateEntityUseCase = {
 		const designIssueAssociation =
 			AtlassianAssociation.createDesignIssueAssociation(associateWith.ari);
 
-		const { key: issueKey, fields, id: issueId } = issue;
-
 		await Promise.all([
 			jiraService.submitDesign(
 				{
@@ -49,15 +48,17 @@ export const associateEntityUseCase = {
 				connectInstallation,
 			),
 			jiraService.saveDesignUrlInIssueProperties(
-				issueId,
+				issue.id,
 				design,
 				connectInstallation,
 			),
-			figmaService.createDevResource({
+			figmaService.createDevResourceForJiraIssue({
 				designId: figmaDesignId,
-				issueUrl: buildIssueUrl(connectInstallation.baseUrl, issueKey),
-				issueKey,
-				issueTitle: fields.summary,
+				issue: {
+					url: buildJiraIssueUrl(connectInstallation.baseUrl, issue.key),
+					key: issue.key,
+					title: issue.fields.summary,
+				},
 				user: {
 					atlassianUserId,
 					connectInstallationId: connectInstallation.id,

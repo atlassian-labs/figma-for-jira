@@ -94,6 +94,19 @@ export const generateFigmaUserCredentialsCreateParams = ({
 	connectInstallationId,
 });
 
+export const generateExpiredFigmaUserCredentialsCreateParams = ({
+	atlassianUserId = uuidv4(),
+	accessToken = uuidv4(),
+	refreshToken = uuidv4(),
+	connectInstallationId = generateNumericStringId(),
+} = {}): FigmaOAuth2UserCredentialsCreateParams => ({
+	atlassianUserId,
+	accessToken,
+	refreshToken,
+	expiresAt: new Date(Date.now() - Duration.ofMinutes(120).asMilliseconds),
+	connectInstallationId,
+});
+
 export const generateConnectUserInfo = ({
 	atlassianUserId = uuidv4(),
 	connectInstallationId = generateNumericStringId(),
@@ -206,7 +219,7 @@ export const generateFigmaTeamCreateParams = ({
 	webhookId = uuidv4(),
 	webhookPasscode = uuidv4(),
 	teamId = uuidv4(),
-	teamName = 'Team Name',
+	teamName = uuidv4(),
 	figmaAdminAtlassianUserId = uuidv4(),
 	authStatus: status = FigmaTeamAuthStatus.OK,
 	connectInstallationId = generateNumericStringId(),
@@ -225,7 +238,7 @@ export const generateFigmaTeam = ({
 	webhookId = uuidv4(),
 	webhookPasscode = uuidv4(),
 	teamId = uuidv4(),
-	teamName = 'Team Name',
+	teamName = uuidv4(),
 	figmaAdminAtlassianUserId = uuidv4(),
 	authStatus: status = FigmaTeamAuthStatus.OK,
 	connectInstallationId = generateNumericStringId(),

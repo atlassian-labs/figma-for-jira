@@ -21,9 +21,10 @@ import type {
 } from '../../domain/entities';
 import { getLogger } from '../logger';
 
-export const buildIssueTitle = (issueKey: string, issueSummary: string) => {
-	return `[${issueKey}] ${issueSummary}`;
-};
+export const buildDevResourceNameFromJiraIssue = (
+	issueKey: string,
+	issueSummary: string,
+) => `[${issueKey}] ${issueSummary}`;
 
 export class FigmaService {
 	getValidCredentialsOrThrow = async (
@@ -83,24 +84,24 @@ export class FigmaService {
 		}
 	};
 
-	createDevResource = async ({
+	createDevResourceForJiraIssue = async ({
 		designId,
-		issueUrl,
-		issueKey,
-		issueTitle,
+		issue,
 		user,
 	}: {
 		designId: FigmaDesignIdentifier;
-		issueUrl: string;
-		issueKey: string;
-		issueTitle: string;
+		issue: {
+			url: string;
+			key: string;
+			title: string;
+		};
 		user: ConnectUserInfo;
 	}): Promise<void> => {
 		const { accessToken } = await this.getValidCredentialsOrThrow(user);
 
 		const devResource: CreateDevResourcesRequest = {
-			name: buildIssueTitle(issueKey, issueTitle),
-			url: issueUrl,
+			name: buildDevResourceNameFromJiraIssue(issue.key, issue.title),
+			url: issue.url,
 			file_key: designId.fileKey,
 			node_id: designId.nodeIdOrDefaultDocumentId,
 		};
@@ -120,11 +121,11 @@ export class FigmaService {
 
 	deleteDevResourceIfExists = async ({
 		designId,
-		issueUrl,
+		devResourceUrl,
 		user,
 	}: {
 		designId: FigmaDesignIdentifier;
-		issueUrl: string;
+		devResourceUrl: string;
 		user: ConnectUserInfo;
 	}): Promise<void> => {
 		const { accessToken } = await this.getValidCredentialsOrThrow(user);
@@ -136,7 +137,7 @@ export class FigmaService {
 		});
 
 		const devResourceToDelete = dev_resources.find(
-			(devResource) => devResource.url === issueUrl,
+			(devResource) => devResource.url === devResourceUrl,
 		);
 
 		if (!devResourceToDelete) {
@@ -185,6 +186,16 @@ export class FigmaService {
 
 			throw e;
 		}
+	};
+
+	getTeamName = async (
+		teamId: string,
+		user: ConnectUserInfo,
+	): Promise<string> => {
+		const { accessToken } = await this.getValidCredentialsOrThrow(user);
+
+		const response = await figmaClient.getTeamProjects(teamId, accessToken);
+		return response.name;
 	};
 }
 

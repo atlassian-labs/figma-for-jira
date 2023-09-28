@@ -1,3 +1,4 @@
+import type { Params } from 'atlassian-jwt';
 import {
 	createQueryStringHash,
 	encodeAsymmetric,
@@ -76,10 +77,12 @@ export const generateInboundRequestAsymmetricJwtToken = async ({
 export const generateInboundRequestSymmetricJwtToken = ({
 	pathname,
 	method,
+	query,
 	connectInstallation: { clientKey, sharedSecret },
 }: {
-	pathname: string;
 	method: Method;
+	pathname: string;
+	query?: Params;
 	connectInstallation: {
 		clientKey: string;
 		sharedSecret: string;
@@ -91,7 +94,7 @@ export const generateInboundRequestSymmetricJwtToken = ({
 			iat: nowInSeconds,
 			exp: nowInSeconds + 99999,
 			iss: clientKey,
-			qsh: createQueryStringHash({ pathname, method }),
+			qsh: createQueryStringHash({ method, pathname, query }),
 		},
 		sharedSecret,
 	);

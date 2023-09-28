@@ -3,6 +3,7 @@ import nock from 'nock';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
+import { FAILURE_PAGE_URL, SUCCESS_PAGE_URL } from './figma-router';
 import { generateFigmaWebhookEventPayload } from './testing';
 import type { FigmaWebhookEventPayload } from './types';
 
@@ -19,6 +20,7 @@ import {
 	generateAssociatedFigmaDesignCreateParams,
 	generateConnectInstallation,
 	generateConnectInstallationCreateParams,
+	generateConnectUserInfo,
 	generateFigmaDesignIdentifier,
 	generateFigmaFileKey,
 	generateFigmaFileName,
@@ -30,6 +32,8 @@ import {
 	generateChildNode,
 	generateGetFileResponseWithNode,
 	generateGetFileResponseWithNodeId,
+	generateGetOAuth2TokenQueryParams,
+	generateGetOAuth2TokenResponse,
 } from '../../../infrastructure/figma/figma-client/testing';
 import { transformNodeToAtlassianDesign } from '../../../infrastructure/figma/transformers';
 import type {
@@ -43,6 +47,10 @@ import {
 	figmaOAuth2UserCredentialsRepository,
 	figmaTeamRepository,
 } from '../../../infrastructure/repositories';
+
+const FIGMA_OAUTH_API_BASE_URL = getConfig().figma.oauthApiBaseUrl;
+const FIGMA_OAUTH_CALLBACK_ENDPOINT = '/figma/oauth/callback';
+const FIGMA_OAUTH_TOKEN_ENDPOINT = '/api/oauth/token';
 
 const FIGMA_API_BASE_URL = getConfig().figma.apiBaseUrl;
 const FIGMA_API_ME_ENDPOINT = '/v1/me';
@@ -111,6 +119,23 @@ const mockSubmitDesignsEndpoint = ({
 		);
 };
 
+const mockGetTeamProjectsEndpoint = ({
+	teamId = uuidv4(),
+	teamName = uuidv4(),
+	success = true,
+}: {
+	teamId?: string;
+	teamName?: string;
+	success?: boolean;
+} = {}) => {
+	const statusCode = success
+		? HttpStatusCode.Ok
+		: HttpStatusCode.InternalServerError;
+	nock(FIGMA_API_BASE_URL)
+		.get(`/v1/teams/${teamId}/projects`)
+		.reply(statusCode, { name: teamName, projects: [] });
+};
+
 describe('/figma', () => {
 	describe('/webhook', () => {
 		describe('FILE_UPDATE event', () => {
@@ -167,6 +192,47 @@ describe('/figma', () => {
 					generateDesignAndFileResponseAndAtlassianDesign,
 				);
 				mockMeEndpoint();
+				mockGetTeamProjectsEndpoint({
+					teamId: figmaTeam.teamId,
+					teamName: figmaTeam.teamName,
+				});
+				for (const { designId, fileResponse } of entries) {
+					mockGetFileWithNodesEndpoint({
+						fileKey: designId.fileKey,
+						nodeId: designId.nodeId!,
+						response: fileResponse,
+					});
+				}
+				mockSubmitDesignsEndpoint({
+					request: {
+						designs: entries.map(({ atlassianDesign }) => ({
+							...atlassianDesign,
+							addAssociations: null,
+							removeAssociations: null,
+						})),
+					},
+					response: generateSuccessfulSubmitDesignsResponse(
+						entries.map(({ atlassianDesign }) => atlassianDesign.id),
+					),
+					connectInstallation,
+				});
+
+				await request(app)
+					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.send(webhookEventPayload)
+					.expect(HttpStatusCode.Ok);
+			});
+
+			it('should return a 200 if fetching team name from Figma fails', async () => {
+				const entries = associatedFigmaDesigns.map(
+					generateDesignAndFileResponseAndAtlassianDesign,
+				);
+				mockMeEndpoint();
+				mockGetTeamProjectsEndpoint({
+					teamId: figmaTeam.teamId,
+					teamName: figmaTeam.teamName,
+					success: false,
+				});
 				for (const { designId, fileResponse } of entries) {
 					mockGetFileWithNodesEndpoint({
 						fileKey: designId.fileKey,
@@ -226,6 +292,10 @@ describe('/figma', () => {
 
 			it('should return a 500 if fetching designs from Figma fails', async () => {
 				mockMeEndpoint();
+				mockGetTeamProjectsEndpoint({
+					teamId: figmaTeam.teamId,
+					teamName: figmaTeam.teamName,
+				});
 				for (const { designId } of associatedFigmaDesigns) {
 					mockGetFileWithNodesEndpoint({
 						fileKey: designId.fileKey,
@@ -263,6 +333,62 @@ describe('/figma', () => {
 						.expect(HttpStatusCode.Ok);
 				},
 			);
+		});
+	});
+
+	describe('/oauth/callback', () => {
+		const getTokenQueryParams = generateGetOAuth2TokenQueryParams({
+			client_id: getConfig().figma.clientId,
+			client_secret: getConfig().figma.clientSecret,
+			redirect_uri: `${
+				getConfig().app.baseUrl
+			}${FIGMA_OAUTH_CALLBACK_ENDPOINT}`,
+		});
+
+		it('should redirect to success page if auth callback to figma succeeds', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallation(),
+			);
+			const connectUserInfo = generateConnectUserInfo({
+				connectInstallationId: connectInstallation.id,
+			});
+
+			nock(FIGMA_OAUTH_API_BASE_URL)
+				.post(FIGMA_OAUTH_TOKEN_ENDPOINT)
+				.query(getTokenQueryParams)
+				.reply(HttpStatusCode.Ok, generateGetOAuth2TokenResponse());
+
+			return request(app)
+				.get(FIGMA_OAUTH_CALLBACK_ENDPOINT)
+				.query({
+					state: `${connectUserInfo.connectInstallationId}/${connectUserInfo.atlassianUserId}`,
+					code: getTokenQueryParams.code,
+				})
+				.expect(HttpStatusCode.Found)
+				.expect('Location', SUCCESS_PAGE_URL);
+		});
+
+		it('should redirect to failure page if auth callback to figma fails', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallation(),
+			);
+			const connectUserInfo = generateConnectUserInfo({
+				connectInstallationId: connectInstallation.id,
+			});
+
+			nock(FIGMA_OAUTH_API_BASE_URL)
+				.post(FIGMA_OAUTH_TOKEN_ENDPOINT)
+				.query(getTokenQueryParams)
+				.reply(HttpStatusCode.Unauthorized);
+
+			return request(app)
+				.get(FIGMA_OAUTH_CALLBACK_ENDPOINT)
+				.query({
+					state: `${connectUserInfo.connectInstallationId}/${connectUserInfo.atlassianUserId}`,
+					code: getTokenQueryParams.code,
+				})
+				.expect(HttpStatusCode.Found)
+				.expect('Location', FAILURE_PAGE_URL);
 		});
 	});
 });
