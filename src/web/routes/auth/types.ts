@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
-import { ConnectInstallation } from '../../../domain/entities';
+
+import type { ConnectInstallation } from '../../../domain/entities';
 
 export type AuthCallbackQueryParameters = {
 	readonly code: string;

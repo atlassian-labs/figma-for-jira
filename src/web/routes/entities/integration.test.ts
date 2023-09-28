@@ -289,13 +289,16 @@ describe('/entities', () => {
 				name: fileName,
 			});
 
-			const figmaUserCredentials =
-				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({ atlassianUserId }),
-				);
 			const connectInstallation = await connectInstallationRepository.upsert(
 				MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
 			);
+			const figmaUserCredentials =
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaUserCredentialsCreateParams({
+						atlassianUserId,
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
 
 			mockMeEndpoint({ success: true, times: 2 });
 			mockGetFileEndpoint({
@@ -399,13 +402,16 @@ describe('/entities', () => {
 				node,
 			});
 
-			const figmaUserCredentials =
-				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({ atlassianUserId }),
-				);
 			const connectInstallation = await connectInstallationRepository.upsert(
 				MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
 			);
+			const figmaUserCredentials =
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaUserCredentialsCreateParams({
+						atlassianUserId,
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
 
 			mockMeEndpoint({ success: true, times: 2 });
 			mockGetFileEndpoint({
@@ -528,13 +534,16 @@ describe('/entities', () => {
 				mode: 'dev',
 			});
 
-			const figmaUserCredentials =
-				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({ atlassianUserId }),
-				);
 			const connectInstallation = await connectInstallationRepository.upsert(
 				MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
 			);
+			const figmaUserCredentials =
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaUserCredentialsCreateParams({
+						atlassianUserId,
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
 
 			mockMeEndpoint({ success: true, times: 2 });
 			mockGetIssueEndpoint({
@@ -581,13 +590,16 @@ describe('/entities', () => {
 				name: fileName,
 			});
 
-			const figmaUserCredentials =
-				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({ atlassianUserId }),
-				);
 			const connectInstallation = await connectInstallationRepository.upsert(
 				MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
 			);
+			const figmaUserCredentials =
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaUserCredentialsCreateParams({
+						atlassianUserId,
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
 
 			await associatedFigmaDesignRepository.upsert({
 				designId,
@@ -712,13 +724,16 @@ describe('/entities', () => {
 				node,
 			});
 
-			const figmaUserCredentials =
-				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({ atlassianUserId }),
-				);
 			const connectInstallation = await connectInstallationRepository.upsert(
 				MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
 			);
+			const figmaUserCredentials =
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaUserCredentialsCreateParams({
+						atlassianUserId,
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
 
 			await associatedFigmaDesignRepository.upsert({
 				designId,
@@ -831,13 +846,16 @@ describe('/entities', () => {
 			const issue = generateJiraIssue({ id: issueId });
 			const fileResponse = generateGetFileResponse({ name: fileName });
 
-			const figmaUserCredentials =
-				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({ atlassianUserId }),
-				);
 			const connectInstallation = await connectInstallationRepository.upsert(
 				MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
 			);
+			const figmaUserCredentials =
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaUserCredentialsCreateParams({
+						atlassianUserId,
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
 
 			mockMeEndpoint({ success: true, times: 2 });
 			mockGetFileEndpoint({
@@ -919,13 +937,16 @@ describe('/entities', () => {
 			const fileKey = generateFigmaFileKey();
 			const issueId = generateJiraIssueId();
 
-			const figmaUserCredentials =
-				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({ atlassianUserId }),
-				);
 			const connectInstallation = await connectInstallationRepository.upsert(
 				MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
 			);
+			const figmaUserCredentials =
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaUserCredentialsCreateParams({
+						atlassianUserId,
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
 
 			mockMeEndpoint({ success: true, times: 2 });
 			mockGetIssueEndpoint({

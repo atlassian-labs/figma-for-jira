@@ -48,10 +48,10 @@ describe('associateEntityUseCase', () => {
 
 		await associateEntityUseCase.execute(params);
 
-		expect(figmaService.fetchDesignById).toHaveBeenCalledWith(
-			designId,
-			params.atlassianUserId,
-		);
+		expect(figmaService.fetchDesignById).toHaveBeenCalledWith(designId, {
+			atlassianUserId: params.atlassianUserId,
+			connectInstallationId: params.connectInstallation.id,
+		});
 		expect(jiraService.submitDesign).toHaveBeenCalledWith(
 			{
 				design: atlassianDesign,
@@ -73,7 +73,10 @@ describe('associateEntityUseCase', () => {
 			issueKey: issue.key,
 			issueTitle: issue.fields.summary,
 			issueUrl: `${connectInstallation.baseUrl}/browse/${issue.key}`,
-			atlassianUserId: params.atlassianUserId,
+			user: {
+				atlassianUserId: params.atlassianUserId,
+				connectInstallationId: params.connectInstallation.id,
+			},
 		});
 		expect(associatedFigmaDesignRepository.upsert).toHaveBeenCalledWith({
 			designId,

@@ -10,8 +10,8 @@ import { configureFigmaTeamUseCase } from '.';
 describe('configureFigmaTeamUseCase', () => {
 	it('should create a webhook and FigmaTeam record', async () => {
 		const teamId = uuidv4();
-		const atlassianUserId = uuidv4();
 		const connectInstallation = generateConnectInstallation();
+		const atlassianUserId = uuidv4();
 		const webhookId = uuidv4();
 
 		jest
@@ -29,14 +29,14 @@ describe('configureFigmaTeamUseCase', () => {
 
 		expect(figmaService.createFileUpdateWebhook).toBeCalledWith(
 			teamId,
-			atlassianUserId,
 			expect.anything(),
+			{ atlassianUserId, connectInstallationId: connectInstallation.id },
 		);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		const generatedPasscode = (
 			figmaService.createFileUpdateWebhook as jest.Mock
-		).mock.calls[0][2];
+		).mock.calls[0][1];
 
 		expect(figmaTeamRepository.upsert).toBeCalledWith({
 			webhookId,

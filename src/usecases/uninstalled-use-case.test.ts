@@ -37,11 +37,17 @@ describe('uninstalledUseCase', () => {
 		expect(figmaService.deleteWebhook).toHaveBeenCalledTimes(2);
 		expect(figmaService.deleteWebhook).toHaveBeenCalledWith(
 			figmaTeam1.webhookId,
-			figmaTeam1.figmaAdminAtlassianUserId,
+			{
+				atlassianUserId: figmaTeam1.figmaAdminAtlassianUserId,
+				connectInstallationId: connectInstallation.id,
+			},
 		);
 		expect(figmaService.deleteWebhook).toHaveBeenCalledWith(
 			figmaTeam2.webhookId,
-			figmaTeam2.figmaAdminAtlassianUserId,
+			{
+				atlassianUserId: figmaTeam2.figmaAdminAtlassianUserId,
+				connectInstallationId: connectInstallation.id,
+			},
 		);
 		expect(
 			connectInstallationRepository.deleteByClientKey,

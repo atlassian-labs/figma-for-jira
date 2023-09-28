@@ -6,6 +6,7 @@ import type {
 	AtlassianDesign,
 	ConnectInstallation,
 	ConnectInstallationCreateParams,
+	ConnectUserInfo,
 	FigmaOAuth2UserCredentialsCreateParams,
 	FigmaTeam,
 	FigmaTeamCreateParams,
@@ -90,6 +91,14 @@ export const generateFigmaUserCredentialsCreateParams = ({
 	accessToken,
 	refreshToken,
 	expiresAt,
+	connectInstallationId,
+});
+
+export const generateConnectUserInfo = ({
+	atlassianUserId = uuidv4(),
+	connectInstallationId = generateNumericStringId(),
+} = {}): ConnectUserInfo => ({
+	atlassianUserId,
 	connectInstallationId,
 });
 

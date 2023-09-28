@@ -72,7 +72,9 @@ describe('/team', () => {
 			);
 			figmaOAuth2UserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams(),
+					generateFigmaUserCredentialsCreateParams({
+						connectInstallationId: connectInstallation.id,
+					}),
 				);
 		});
 

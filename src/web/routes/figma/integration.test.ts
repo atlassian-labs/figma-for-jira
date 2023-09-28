@@ -120,22 +120,19 @@ describe('/figma', () => {
 			let webhookEventPayload: FigmaWebhookEventPayload;
 
 			beforeEach(async () => {
-				const connectInstallationCreateParams =
-					generateConnectInstallationCreateParams();
 				connectInstallation = await connectInstallationRepository.upsert(
-					connectInstallationCreateParams,
+					generateConnectInstallationCreateParams(),
 				);
-
-				const figmaTeamCreateParams = generateFigmaTeamCreateParams({
-					connectInstallationId: connectInstallation.id,
-				});
-				figmaTeam = await figmaTeamRepository.upsert(figmaTeamCreateParams);
-
-				const validCredentialsParams = generateFigmaUserCredentialsCreateParams(
-					{ atlassianUserId: figmaTeam.figmaAdminAtlassianUserId },
+				figmaTeam = await figmaTeamRepository.upsert(
+					generateFigmaTeamCreateParams({
+						connectInstallationId: connectInstallation.id,
+					}),
 				);
 				await figmaOAuth2UserCredentialsRepository.upsert(
-					validCredentialsParams,
+					generateFigmaUserCredentialsCreateParams({
+						atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,
+						connectInstallationId: connectInstallation.id,
+					}),
 				);
 
 				associatedFigmaDesigns = [];
@@ -163,16 +160,6 @@ describe('/figma', () => {
 					file_name: generateFigmaFileName(),
 					passcode: figmaTeam.webhookPasscode,
 				});
-			});
-
-			afterEach(async () => {
-				// Cascading deletes will clean up corresponding FigmaTeam and AssociatedFigmaDesigns
-				await connectInstallationRepository.deleteByClientKey(
-					connectInstallation.clientKey,
-				);
-				await figmaOAuth2UserCredentialsRepository.delete(
-					figmaTeam.figmaAdminAtlassianUserId,
-				);
 			});
 
 			it('should fetch and submit the associated designs to Jira', async () => {

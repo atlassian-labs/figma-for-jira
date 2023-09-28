@@ -1,11 +1,17 @@
 import { HttpStatusCode } from 'axios';
 import nock from 'nock';
 import request from 'supertest';
+import { v4 as uuidv4 } from 'uuid';
 
 import app from '../../../app';
 import { Duration } from '../../../common/duration';
 import { getConfig } from '../../../config';
-import { generateFigmaUserCredentialsCreateParams } from '../../../domain/entities/testing';
+import type { FigmaOAuth2UserCredentials } from '../../../domain/entities';
+import {
+	generateConnectInstallationCreateParams,
+	generateConnectUserInfo,
+	generateFigmaUserCredentialsCreateParams,
+} from '../../../domain/entities/testing';
 import { figmaAuthService } from '../../../infrastructure/figma';
 import {
 	generateGetOAuth2TokenQueryParams,
@@ -13,7 +19,10 @@ import {
 	generateRefreshOAuth2TokenQueryParams,
 	generateRefreshOAuth2TokenResponse,
 } from '../../../infrastructure/figma/figma-client/testing';
-import { figmaOAuth2UserCredentialsRepository } from '../../../infrastructure/repositories';
+import {
+	connectInstallationRepository,
+	figmaOAuth2UserCredentialsRepository,
+} from '../../../infrastructure/repositories';
 
 import { FAILURE_PAGE_URL, SUCCESS_PAGE_URL } from './index';
 
@@ -26,25 +35,20 @@ const FIGMA_ME_ENDPOINT = '/v1/me';
 const CHECK_AUTH_ENDPOINT = '/auth/checkAuth';
 const AUTH_CALLBACK_ENDPOINT = '/auth/callback';
 
-const cleanupToken = async (atlassianUserId: string) => {
-	await figmaOAuth2UserCredentialsRepository
-		.delete(atlassianUserId)
-		.catch(console.error);
-};
-
 describe('/auth', () => {
 	describe('/checkAuth', () => {
 		describe('with valid OAuth credentials stored', () => {
-			const validCredentialsParams = generateFigmaUserCredentialsCreateParams();
+			let validCredentials: FigmaOAuth2UserCredentials;
 
 			beforeEach(async () => {
-				await figmaOAuth2UserCredentialsRepository.upsert(
-					validCredentialsParams,
+				const connectInstallation = await connectInstallationRepository.upsert(
+					generateConnectInstallationCreateParams(),
 				);
-			});
-
-			afterEach(async () => {
-				await cleanupToken(validCredentialsParams.atlassianUserId);
+				validCredentials = await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaUserCredentialsCreateParams({
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
 			});
 
 			it('should return a response indicating that user is authorized if /me endpoint responds with a non-error response code', () => {
@@ -54,7 +58,7 @@ describe('/auth', () => {
 
 				return request(app)
 					.get(
-						`${CHECK_AUTH_ENDPOINT}?userId=${validCredentialsParams.atlassianUserId}`,
+						`${CHECK_AUTH_ENDPOINT}?userId=${validCredentials.atlassianUserId}`,
 					)
 					.expect(HttpStatusCode.Ok)
 					.expect({ type: '3LO', authorized: true });
@@ -67,7 +71,7 @@ describe('/auth', () => {
 
 				return request(app)
 					.get(
-						`${CHECK_AUTH_ENDPOINT}?userId=${validCredentialsParams.atlassianUserId}`,
+						`${CHECK_AUTH_ENDPOINT}?userId=${validCredentials.atlassianUserId}`,
 					)
 					.expect(HttpStatusCode.Ok)
 					.expect({
@@ -76,7 +80,11 @@ describe('/auth', () => {
 						grant: {
 							authorizationEndpoint:
 								figmaAuthService.buildAuthorizationEndpoint(
-									validCredentialsParams.atlassianUserId,
+									{
+										atlassianUserId: validCredentials.atlassianUserId,
+										connectInstallationId:
+											validCredentials.connectInstallationId,
+									},
 									`${getConfig().app.baseUrl}/auth/callback`,
 								),
 						},
@@ -85,28 +93,27 @@ describe('/auth', () => {
 		});
 
 		describe('with expired OAuth credentials stored', () => {
-			const expiredCredentialsParams = generateFigmaUserCredentialsCreateParams(
-				{
-					accessToken: 'expired-access-token',
-					expiresAt: new Date(
-						Date.now() - Duration.ofMinutes(120).asMilliseconds,
-					),
-				},
-			);
+			const refreshToken = uuidv4();
+			let expiredCredentials: FigmaOAuth2UserCredentials;
 			const refreshTokenQueryParams = generateRefreshOAuth2TokenQueryParams({
 				client_id: getConfig().figma.clientId,
 				client_secret: getConfig().figma.clientSecret,
-				refresh_token: expiredCredentialsParams.refreshToken,
+				refresh_token: refreshToken,
 			});
 
 			beforeEach(async () => {
-				await figmaOAuth2UserCredentialsRepository.upsert(
-					expiredCredentialsParams,
+				const connectInstallation = await connectInstallationRepository.upsert(
+					generateConnectInstallationCreateParams(),
 				);
-			});
-
-			afterEach(async () => {
-				await cleanupToken(expiredCredentialsParams.atlassianUserId);
+				expiredCredentials = await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaUserCredentialsCreateParams({
+						accessToken: 'expired-access-token',
+						expiresAt: new Date(
+							Date.now() - Duration.ofMinutes(120).asMilliseconds,
+						),
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
 			});
 
 			it('should return a response indicating that user is authorized if credentials were refreshed', async () => {
@@ -121,13 +128,14 @@ describe('/auth', () => {
 
 				await request(app)
 					.get(
-						`${CHECK_AUTH_ENDPOINT}?userId=${expiredCredentialsParams.atlassianUserId}`,
+						`${CHECK_AUTH_ENDPOINT}?userId=${expiredCredentials.atlassianUserId}`,
 					)
 					.expect(HttpStatusCode.Ok)
 					.expect({ type: '3LO', authorized: true });
 
 				const credentials = await figmaOAuth2UserCredentialsRepository.get(
-					expiredCredentialsParams.atlassianUserId,
+					expiredCredentials.atlassianUserId,
+					expiredCredentials.connectInstallationId,
 				);
 				expect(credentials?.accessToken).toEqual(
 					refreshTokenResponse.access_token,
@@ -143,7 +151,7 @@ describe('/auth', () => {
 
 				return request(app)
 					.get(
-						`${CHECK_AUTH_ENDPOINT}?userId=${expiredCredentialsParams.atlassianUserId}`,
+						`${CHECK_AUTH_ENDPOINT}?userId=${expiredCredentials.atlassianUserId}`,
 					)
 					.expect(HttpStatusCode.Ok)
 					.expect({
@@ -152,7 +160,11 @@ describe('/auth', () => {
 						grant: {
 							authorizationEndpoint:
 								figmaAuthService.buildAuthorizationEndpoint(
-									expiredCredentialsParams.atlassianUserId,
+									{
+										atlassianUserId: expiredCredentials.atlassianUserId,
+										connectInstallationId:
+											expiredCredentials.connectInstallationId,
+									},
 									`${getConfig().app.baseUrl}/auth/callback`,
 								),
 						},
@@ -163,6 +175,10 @@ describe('/auth', () => {
 		describe('without OAuth credentials stored', () => {
 			it('should return a response indicating that user is not authorized if no database entry exists', async () => {
 				const userId = 'unknown-user-id';
+				// TODO: Review whether the endpoint has authorization.
+				const connectUserInfo = generateConnectUserInfo({
+					atlassianUserId: userId,
+				});
 
 				return request(app)
 					.get(`${CHECK_AUTH_ENDPOINT}?userId=${userId}`)
@@ -173,7 +189,7 @@ describe('/auth', () => {
 						grant: {
 							authorizationEndpoint:
 								figmaAuthService.buildAuthorizationEndpoint(
-									userId,
+									connectUserInfo,
 									`${getConfig().app.baseUrl}/auth/callback`,
 								),
 						},
@@ -201,8 +217,7 @@ describe('/auth', () => {
 					`${AUTH_CALLBACK_ENDPOINT}?state=${userId}&code=${getTokenQueryParams.code}`,
 				)
 				.expect(HttpStatusCode.Found)
-				.expect('Location', SUCCESS_PAGE_URL)
-				.then(async () => await cleanupToken(userId));
+				.expect('Location', SUCCESS_PAGE_URL);
 		});
 
 		it('should redirect to failure page if auth callback to figma fails', () => {

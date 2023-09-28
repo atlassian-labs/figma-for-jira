@@ -1,5 +1,5 @@
+import type { ConnectUserInfo } from '../domain/entities';
 import { figmaAuthService } from '../infrastructure/figma';
-import { ConnectUserInfo } from '../domain/entities';
 
 export const addFigmaOAuthCredentialsUseCase = {
 	execute: async (code: string, user: ConnectUserInfo) => {

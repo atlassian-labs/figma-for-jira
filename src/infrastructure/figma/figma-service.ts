@@ -15,10 +15,10 @@ import {
 import { getConfig } from '../../config';
 import type {
 	AtlassianDesign,
+	ConnectUserInfo,
 	FigmaDesignIdentifier,
 	FigmaOAuth2UserCredentials,
 } from '../../domain/entities';
-import { ConnectUserInfo } from '../../domain/entities';
 import { getLogger } from '../logger';
 
 export const buildIssueTitle = (issueKey: string, issueSummary: string) => {
