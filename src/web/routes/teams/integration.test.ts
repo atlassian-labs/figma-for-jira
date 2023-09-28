@@ -8,10 +8,13 @@ import { getConfig } from '../../../config';
 import type {
 	ConnectInstallation,
 	FigmaOAuth2UserCredentials,
+	FigmaTeamSummary,
 } from '../../../domain/entities';
 import { FigmaTeamAuthStatus } from '../../../domain/entities';
 import {
 	generateConnectInstallationCreateParams,
+	generateFigmaTeamCreateParams,
+	generateFigmaTeamSummary,
 	generateFigmaUserCredentialsCreateParams,
 } from '../../../domain/entities/testing';
 import {
@@ -73,12 +76,16 @@ const mockMeEndpoint = ({ success = true }: { success?: boolean } = {}) => {
 		.persist();
 };
 
+const figmaTeamSummaryComparer = (a: FigmaTeamSummary, b: FigmaTeamSummary) =>
+	a.teamId.localeCompare(b.teamId);
+
 const FIGMA_API_BASE_URL = getConfig().figma.apiBaseUrl;
 const FIGMA_API_ME_ENDPOINT = '/v1/me';
 
-const TEAM_CONFIGURE_ENDPOINT = '/team/configure';
+const TEAMS_CONFIGURE_ENDPOINT = '/teams/configure';
+const TEAMS_LIST_ENDPOINT = '/teams/list';
 
-describe('/team', () => {
+describe('/teams', () => {
 	describe('/configure', () => {
 		let connectInstallation: ConnectInstallation;
 		let figmaOAuth2UserCredentials: FigmaOAuth2UserCredentials;
@@ -101,7 +108,7 @@ describe('/team', () => {
 			const webhookId = uuidv4();
 			const jwt = generateInboundRequestSymmetricJwtToken({
 				method: 'POST',
-				pathname: TEAM_CONFIGURE_ENDPOINT,
+				pathname: TEAMS_CONFIGURE_ENDPOINT,
 				connectInstallation,
 			});
 
@@ -110,7 +117,7 @@ describe('/team', () => {
 			mockCreateWebhookEndpoint({ webhookId, teamId });
 
 			await request(app)
-				.post(TEAM_CONFIGURE_ENDPOINT)
+				.post(TEAMS_CONFIGURE_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
 				.set('User-Id', figmaOAuth2UserCredentials.atlassianUserId)
 				.send({ teamId })
@@ -135,7 +142,7 @@ describe('/team', () => {
 			const webhookId = uuidv4();
 			const jwt = generateInboundRequestSymmetricJwtToken({
 				method: 'POST',
-				pathname: TEAM_CONFIGURE_ENDPOINT,
+				pathname: TEAMS_CONFIGURE_ENDPOINT,
 				connectInstallation,
 			});
 
@@ -144,7 +151,7 @@ describe('/team', () => {
 			mockCreateWebhookEndpoint({ webhookId, teamId, success: false });
 
 			await request(app)
-				.post(TEAM_CONFIGURE_ENDPOINT)
+				.post(TEAMS_CONFIGURE_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
 				.set('User-Id', figmaOAuth2UserCredentials.atlassianUserId)
 				.send({ teamId })
@@ -153,6 +160,98 @@ describe('/team', () => {
 			await expect(
 				figmaTeamRepository.getByWebhookId(webhookId),
 			).rejects.toBeInstanceOf(RepositoryRecordNotFoundError);
+		});
+	});
+
+	describe('/list', () => {
+		let targetConnectInstallation: ConnectInstallation;
+		let otherConnectInstallation: ConnectInstallation;
+		let figmaOAuth2UserCredentials: FigmaOAuth2UserCredentials;
+
+		beforeEach(async () => {
+			targetConnectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			otherConnectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			figmaOAuth2UserCredentials =
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaUserCredentialsCreateParams(),
+				);
+		});
+
+		it('should return a list teams for the given connect installation', async () => {
+			const [team1, team2] = await Promise.all([
+				figmaTeamRepository.upsert(
+					generateFigmaTeamCreateParams({
+						connectInstallationId: targetConnectInstallation.id,
+					}),
+				),
+				figmaTeamRepository.upsert(
+					generateFigmaTeamCreateParams({
+						connectInstallationId: targetConnectInstallation.id,
+					}),
+				),
+				figmaTeamRepository.upsert(
+					generateFigmaTeamCreateParams({
+						connectInstallationId: otherConnectInstallation.id,
+					}),
+				),
+			]);
+
+			const jwt = generateInboundRequestSymmetricJwtToken({
+				method: 'GET',
+				pathname: TEAMS_LIST_ENDPOINT,
+				connectInstallation: targetConnectInstallation,
+			});
+
+			mockMeEndpoint();
+
+			const response = await request(app)
+				.get(TEAMS_LIST_ENDPOINT)
+				.set('Authorization', `JWT ${jwt}`)
+				.set('User-Id', figmaOAuth2UserCredentials.atlassianUserId)
+				.expect(HttpStatusCode.Ok);
+
+			expect(
+				(response.body as FigmaTeamSummary[]).sort(figmaTeamSummaryComparer),
+			).toEqual(
+				[team1, team2]
+					.map((team) => generateFigmaTeamSummary(team))
+					.sort(figmaTeamSummaryComparer),
+			);
+		});
+
+		it('should return an empty list if there are no teams configured for the given connect installation', async () => {
+			await Promise.all([
+				figmaTeamRepository.upsert(
+					generateFigmaTeamCreateParams({
+						connectInstallationId: otherConnectInstallation.id,
+					}),
+				),
+				figmaTeamRepository.upsert(
+					generateFigmaTeamCreateParams({
+						connectInstallationId: otherConnectInstallation.id,
+					}),
+				),
+			]);
+
+			const jwt = generateInboundRequestSymmetricJwtToken({
+				method: 'GET',
+				pathname: TEAMS_LIST_ENDPOINT,
+				connectInstallation: targetConnectInstallation,
+			});
+
+			mockMeEndpoint();
+
+			const response = await request(app)
+				.get(TEAMS_LIST_ENDPOINT)
+				.set('Authorization', `JWT ${jwt}`)
+				.set('User-Id', figmaOAuth2UserCredentials.atlassianUserId)
+				.expect(HttpStatusCode.Ok);
+
+			expect(response.body).toEqual([]);
 		});
 	});
 });

@@ -1,3 +1,3 @@
-export * from './team-router';
+export * from './teams-router';
 export * from './types';
 export * from './schemas';
