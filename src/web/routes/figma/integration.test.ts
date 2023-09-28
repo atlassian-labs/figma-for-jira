@@ -24,8 +24,8 @@ import {
 	generateFigmaDesignIdentifier,
 	generateFigmaFileKey,
 	generateFigmaFileName,
+	generateFigmaOAuth2UserCredentialCreateParams,
 	generateFigmaTeamCreateParams,
-	generateFigmaUserCredentialsCreateParams,
 } from '../../../domain/entities/testing';
 import type { FileResponse } from '../../../infrastructure/figma/figma-client';
 import {
@@ -154,7 +154,7 @@ describe('/figma', () => {
 					}),
 				);
 				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({
+					generateFigmaOAuth2UserCredentialCreateParams({
 						atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,
 						connectInstallationId: connectInstallation.id,
 					}),

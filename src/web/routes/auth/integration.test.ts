@@ -7,8 +7,8 @@ import app from '../../../app';
 import { getConfig } from '../../../config';
 import {
 	generateConnectInstallationCreateParams,
-	generateExpiredFigmaUserCredentialsCreateParams,
-	generateFigmaUserCredentialsCreateParams,
+	generateExpiredFigmaOAuth2UserCredentialCreateParams,
+	generateFigmaOAuth2UserCredentialCreateParams,
 } from '../../../domain/entities/testing';
 import { figmaAuthService } from '../../../infrastructure/figma';
 import {
@@ -37,7 +37,7 @@ describe('/auth', () => {
 				);
 				const atlassianUserId = uuidv4();
 				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({
+					generateFigmaOAuth2UserCredentialCreateParams({
 						atlassianUserId,
 						connectInstallationId: connectInstallation.id,
 					}),
@@ -69,7 +69,7 @@ describe('/auth', () => {
 				);
 				const atlassianUserId = uuidv4();
 				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({
+					generateFigmaOAuth2UserCredentialCreateParams({
 						atlassianUserId,
 						connectInstallationId: connectInstallation.id,
 					}),
@@ -123,7 +123,7 @@ describe('/auth', () => {
 				);
 				const atlassianUserId = uuidv4();
 				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateExpiredFigmaUserCredentialsCreateParams({
+					generateExpiredFigmaOAuth2UserCredentialCreateParams({
 						refreshToken: REFRESH_TOKEN,
 						atlassianUserId,
 						connectInstallationId: connectInstallation.id,
@@ -170,7 +170,7 @@ describe('/auth', () => {
 				);
 				const atlassianUserId = uuidv4();
 				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateExpiredFigmaUserCredentialsCreateParams({
+					generateExpiredFigmaOAuth2UserCredentialCreateParams({
 						refreshToken: REFRESH_TOKEN,
 						atlassianUserId,
 						connectInstallationId: connectInstallation.id,

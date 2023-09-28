@@ -13,9 +13,9 @@ import type {
 import { FigmaTeamAuthStatus } from '../../../domain/entities';
 import {
 	generateConnectInstallationCreateParams,
+	generateFigmaOAuth2UserCredentialCreateParams,
 	generateFigmaTeamCreateParams,
 	generateFigmaTeamSummary,
-	generateFigmaUserCredentialsCreateParams,
 } from '../../../domain/entities/testing';
 import {
 	connectInstallationRepository,
@@ -96,7 +96,7 @@ describe('/teams', () => {
 			);
 			figmaOAuth2UserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({
+					generateFigmaOAuth2UserCredentialCreateParams({
 						connectInstallationId: connectInstallation.id,
 					}),
 				);
@@ -177,7 +177,7 @@ describe('/teams', () => {
 			);
 			figmaOAuth2UserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({
+					generateFigmaOAuth2UserCredentialCreateParams({
 						connectInstallationId: targetConnectInstallation.id,
 					}),
 				);

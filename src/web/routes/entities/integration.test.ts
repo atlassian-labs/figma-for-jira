@@ -21,7 +21,7 @@ import {
 	generateFigmaFileKey,
 	generateFigmaFileName,
 	generateFigmaNodeId,
-	generateFigmaUserCredentialsCreateParams,
+	generateFigmaOAuth2UserCredentialCreateParams,
 	generateJiraIssue,
 	generateJiraIssueAri,
 	generateJiraIssueId,
@@ -294,7 +294,7 @@ describe('/entities', () => {
 			);
 			const figmaUserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({
+					generateFigmaOAuth2UserCredentialCreateParams({
 						atlassianUserId,
 						connectInstallationId: connectInstallation.id,
 					}),
@@ -369,13 +369,14 @@ describe('/entities', () => {
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
 				.expect(expectedResponse);
-			expect(
-				await associatedFigmaDesignRepository.findByDesignIdAndAssociatedWithAriAndConnectInstallationId(
-					new FigmaDesignIdentifier(fileKey),
-					issueAri,
-					connectInstallation.id,
-				),
-			).toBeTruthy();
+			expect(await associatedFigmaDesignRepository.getAll()).toEqual([
+				{
+					id: expect.anything(),
+					designId: new FigmaDesignIdentifier(fileKey),
+					associatedWithAri: issueAri,
+					connectInstallationId: connectInstallation.id,
+				},
+			]);
 		});
 
 		it('should associate Figma node and respond with created design entity', async () => {
@@ -407,7 +408,7 @@ describe('/entities', () => {
 			);
 			const figmaUserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({
+					generateFigmaOAuth2UserCredentialCreateParams({
 						atlassianUserId,
 						connectInstallationId: connectInstallation.id,
 					}),
@@ -486,13 +487,14 @@ describe('/entities', () => {
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
 				.expect(expectedResponse);
-			expect(
-				await associatedFigmaDesignRepository.findByDesignIdAndAssociatedWithAriAndConnectInstallationId(
-					new FigmaDesignIdentifier(fileKey, nodeId),
-					issueAri,
-					connectInstallation.id,
-				),
-			).toBeTruthy();
+			expect(await associatedFigmaDesignRepository.getAll()).toEqual([
+				{
+					id: expect.anything(),
+					designId: new FigmaDesignIdentifier(fileKey, nodeId),
+					associatedWithAri: issueAri,
+					connectInstallationId: connectInstallation.id,
+				},
+			]);
 		});
 
 		it('should respond with 401 "User-Id" header is not set', () => {
@@ -539,7 +541,7 @@ describe('/entities', () => {
 			);
 			const figmaUserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({
+					generateFigmaOAuth2UserCredentialCreateParams({
 						atlassianUserId,
 						connectInstallationId: connectInstallation.id,
 					}),
@@ -595,7 +597,7 @@ describe('/entities', () => {
 			);
 			const figmaUserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({
+					generateFigmaOAuth2UserCredentialCreateParams({
 						atlassianUserId,
 						connectInstallationId: connectInstallation.id,
 					}),
@@ -694,13 +696,7 @@ describe('/entities', () => {
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
 				.expect(expectedResponse);
-			expect(
-				await associatedFigmaDesignRepository.findByDesignIdAndAssociatedWithAriAndConnectInstallationId(
-					designId,
-					issueAri,
-					connectInstallation.id,
-				),
-			).toBeNull();
+			expect(await associatedFigmaDesignRepository.getAll()).toEqual([]);
 		});
 
 		it('should disassociate Figma node and respond with created design entity', async () => {
@@ -729,7 +725,7 @@ describe('/entities', () => {
 			);
 			const figmaUserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({
+					generateFigmaOAuth2UserCredentialCreateParams({
 						atlassianUserId,
 						connectInstallationId: connectInstallation.id,
 					}),
@@ -829,13 +825,7 @@ describe('/entities', () => {
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
 				.expect(expectedResponse);
-			expect(
-				await associatedFigmaDesignRepository.findByDesignIdAndAssociatedWithAriAndConnectInstallationId(
-					designId,
-					issueAri,
-					connectInstallation.id,
-				),
-			).toBeNull();
+			expect(await associatedFigmaDesignRepository.getAll()).toEqual([]);
 		});
 
 		it('should respond with 200 if getDevResource returns no resources', async () => {
@@ -851,7 +841,7 @@ describe('/entities', () => {
 			);
 			const figmaUserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({
+					generateFigmaOAuth2UserCredentialCreateParams({
 						atlassianUserId,
 						connectInstallationId: connectInstallation.id,
 					}),
@@ -942,7 +932,7 @@ describe('/entities', () => {
 			);
 			const figmaUserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaUserCredentialsCreateParams({
+					generateFigmaOAuth2UserCredentialCreateParams({
 						atlassianUserId,
 						connectInstallationId: connectInstallation.id,
 					}),

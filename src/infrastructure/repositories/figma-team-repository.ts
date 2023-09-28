@@ -35,6 +35,16 @@ export class FigmaTeamRepository {
 		return this.mapToFigmaTeam(dbModel);
 	};
 
+	/**
+	 * @internal
+	 * Required for tests only.
+	 */
+	getAll = async (): Promise<FigmaTeam[]> => {
+		const dbModels = await prismaClient.get().figmaTeam.findMany();
+
+		return dbModels.map((dbModel) => this.mapToFigmaTeam(dbModel));
+	};
+
 	getByWebhookId = async (webhookId: string): Promise<FigmaTeam> => {
 		const dbModel = await prismaClient
 			.get()

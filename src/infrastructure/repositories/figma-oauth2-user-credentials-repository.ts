@@ -12,6 +12,24 @@ type PrismaFigmaOAuth2UserCredentialsCreateParams = Omit<
 >;
 
 export class FigmaOAuth2UserCredentialsRepository {
+	upsert = async (
+		createParams: FigmaOAuth2UserCredentialsCreateParams,
+	): Promise<FigmaOAuth2UserCredentials> => {
+		const createParamsDbModel = this.mapCreateParamsToDbModel(createParams);
+
+		const dbModel = await prismaClient.get().figmaOAuth2UserCredentials.upsert({
+			create: createParamsDbModel,
+			update: createParamsDbModel,
+			where: {
+				atlassianUserId_connectInstallationId: {
+					atlassianUserId: createParamsDbModel.atlassianUserId,
+					connectInstallationId: BigInt(createParams.connectInstallationId),
+				},
+			},
+		});
+		return this.mapToDomainModel(dbModel);
+	};
+
 	get = async (
 		atlassianUserId: string,
 		connectInstallationId: string,
@@ -33,22 +51,16 @@ export class FigmaOAuth2UserCredentialsRepository {
 		return this.mapToDomainModel(credentials);
 	};
 
-	upsert = async (
-		createParams: FigmaOAuth2UserCredentialsCreateParams,
-	): Promise<FigmaOAuth2UserCredentials> => {
-		const createParamsDbModel = this.mapCreateParamsToDbModel(createParams);
+	/**
+	 * @internal
+	 * Required for tests only.
+	 */
+	getAll = async (): Promise<FigmaOAuth2UserCredentials[]> => {
+		const dbModels = await prismaClient
+			.get()
+			.figmaOAuth2UserCredentials.findMany();
 
-		const dbModel = await prismaClient.get().figmaOAuth2UserCredentials.upsert({
-			create: createParamsDbModel,
-			update: createParamsDbModel,
-			where: {
-				atlassianUserId_connectInstallationId: {
-					atlassianUserId: createParamsDbModel.atlassianUserId,
-					connectInstallationId: BigInt(createParams.connectInstallationId),
-				},
-			},
-		});
-		return this.mapToDomainModel(dbModel);
+		return dbModels.map((dbModel) => this.mapToDomainModel(dbModel));
 	};
 
 	delete = async (

@@ -37,19 +37,13 @@ export class AssociatedFigmaDesignRepository {
 	};
 
 	/**
-	 * @remarks
+	 * @internal
 	 * Required for tests only.
 	 */
-	find = async (id: string): Promise<AssociatedFigmaDesign | null> => {
-		const dbModel = await prismaClient.get().associatedFigmaDesign.findFirst({
-			where: {
-				id: BigInt(id),
-			},
-		});
+	getAll = async (): Promise<AssociatedFigmaDesign[]> => {
+		const dbModels = await prismaClient.get().associatedFigmaDesign.findMany();
 
-		if (dbModel === null) return null;
-
-		return this.mapToDomainModel(dbModel);
+		return dbModels.map((dbModel) => this.mapToDomainModel(dbModel));
 	};
 
 	findManyByFileKeyAndConnectInstallationId = async (
@@ -61,29 +55,6 @@ export class AssociatedFigmaDesignRepository {
 		});
 
 		return dbModels.map(this.mapToDomainModel);
-	};
-
-	/**
-	 * @remarks
-	 * Required for integration tests only.
-	 */
-	findByDesignIdAndAssociatedWithAriAndConnectInstallationId = async (
-		designId: FigmaDesignIdentifier,
-		associatedWithAri: string,
-		connectInstallationId: string,
-	): Promise<AssociatedFigmaDesign | null> => {
-		const dbModel = await prismaClient.get().associatedFigmaDesign.findFirst({
-			where: {
-				fileKey: designId.fileKey,
-				nodeId: designId.nodeId ?? '',
-				associatedWithAri: associatedWithAri,
-				connectInstallationId: BigInt(connectInstallationId),
-			},
-		});
-
-		if (dbModel === null) return null;
-
-		return this.mapToDomainModel(dbModel);
 	};
 
 	deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId = async (
