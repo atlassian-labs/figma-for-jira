@@ -194,6 +194,17 @@ export class FigmaService {
 			throw e;
 		}
 	};
+
+	getTeamName = async (
+		teamId: string,
+		atlassianUserId: string,
+	): Promise<string> => {
+		const { accessToken } =
+			await this.getValidCredentialsOrThrow(atlassianUserId);
+
+		const response = await figmaClient.getTeamProjects(teamId, accessToken);
+		return response.name;
+	};
 }
 
 export const figmaService = new FigmaService();

@@ -1,6 +1,9 @@
 import type { Request, Response } from 'express';
 
-import type { ConnectInstallation } from '../../../domain/entities';
+import type {
+	ConnectInstallation,
+	FigmaTeamSummary,
+} from '../../../domain/entities';
 
 export type ConfigureFigmaTeamRequestBody = {
 	readonly teamId: string;
@@ -27,4 +30,15 @@ export type ConfigureTeamsResponseBody = {
 export type ConfigureFigmaTeamsResponse = Response<
 	ConfigureTeamsResponseBody,
 	ConfigureFigmaTeamsLocals
+>;
+
+export type ListFigmaTeamsLocals = {
+	readonly connectInstallation: ConnectInstallation;
+};
+
+export type ListFigmaTeamsResponseBody = ReadonlyArray<FigmaTeamSummary>;
+
+export type ListFigmaTeamsResponse = Response<
+	ListFigmaTeamsResponseBody,
+	ListFigmaTeamsLocals
 >;

@@ -455,4 +455,29 @@ describe('FigmaService', () => {
 			).resolves.toBeUndefined();
 		});
 	});
+
+	describe('getTeamName', () => {
+		const MOCK_CREDENTIALS = generateFigmaOAuth2UserCredentials();
+
+		beforeEach(() => {
+			jest
+				.spyOn(figmaService, 'getValidCredentialsOrThrow')
+				.mockResolvedValue(MOCK_CREDENTIALS);
+		});
+
+		it('should call figmaClient to get team name', async () => {
+			const teamId = uuidv4();
+			const teamName = uuidv4();
+
+			jest
+				.spyOn(figmaClient, 'getTeamProjects')
+				.mockResolvedValue({ name: teamName, projects: [] });
+
+			const result = await figmaService.getTeamName(
+				teamId,
+				MOCK_CREDENTIALS.atlassianUserId,
+			);
+			expect(result).toStrictEqual(teamName);
+		});
+	});
 });

@@ -5,10 +5,18 @@ import { PrismaErrorCode } from './constants';
 import { RepositoryRecordNotFoundError } from './errors';
 import { prismaClient } from './prisma-client';
 
-import type { FigmaTeam, FigmaTeamCreateParams } from '../../domain/entities';
+import type {
+	FigmaTeam,
+	FigmaTeamCreateParams,
+	FigmaTeamSummary,
+} from '../../domain/entities';
 import { FigmaTeamAuthStatus } from '../../domain/entities';
 
 type PrismaFigmaTeamCreateParams = Omit<PrismaFigmaTeam, 'id'>;
+type PrismaFigmaTeamSummary = Pick<
+	PrismaFigmaTeam,
+	'teamId' | 'teamName' | 'authStatus'
+>;
 
 export class FigmaTeamRepository {
 	upsert = async (createParams: FigmaTeamCreateParams): Promise<FigmaTeam> => {
@@ -24,7 +32,7 @@ export class FigmaTeamRepository {
 				},
 			},
 		});
-		return this.mapToDomainModel(dbModel);
+		return this.mapToFigmaTeam(dbModel);
 	};
 
 	getByWebhookId = async (webhookId: string): Promise<FigmaTeam> => {
@@ -38,7 +46,7 @@ export class FigmaTeamRepository {
 			);
 		}
 
-		return this.mapToDomainModel(dbModel);
+		return this.mapToFigmaTeam(dbModel);
 	};
 
 	findManyByConnectInstallationId = async (
@@ -48,7 +56,18 @@ export class FigmaTeamRepository {
 			where: { connectInstallationId: BigInt(connectInstallationId) },
 		});
 
-		return dbModel.map((record) => this.mapToDomainModel(record));
+		return dbModel.map((record) => this.mapToFigmaTeam(record));
+	};
+
+	findManySummaryByConnectInstallationId = async (
+		connectInstallationId: string,
+	): Promise<FigmaTeamSummary[]> => {
+		const dbModel = await prismaClient.get().figmaTeam.findMany({
+			where: { connectInstallationId: BigInt(connectInstallationId) },
+			select: { teamId: true, teamName: true, authStatus: true },
+		});
+
+		return dbModel.map((record) => this.mapToFigmaTeamSummary(record));
 	};
 
 	updateAuthStatus = async (
@@ -58,6 +77,22 @@ export class FigmaTeamRepository {
 		try {
 			await prismaClient.get().figmaTeam.update({
 				data: { authStatus },
+				where: { id: BigInt(id) },
+			});
+		} catch (e: unknown) {
+			if (
+				e instanceof PrismaClientKnownRequestError &&
+				e.code === PrismaErrorCode.RecordNotFound
+			) {
+				throw new RepositoryRecordNotFoundError(e.message);
+			}
+		}
+	};
+
+	updateTeamName = async (id: string, teamName: string): Promise<void> => {
+		try {
+			await prismaClient.get().figmaTeam.update({
+				data: { teamName },
 				where: { id: BigInt(id) },
 			});
 		} catch (e: unknown) {
@@ -88,7 +123,7 @@ export class FigmaTeamRepository {
 		connectInstallationId: BigInt(connectInstallationId),
 	});
 
-	private mapToDomainModel = ({
+	private mapToFigmaTeam = ({
 		id,
 		webhookId,
 		webhookPasscode,
@@ -106,6 +141,16 @@ export class FigmaTeamRepository {
 		figmaAdminAtlassianUserId,
 		authStatus: FigmaTeamAuthStatus[authStatus],
 		connectInstallationId: connectInstallationId.toString(),
+	});
+
+	private mapToFigmaTeamSummary = ({
+		teamId,
+		teamName,
+		authStatus,
+	}: PrismaFigmaTeamSummary): FigmaTeamSummary => ({
+		teamId,
+		teamName,
+		authStatus: FigmaTeamAuthStatus[authStatus],
 	});
 }
 
