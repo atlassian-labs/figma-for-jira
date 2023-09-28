@@ -17,6 +17,7 @@ import {
 	generateFigmaTeamSummary,
 	generateFigmaUserCredentialsCreateParams,
 } from '../../../domain/entities/testing';
+import { figmaClient } from '../../../infrastructure/figma/figma-client';
 import {
 	connectInstallationRepository,
 	figmaOAuth2UserCredentialsRepository,
@@ -50,6 +51,24 @@ const mockCreateWebhookEndpoint = ({
 			description: 'Figma for Jira',
 			protocol_version: '2',
 		});
+};
+
+const mockFigmaDeleteWebhookEndpoint = ({
+	webhookId,
+	accessToken,
+	status = HttpStatusCode.Ok,
+}: {
+	webhookId: string;
+	accessToken: string;
+	status: HttpStatusCode;
+}) => {
+	nock(FIGMA_API_BASE_URL, {
+		reqheaders: {
+			Authorization: `Bearer ${accessToken}`,
+		},
+	})
+		.delete(`/v2/webhooks/${webhookId}`)
+		.reply(status);
 };
 
 const mockGetTeamProjectsEndpoint = ({
@@ -86,7 +105,7 @@ const TEAMS_CONFIGURE_ENDPOINT = '/teams/configure';
 const TEAMS_LIST_ENDPOINT = '/teams/list';
 
 describe('/teams', () => {
-	describe('/configure', () => {
+	describe('POST /configure', () => {
 		let connectInstallation: ConnectInstallation;
 		let figmaOAuth2UserCredentials: FigmaOAuth2UserCredentials;
 
@@ -157,6 +176,95 @@ describe('/teams', () => {
 
 			await expect(
 				figmaTeamRepository.getByWebhookId(webhookId),
+			).rejects.toBeInstanceOf(RepositoryRecordNotFoundError);
+		});
+	});
+
+	describe('DELETE /configure', () => {
+		let connectInstallation: ConnectInstallation;
+		let figmaOAuth2UserCredentials: FigmaOAuth2UserCredentials;
+
+		beforeEach(async () => {
+			connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			figmaOAuth2UserCredentials =
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaUserCredentialsCreateParams(),
+				);
+		});
+
+		it('should delete the webhook and FigmaTeam record', async () => {
+			jest.spyOn(figmaClient, 'deleteWebhook');
+
+			const figmaTeam = await figmaTeamRepository.upsert(
+				generateFigmaTeamCreateParams({
+					connectInstallationId: connectInstallation.id,
+					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+				}),
+			);
+			const queryParams = { teamId: figmaTeam.teamId };
+			const jwt = generateInboundRequestSymmetricJwtToken({
+				method: 'DELETE',
+				pathname: TEAMS_CONFIGURE_ENDPOINT,
+				query: queryParams,
+				connectInstallation,
+			});
+
+			mockMeEndpoint();
+			mockFigmaDeleteWebhookEndpoint({
+				webhookId: figmaTeam.webhookId,
+				accessToken: figmaOAuth2UserCredentials.accessToken,
+				status: HttpStatusCode.Ok,
+			});
+
+			await request(app)
+				.delete(TEAMS_CONFIGURE_ENDPOINT)
+				.query(queryParams)
+				.set('Authorization', `JWT ${jwt}`)
+				.set('User-Id', 'not-a-figma-team-admin')
+				.expect(HttpStatusCode.Ok);
+
+			await expect(
+				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
+			).rejects.toBeInstanceOf(RepositoryRecordNotFoundError);
+			expect(figmaClient.deleteWebhook).toBeCalledWith(
+				figmaTeam.webhookId,
+				figmaOAuth2UserCredentials.accessToken,
+			);
+		});
+
+		it('should return a 200 and delete the FigmaTeam when deleting the webhook fails', async () => {
+			const figmaTeam = await figmaTeamRepository.upsert(
+				generateFigmaTeamCreateParams({
+					connectInstallationId: connectInstallation.id,
+					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+				}),
+			);
+			const queryParams = { teamId: figmaTeam.teamId };
+			const jwt = generateInboundRequestSymmetricJwtToken({
+				method: 'DELETE',
+				pathname: TEAMS_CONFIGURE_ENDPOINT,
+				query: queryParams,
+				connectInstallation,
+			});
+
+			mockMeEndpoint();
+			mockFigmaDeleteWebhookEndpoint({
+				webhookId: figmaTeam.webhookId,
+				accessToken: figmaOAuth2UserCredentials.accessToken,
+				status: HttpStatusCode.InternalServerError,
+			});
+
+			await request(app)
+				.delete(TEAMS_CONFIGURE_ENDPOINT)
+				.query(queryParams)
+				.set('Authorization', `JWT ${jwt}`)
+				.set('User-Id', 'not-a-figma-team-admin')
+				.expect(HttpStatusCode.Ok);
+
+			await expect(
+				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
 			).rejects.toBeInstanceOf(RepositoryRecordNotFoundError);
 		});
 	});
