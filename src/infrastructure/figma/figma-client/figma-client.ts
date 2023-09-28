@@ -12,6 +12,7 @@ import type {
 	GetDevResourcesResponse,
 	GetFileParams,
 	GetOAuth2TokenResponse,
+	GetTeamProjectsResponse,
 	MeResponse,
 	RefreshOAuth2TokenResponse,
 } from './types';
@@ -243,6 +244,22 @@ export class FigmaClient {
 
 			throw e;
 		}
+	};
+
+	getTeamProjects = async (
+		teamId: string,
+		accessToken: string,
+	): Promise<GetTeamProjectsResponse> => {
+		const response = await axios.get<GetTeamProjectsResponse>(
+			`${getConfig().figma.apiBaseUrl}/v1/teams/${teamId}/projects`,
+			{
+				headers: {
+					['Authorization']: `Bearer ${accessToken}`,
+				},
+			},
+		);
+
+		return response.data;
 	};
 }
 

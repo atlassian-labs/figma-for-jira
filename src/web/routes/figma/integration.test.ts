@@ -111,6 +111,23 @@ const mockSubmitDesignsEndpoint = ({
 		);
 };
 
+const mockGetTeamProjectsEndpoint = ({
+	teamId = uuidv4(),
+	teamName = uuidv4(),
+	success = true,
+}: {
+	teamId?: string;
+	teamName?: string;
+	success?: boolean;
+} = {}) => {
+	const statusCode = success
+		? HttpStatusCode.Ok
+		: HttpStatusCode.InternalServerError;
+	nock(FIGMA_API_BASE_URL)
+		.get(`/v1/teams/${teamId}/projects`)
+		.reply(statusCode, { name: teamName, projects: [] });
+};
+
 describe('/figma', () => {
 	describe('/webhook', () => {
 		describe('FILE_UPDATE event', () => {
@@ -180,6 +197,47 @@ describe('/figma', () => {
 					generateDesignAndFileResponseAndAtlassianDesign,
 				);
 				mockMeEndpoint();
+				mockGetTeamProjectsEndpoint({
+					teamId: figmaTeam.teamId,
+					teamName: figmaTeam.teamName,
+				});
+				for (const { designId, fileResponse } of entries) {
+					mockGetFileWithNodesEndpoint({
+						fileKey: designId.fileKey,
+						nodeId: designId.nodeId!,
+						response: fileResponse,
+					});
+				}
+				mockSubmitDesignsEndpoint({
+					request: {
+						designs: entries.map(({ atlassianDesign }) => ({
+							...atlassianDesign,
+							addAssociations: null,
+							removeAssociations: null,
+						})),
+					},
+					response: generateSuccessfulSubmitDesignsResponse(
+						entries.map(({ atlassianDesign }) => atlassianDesign.id),
+					),
+					connectInstallation,
+				});
+
+				await request(app)
+					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.send(webhookEventPayload)
+					.expect(HttpStatusCode.Ok);
+			});
+
+			it('should return a 200 if fetching team name from Figma fails', async () => {
+				const entries = associatedFigmaDesigns.map(
+					generateDesignAndFileResponseAndAtlassianDesign,
+				);
+				mockMeEndpoint();
+				mockGetTeamProjectsEndpoint({
+					teamId: figmaTeam.teamId,
+					teamName: figmaTeam.teamName,
+					success: false,
+				});
 				for (const { designId, fileResponse } of entries) {
 					mockGetFileWithNodesEndpoint({
 						fileKey: designId.fileKey,
@@ -239,6 +297,10 @@ describe('/figma', () => {
 
 			it('should return a 500 if fetching designs from Figma fails', async () => {
 				mockMeEndpoint();
+				mockGetTeamProjectsEndpoint({
+					teamId: figmaTeam.teamId,
+					teamName: figmaTeam.teamName,
+				});
 				for (const { designId } of associatedFigmaDesigns) {
 					mockGetFileWithNodesEndpoint({
 						fileKey: designId.fileKey,
