@@ -7,14 +7,15 @@ import { generateFigmaWebhookEventPayload } from './testing';
 import type { FigmaWebhookEventPayload } from './types';
 
 import app from '../../../app';
+import { isString } from '../../../common/stringUtils';
 import { getConfig } from '../../../config';
-import {
-	type AssociatedFigmaDesign,
-	type AtlassianDesign,
-	type ConnectInstallation,
-	type FigmaTeam,
-	FigmaTeamAuthStatus,
-	type FigmaWebhookEventType,
+import { FigmaTeamAuthStatus } from '../../../domain/entities';
+import type {
+	AtlassianDesign,
+	ConnectInstallation,
+	FigmaDesignIdentifier,
+	FigmaTeam,
+	FigmaWebhookEventType,
 } from '../../../domain/entities';
 import {
 	generateAssociatedFigmaDesignCreateParams,
@@ -59,11 +60,10 @@ const FIGMA_OAUTH_TOKEN_ENDPOINT = '/api/oauth/token';
 
 const FIGMA_WEBHOOK_EVENT_ENDPOINT = '/figma/webhook';
 
-function generateAtlassianDesignFromAssociatedFigmaDesign(
-	associatedFigmaDesign: AssociatedFigmaDesign,
+function generateAtlassianDesignFromDesignIdAndFileResponse(
+	designId: FigmaDesignIdentifier,
 	fileResponse: FileResponse,
 ) {
-	const { designId } = associatedFigmaDesign;
 	let atlassianDesign: AtlassianDesign;
 	if (!designId.nodeId) {
 		atlassianDesign = transformFileToAtlassianDesign({
@@ -135,16 +135,16 @@ describe('/figma', () => {
 						fileKey,
 						connectInstallation.id,
 					);
-				const nodeIds = associatedFigmaDesigns.flatMap(({ designId }) =>
-					designId.nodeId ? designId.nodeId : [],
-				);
+				const nodeIds = associatedFigmaDesigns
+					.map(({ designId }) => designId.nodeId!)
+					.filter(isString);
 				const fileResponse = generateGetFileResponseWithNodes({
 					nodes: nodeIds.map((nodeId) => generateChildNode({ id: nodeId })),
 				});
 				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
 					(design) =>
-						generateAtlassianDesignFromAssociatedFigmaDesign(
-							design,
+						generateAtlassianDesignFromDesignIdAndFileResponse(
+							design.designId,
 							fileResponse,
 						),
 				);
@@ -189,16 +189,16 @@ describe('/figma', () => {
 						fileKey,
 						connectInstallation.id,
 					);
-				const nodeIds = associatedFigmaDesigns.flatMap(({ designId }) =>
-					designId.nodeId ? designId.nodeId : [],
-				);
+				const nodeIds = associatedFigmaDesigns
+					.map(({ designId }) => designId.nodeId!)
+					.filter(isString);
 				const fileResponse = generateGetFileResponseWithNodes({
 					nodes: nodeIds.map((nodeId) => generateChildNode({ id: nodeId })),
 				});
 				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
 					(design) =>
-						generateAtlassianDesignFromAssociatedFigmaDesign(
-							design,
+						generateAtlassianDesignFromDesignIdAndFileResponse(
+							design.designId,
 							fileResponse,
 						),
 				);
@@ -276,9 +276,9 @@ describe('/figma', () => {
 						fileKey,
 						connectInstallation.id,
 					);
-				const nodeIds = associatedFigmaDesigns.flatMap(({ designId }) =>
-					designId.nodeId ? designId.nodeId : [],
-				);
+				const nodeIds = associatedFigmaDesigns
+					.map(({ designId }) => designId.nodeId!)
+					.filter(isString);
 
 				mockMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 				mockGetTeamProjectsEndpoint({

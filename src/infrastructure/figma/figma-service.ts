@@ -12,6 +12,7 @@ import {
 	transformNodeToAtlassianDesign,
 } from './transformers';
 
+import { isString } from '../../common/stringUtils';
 import { getConfig } from '../../config';
 import type {
 	AtlassianDesign,
@@ -94,10 +95,11 @@ export class FigmaService {
 
 		// Ensure all design identifiers have the same file key
 		const fileKey = designIds[0].fileKey;
-		for (const designId of designIds.slice(1)) {
-			if (designId.fileKey !== fileKey) {
-				throw new FigmaServiceError('designIds must all have the same fileKey');
-			}
+		const sameFileKey = designIds.every(
+			(designId) => designId.fileKey === fileKey,
+		);
+		if (!sameFileKey) {
+			throw new FigmaServiceError('designIds must all have the same fileKey');
 		}
 
 		const credentials = await this.getValidCredentialsOrThrow(user);
@@ -107,9 +109,7 @@ export class FigmaService {
 		const fileResponse = await figmaClient.getFile(
 			fileKey,
 			{
-				ids: designIds.flatMap((designId) =>
-					designId.nodeId ? designId.nodeId : [],
-				),
+				ids: designIds.map((id) => id.nodeId).filter(isString),
 				node_last_modified: true,
 			},
 			accessToken,
