@@ -22,10 +22,7 @@ import {
 	generateGetFileResponseWithNode,
 	generateGetFileResponseWithNodes,
 } from './figma-client/testing';
-import {
-	buildDevResourceNameFromJiraIssue,
-	figmaService,
-} from './figma-service';
+import { figmaService } from './figma-service';
 import {
 	transformFileToAtlassianDesign,
 	transformNodeToAtlassianDesign,
@@ -364,7 +361,7 @@ describe('FigmaService', () => {
 			});
 
 			const expectedDevResource: CreateDevResourcesRequest = {
-				name: buildDevResourceNameFromJiraIssue(issueKey, issueTitle),
+				name: `[${issueKey}] ${issueTitle}`,
 				url: issueUrl,
 				file_key: designId.fileKey,
 				node_id: '0:0',
@@ -397,7 +394,7 @@ describe('FigmaService', () => {
 			});
 
 			const expectedDevResource: CreateDevResourcesRequest = {
-				name: buildDevResourceNameFromJiraIssue(issueKey, issueTitle),
+				name: `[${issueKey}] ${issueTitle}`,
 				url: issueUrl,
 				file_key: designId.fileKey,
 				node_id: designId.nodeId!,

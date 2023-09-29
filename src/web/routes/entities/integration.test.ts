@@ -10,6 +10,8 @@ import type {
 import app from '../../../app';
 import { getConfig } from '../../../config';
 import {
+	AtlassianAssociation,
+	buildJiraIssueUrl,
 	FigmaDesignIdentifier,
 	JIRA_ISSUE_ATI,
 } from '../../../domain/entities';
@@ -27,6 +29,7 @@ import {
 } from '../../../domain/entities/testing';
 import {
 	generateChildNode,
+	generateCreateDevResourcesRequest,
 	generateEmptyDevResourcesResponse,
 	generateGetDevResourcesResponse,
 	generateGetFileResponse,
@@ -38,7 +41,10 @@ import {
 } from '../../../infrastructure/figma/transformers';
 import type { AttachedDesignUrlV2IssuePropertyValue } from '../../../infrastructure/jira';
 import { propertyKeys } from '../../../infrastructure/jira';
-import { generateGetIssuePropertyResponse } from '../../../infrastructure/jira/jira-client/testing';
+import {
+	generateGetIssuePropertyResponse,
+	generateSubmitDesignsRequest,
+} from '../../../infrastructure/jira/jira-client/testing';
 import {
 	associatedFigmaDesignRepository,
 	connectInstallationRepository,
@@ -124,8 +130,8 @@ describe('/entities', () => {
 			const atlassianUserId = uuidv4();
 			const fileName = generateFigmaFileName();
 			const fileKey = generateFigmaFileKey();
-			const issueId = generateJiraIssueId();
-			const issueAri = generateJiraIssueAri({ issueId });
+			const issue = generateJiraIssue();
+			const issueAri = generateJiraIssueAri({ issueId: issue.id });
 			const inputFigmaDesignUrl = generateFigmaDesignUrl({
 				fileKey,
 				fileName,
@@ -165,38 +171,52 @@ describe('/entities', () => {
 			});
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
+				response: issue,
 			});
 			mockJiraSubmitDesignsEndpoint({
 				baseUrl: connectInstallation.baseUrl,
+				request: generateSubmitDesignsRequest({
+					...atlassianDesign,
+					addAssociations: [
+						AtlassianAssociation.createDesignIssueAssociation(issueAri),
+					],
+					removeAssociations: null,
+				}),
 			});
 			mockFigmaCreateDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
+				request: generateCreateDevResourcesRequest({
+					name: `[${issue.key}] ${issue.fields.summary}]`,
+					url: buildJiraIssueUrl(connectInstallation.baseUrl, issue.key),
+					fileKey,
+					nodeId: '0:0',
+				}),
 			});
 
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
 				status: HttpStatusCode.NotFound,
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
-				value: JSON.stringify(normalizedFigmaDesignUrl),
+				request: JSON.stringify(normalizedFigmaDesignUrl),
 			});
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 				status: HttpStatusCode.NotFound,
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
-				value: JSON.stringify(
+				request: JSON.stringify(
 					JSON.stringify([
 						{
 							url: normalizedFigmaDesignUrl,
@@ -210,7 +230,7 @@ describe('/entities', () => {
 				.post('/entities/associateEntity')
 				.send(
 					generateAssociateEntityRequest({
-						issueId,
+						issueId: issue.id,
 						issueAri,
 						figmaDesignUrl: inputFigmaDesignUrl,
 					}),
@@ -236,8 +256,8 @@ describe('/entities', () => {
 			const fileKey = generateFigmaFileKey();
 			const nodeId = generateFigmaNodeId();
 			const node = generateChildNode({ id: nodeId });
-			const issueId = generateJiraIssueId();
-			const issueAri = generateJiraIssueAri({ issueId });
+			const issue = generateJiraIssue();
+			const issueAri = generateJiraIssueAri({ issueId: issue.id });
 			const inputFigmaDesignUrl = generateFigmaDesignUrl({
 				fileKey,
 				fileName,
@@ -284,38 +304,51 @@ describe('/entities', () => {
 			});
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
+				response: issue,
 			});
 			mockJiraSubmitDesignsEndpoint({
 				baseUrl: connectInstallation.baseUrl,
+				request: generateSubmitDesignsRequest({
+					...atlassianDesign,
+					addAssociations: [
+						AtlassianAssociation.createDesignIssueAssociation(issueAri),
+					],
+					removeAssociations: null,
+				}),
 			});
 			mockFigmaCreateDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
+				request: generateCreateDevResourcesRequest({
+					name: `[${issue.key}] ${issue.fields.summary}]`,
+					url: buildJiraIssueUrl(connectInstallation.baseUrl, issue.key),
+					fileKey,
+					nodeId,
+				}),
 			});
-
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
 				status: HttpStatusCode.NotFound,
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
-				value: JSON.stringify(normalizedFigmaDesignUrl),
+				request: JSON.stringify(normalizedFigmaDesignUrl),
 			});
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 				status: HttpStatusCode.NotFound,
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
-				value: JSON.stringify(
+				request: JSON.stringify(
 					JSON.stringify([
 						{
 							url: normalizedFigmaDesignUrl,
@@ -329,7 +362,7 @@ describe('/entities', () => {
 				.post('/entities/associateEntity')
 				.send(
 					generateAssociateEntityRequest({
-						issueId,
+						issueId: issue.id,
 						issueAri,
 						figmaDesignUrl: inputFigmaDesignUrl,
 					}),
@@ -435,9 +468,8 @@ describe('/entities', () => {
 			const fileName = generateFigmaFileName();
 			const fileKey = generateFigmaFileKey();
 			const designId = new FigmaDesignIdentifier(fileKey);
-			const issueId = generateJiraIssueId();
-			const issueAri = generateJiraIssueAri({ issueId });
-			const issue = generateJiraIssue({ id: issueId });
+			const issue = generateJiraIssue();
+			const issueAri = generateJiraIssueAri({ issueId: issue.id });
 			const devResourceId = uuidv4();
 			const figmaDesignUrl = generateFigmaDesignUrl({
 				fileKey,
@@ -478,11 +510,18 @@ describe('/entities', () => {
 			});
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				response: issue,
 			});
 			mockJiraSubmitDesignsEndpoint({
 				baseUrl: connectInstallation.baseUrl,
+				request: generateSubmitDesignsRequest({
+					...atlassianDesign,
+					addAssociations: null,
+					removeAssociations: [
+						AtlassianAssociation.createDesignIssueAssociation(issueAri),
+					],
+				}),
 			});
 			mockFigmaGetDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
@@ -503,7 +542,7 @@ describe('/entities', () => {
 			});
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
 				response: generateGetIssuePropertyResponse({
 					key: propertyKeys.ATTACHED_DESIGN_URL,
@@ -512,7 +551,7 @@ describe('/entities', () => {
 			});
 			mockJiraDeleteIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
 			});
 
@@ -527,7 +566,7 @@ describe('/entities', () => {
 				];
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 				response: generateGetIssuePropertyResponse({
 					key: propertyKeys.ATTACHED_DESIGN_URL_V2,
@@ -536,16 +575,16 @@ describe('/entities', () => {
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
-				value: JSON.stringify(JSON.stringify([expectedDesignUrlV2Value])),
+				request: JSON.stringify(JSON.stringify([expectedDesignUrlV2Value])),
 			});
 
 			await request(app)
 				.post('/entities/disassociateEntity')
 				.send(
 					generateDisassociateEntityRequest({
-						issueId,
+						issueId: issue.id,
 						issueAri,
 						entityId: fileKey,
 					}),
@@ -565,9 +604,8 @@ describe('/entities', () => {
 			const nodeId = generateFigmaNodeId();
 			const node = generateChildNode({ id: nodeId });
 			const designId = new FigmaDesignIdentifier(fileKey, nodeId);
-			const issueId = generateJiraIssueId();
-			const issueAri = generateJiraIssueAri({ issueId });
-			const issue = generateJiraIssue({ id: issueId });
+			const issue = generateJiraIssue();
+			const issueAri = generateJiraIssueAri({ issueId: issue.id });
 			const devResourceId = uuidv4();
 			const figmaDesignUrl = generateFigmaDesignUrl({
 				fileKey,
@@ -611,11 +649,18 @@ describe('/entities', () => {
 			});
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				response: issue,
 			});
 			mockJiraSubmitDesignsEndpoint({
 				baseUrl: connectInstallation.baseUrl,
+				request: generateSubmitDesignsRequest({
+					...atlassianDesign,
+					addAssociations: null,
+					removeAssociations: [
+						AtlassianAssociation.createDesignIssueAssociation(issueAri),
+					],
+				}),
 			});
 			mockFigmaGetDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
@@ -636,7 +681,7 @@ describe('/entities', () => {
 			});
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
 				response: generateGetIssuePropertyResponse({
 					key: propertyKeys.ATTACHED_DESIGN_URL,
@@ -645,7 +690,7 @@ describe('/entities', () => {
 			});
 			mockJiraDeleteIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
 			});
 
@@ -660,7 +705,7 @@ describe('/entities', () => {
 				];
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 				response: generateGetIssuePropertyResponse({
 					key: propertyKeys.ATTACHED_DESIGN_URL_V2,
@@ -669,16 +714,16 @@ describe('/entities', () => {
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
-				value: JSON.stringify(JSON.stringify([expectedDesignUrlV2Value])),
+				request: JSON.stringify(JSON.stringify([expectedDesignUrlV2Value])),
 			});
 
 			await request(app)
 				.post('/entities/disassociateEntity')
 				.send(
 					generateDisassociateEntityRequest({
-						issueId,
+						issueId: issue.id,
 						issueAri,
 						entityId: `${fileKey}/${nodeId}`,
 					}),
@@ -695,8 +740,7 @@ describe('/entities', () => {
 			const atlassianUserId = uuidv4();
 			const fileName = generateFigmaFileName();
 			const fileKey = generateFigmaFileKey();
-			const issueId = generateJiraIssueId();
-			const issue = generateJiraIssue({ id: issueId });
+			const issue = generateJiraIssue();
 			const fileResponse = generateGetFileResponse({ name: fileName });
 			const connectInstallation = await connectInstallationRepository.upsert(
 				MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
@@ -721,7 +765,7 @@ describe('/entities', () => {
 			});
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				response: issue,
 			});
 			mockJiraSubmitDesignsEndpoint({
@@ -729,13 +773,13 @@ describe('/entities', () => {
 			});
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
 				status: HttpStatusCode.NotFound,
 			});
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId,
+				issueId: issue.id,
 				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
 				status: HttpStatusCode.NotFound,
 			});
@@ -750,7 +794,7 @@ describe('/entities', () => {
 				.post('/entities/disassociateEntity')
 				.send(
 					generateDisassociateEntityRequest({
-						issueId,
+						issueId: issue.id,
 						entityId: fileKey,
 					}),
 				)

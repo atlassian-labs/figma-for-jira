@@ -25,7 +25,9 @@ export const mockJiraSubmitDesignsEndpoint = ({
 	response?: SubmitDesignsResponse;
 	status?: HttpStatusCode;
 }) => {
-	nock(baseUrl).post('/rest/designs/1.0/bulk', request).reply(status, response);
+	nock(baseUrl)
+		.post('/rest/designs/1.0/bulk', JSON.stringify(request))
+		.reply(status, response);
 };
 
 export const mockJiraGetIssueEndpoint = ({
@@ -64,17 +66,17 @@ export const mockJiraSetIssuePropertyEndpoint = ({
 	baseUrl,
 	issueId,
 	propertyKey,
-	value,
+	request,
 	status = HttpStatusCode.Ok,
 }: {
 	baseUrl: string;
 	issueId: string;
 	propertyKey: string;
-	value: RequestBodyMatcher;
+	request: RequestBodyMatcher;
 	status?: HttpStatusCode;
 }) => {
 	nock(baseUrl)
-		.put(`/rest/api/2/issue/${issueId}/properties/${propertyKey}`, value)
+		.put(`/rest/api/2/issue/${issueId}/properties/${propertyKey}`, request)
 		.reply(status);
 };
 

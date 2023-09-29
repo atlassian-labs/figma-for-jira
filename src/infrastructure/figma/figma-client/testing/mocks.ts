@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import type {
+	CreateDevResourcesRequest,
 	FileResponse,
 	GetDevResourcesResponse,
 	GetOAuth2TokenResponse,
@@ -129,12 +130,22 @@ export const generateGetFileResponseWithNodes = ({
 	},
 });
 
-export const generateGetFileResponseWithNodeId = (
-	nodeId: string,
-): FileResponse =>
-	generateGetFileResponseWithNode({
-		node: generateChildNode({ id: nodeId }),
-	});
+export const generateCreateDevResourcesRequest = ({
+	name = 'Mock dev resource',
+	url = generateJiraIssueUrl(),
+	fileKey = generateFigmaFileKey(),
+	nodeId = generateFigmaNodeId(),
+}: {
+	name?: string;
+	url?: string;
+	fileKey?: string;
+	nodeId?: string;
+} = {}): CreateDevResourcesRequest => ({
+	name,
+	url,
+	file_key: fileKey,
+	node_id: nodeId,
+});
 
 export const generateGetDevResourcesResponse = ({
 	id = uuidv4(),

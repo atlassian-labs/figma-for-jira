@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { getConfig } from '../../config';
 import type {
+	CreateDevResourcesRequest,
 	FileResponse,
 	GetDevResourcesResponse,
 } from '../../infrastructure/figma/figma-client';
@@ -71,12 +72,14 @@ export const mockFigmaGetFileWithNodesEndpoint = ({
 
 export const mockFigmaCreateDevResourcesEndpoint = ({
 	baseUrl,
+	request,
 	status = HttpStatusCode.Ok,
 }: {
 	baseUrl: string;
+	request?: CreateDevResourcesRequest;
 	status?: HttpStatusCode;
 }) => {
-	nock(baseUrl).post('/v1/dev_resources').reply(status);
+	nock(baseUrl).post('/v1/dev_resources').reply(status, request);
 };
 
 export const mockFigmaGetDevResourcesEndpoint = ({
