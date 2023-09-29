@@ -2,7 +2,10 @@ import { HttpStatusCode } from 'axios';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
-import { generateConnectLifecycleRequest } from './testing';
+import {
+	generateInstalledConnectLifecycleEventRequest,
+	generateUninstalledConnectLifecycleEventRequest,
+} from './testing';
 
 import app from '../../../app';
 import { getConfig } from '../../../config';
@@ -29,7 +32,9 @@ describe('/lifecycleEvents', () => {
 	describe('/installed', () => {
 		it('should create a connect installation record', async () => {
 			const clientKey = uuidv4();
-			const installedRequest = generateConnectLifecycleRequest({ clientKey });
+			const installedRequest = generateInstalledConnectLifecycleEventRequest({
+				clientKey,
+			});
 			const keyId = uuidv4();
 			const { jwtToken, publicKey } =
 				await generateInboundRequestAsymmetricJwtToken({
@@ -89,14 +94,14 @@ describe('/lifecycleEvents', () => {
 			return request(app)
 				.post('/lifecycleEvents/installed')
 				.set('Authorization', `JWT ${jwtToken}`)
-				.send(generateConnectLifecycleRequest())
+				.send(generateInstalledConnectLifecycleEventRequest())
 				.expect(HttpStatusCode.Unauthorized);
 		});
 
 		it('should respond 401 when JWT token is missing', () => {
 			return request(app)
 				.post('/lifecycleEvents/installed')
-				.send(generateConnectLifecycleRequest())
+				.send(generateInstalledConnectLifecycleEventRequest())
 				.expect(HttpStatusCode.Unauthorized);
 		});
 	});
@@ -205,7 +210,7 @@ describe('/lifecycleEvents', () => {
 				.post('/lifecycleEvents/uninstalled')
 				.set('Authorization', `JWT ${jwtToken}`)
 				.send(
-					generateConnectLifecycleRequest({
+					generateUninstalledConnectLifecycleEventRequest({
 						key: getConfig().app.key,
 						clientKey: targetConnectInstallation.clientKey,
 					}),
@@ -246,14 +251,14 @@ describe('/lifecycleEvents', () => {
 			return request(app)
 				.post('/lifecycleEvents/uninstalled')
 				.set('Authorization', `JWT ${jwtToken}`)
-				.send(generateConnectLifecycleRequest())
+				.send(generateUninstalledConnectLifecycleEventRequest())
 				.expect(HttpStatusCode.Unauthorized);
 		});
 
 		it('should respond 401 when JWT token is missing', () => {
 			return request(app)
 				.post('/lifecycleEvents/uninstalled')
-				.send(generateConnectLifecycleRequest())
+				.send(generateUninstalledConnectLifecycleEventRequest())
 				.expect(HttpStatusCode.Unauthorized);
 		});
 	});
