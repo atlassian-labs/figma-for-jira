@@ -14,26 +14,21 @@ import {
 	generateSuccessfulSubmitDesignsResponse,
 } from '../../infrastructure/jira/jira-client/testing';
 
-export const mockSubmitDesignsEndpoint = ({
+export const mockJiraSubmitDesignsEndpoint = ({
 	baseUrl,
 	request,
 	response = generateSuccessfulSubmitDesignsResponse(),
-	success = true,
+	status = HttpStatusCode.Ok,
 }: {
 	baseUrl: string;
 	request?: SubmitDesignsRequest;
 	response?: SubmitDesignsResponse;
-	success?: boolean;
+	status?: HttpStatusCode;
 }) => {
-	nock(baseUrl)
-		.post('/rest/designs/1.0/bulk', request)
-		.reply(
-			success ? HttpStatusCode.Ok : HttpStatusCode.InternalServerError,
-			response,
-		);
+	nock(baseUrl).post('/rest/designs/1.0/bulk', request).reply(status, response);
 };
 
-export const mockGetIssueEndpoint = ({
+export const mockJiraGetIssueEndpoint = ({
 	baseUrl,
 	issueId,
 	status = HttpStatusCode.Ok,
@@ -47,7 +42,7 @@ export const mockGetIssueEndpoint = ({
 	nock(baseUrl).get(`/rest/agile/1.0/issue/${issueId}`).reply(status, response);
 };
 
-export const mockGetIssuePropertyEndpoint = ({
+export const mockJiraGetIssuePropertyEndpoint = ({
 	baseUrl,
 	issueId = generateJiraIssueId(),
 	propertyKey = '',
@@ -65,7 +60,7 @@ export const mockGetIssuePropertyEndpoint = ({
 		.reply(status, status === HttpStatusCode.Ok ? response : undefined);
 };
 
-export const mockSetIssuePropertyEndpoint = ({
+export const mockJiraSetIssuePropertyEndpoint = ({
 	baseUrl,
 	issueId,
 	propertyKey,
@@ -83,16 +78,18 @@ export const mockSetIssuePropertyEndpoint = ({
 		.reply(status);
 };
 
-export const mockDeleteIssuePropertyEndpoint = ({
+export const mockJiraDeleteIssuePropertyEndpoint = ({
 	baseUrl,
 	issueId,
 	propertyKey,
+	status = HttpStatusCode.Ok,
 }: {
 	baseUrl: string;
 	issueId: string;
 	propertyKey?: string;
+	status?: HttpStatusCode;
 }) => {
 	nock(baseUrl)
 		.delete(`/rest/api/2/issue/${issueId}/properties/${propertyKey}`)
-		.reply(200);
+		.reply(status);
 };

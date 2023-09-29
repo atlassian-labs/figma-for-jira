@@ -20,9 +20,9 @@ import {
 } from '../../../infrastructure/repositories';
 import {
 	generateInboundRequestAsymmetricJwtToken,
-	mockConnectKeyEndpoint,
+	mockConnectGetKeyEndpoint,
 	mockFigmaDeleteWebhookEndpoint,
-	mockMeEndpoint,
+	mockFigmaMeEndpoint,
 } from '../../testing';
 
 describe('/lifecycleEvents', () => {
@@ -42,10 +42,10 @@ describe('/lifecycleEvents', () => {
 					},
 				});
 
-			mockConnectKeyEndpoint({
+			mockConnectGetKeyEndpoint({
 				baseUrl: getConfig().jira.connectKeyServerUrl,
 				keyId,
-				publicKey,
+				response: publicKey,
 				status: HttpStatusCode.Ok,
 			});
 
@@ -79,10 +79,10 @@ describe('/lifecycleEvents', () => {
 					},
 				});
 
-			mockConnectKeyEndpoint({
+			mockConnectGetKeyEndpoint({
 				baseUrl: getConfig().jira.connectKeyServerUrl,
 				keyId,
-				publicKey,
+				response: publicKey,
 				status: HttpStatusCode.Ok,
 			});
 
@@ -181,13 +181,13 @@ describe('/lifecycleEvents', () => {
 					},
 				});
 
-			mockConnectKeyEndpoint({
+			mockConnectGetKeyEndpoint({
 				baseUrl: getConfig().jira.connectKeyServerUrl,
 				keyId,
-				publicKey,
+				response: publicKey,
 				status: HttpStatusCode.Ok,
 			});
-			mockMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
+			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 			mockFigmaDeleteWebhookEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				webhookId: targetFigmaTeam1.webhookId,
@@ -236,10 +236,10 @@ describe('/lifecycleEvents', () => {
 					},
 				});
 
-			mockConnectKeyEndpoint({
+			mockConnectGetKeyEndpoint({
 				baseUrl: getConfig().jira.connectKeyServerUrl,
 				keyId,
-				publicKey,
+				response: publicKey,
 				status: HttpStatusCode.Ok,
 			});
 

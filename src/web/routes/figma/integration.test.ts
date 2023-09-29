@@ -9,7 +9,6 @@ import type { FigmaWebhookEventPayload } from './types';
 import app from '../../../app';
 import { isString } from '../../../common/stringUtils';
 import { getConfig } from '../../../config';
-import { FigmaTeamAuthStatus } from '../../../domain/entities';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
@@ -17,6 +16,7 @@ import type {
 	FigmaTeam,
 	FigmaWebhookEventType,
 } from '../../../domain/entities';
+import { FigmaTeamAuthStatus } from '../../../domain/entities';
 import {
 	generateAssociatedFigmaDesignCreateParams,
 	generateConnectInstallation,
@@ -48,10 +48,10 @@ import {
 	figmaTeamRepository,
 } from '../../../infrastructure/repositories';
 import {
-	mockGetFileWithNodesEndpoint,
-	mockGetTeamProjectsEndpoint,
-	mockMeEndpoint,
-	mockSubmitDesignsEndpoint,
+	mockFigmaGetFileWithNodesEndpoint,
+	mockFigmaGetTeamProjectsEndpoint,
+	mockFigmaMeEndpoint,
+	mockJiraSubmitDesignsEndpoint,
 } from '../../testing';
 
 const FIGMA_OAUTH_API_BASE_URL = getConfig().figma.oauthApiBaseUrl;
@@ -149,19 +149,19 @@ describe('/figma', () => {
 						),
 				);
 
-				mockMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
-				mockGetTeamProjectsEndpoint({
+				mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
+				mockFigmaGetTeamProjectsEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
 					teamId: figmaTeam.teamId,
 					teamName: figmaTeam.teamName,
 				});
-				mockGetFileWithNodesEndpoint({
+				mockFigmaGetFileWithNodesEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
 					fileKey: fileKey,
 					nodeIds,
 					response: fileResponse,
 				});
-				mockSubmitDesignsEndpoint({
+				mockJiraSubmitDesignsEndpoint({
 					baseUrl: connectInstallation.baseUrl,
 					request: {
 						designs: associatedAtlassianDesigns.map((atlassianDesign) => ({
@@ -202,20 +202,20 @@ describe('/figma', () => {
 							fileResponse,
 						),
 				);
-				mockMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
-				mockGetTeamProjectsEndpoint({
+				mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
+				mockFigmaGetTeamProjectsEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
 					teamId: figmaTeam.teamId,
 					teamName: figmaTeam.teamName,
-					success: false,
+					status: HttpStatusCode.InternalServerError,
 				});
-				mockGetFileWithNodesEndpoint({
+				mockFigmaGetFileWithNodesEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
 					fileKey: fileKey,
 					nodeIds,
 					response: fileResponse,
 				});
-				mockSubmitDesignsEndpoint({
+				mockJiraSubmitDesignsEndpoint({
 					baseUrl: connectInstallation.baseUrl,
 					request: {
 						designs: associatedAtlassianDesigns.map((atlassianDesign) => ({
@@ -238,9 +238,9 @@ describe('/figma', () => {
 			});
 
 			it("should set the FigmaTeam status to 'ERROR' and return a 200 if we can't get valid OAuth2 credentials", async () => {
-				mockMeEndpoint({
+				mockFigmaMeEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
-					success: false,
+					status: HttpStatusCode.Forbidden,
 				});
 
 				await request(app)
@@ -280,17 +280,17 @@ describe('/figma', () => {
 					.map(({ designId }) => designId.nodeId!)
 					.filter(isString);
 
-				mockMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
-				mockGetTeamProjectsEndpoint({
+				mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
+				mockFigmaGetTeamProjectsEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
 					teamId: figmaTeam.teamId,
 					teamName: figmaTeam.teamName,
 				});
-				mockGetFileWithNodesEndpoint({
+				mockFigmaGetFileWithNodesEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
 					fileKey: fileKey,
 					nodeIds,
-					success: false,
+					status: HttpStatusCode.InternalServerError,
 				});
 
 				await request(app)
