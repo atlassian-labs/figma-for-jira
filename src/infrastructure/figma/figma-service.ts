@@ -193,8 +193,12 @@ export class FigmaService {
 		try {
 			const { accessToken } = await this.getValidCredentialsOrThrow(user);
 			await figmaClient.deleteWebhook(webhookId, accessToken);
-		} catch (e) {
-			getLogger().warn(e, `Failed to remove webhook ${webhookId}.`);
+		} catch (e: unknown) {
+			getLogger().warn(
+				e,
+				`Failed to remove webhook ${webhookId} for user ${user.atlassianUserId}.`,
+				user,
+			);
 		}
 	};
 

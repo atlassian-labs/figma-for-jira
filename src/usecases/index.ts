@@ -7,5 +7,6 @@ export * from './disassociate-entity-use-case';
 export * from './handle-figma-file-update-event-use-case';
 export * from './configure-figma-teams-use-case';
 export * from './list-figma-teams-use-case';
+export * from './remove-figma-team-use-case';
 export * from './types';
 export * from './schemas';

@@ -59,6 +59,23 @@ export class FigmaTeamRepository {
 		return this.mapToFigmaTeam(dbModel);
 	};
 
+	getByTeamIdAndConnectInstallationId = async (
+		teamId: string,
+		connectInstallationId: string,
+	): Promise<FigmaTeam> => {
+		const dbModel = await prismaClient.get().figmaTeam.findFirst({
+			where: { teamId, connectInstallationId: BigInt(connectInstallationId) },
+		});
+
+		if (dbModel === null) {
+			throw new RepositoryRecordNotFoundError(
+				`Failed to find FigmaTeam for teamId ${teamId} and connectInstallationId ${connectInstallationId}`,
+			);
+		}
+
+		return this.mapToFigmaTeam(dbModel);
+	};
+
 	findManyByConnectInstallationId = async (
 		connectInstallationId: string,
 	): Promise<FigmaTeam[]> => {
@@ -112,6 +129,23 @@ export class FigmaTeamRepository {
 			) {
 				throw new RepositoryRecordNotFoundError(e.message);
 			}
+		}
+	};
+
+	delete = async (id: string): Promise<FigmaTeam> => {
+		try {
+			const dbModel = await prismaClient.get().figmaTeam.delete({
+				where: { id: BigInt(id) },
+			});
+			return this.mapToFigmaTeam(dbModel);
+		} catch (e: unknown) {
+			if (
+				e instanceof PrismaClientKnownRequestError &&
+				e.code === PrismaErrorCode.RecordNotFound
+			) {
+				throw new RepositoryRecordNotFoundError(e.message);
+			}
+			throw e;
 		}
 	};
 
