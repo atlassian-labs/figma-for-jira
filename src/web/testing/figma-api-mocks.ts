@@ -10,7 +10,7 @@ import type {
 import {
 	generateChildNode,
 	generateGetDevResourcesResponse,
-	generateGetFileResponseWithNode,
+	generateGetFileResponseWithNodes,
 } from '../../infrastructure/figma/figma-client/testing';
 
 export const mockMeEndpoint = ({
@@ -52,21 +52,21 @@ export const mockGetFileEndpoint = ({
 export const mockGetFileWithNodesEndpoint = ({
 	baseUrl,
 	fileKey = uuidv4(),
-	nodeId,
-	response = generateGetFileResponseWithNode({
-		node: generateChildNode({ id: nodeId }),
+	nodeIds,
+	response = generateGetFileResponseWithNodes({
+		nodes: nodeIds.map((nodeId) => generateChildNode({ id: nodeId })),
 	}),
 	success = true,
 }: {
 	baseUrl: string;
 	fileKey?: string;
-	nodeId: string;
+	nodeIds: string[];
 	response?: FileResponse;
 	success?: boolean;
 }) => {
 	nock(baseUrl)
 		.get(`/v1/files/${fileKey}`)
-		.query({ ids: nodeId, node_last_modified: true })
+		.query({ ids: nodeIds.join(','), node_last_modified: true })
 		.reply(
 			success ? HttpStatusCode.Ok : HttpStatusCode.InternalServerError,
 			response,

@@ -1,6 +1,6 @@
 import { AxiosError, HttpStatusCode } from 'axios';
 
-import { FigmaServiceCredentialsError } from './errors';
+import { FigmaServiceCredentialsError, FigmaServiceError } from './errors';
 import { figmaAuthService } from './figma-auth-service';
 import type {
 	CreateDevResourcesRequest,
@@ -12,6 +12,7 @@ import {
 	transformNodeToAtlassianDesign,
 } from './transformers';
 
+import { isString } from '../../common/stringUtils';
 import { getConfig } from '../../config';
 import type {
 	AtlassianDesign,
@@ -82,6 +83,52 @@ export class FigmaService {
 				fileResponse,
 			});
 		}
+	};
+
+	fetchDesignsByIds = async (
+		designIds: FigmaDesignIdentifier[],
+		user: ConnectUserInfo,
+	): Promise<AtlassianDesign[]> => {
+		if (!designIds.length) {
+			return [];
+		}
+
+		// Ensure all design identifiers have the same file key
+		const fileKey = designIds[0].fileKey;
+		const sameFileKey = designIds.every(
+			(designId) => designId.fileKey === fileKey,
+		);
+		if (!sameFileKey) {
+			throw new FigmaServiceError('designIds must all have the same fileKey');
+		}
+
+		const credentials = await this.getValidCredentialsOrThrow(user);
+
+		const { accessToken } = credentials;
+
+		const fileResponse = await figmaClient.getFile(
+			fileKey,
+			{
+				ids: designIds.map((id) => id.nodeId).filter(isString),
+				node_last_modified: true,
+			},
+			accessToken,
+		);
+
+		return designIds.map((designId) => {
+			if (!designId.nodeId) {
+				return transformFileToAtlassianDesign({
+					fileKey: designId.fileKey,
+					fileResponse,
+				});
+			} else {
+				return transformNodeToAtlassianDesign({
+					fileKey: designId.fileKey,
+					nodeId: designId.nodeId,
+					fileResponse,
+				});
+			}
+		});
 	};
 
 	createDevResourceForJiraIssue = async ({
