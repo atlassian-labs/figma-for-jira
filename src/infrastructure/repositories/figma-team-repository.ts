@@ -35,6 +35,23 @@ export class FigmaTeamRepository {
 		return this.mapToFigmaTeam(dbModel);
 	};
 
+	delete = async (id: string): Promise<FigmaTeam> => {
+		try {
+			const dbModel = await prismaClient.get().figmaTeam.delete({
+				where: { id: BigInt(id) },
+			});
+			return this.mapToFigmaTeam(dbModel);
+		} catch (e: unknown) {
+			if (
+				e instanceof PrismaClientKnownRequestError &&
+				e.code === PrismaErrorCode.RecordNotFound
+			) {
+				throw new RepositoryRecordNotFoundError(e.message);
+			}
+			throw e;
+		}
+	};
+
 	getByWebhookId = async (webhookId: string): Promise<FigmaTeam> => {
 		const dbModel = await prismaClient
 			.get()
@@ -43,6 +60,23 @@ export class FigmaTeamRepository {
 		if (dbModel === null) {
 			throw new RepositoryRecordNotFoundError(
 				`Failed to find FigmaTeam for webhookId ${webhookId}`,
+			);
+		}
+
+		return this.mapToFigmaTeam(dbModel);
+	};
+
+	getByTeamIdAndConnectInstallationId = async (
+		teamId: string,
+		connectInstallationId: string,
+	): Promise<FigmaTeam> => {
+		const dbModel = await prismaClient.get().figmaTeam.findFirst({
+			where: { teamId, connectInstallationId: BigInt(connectInstallationId) },
+		});
+
+		if (dbModel === null) {
+			throw new RepositoryRecordNotFoundError(
+				`Failed to find FigmaTeam for teamId ${teamId} and connectInstallationId ${connectInstallationId}`,
 			);
 		}
 

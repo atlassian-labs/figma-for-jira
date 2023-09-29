@@ -32,6 +32,24 @@ export type ConfigureFigmaTeamsResponse = Response<
 	ConfigureFigmaTeamsLocals
 >;
 
+export type RemoveFigmaTeamQueryParams = {
+	readonly teamId: string;
+};
+
+export type RemoveFigmaTeamLocals = {
+	readonly connectInstallation: ConnectInstallation;
+};
+
+export type RemoveFigmaTeamRequest = Request<
+	Record<string, never>,
+	never,
+	never,
+	RemoveFigmaTeamQueryParams,
+	RemoveFigmaTeamLocals
+>;
+
+export type RemoveFigmaTeamResponse = Response<never, RemoveFigmaTeamLocals>;
+
 export type ListFigmaTeamsLocals = {
 	readonly connectInstallation: ConnectInstallation;
 };

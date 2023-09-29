@@ -3,6 +3,7 @@ import {
 	encodeAsymmetric,
 	encodeSymmetric,
 } from 'atlassian-jwt';
+import type { Params } from 'atlassian-jwt/dist/lib/jwt';
 import { AsymmetricAlgorithm } from 'atlassian-jwt/dist/lib/jwt';
 import type { Method } from 'axios';
 
@@ -76,10 +77,12 @@ export const generateInboundRequestAsymmetricJwtToken = async ({
 export const generateInboundRequestSymmetricJwtToken = ({
 	pathname,
 	method,
+	query,
 	connectInstallation: { clientKey, sharedSecret },
 }: {
 	pathname: string;
 	method: Method;
+	query?: Params;
 	connectInstallation: {
 		clientKey: string;
 		sharedSecret: string;
@@ -91,7 +94,7 @@ export const generateInboundRequestSymmetricJwtToken = ({
 			iat: nowInSeconds,
 			exp: nowInSeconds + 99999,
 			iss: clientKey,
-			qsh: createQueryStringHash({ pathname, method }),
+			qsh: createQueryStringHash({ pathname, method, query }),
 		},
 		sharedSecret,
 	);

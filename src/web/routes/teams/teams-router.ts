@@ -2,17 +2,23 @@ import { HttpStatusCode } from 'axios';
 import type { NextFunction, Request } from 'express';
 import { Router } from 'express';
 
-import { CONFIGURE_FIGMA_TEAMS_REQUEST_BODY } from './schemas';
+import {
+	CONFIGURE_FIGMA_TEAMS_REQUEST_BODY,
+	REMOVE_FIGMA_TEAM_QUERY_PARAMS_SCHEMA,
+} from './schemas';
 import type {
 	ConfigureFigmaTeamsRequest,
 	ConfigureFigmaTeamsResponse,
 	ListFigmaTeamsResponse,
+	RemoveFigmaTeamRequest,
+	RemoveFigmaTeamResponse,
 } from './types';
 
 import { assertSchema } from '../../../infrastructure';
 import {
 	configureFigmaTeamUseCase,
 	listFigmaTeamsUseCase,
+	removeFigmaTeamUseCase,
 } from '../../../usecases';
 import {
 	authHeaderSymmetricJwtMiddleware,
@@ -38,6 +44,24 @@ teamsRouter.post(
 
 		configureFigmaTeamUseCase
 			.execute(req.body.teamId, atlassianUserId, connectInstallation)
+			.then(() => res.sendStatus(HttpStatusCode.Ok))
+			.catch(next);
+	},
+);
+
+teamsRouter.delete(
+	'/configure',
+	(
+		req: RemoveFigmaTeamRequest,
+		res: RemoveFigmaTeamResponse,
+		next: NextFunction,
+	) => {
+		assertSchema(req.query, REMOVE_FIGMA_TEAM_QUERY_PARAMS_SCHEMA);
+		const { teamId } = req.query;
+		const { connectInstallation } = res.locals;
+
+		removeFigmaTeamUseCase
+			.execute(teamId, connectInstallation.id)
 			.then(() => res.sendStatus(HttpStatusCode.Ok))
 			.catch(next);
 	},
