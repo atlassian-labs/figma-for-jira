@@ -6,6 +6,7 @@ import type {
 	AtlassianDesign,
 	ConnectInstallation,
 	ConnectInstallationCreateParams,
+	ConnectUserInfo,
 	FigmaOAuth2UserCredentialsCreateParams,
 	FigmaTeam,
 	FigmaTeamCreateParams,
@@ -63,12 +64,40 @@ export const generateFigmaDesignUrl = ({
 	return url.toString();
 };
 
+export const generateFigmaOAuth2UserCredentialCreateParams = ({
+	atlassianUserId = uuidv4(),
+	accessToken = uuidv4(),
+	refreshToken = uuidv4(),
+	expiresAt = new Date(Date.now() + Duration.ofMinutes(120).asMilliseconds),
+	connectInstallationId = generateNumericStringId(),
+} = {}): FigmaOAuth2UserCredentialsCreateParams => ({
+	atlassianUserId,
+	accessToken,
+	refreshToken,
+	expiresAt,
+	connectInstallationId,
+});
+
+export const generateExpiredFigmaOAuth2UserCredentialCreateParams = ({
+	atlassianUserId = uuidv4(),
+	accessToken = uuidv4(),
+	refreshToken = uuidv4(),
+	connectInstallationId = generateNumericStringId(),
+} = {}): FigmaOAuth2UserCredentialsCreateParams => ({
+	atlassianUserId,
+	accessToken,
+	refreshToken,
+	expiresAt: new Date(Date.now() - Duration.ofMinutes(120).asMilliseconds),
+	connectInstallationId,
+});
+
 export const generateFigmaOAuth2UserCredentials = ({
 	id = generateNumericStringId(),
 	atlassianUserId = uuidv4(),
 	accessToken = uuidv4(),
 	refreshToken = uuidv4(),
 	expiresAt = new Date(),
+	connectInstallationId = generateNumericStringId(),
 } = {}): FigmaOAuth2UserCredentials =>
 	new FigmaOAuth2UserCredentials(
 		id,
@@ -76,18 +105,15 @@ export const generateFigmaOAuth2UserCredentials = ({
 		accessToken,
 		refreshToken,
 		expiresAt,
+		connectInstallationId,
 	);
 
-export const generateFigmaUserCredentialsCreateParams = ({
+export const generateConnectUserInfo = ({
 	atlassianUserId = uuidv4(),
-	accessToken = uuidv4(),
-	refreshToken = uuidv4(),
-	expiresAt = new Date(Date.now() + Duration.ofMinutes(120).asMilliseconds),
-} = {}): FigmaOAuth2UserCredentialsCreateParams => ({
+	connectInstallationId = generateNumericStringId(),
+} = {}): ConnectUserInfo => ({
 	atlassianUserId,
-	accessToken,
-	refreshToken,
-	expiresAt,
+	connectInstallationId,
 });
 
 export const generateConnectInstallationCreateParams = ({

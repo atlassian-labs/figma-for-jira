@@ -31,6 +31,7 @@ CREATE TABLE "figma_oauth2_user_credentials" (
     "access_token" TEXT NOT NULL,
     "refresh_token" TEXT NOT NULL,
     "expires_at" TIMESTAMPTZ NOT NULL,
+    "connect_installation_id" BIGINT NOT NULL,
 
     CONSTRAINT "figma_oauth2_user_credentials_pkey" PRIMARY KEY ("id")
 );
@@ -56,7 +57,7 @@ CREATE UNIQUE INDEX "connect_installation_client_key_key" ON "connect_installati
 CREATE UNIQUE INDEX "associated_figma_design_file_key_node_id_associated-with-ar_key" ON "associated_figma_design"("file_key", "node_id", "associated-with-ari", "connect_installation_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "figma_oauth2_user_credentials_atlassian_user_id_key" ON "figma_oauth2_user_credentials"("atlassian_user_id");
+CREATE UNIQUE INDEX "figma_oauth2_user_credentials_atlassian_user_id_connect_ins_key" ON "figma_oauth2_user_credentials"("atlassian_user_id", "connect_installation_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "figma_team_webhook_id_key" ON "figma_team"("webhook_id");
@@ -66,6 +67,9 @@ CREATE UNIQUE INDEX "figma_team_team_id_connect_installation_id_key" ON "figma_t
 
 -- AddForeignKey
 ALTER TABLE "associated_figma_design" ADD CONSTRAINT "associated_figma_design_connect_installation_id_fkey" FOREIGN KEY ("connect_installation_id") REFERENCES "connect_installation"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "figma_oauth2_user_credentials" ADD CONSTRAINT "figma_oauth2_user_credentials_connect_installation_id_fkey" FOREIGN KEY ("connect_installation_id") REFERENCES "connect_installation"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
 
 -- AddForeignKey
 ALTER TABLE "figma_team" ADD CONSTRAINT "figma_team_connect_installation_id_fkey" FOREIGN KEY ("connect_installation_id") REFERENCES "connect_installation"("id") ON DELETE CASCADE ON UPDATE NO ACTION;

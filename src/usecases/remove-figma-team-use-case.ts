@@ -1,4 +1,3 @@
-import { getLogger } from '../infrastructure';
 import { figmaService } from '../infrastructure/figma';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
@@ -10,14 +9,10 @@ export const removeFigmaTeamUseCase = {
 				connectInstallationId,
 			);
 
-		try {
-			await figmaService.deleteWebhook(webhookId, figmaAdminAtlassianUserId);
-		} catch (e: unknown) {
-			getLogger().warn(
-				e,
-				`Failed to delete webhook ${webhookId} with user ${figmaAdminAtlassianUserId} when removing FigmaTeam ${id}`,
-			);
-		}
+		await figmaService.tryDeleteWebhook(webhookId, {
+			atlassianUserId: figmaAdminAtlassianUserId,
+			connectInstallationId,
+		});
 
 		await figmaTeamRepository.delete(id);
 	},

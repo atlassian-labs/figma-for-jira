@@ -45,10 +45,10 @@ describe('disassociateEntityUseCase', () => {
 
 		await disassociateEntityUseCase.execute(params);
 
-		expect(figmaService.fetchDesignById).toHaveBeenCalledWith(
-			designId,
-			params.atlassianUserId,
-		);
+		expect(figmaService.fetchDesignById).toHaveBeenCalledWith(designId, {
+			atlassianUserId: params.atlassianUserId,
+			connectInstallationId: params.connectInstallation.id,
+		});
 		expect(jiraService.submitDesign).toHaveBeenCalledWith(
 			{
 				design: atlassianDesign,
@@ -58,24 +58,27 @@ describe('disassociateEntityUseCase', () => {
 					),
 				],
 			},
-			connectInstallation,
+			params.connectInstallation,
 		);
 		expect(jiraService.deleteDesignUrlInIssueProperties).toHaveBeenCalledWith(
 			issue.id,
 			atlassianDesign,
-			connectInstallation,
+			params.connectInstallation,
 		);
 		expect(figmaService.deleteDevResourceIfExists).toHaveBeenCalledWith({
 			designId: designId,
 			devResourceUrl: `${connectInstallation.baseUrl}/browse/${issue.key}`,
-			atlassianUserId: params.atlassianUserId,
+			user: {
+				atlassianUserId: params.atlassianUserId,
+				connectInstallationId: params.connectInstallation.id,
+			},
 		});
 		expect(
 			associatedFigmaDesignRepository.deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId,
 		).toHaveBeenCalledWith(
 			designId,
 			params.disassociateFrom.ari,
-			connectInstallation.id,
+			params.connectInstallation.id,
 		);
 	});
 

@@ -29,7 +29,10 @@ export const associateEntityUseCase = {
 		const figmaDesignId = FigmaDesignIdentifier.fromFigmaDesignUrl(entity.url);
 
 		const [design, issue] = await Promise.all([
-			figmaService.fetchDesignById(figmaDesignId, atlassianUserId),
+			figmaService.fetchDesignById(figmaDesignId, {
+				atlassianUserId,
+				connectInstallationId: connectInstallation.id,
+			}),
 			jiraService.getIssue(associateWith.id, connectInstallation),
 		]);
 
@@ -56,7 +59,10 @@ export const associateEntityUseCase = {
 					key: issue.key,
 					title: issue.fields.summary,
 				},
-				atlassianUserId,
+				user: {
+					atlassianUserId,
+					connectInstallationId: connectInstallation.id,
+				},
 			}),
 		]);
 

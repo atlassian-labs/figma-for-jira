@@ -14,10 +14,10 @@ import {
 export const handleFigmaFileUpdateEventUseCase = {
 	execute: async (figmaTeam: FigmaTeam, fileKey: string): Promise<void> => {
 		try {
-			const teamName = await figmaService.getTeamName(
-				figmaTeam.teamId,
-				figmaTeam.figmaAdminAtlassianUserId,
-			);
+			const teamName = await figmaService.getTeamName(figmaTeam.teamId, {
+				atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,
+				connectInstallationId: figmaTeam.connectInstallationId,
+			});
 			await figmaTeamRepository.updateTeamName(figmaTeam.id, teamName);
 		} catch (e: unknown) {
 			if (e instanceof FigmaServiceCredentialsError) {
@@ -42,7 +42,10 @@ export const handleFigmaFileUpdateEventUseCase = {
 		try {
 			const designs = await figmaService.fetchDesignsByIds(
 				associatedFigmaDesigns.map((design) => design.designId),
-				figmaTeam.figmaAdminAtlassianUserId,
+				{
+					atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,
+					connectInstallationId: figmaTeam.connectInstallationId,
+				},
 			);
 
 			await jiraService.submitDesigns(

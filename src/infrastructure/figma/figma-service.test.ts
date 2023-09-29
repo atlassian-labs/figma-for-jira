@@ -14,7 +14,7 @@ import type {
 	CreateWebhookResponse,
 	MeResponse,
 } from './figma-client';
-import { figmaClient, FigmaClientNotFoundError } from './figma-client';
+import { figmaClient } from './figma-client';
 import {
 	generateChildNode,
 	generateFrameNode,
@@ -34,14 +34,13 @@ import {
 import * as configModule from '../../config';
 import { mockConfig } from '../../config/testing';
 import {
+	generateConnectUserInfo,
 	generateFigmaDesignIdentifier,
 	generateFigmaNodeId,
 	generateFigmaOAuth2UserCredentials,
 	generateJiraIssueKey,
 	generateJiraIssueUrl,
 } from '../../domain/entities/testing';
-
-const ATLASSIAN_USER_ID = uuidv4();
 
 jest.mock('../../config', () => {
 	return {
@@ -51,6 +50,12 @@ jest.mock('../../config', () => {
 });
 
 describe('FigmaService', () => {
+	const MOCK_CONNECT_USER_INFO = generateConnectUserInfo();
+	const MOCK_CREDENTIALS = generateFigmaOAuth2UserCredentials({
+		atlassianUserId: MOCK_CONNECT_USER_INFO.atlassianUserId,
+		connectInstallationId: MOCK_CONNECT_USER_INFO.connectInstallationId,
+	});
+
 	beforeEach(() => {
 		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
 	});
@@ -66,12 +71,13 @@ describe('FigmaService', () => {
 				.mockResolvedValue(credentials);
 			jest.spyOn(figmaClient, 'me').mockResolvedValue({} as MeResponse);
 
-			const result =
-				await figmaService.getValidCredentialsOrThrow(ATLASSIAN_USER_ID);
+			const result = await figmaService.getValidCredentialsOrThrow(
+				MOCK_CONNECT_USER_INFO,
+			);
 
 			expect(result).toBe(credentials);
 			expect(figmaAuthService.getCredentials).toHaveBeenCalledWith(
-				ATLASSIAN_USER_ID,
+				MOCK_CONNECT_USER_INFO,
 			);
 			expect(figmaClient.me).toHaveBeenCalledWith(credentials.accessToken);
 		});
@@ -81,7 +87,7 @@ describe('FigmaService', () => {
 				'No credentials.',
 			);
 			const expectedServiceError = new FigmaServiceCredentialsError(
-				ATLASSIAN_USER_ID,
+				MOCK_CONNECT_USER_INFO.atlassianUserId,
 				figmaCredentialsError,
 			);
 			jest
@@ -89,7 +95,7 @@ describe('FigmaService', () => {
 				.mockRejectedValue(figmaCredentialsError);
 
 			await expect(
-				figmaService.getValidCredentialsOrThrow(ATLASSIAN_USER_ID),
+				figmaService.getValidCredentialsOrThrow(MOCK_CONNECT_USER_INFO),
 			).rejects.toStrictEqual(expectedServiceError);
 		});
 
@@ -104,7 +110,7 @@ describe('FigmaService', () => {
 				} as AxiosResponse,
 			);
 			const expectedServiceError = new FigmaServiceCredentialsError(
-				ATLASSIAN_USER_ID,
+				MOCK_CONNECT_USER_INFO.atlassianUserId,
 				forbiddenAxiosError,
 			);
 			jest
@@ -113,7 +119,7 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'me').mockRejectedValue(forbiddenAxiosError);
 
 			await expect(
-				figmaService.getValidCredentialsOrThrow(ATLASSIAN_USER_ID),
+				figmaService.getValidCredentialsOrThrow(MOCK_CONNECT_USER_INFO),
 			).rejects.toStrictEqual(expectedServiceError);
 		});
 
@@ -134,7 +140,7 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'me').mockRejectedValue(expectedError);
 
 			await expect(
-				figmaService.getValidCredentialsOrThrow(ATLASSIAN_USER_ID),
+				figmaService.getValidCredentialsOrThrow(MOCK_CONNECT_USER_INFO),
 			).rejects.toStrictEqual(expectedError);
 		});
 	});
@@ -157,7 +163,7 @@ describe('FigmaService', () => {
 
 			const result = await figmaService.fetchDesignById(
 				designId,
-				ATLASSIAN_USER_ID,
+				MOCK_CONNECT_USER_INFO,
 			);
 
 			const expectedEntity = transformNodeToAtlassianDesign({
@@ -186,7 +192,7 @@ describe('FigmaService', () => {
 
 			const res = await figmaService.fetchDesignById(
 				designId,
-				ATLASSIAN_USER_ID,
+				MOCK_CONNECT_USER_INFO,
 			);
 
 			const expectedEntity = transformFileToAtlassianDesign({
@@ -210,7 +216,7 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'getFile').mockRejectedValue(mockError);
 
 			await expect(
-				figmaService.fetchDesignById(designId, ATLASSIAN_USER_ID),
+				figmaService.fetchDesignById(designId, MOCK_CONNECT_USER_INFO),
 			).rejects.toStrictEqual(mockError);
 		});
 
@@ -218,7 +224,7 @@ describe('FigmaService', () => {
 			const designId = generateFigmaDesignIdentifier();
 
 			await expect(() =>
-				figmaService.fetchDesignById(designId, ATLASSIAN_USER_ID),
+				figmaService.fetchDesignById(designId, MOCK_CONNECT_USER_INFO),
 			).rejects.toBeInstanceOf(FigmaServiceCredentialsError);
 		});
 	});
@@ -253,7 +259,7 @@ describe('FigmaService', () => {
 
 			const result = await figmaService.fetchDesignsByIds(
 				[designIdWithoutNode, designIdWithNode1, designIdWithNode2],
-				ATLASSIAN_USER_ID,
+				MOCK_CONNECT_USER_INFO,
 			);
 
 			const expectedResult = [
@@ -281,7 +287,7 @@ describe('FigmaService', () => {
 
 			const result = await figmaService.fetchDesignsByIds(
 				[],
-				ATLASSIAN_USER_ID,
+				MOCK_CONNECT_USER_INFO,
 			);
 
 			expect(result).toStrictEqual([]);
@@ -297,7 +303,7 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaService, 'getValidCredentialsOrThrow');
 
 			await expect(
-				figmaService.fetchDesignsByIds(designIds, ATLASSIAN_USER_ID),
+				figmaService.fetchDesignsByIds(designIds, MOCK_CONNECT_USER_INFO),
 			).rejects.toBeInstanceOf(FigmaServiceError);
 			expect(figmaService.getValidCredentialsOrThrow).not.toBeCalled();
 		});
@@ -313,7 +319,7 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'getFile').mockRejectedValue(mockError);
 
 			await expect(
-				figmaService.fetchDesignsByIds([designId], ATLASSIAN_USER_ID),
+				figmaService.fetchDesignsByIds([designId], MOCK_CONNECT_USER_INFO),
 			).rejects.toStrictEqual(mockError);
 		});
 
@@ -321,14 +327,13 @@ describe('FigmaService', () => {
 			const designId = generateFigmaDesignIdentifier();
 
 			await expect(() =>
-				figmaService.fetchDesignsByIds([designId], ATLASSIAN_USER_ID),
+				figmaService.fetchDesignsByIds([designId], MOCK_CONNECT_USER_INFO),
 			).rejects.toBeInstanceOf(FigmaServiceCredentialsError);
 		});
 	});
 
 	describe('createDevResourceForJiraIssue', () => {
 		const MOCK_CREDENTIALS = generateFigmaOAuth2UserCredentials();
-
 		beforeEach(() => {
 			jest
 				.spyOn(figmaService, 'getValidCredentialsOrThrow')
@@ -337,6 +342,7 @@ describe('FigmaService', () => {
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(MOCK_CREDENTIALS);
 		});
+
 		it('should call figmaClient to create a dev_resource when design points out to file', async () => {
 			const issueKey = generateJiraIssueKey();
 			const issueUrl = generateJiraIssueUrl();
@@ -354,7 +360,7 @@ describe('FigmaService', () => {
 					key: issueKey,
 					title: issueTitle,
 				},
-				atlassianUserId: ATLASSIAN_USER_ID,
+				user: MOCK_CONNECT_USER_INFO,
 			});
 
 			const expectedDevResource: CreateDevResourcesRequest = {
@@ -387,7 +393,7 @@ describe('FigmaService', () => {
 					key: issueKey,
 					title: issueTitle,
 				},
-				atlassianUserId: ATLASSIAN_USER_ID,
+				user: MOCK_CONNECT_USER_INFO,
 			});
 
 			const expectedDevResource: CreateDevResourcesRequest = {
@@ -420,7 +426,7 @@ describe('FigmaService', () => {
 						key: issueKey,
 						title: issueTitle,
 					},
-					atlassianUserId: ATLASSIAN_USER_ID,
+					user: MOCK_CONNECT_USER_INFO,
 				}),
 			).rejects.toThrow(expectedError);
 		});
@@ -431,7 +437,7 @@ describe('FigmaService', () => {
 			const issueTitle = uuidv4();
 			const designId = generateFigmaDesignIdentifier();
 			const credentialsError = new FigmaServiceCredentialsError(
-				ATLASSIAN_USER_ID,
+				MOCK_CONNECT_USER_INFO.atlassianUserId,
 			);
 			jest
 				.spyOn(figmaService, 'getValidCredentialsOrThrow')
@@ -445,15 +451,13 @@ describe('FigmaService', () => {
 						key: issueKey,
 						title: issueTitle,
 					},
-					atlassianUserId: ATLASSIAN_USER_ID,
+					user: MOCK_CONNECT_USER_INFO,
 				}),
 			).rejects.toStrictEqual(credentialsError);
 		});
 	});
 
 	describe('createFileUpdateWebhook', () => {
-		const MOCK_CREDENTIALS = generateFigmaOAuth2UserCredentials();
-
 		beforeEach(() => {
 			jest
 				.spyOn(figmaService, 'getValidCredentialsOrThrow')
@@ -481,8 +485,8 @@ describe('FigmaService', () => {
 
 			await figmaService.createFileUpdateWebhook(
 				teamId,
-				MOCK_CREDENTIALS.atlassianUserId,
 				passcode,
+				MOCK_CONNECT_USER_INFO,
 			);
 
 			const expectedCreateWebhookRequest: CreateWebhookRequest = {
@@ -507,8 +511,8 @@ describe('FigmaService', () => {
 			await expect(() =>
 				figmaService.createFileUpdateWebhook(
 					teamId,
-					MOCK_CREDENTIALS.atlassianUserId,
 					connectInstallationSecret,
+					MOCK_CONNECT_USER_INFO,
 				),
 			).rejects.toThrow(expectedError);
 		});
@@ -517,7 +521,7 @@ describe('FigmaService', () => {
 			const teamId = uuidv4();
 			const connectInstallationSecret = uuidv4();
 			const credentialsError = new FigmaServiceCredentialsError(
-				ATLASSIAN_USER_ID,
+				MOCK_CREDENTIALS.atlassianUserId,
 			);
 			jest
 				.spyOn(figmaService, 'getValidCredentialsOrThrow')
@@ -526,16 +530,14 @@ describe('FigmaService', () => {
 			await expect(() =>
 				figmaService.createFileUpdateWebhook(
 					teamId,
-					MOCK_CREDENTIALS.atlassianUserId,
 					connectInstallationSecret,
+					MOCK_CONNECT_USER_INFO,
 				),
 			).rejects.toStrictEqual(credentialsError);
 		});
 	});
 
-	describe('deleteWebhook', () => {
-		const MOCK_CREDENTIALS = generateFigmaOAuth2UserCredentials();
-
+	describe('tryDeleteWebhook', () => {
 		beforeEach(() => {
 			jest
 				.spyOn(figmaService, 'getValidCredentialsOrThrow')
@@ -546,10 +548,7 @@ describe('FigmaService', () => {
 			const webhookId = uuidv4();
 			jest.spyOn(figmaClient, 'deleteWebhook').mockResolvedValue();
 
-			await figmaService.deleteWebhook(
-				webhookId,
-				MOCK_CREDENTIALS.atlassianUserId,
-			);
+			await figmaService.tryDeleteWebhook(webhookId, MOCK_CONNECT_USER_INFO);
 
 			expect(figmaClient.deleteWebhook).toHaveBeenCalledWith(
 				webhookId,
@@ -557,21 +556,17 @@ describe('FigmaService', () => {
 			);
 		});
 
-		it('should not throw when webhook is not found', async () => {
+		it('should not throw when deletion fails', async () => {
 			const webhookId = uuidv4();
-			jest
-				.spyOn(figmaClient, 'deleteWebhook')
-				.mockRejectedValue(new FigmaClientNotFoundError());
+			jest.spyOn(figmaClient, 'deleteWebhook').mockRejectedValue(new Error());
 
 			await expect(
-				figmaService.deleteWebhook(webhookId, MOCK_CREDENTIALS.atlassianUserId),
+				figmaService.tryDeleteWebhook(webhookId, MOCK_CONNECT_USER_INFO),
 			).resolves.toBeUndefined();
 		});
 	});
 
 	describe('getTeamName', () => {
-		const MOCK_CREDENTIALS = generateFigmaOAuth2UserCredentials();
-
 		beforeEach(() => {
 			jest
 				.spyOn(figmaService, 'getValidCredentialsOrThrow')
@@ -588,7 +583,7 @@ describe('FigmaService', () => {
 
 			const result = await figmaService.getTeamName(
 				teamId,
-				MOCK_CREDENTIALS.atlassianUserId,
+				MOCK_CONNECT_USER_INFO,
 			);
 			expect(result).toStrictEqual(teamName);
 		});
