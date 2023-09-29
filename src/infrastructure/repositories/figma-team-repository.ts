@@ -6,11 +6,10 @@ import { RepositoryRecordNotFoundError } from './errors';
 import { prismaClient } from './prisma-client';
 
 import type {
-	FigmaTeam,
 	FigmaTeamCreateParams,
 	FigmaTeamSummary,
 } from '../../domain/entities';
-import { FigmaTeamAuthStatus } from '../../domain/entities';
+import { FigmaTeam, FigmaTeamAuthStatus } from '../../domain/entities';
 
 type PrismaFigmaTeamCreateParams = Omit<PrismaFigmaTeam, 'id'>;
 type PrismaFigmaTeamSummary = Pick<
@@ -176,16 +175,17 @@ export class FigmaTeamRepository {
 		figmaAdminAtlassianUserId,
 		authStatus,
 		connectInstallationId,
-	}: PrismaFigmaTeam): FigmaTeam => ({
-		id: id.toString(),
-		webhookId,
-		webhookPasscode,
-		teamId,
-		teamName,
-		figmaAdminAtlassianUserId,
-		authStatus: FigmaTeamAuthStatus[authStatus],
-		connectInstallationId: connectInstallationId.toString(),
-	});
+	}: PrismaFigmaTeam): FigmaTeam =>
+		new FigmaTeam(
+			id.toString(),
+			webhookId,
+			webhookPasscode,
+			teamId,
+			teamName,
+			figmaAdminAtlassianUserId,
+			FigmaTeamAuthStatus[authStatus],
+			connectInstallationId.toString(),
+		);
 
 	private mapToFigmaTeamSummary = ({
 		teamId,

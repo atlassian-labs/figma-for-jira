@@ -21,10 +21,10 @@ describe('removeFigmaTeamUseCase', () => {
 		expect(
 			figmaTeamRepository.getByTeamIdAndConnectInstallationId,
 		).toBeCalledWith(figmaTeam.teamId, figmaTeam.connectInstallationId);
-		expect(figmaService.tryDeleteWebhook).toBeCalledWith(figmaTeam.webhookId, {
-			atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,
-			connectInstallationId: figmaTeam.connectInstallationId,
-		});
+		expect(figmaService.tryDeleteWebhook).toBeCalledWith(
+			figmaTeam.webhookId,
+			figmaTeam.adminInfo,
+		);
 		expect(figmaTeamRepository.delete).toBeCalledWith(figmaTeam.id);
 	});
 });
