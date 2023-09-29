@@ -21,7 +21,7 @@ export const mockJiraSubmitDesignsEndpoint = ({
 	status = HttpStatusCode.Ok,
 }: {
 	baseUrl: string;
-	request?: SubmitDesignsRequest;
+	request?: SubmitDesignsRequest | RequestBodyMatcher;
 	response?: SubmitDesignsResponse;
 	status?: HttpStatusCode;
 }) => {

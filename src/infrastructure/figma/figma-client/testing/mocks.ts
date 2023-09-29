@@ -2,13 +2,17 @@ import { v4 as uuidv4 } from 'uuid';
 
 import type {
 	CreateDevResourcesRequest,
+	CreateWebhookRequest,
+	CreateWebhookResponse,
 	FileResponse,
 	GetDevResourcesResponse,
 	GetOAuth2TokenResponse,
+	GetTeamProjectsResponse,
 	Node,
 	RefreshOAuth2TokenResponse,
 } from '..';
 import { Duration } from '../../../../common/duration';
+import type { FigmaWebhookEventType } from '../../../../domain/entities';
 import {
 	generateFigmaFileKey,
 	generateFigmaFileName,
@@ -167,3 +171,46 @@ export const generateEmptyDevResourcesResponse =
 	(): GetDevResourcesResponse => ({
 		dev_resources: [],
 	});
+
+export const generateCreateWebhookRequest = ({
+	teamId = uuidv4(),
+	eventType = 'FILE_UPDATE' as FigmaWebhookEventType,
+	endpoint = `https://figma-for-jira.atlassian.com/figma/webhooks`,
+	passcode = uuidv4(),
+	description = 'Figma for Jira',
+} = {}): CreateWebhookRequest => ({
+	team_id: teamId,
+	event_type: eventType,
+	endpoint,
+	passcode,
+	description,
+});
+
+export const generateCreateWebhookResponse = ({
+	id = uuidv4(),
+	teamId = uuidv4(),
+	eventType = 'FILE_UPDATE',
+	clientId = uuidv4(),
+	endpoint = `https://figma-for-jira.atlassian.com/figma/webhooks`,
+	passcode = uuidv4(),
+	status = 'ACTIVE',
+	description = 'Figma for Jira',
+	protocolVersion = '2',
+} = {}): CreateWebhookResponse => ({
+	id: id,
+	team_id: teamId,
+	event_type: eventType,
+	client_id: clientId,
+	endpoint,
+	passcode,
+	status,
+	description,
+	protocol_version: protocolVersion,
+});
+
+export const generateGetTeamProjectsResponse = ({
+	name = `Team ${uuidv4()}`,
+} = {}): GetTeamProjectsResponse => ({
+	name,
+	projects: [],
+});

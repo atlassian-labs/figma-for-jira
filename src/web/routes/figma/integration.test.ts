@@ -35,6 +35,7 @@ import {
 	generateGetFileResponseWithNodes,
 	generateGetOAuth2TokenQueryParams,
 	generateGetOAuth2TokenResponse,
+	generateGetTeamProjectsResponse,
 } from '../../../infrastructure/figma/figma-client/testing';
 import {
 	transformFileToAtlassianDesign,
@@ -153,7 +154,9 @@ describe('/figma', () => {
 				mockFigmaGetTeamProjectsEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
 					teamId: figmaTeam.teamId,
-					teamName: figmaTeam.teamName,
+					response: generateGetTeamProjectsResponse({
+						name: figmaTeam.teamName,
+					}),
 				});
 				mockFigmaGetFileWithNodesEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
@@ -206,7 +209,6 @@ describe('/figma', () => {
 				mockFigmaGetTeamProjectsEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
 					teamId: figmaTeam.teamId,
-					teamName: figmaTeam.teamName,
 					status: HttpStatusCode.InternalServerError,
 				});
 				mockFigmaGetFileWithNodesEndpoint({
@@ -284,7 +286,9 @@ describe('/figma', () => {
 				mockFigmaGetTeamProjectsEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
 					teamId: figmaTeam.teamId,
-					teamName: figmaTeam.teamName,
+					response: generateGetTeamProjectsResponse({
+						name: figmaTeam.teamName,
+					}),
 				});
 				mockFigmaGetFileWithNodesEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,

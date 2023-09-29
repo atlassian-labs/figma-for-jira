@@ -18,6 +18,10 @@ import {
 } from '../../../domain/entities/testing';
 import { figmaClient } from '../../../infrastructure/figma/figma-client';
 import {
+	generateCreateWebhookResponse,
+	generateGetTeamProjectsResponse,
+} from '../../../infrastructure/figma/figma-client/testing';
+import {
 	connectInstallationRepository,
 	figmaOAuth2UserCredentialsRepository,
 	figmaTeamRepository,
@@ -68,12 +72,21 @@ describe('/teams', () => {
 			mockFigmaGetTeamProjectsEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				teamId,
-				teamName,
+				response: generateGetTeamProjectsResponse({ name: teamName }),
 			});
 			mockFigmaCreateWebhookEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
-				webhookId,
-				teamId,
+				request: {
+					event_type: 'FILE_UPDATE',
+					team_id: teamId,
+					endpoint: `${getConfig().app.baseUrl}/figma/webhook`,
+					passcode: /.+/i,
+					description: /.+/i,
+				},
+				response: generateCreateWebhookResponse({
+					id: webhookId,
+					teamId,
+				}),
 			});
 
 			await request(app)
@@ -110,12 +123,10 @@ describe('/teams', () => {
 			mockFigmaGetTeamProjectsEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				teamId,
-				teamName,
+				response: generateGetTeamProjectsResponse({ name: teamName }),
 			});
 			mockFigmaCreateWebhookEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
-				webhookId,
-				teamId,
 				status: HttpStatusCode.InternalServerError,
 			});
 

@@ -1,17 +1,22 @@
 import { HttpStatusCode } from 'axios';
+import type { RequestBodyMatcher } from 'nock';
 import nock from 'nock';
 import { v4 as uuidv4 } from 'uuid';
 
-import { getConfig } from '../../config';
 import type {
 	CreateDevResourcesRequest,
+	CreateWebhookRequest,
+	CreateWebhookResponse,
 	FileResponse,
 	GetDevResourcesResponse,
+	GetTeamProjectsResponse,
 } from '../../infrastructure/figma/figma-client';
 import {
 	generateChildNode,
+	generateCreateWebhookResponse,
 	generateGetDevResourcesResponse,
 	generateGetFileResponseWithNodes,
+	generateGetTeamProjectsResponse,
 } from '../../infrastructure/figma/figma-client/testing';
 
 export const mockFigmaMeEndpoint = ({
@@ -76,7 +81,7 @@ export const mockFigmaCreateDevResourcesEndpoint = ({
 	status = HttpStatusCode.Ok,
 }: {
 	baseUrl: string;
-	request?: CreateDevResourcesRequest;
+	request?: CreateDevResourcesRequest | RequestBodyMatcher;
 	status?: HttpStatusCode;
 }) => {
 	nock(baseUrl).post('/v1/dev_resources').reply(status, request);
@@ -119,28 +124,18 @@ export const mockFigmaDeleteDevResourcesEndpoint = ({
 
 export const mockFigmaCreateWebhookEndpoint = ({
 	baseUrl,
-	webhookId = uuidv4(),
-	teamId = uuidv4(),
+	request,
+	response = generateCreateWebhookResponse(),
 	status = HttpStatusCode.Ok,
 }: {
 	baseUrl: string;
 	webhookId?: string;
 	teamId?: string;
+	request?: CreateWebhookRequest | RequestBodyMatcher;
+	response?: CreateWebhookResponse;
 	status?: HttpStatusCode;
 }) => {
-	nock(baseUrl)
-		.post('/v2/webhooks')
-		.reply(status, {
-			id: webhookId,
-			team_id: teamId,
-			event_type: 'FILE_UPDATE',
-			client_id: getConfig().figma.clientId,
-			endpoint: `${getConfig().app.baseUrl}/figma/webhooks`,
-			passcode: 'NOT_USED',
-			status: 'ACTIVE',
-			description: 'Figma for Jira',
-			protocol_version: '2',
-		});
+	nock(baseUrl).post('/v2/webhooks', request).reply(status, response);
 };
 
 export const mockFigmaDeleteWebhookEndpoint = ({
@@ -166,15 +161,13 @@ export const mockFigmaDeleteWebhookEndpoint = ({
 export const mockFigmaGetTeamProjectsEndpoint = ({
 	baseUrl,
 	teamId = uuidv4(),
-	teamName = uuidv4(),
 	status = HttpStatusCode.Ok,
+	response = generateGetTeamProjectsResponse(),
 }: {
 	baseUrl: string;
 	teamId?: string;
-	teamName?: string;
 	status?: HttpStatusCode;
+	response?: GetTeamProjectsResponse;
 }) => {
-	nock(baseUrl)
-		.get(`/v1/teams/${teamId}/projects`)
-		.reply(status, { name: teamName, projects: [] });
+	nock(baseUrl).get(`/v1/teams/${teamId}/projects`).reply(status, response);
 };

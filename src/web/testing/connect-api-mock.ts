@@ -12,7 +12,7 @@ export const mockConnectGetKeyEndpoint = ({
 }: {
 	baseUrl: string;
 	keyId: string;
-	response: string;
+	response?: string;
 	status: HttpStatusCode;
 }) => {
 	nock(baseUrl).get(`/${keyId}`).reply(status, response);
