@@ -114,6 +114,21 @@ export const generateGetFileResponseWithNode = ({
 	},
 });
 
+export const generateGetFileResponseWithNodes = ({
+	name = generateFigmaFileName(),
+	lastModified = new Date(),
+	nodes = [generateChildNode()],
+} = {}): FileResponse => ({
+	name,
+	lastModified: lastModified.toISOString(),
+	role: 'editor',
+	editorType: 'figma',
+	document: {
+		...MOCK_DOCUMENT,
+		children: nodes,
+	},
+});
+
 export const generateGetFileResponseWithNodeId = (
 	nodeId: string,
 ): FileResponse =>

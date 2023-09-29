@@ -1,6 +1,9 @@
-import type { FigmaTeam } from '../domain/entities';
+import { type FigmaTeam, FigmaTeamAuthStatus } from '../domain/entities';
 import { getLogger } from '../infrastructure';
-import { figmaService } from '../infrastructure/figma';
+import {
+	figmaService,
+	FigmaServiceCredentialsError,
+} from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
 import {
 	associatedFigmaDesignRepository,
@@ -17,6 +20,14 @@ export const handleFigmaFileUpdateEventUseCase = {
 			);
 			await figmaTeamRepository.updateTeamName(figmaTeam.id, teamName);
 		} catch (e: unknown) {
+			if (e instanceof FigmaServiceCredentialsError) {
+				await figmaTeamRepository.updateAuthStatus(
+					figmaTeam.id,
+					FigmaTeamAuthStatus.ERROR,
+				);
+				return;
+			}
+
 			getLogger().warn(e, `Failed to sync team name for ${figmaTeam.id}`);
 		}
 
@@ -28,18 +39,25 @@ export const handleFigmaFileUpdateEventUseCase = {
 			),
 		]);
 
-		const designs = await Promise.all(
-			associatedFigmaDesigns.map((design) =>
-				figmaService.fetchDesignById(
-					design.designId,
-					figmaTeam.figmaAdminAtlassianUserId,
-				),
-			),
-		);
+		try {
+			const designs = await figmaService.fetchDesignsByIds(
+				associatedFigmaDesigns.map((design) => design.designId),
+				figmaTeam.figmaAdminAtlassianUserId,
+			);
 
-		await jiraService.submitDesigns(
-			designs.map((design) => ({ design })),
-			connectInstallation,
-		);
+			await jiraService.submitDesigns(
+				designs.map((design) => ({ design })),
+				connectInstallation,
+			);
+		} catch (e: unknown) {
+			if (e instanceof FigmaServiceCredentialsError) {
+				await figmaTeamRepository.updateAuthStatus(
+					figmaTeam.id,
+					FigmaTeamAuthStatus.ERROR,
+				);
+			} else {
+				throw e;
+			}
+		}
 	},
 };

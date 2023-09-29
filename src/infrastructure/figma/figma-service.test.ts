@@ -2,7 +2,7 @@ import type { AxiosResponse } from 'axios';
 import { AxiosError, HttpStatusCode } from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 
-import { FigmaServiceCredentialsError } from './errors';
+import { FigmaServiceCredentialsError, FigmaServiceError } from './errors';
 import {
 	figmaAuthService,
 	NoFigmaCredentialsError,
@@ -17,8 +17,10 @@ import type {
 import { figmaClient, FigmaClientNotFoundError } from './figma-client';
 import {
 	generateChildNode,
+	generateFrameNode,
 	generateGetFileResponse,
 	generateGetFileResponseWithNode,
+	generateGetFileResponseWithNodes,
 } from './figma-client/testing';
 import {
 	buildDevResourceNameFromJiraIssue,
@@ -205,9 +207,6 @@ describe('FigmaService', () => {
 			jest
 				.spyOn(figmaService, 'getValidCredentialsOrThrow')
 				.mockResolvedValue(credentials);
-			jest
-				.spyOn(figmaAuthService, 'getCredentials')
-				.mockResolvedValue(credentials);
 			jest.spyOn(figmaClient, 'getFile').mockRejectedValue(mockError);
 
 			await expect(
@@ -220,6 +219,109 @@ describe('FigmaService', () => {
 
 			await expect(() =>
 				figmaService.fetchDesignById(designId, ATLASSIAN_USER_ID),
+			).rejects.toBeInstanceOf(FigmaServiceCredentialsError);
+		});
+	});
+
+	describe('fetchDesignsByIds', () => {
+		it('should return valid design entities for design ids with and without node ids', async () => {
+			const nodeId1 = generateFigmaNodeId();
+			const node1 = generateFrameNode({ id: nodeId1 });
+			const nodeId2 = generateFigmaNodeId();
+			const node2 = generateFrameNode({ id: nodeId2 });
+			const designIdWithoutNode = generateFigmaDesignIdentifier();
+			const designIdWithNode1 = generateFigmaDesignIdentifier({
+				fileKey: designIdWithoutNode.fileKey,
+				nodeId: nodeId1,
+			});
+			const designIdWithNode2 = generateFigmaDesignIdentifier({
+				fileKey: designIdWithoutNode.fileKey,
+				nodeId: nodeId2,
+			});
+			const credentials = generateFigmaOAuth2UserCredentials();
+			const mockResponse = generateGetFileResponseWithNodes({
+				nodes: [node1, node2],
+			});
+
+			jest
+				.spyOn(figmaService, 'getValidCredentialsOrThrow')
+				.mockResolvedValue(credentials);
+			jest
+				.spyOn(figmaAuthService, 'getCredentials')
+				.mockResolvedValue(credentials);
+			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
+
+			const result = await figmaService.fetchDesignsByIds(
+				[designIdWithoutNode, designIdWithNode1, designIdWithNode2],
+				ATLASSIAN_USER_ID,
+			);
+
+			const expectedResult = [
+				transformFileToAtlassianDesign({
+					fileKey: designIdWithoutNode.fileKey,
+					fileResponse: mockResponse,
+				}),
+				transformNodeToAtlassianDesign({
+					fileKey: designIdWithNode1.fileKey,
+					nodeId: designIdWithNode1.nodeId!,
+					fileResponse: mockResponse,
+				}),
+				transformNodeToAtlassianDesign({
+					fileKey: designIdWithNode2.fileKey,
+					nodeId: designIdWithNode2.nodeId!,
+					fileResponse: mockResponse,
+				}),
+			];
+
+			expect(result).toStrictEqual(expectedResult);
+		});
+
+		it('should immediately return an empty array if passed an empty design ids array', async () => {
+			jest.spyOn(figmaService, 'getValidCredentialsOrThrow');
+
+			const result = await figmaService.fetchDesignsByIds(
+				[],
+				ATLASSIAN_USER_ID,
+			);
+
+			expect(result).toStrictEqual([]);
+			expect(figmaService.getValidCredentialsOrThrow).not.toBeCalled();
+		});
+
+		it('should throw a FigmaServiceError if design ids have different file keys', async () => {
+			const designIds = [
+				generateFigmaDesignIdentifier(),
+				generateFigmaDesignIdentifier(),
+				generateFigmaDesignIdentifier(),
+			];
+			jest.spyOn(figmaService, 'getValidCredentialsOrThrow');
+
+			await expect(
+				figmaService.fetchDesignsByIds(designIds, ATLASSIAN_USER_ID),
+			).rejects.toBeInstanceOf(FigmaServiceError);
+			expect(figmaService.getValidCredentialsOrThrow).not.toBeCalled();
+		});
+
+		it('should throw when a request to a figma api fails', async () => {
+			const designId = generateFigmaDesignIdentifier();
+			const credentials = generateFigmaOAuth2UserCredentials();
+			const mockError = new Error('Figma API failed');
+
+			jest
+				.spyOn(figmaService, 'getValidCredentialsOrThrow')
+				.mockResolvedValue(credentials);
+			jest.spyOn(figmaClient, 'getFile').mockRejectedValue(mockError);
+
+			await expect(
+				figmaService.fetchDesignsByIds([designId], ATLASSIAN_USER_ID),
+			).rejects.toStrictEqual(mockError);
+		});
+
+		it('should throw if the atlassian user is not authorized', async () => {
+			const designId = generateFigmaDesignIdentifier();
+
+			await expect(() =>
+				figmaService.fetchDesignsByIds([designId], ATLASSIAN_USER_ID),
 			).rejects.toBeInstanceOf(FigmaServiceCredentialsError);
 		});
 	});
