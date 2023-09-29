@@ -6,7 +6,7 @@ import type {
 	CreateDevResourcesRequest,
 	CreateWebhookRequest,
 } from './figma-client';
-import { figmaClient, FigmaClientNotFoundError } from './figma-client';
+import { figmaClient } from './figma-client';
 import {
 	transformFileToAtlassianDesign,
 	transformNodeToAtlassianDesign,
@@ -173,18 +173,28 @@ export class FigmaService {
 		return { webhookId: result.id, teamId: result.team_id };
 	};
 
-	deleteWebhook = async (
+	/**
+	 * Tries to delete the given webhook. It makes the best effort to delete the webhook but does not throw an error
+	 * in case of a failure since it can be caused by valid scenarios (e.g., a Figma team admin revoked his/her
+	 * token or was deleted from the organization).
+	 *
+	 * As a result, it is possible to get orphaned active and constantly failing webhooks.
+	 *
+	 * @remarks
+	 * Ideally, they can be deleted automatically on the Figma side. However, according to the Figma docs,
+	 * "Figma does not currently deactivate endpoints with frequent errors.".
+	 *
+	 * @see https://www.figma.com/developers/api#webhooks-v2-intro
+	 */
+	tryDeleteWebhook = async (
 		webhookId: string,
 		user: ConnectUserInfo,
 	): Promise<void> => {
-		const { accessToken } = await this.getValidCredentialsOrThrow(user);
-
 		try {
+			const { accessToken } = await this.getValidCredentialsOrThrow(user);
 			await figmaClient.deleteWebhook(webhookId, accessToken);
 		} catch (e) {
-			if (e instanceof FigmaClientNotFoundError) return;
-
-			throw e;
+			getLogger().warn(e, `Failed to remove webhook ${webhookId}.`);
 		}
 	};
 

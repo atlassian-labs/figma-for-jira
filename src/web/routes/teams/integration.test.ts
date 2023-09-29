@@ -1,5 +1,4 @@
 import { HttpStatusCode } from 'axios';
-import nock from 'nock';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -23,64 +22,15 @@ import {
 	figmaTeamRepository,
 	RepositoryRecordNotFoundError,
 } from '../../../infrastructure/repositories';
-import { generateInboundRequestSymmetricJwtToken } from '../../testing';
-
-const mockCreateWebhookEndpoint = ({
-	webhookId = uuidv4(),
-	teamId = uuidv4(),
-	success = true,
-}: {
-	webhookId?: string;
-	teamId?: string;
-	success?: boolean;
-} = {}) => {
-	const statusCode = success
-		? HttpStatusCode.Ok
-		: HttpStatusCode.InternalServerError;
-	nock(FIGMA_API_BASE_URL)
-		.post('/v2/webhooks')
-		.reply(statusCode, {
-			id: webhookId,
-			team_id: teamId,
-			event_type: 'FILE_UPDATE',
-			client_id: getConfig().figma.clientId,
-			endpoint: `${getConfig().app.baseUrl}/figma/webhooks`,
-			passcode: 'NOT_USED',
-			status: 'ACTIVE',
-			description: 'Figma for Jira',
-			protocol_version: '2',
-		});
-};
-
-const mockGetTeamProjectsEndpoint = ({
-	teamId = uuidv4(),
-	teamName = uuidv4(),
-	success = true,
-}: {
-	teamId?: string;
-	teamName?: string;
-	success?: boolean;
-} = {}) => {
-	const statusCode = success
-		? HttpStatusCode.Ok
-		: HttpStatusCode.InternalServerError;
-	nock(FIGMA_API_BASE_URL)
-		.get(`/v1/teams/${teamId}/projects`)
-		.reply(statusCode, { name: teamName, projects: [] });
-};
-
-const mockMeEndpoint = ({ success = true }: { success?: boolean } = {}) => {
-	nock(FIGMA_API_BASE_URL)
-		.get(FIGMA_API_ME_ENDPOINT)
-		.reply(success ? HttpStatusCode.Ok : HttpStatusCode.Forbidden)
-		.persist();
-};
+import {
+	generateInboundRequestSymmetricJwtToken,
+	mockCreateWebhookEndpoint,
+	mockGetTeamProjectsEndpoint,
+	mockMeEndpoint,
+} from '../../testing';
 
 const figmaTeamSummaryComparer = (a: FigmaTeamSummary, b: FigmaTeamSummary) =>
 	a.teamId.localeCompare(b.teamId);
-
-const FIGMA_API_BASE_URL = getConfig().figma.apiBaseUrl;
-const FIGMA_API_ME_ENDPOINT = '/v1/me';
 
 const TEAMS_CONFIGURE_ENDPOINT = '/teams/configure';
 const TEAMS_LIST_ENDPOINT = '/teams/list';
@@ -112,9 +62,17 @@ describe('/teams', () => {
 				connectInstallation,
 			});
 
-			mockMeEndpoint();
-			mockGetTeamProjectsEndpoint({ teamId, teamName });
-			mockCreateWebhookEndpoint({ webhookId, teamId });
+			mockMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
+			mockGetTeamProjectsEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				teamId,
+				teamName,
+			});
+			mockCreateWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				webhookId,
+				teamId,
+			});
 
 			await request(app)
 				.post(TEAMS_CONFIGURE_ENDPOINT)
@@ -146,9 +104,18 @@ describe('/teams', () => {
 				connectInstallation,
 			});
 
-			mockMeEndpoint();
-			mockGetTeamProjectsEndpoint({ teamId, teamName });
-			mockCreateWebhookEndpoint({ webhookId, teamId, success: false });
+			mockMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
+			mockGetTeamProjectsEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				teamId,
+				teamName,
+			});
+			mockCreateWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				webhookId,
+				teamId,
+				success: false,
+			});
 
 			await request(app)
 				.post(TEAMS_CONFIGURE_ENDPOINT)
@@ -208,7 +175,7 @@ describe('/teams', () => {
 				connectInstallation: targetConnectInstallation,
 			});
 
-			mockMeEndpoint();
+			mockMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 
 			const response = await request(app)
 				.get(TEAMS_LIST_ENDPOINT)
@@ -245,7 +212,7 @@ describe('/teams', () => {
 				connectInstallation: targetConnectInstallation,
 			});
 
-			mockMeEndpoint();
+			mockMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 
 			const response = await request(app)
 				.get(TEAMS_LIST_ENDPOINT)

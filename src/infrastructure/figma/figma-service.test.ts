@@ -14,7 +14,7 @@ import type {
 	CreateWebhookResponse,
 	MeResponse,
 } from './figma-client';
-import { figmaClient, FigmaClientNotFoundError } from './figma-client';
+import { figmaClient } from './figma-client';
 import {
 	generateChildNode,
 	generateGetFileResponse,
@@ -434,7 +434,7 @@ describe('FigmaService', () => {
 		});
 	});
 
-	describe('deleteWebhook', () => {
+	describe('tryDeleteWebhook', () => {
 		beforeEach(() => {
 			jest
 				.spyOn(figmaService, 'getValidCredentialsOrThrow')
@@ -445,7 +445,7 @@ describe('FigmaService', () => {
 			const webhookId = uuidv4();
 			jest.spyOn(figmaClient, 'deleteWebhook').mockResolvedValue();
 
-			await figmaService.deleteWebhook(webhookId, MOCK_CONNECT_USER_INFO);
+			await figmaService.tryDeleteWebhook(webhookId, MOCK_CONNECT_USER_INFO);
 
 			expect(figmaClient.deleteWebhook).toHaveBeenCalledWith(
 				webhookId,
@@ -453,14 +453,12 @@ describe('FigmaService', () => {
 			);
 		});
 
-		it('should not throw when webhook is not found', async () => {
+		it('should not throw when deletion fails', async () => {
 			const webhookId = uuidv4();
-			jest
-				.spyOn(figmaClient, 'deleteWebhook')
-				.mockRejectedValue(new FigmaClientNotFoundError());
+			jest.spyOn(figmaClient, 'deleteWebhook').mockRejectedValue(new Error());
 
 			await expect(
-				figmaService.deleteWebhook(webhookId, MOCK_CONNECT_USER_INFO),
+				figmaService.tryDeleteWebhook(webhookId, MOCK_CONNECT_USER_INFO),
 			).resolves.toBeUndefined();
 		});
 	});

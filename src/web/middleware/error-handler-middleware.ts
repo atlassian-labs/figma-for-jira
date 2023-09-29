@@ -24,7 +24,7 @@ export const errorHandlerMiddleware = (
 		return next(err);
 	}
 
-	// Setting `err` on the response so it can be picked up by the `pino-http` logger
+	// Setting `err` on the response, so it can be picked up by the `pino-http` logger
 	res.err = err;
 
 	if (err instanceof JwtVerificationError || err instanceof UnauthorizedError) {

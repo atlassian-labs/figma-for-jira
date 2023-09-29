@@ -1,5 +1,4 @@
 import { HttpStatusCode } from 'axios';
-import nock from 'nock';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -19,44 +18,12 @@ import {
 	figmaOAuth2UserCredentialsRepository,
 	figmaTeamRepository,
 } from '../../../infrastructure/repositories';
-import { generateInboundRequestAsymmetricJwtToken } from '../../testing';
-
-/**
- * @see https://developer.atlassian.com/cloud/jira/platform/security-for-connect-apps/#validating-installation-lifecycle-requests
- */
-const mockConnectKeyEndpoint = ({
-	baseUrl,
-	keyId,
-	publicKey,
-	status = HttpStatusCode.Ok,
-}: {
-	baseUrl: string;
-	keyId: string;
-	publicKey: string;
-	status: HttpStatusCode;
-}) => {
-	nock(baseUrl).get(`/${keyId}`).reply(status, publicKey);
-};
-
-const mockFigmaDeleteWebhookEndpoint = ({
-	baseUrl,
-	webhookId,
-	accessToken,
-	status = HttpStatusCode.Ok,
-}: {
-	baseUrl: string;
-	webhookId: string;
-	accessToken: string;
-	status: HttpStatusCode;
-}) => {
-	nock(baseUrl, {
-		reqheaders: {
-			Authorization: `Bearer ${accessToken}`,
-		},
-	})
-		.delete(`/v2/webhooks/${webhookId}`)
-		.reply(status);
-};
+import {
+	generateInboundRequestAsymmetricJwtToken,
+	mockConnectKeyEndpoint,
+	mockFigmaDeleteWebhookEndpoint,
+	mockMeEndpoint,
+} from '../../testing';
 
 describe('/lifecycleEvents', () => {
 	describe('/installed', () => {
@@ -220,6 +187,7 @@ describe('/lifecycleEvents', () => {
 				publicKey,
 				status: HttpStatusCode.Ok,
 			});
+			mockMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 			mockFigmaDeleteWebhookEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				webhookId: targetFigmaTeam1.webhookId,
