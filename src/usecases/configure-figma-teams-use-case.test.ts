@@ -31,14 +31,14 @@ describe('configureFigmaTeamUseCase', () => {
 
 		expect(figmaService.createFileUpdateWebhook).toBeCalledWith(
 			teamId,
-			atlassianUserId,
 			expect.anything(),
+			{ atlassianUserId, connectInstallationId: connectInstallation.id },
 		);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		const generatedPasscode = (
 			figmaService.createFileUpdateWebhook as jest.Mock
-		).mock.calls[0][2];
+		).mock.calls[0][1];
 
 		expect(figmaTeamRepository.upsert).toBeCalledWith({
 			webhookId,

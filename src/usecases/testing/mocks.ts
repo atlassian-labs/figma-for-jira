@@ -14,6 +14,7 @@ import type { DisassociateEntityUseCaseParams } from '../disassociate-entity-use
 export const generateAssociateEntityUseCaseParams = ({
 	entityUrl = generateFigmaDesignUrl(),
 	issueId = generateJiraIssueId(),
+	atlassianUserId = uuidv4(),
 	connectInstallation = generateConnectInstallation(),
 } = {}): AssociateEntityUseCaseParams => ({
 	entity: {
@@ -25,13 +26,14 @@ export const generateAssociateEntityUseCaseParams = ({
 		id: issueId,
 		cloudId: uuidv4(),
 	},
-	atlassianUserId: uuidv4(),
+	atlassianUserId,
 	connectInstallation,
 });
 
 export const generateDisassociateEntityUseCaseParams = ({
 	entityId = generateFigmaDesignIdentifier().toAtlassianDesignId(),
 	issueId = generateJiraIssueId(),
+	atlassianUserId = uuidv4(),
 	connectInstallation = generateConnectInstallation(),
 } = {}): DisassociateEntityUseCaseParams => ({
 	entity: {
@@ -44,6 +46,6 @@ export const generateDisassociateEntityUseCaseParams = ({
 		id: issueId,
 		cloudId: uuidv4(),
 	},
-	atlassianUserId: uuidv4(),
+	atlassianUserId,
 	connectInstallation,
 });

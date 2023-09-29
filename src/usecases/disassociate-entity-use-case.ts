@@ -37,7 +37,10 @@ export const disassociateEntityUseCase = {
 		);
 
 		const [design, issue] = await Promise.all([
-			figmaService.fetchDesignById(figmaDesignId, atlassianUserId),
+			figmaService.fetchDesignById(figmaDesignId, {
+				atlassianUserId,
+				connectInstallationId: connectInstallation.id,
+			}),
 			jiraService.getIssue(disassociateFrom.id, connectInstallation),
 		]);
 
@@ -65,7 +68,10 @@ export const disassociateEntityUseCase = {
 					connectInstallation.baseUrl,
 					issueKey,
 				),
-				atlassianUserId,
+				user: {
+					atlassianUserId,
+					connectInstallationId: connectInstallation.id,
+				},
 			}),
 		]);
 

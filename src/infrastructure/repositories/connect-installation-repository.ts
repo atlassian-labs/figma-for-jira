@@ -23,6 +23,16 @@ export class ConnectInstallationRepository {
 		return this.mapToDomainModel(dbModel);
 	};
 
+	/**
+	 * @internal
+	 * Required for tests only.
+	 */
+	getAll = async (): Promise<ConnectInstallation[]> => {
+		const dbModels = await prismaClient.get().connectInstallation.findMany();
+
+		return dbModels.map((dbModel) => this.mapToDomainModel(dbModel));
+	};
+
 	getByClientKey = async (clientKey: string): Promise<ConnectInstallation> => {
 		const dbModel = await prismaClient.get().connectInstallation.findFirst({
 			where: { clientKey },

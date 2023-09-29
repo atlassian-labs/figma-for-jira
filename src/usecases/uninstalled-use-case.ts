@@ -22,17 +22,15 @@ export const uninstalledUseCase = {
 				connectInstallation.id,
 			);
 
-		// The `ConnectInstallation` deletion causes cascading deletion of all the related records.
-		// Consider deleting `ConnectInstallation` at the end (after deleting webhooks) if you need to make a use case
-		// idempotent and retryable.
-		await connectInstallationRepository.deleteByClientKey(clientKey);
-		await Promise.all(
+		await Promise.allSettled(
 			figmaTeams.map((figmaTeam) =>
-				figmaService.deleteWebhook(
-					figmaTeam.webhookId,
-					figmaTeam.figmaAdminAtlassianUserId,
-				),
+				figmaService.tryDeleteWebhook(figmaTeam.webhookId, {
+					atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,
+					connectInstallationId: figmaTeam.connectInstallationId,
+				}),
 			),
 		);
+		// The `ConnectInstallation` deletion causes cascading deletion of all the related records.
+		await connectInstallationRepository.deleteByClientKey(clientKey);
 	},
 };

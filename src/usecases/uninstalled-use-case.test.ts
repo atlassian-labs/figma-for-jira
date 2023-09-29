@@ -27,21 +27,27 @@ describe('uninstalledUseCase', () => {
 		jest
 			.spyOn(figmaTeamRepository, 'findManyByConnectInstallationId')
 			.mockResolvedValue([figmaTeam1, figmaTeam2]);
-		jest.spyOn(figmaService, 'deleteWebhook').mockResolvedValue();
+		jest.spyOn(figmaService, 'tryDeleteWebhook').mockResolvedValue();
 		jest
 			.spyOn(connectInstallationRepository, 'deleteByClientKey')
 			.mockResolvedValue(connectInstallation);
 
 		await uninstalledUseCase.execute(connectInstallation.clientKey);
 
-		expect(figmaService.deleteWebhook).toHaveBeenCalledTimes(2);
-		expect(figmaService.deleteWebhook).toHaveBeenCalledWith(
+		expect(figmaService.tryDeleteWebhook).toHaveBeenCalledTimes(2);
+		expect(figmaService.tryDeleteWebhook).toHaveBeenCalledWith(
 			figmaTeam1.webhookId,
-			figmaTeam1.figmaAdminAtlassianUserId,
+			{
+				atlassianUserId: figmaTeam1.figmaAdminAtlassianUserId,
+				connectInstallationId: connectInstallation.id,
+			},
 		);
-		expect(figmaService.deleteWebhook).toHaveBeenCalledWith(
+		expect(figmaService.tryDeleteWebhook).toHaveBeenCalledWith(
 			figmaTeam2.webhookId,
-			figmaTeam2.figmaAdminAtlassianUserId,
+			{
+				atlassianUserId: figmaTeam2.figmaAdminAtlassianUserId,
+				connectInstallationId: connectInstallation.id,
+			},
 		);
 		expect(
 			connectInstallationRepository.deleteByClientKey,

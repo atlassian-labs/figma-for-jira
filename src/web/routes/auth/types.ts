@@ -1,5 +1,7 @@
 import type { Request, Response } from 'express';
 
+import type { ConnectInstallation } from '../../../domain/entities';
+
 export type CheckAuthQueryParameters = { readonly userId: string };
 
 export type CheckAuthResponseBody = {
@@ -10,15 +12,19 @@ export type CheckAuthResponseBody = {
 	};
 };
 
+type CheckAuthRequestLocals = {
+	readonly connectInstallation: ConnectInstallation;
+};
+
 export type CheckAuthRequest = Request<
 	Record<string, never>,
 	CheckAuthResponseBody,
 	never,
 	CheckAuthQueryParameters,
-	Record<string, never>
+	CheckAuthRequestLocals
 >;
 
 export type CheckAuthResponse = Response<
 	CheckAuthResponseBody,
-	Record<string, never>
+	CheckAuthRequestLocals
 >;

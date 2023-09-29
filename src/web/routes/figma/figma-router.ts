@@ -8,7 +8,8 @@ import {
 } from './schemas';
 import type { FigmaAuthCallbackRequest } from './types';
 
-import { assertSchema } from '../../../infrastructure';
+import { assertSchema, getLogger } from '../../../infrastructure';
+import { figmaAuthService } from '../../../infrastructure/figma';
 import { figmaWebhookService } from '../../../infrastructure/figma/figma-webhook-service';
 import {
 	addFigmaOAuthCredentialsUseCase,
@@ -60,12 +61,15 @@ figmaRouter.get(
 		assertSchema(req.query, FIGMA_OAUTH_CALLBACK_QUERY_PARAMETERS_SCHEMA);
 		const { code, state } = req.query;
 
+		const user = figmaAuthService.getUserFromAuthorizationCallbackState(state);
+
 		addFigmaOAuthCredentialsUseCase
-			.execute(code, state)
+			.execute(code, user)
 			.then(() => {
 				res.redirect(SUCCESS_PAGE_URL);
 			})
-			.catch(() => {
+			.catch((error) => {
+				getLogger().error(error, 'Figma OAuth 2.0 callback failed.');
 				res.redirect(FAILURE_PAGE_URL);
 			});
 	},

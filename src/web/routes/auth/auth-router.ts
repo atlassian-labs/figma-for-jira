@@ -8,8 +8,11 @@ import { getConfig } from '../../../config';
 import { assertSchema } from '../../../infrastructure';
 import { figmaAuthService } from '../../../infrastructure/figma';
 import { checkUserFigmaAuthUseCase } from '../../../usecases';
+import { authHeaderSymmetricJwtMiddleware } from '../../middleware';
 
 export const authRouter = Router();
+
+authRouter.use(authHeaderSymmetricJwtMiddleware);
 
 /**
  * Checks whether the given Atlassian user is authorized to call Figma API.
@@ -21,10 +24,11 @@ authRouter.get(
 	['/checkAuth', '/check3LO'], // TODO: Remove `check3LO` once the action is deleted.
 	function (req: CheckAuthRequest, res: CheckAuthResponse, next: NextFunction) {
 		assertSchema(req.query, CHECK_AUTH_QUERY_PARAMETERS_SCHEMA);
+		const { connectInstallation } = res.locals;
 		const atlassianUserId = req.query.userId;
 
 		checkUserFigmaAuthUseCase
-			.execute(atlassianUserId)
+			.execute(atlassianUserId, connectInstallation)
 			.then((authorized) => {
 				if (authorized) {
 					return res.send({ type: '3LO', authorized });
@@ -32,7 +36,10 @@ authRouter.get(
 
 				const authorizationEndpoint =
 					figmaAuthService.buildAuthorizationEndpoint(
-						atlassianUserId,
+						{
+							connectInstallationId: connectInstallation.id,
+							atlassianUserId,
+						},
 						`${getConfig().app.baseUrl}/figma/oauth/callback`,
 					);
 

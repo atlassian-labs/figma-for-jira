@@ -9,6 +9,7 @@ export class FigmaOAuth2UserCredentials {
 		readonly accessToken: string,
 		readonly refreshToken: string,
 		readonly expiresAt: Date,
+		readonly connectInstallationId: string,
 	) {}
 
 	isExpired(): boolean {
@@ -24,4 +25,5 @@ export type FigmaOAuth2UserCredentialsCreateParams = {
 	readonly accessToken: string;
 	readonly refreshToken: string;
 	readonly expiresAt: Date;
+	readonly connectInstallationId: string;
 };
