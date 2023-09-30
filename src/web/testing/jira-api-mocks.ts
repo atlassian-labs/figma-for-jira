@@ -25,9 +25,7 @@ export const mockJiraSubmitDesignsEndpoint = ({
 	response?: SubmitDesignsResponse;
 	status?: HttpStatusCode;
 }) => {
-	nock(baseUrl)
-		.post('/rest/designs/1.0/bulk', JSON.stringify(request))
-		.reply(status, response);
+	nock(baseUrl).post('/rest/designs/1.0/bulk', request).reply(status, response);
 };
 
 export const mockJiraGetIssueEndpoint = ({

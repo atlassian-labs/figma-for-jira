@@ -179,7 +179,9 @@ describe('/entities', () => {
 				request: generateSubmitDesignsRequest({
 					...atlassianDesign,
 					addAssociations: [
-						AtlassianAssociation.createDesignIssueAssociation(issueAri),
+						// Nock does not correctly match a request body when provide an instance of a class
+						// (e.g., as `AtlassianAssociation`). Therefore, pass an object instead.
+						{ ...AtlassianAssociation.createDesignIssueAssociation(issueAri) },
 					],
 					removeAssociations: null,
 				}),
@@ -312,7 +314,7 @@ describe('/entities', () => {
 				request: generateSubmitDesignsRequest({
 					...atlassianDesign,
 					addAssociations: [
-						AtlassianAssociation.createDesignIssueAssociation(issueAri),
+						{ ...AtlassianAssociation.createDesignIssueAssociation(issueAri) },
 					],
 					removeAssociations: null,
 				}),
@@ -519,7 +521,7 @@ describe('/entities', () => {
 					...atlassianDesign,
 					addAssociations: null,
 					removeAssociations: [
-						AtlassianAssociation.createDesignIssueAssociation(issueAri),
+						{ ...AtlassianAssociation.createDesignIssueAssociation(issueAri) },
 					],
 				}),
 			});
@@ -658,7 +660,7 @@ describe('/entities', () => {
 					...atlassianDesign,
 					addAssociations: null,
 					removeAssociations: [
-						AtlassianAssociation.createDesignIssueAssociation(issueAri),
+						{ ...AtlassianAssociation.createDesignIssueAssociation(issueAri) },
 					],
 				}),
 			});
