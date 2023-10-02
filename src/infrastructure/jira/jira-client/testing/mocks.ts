@@ -2,12 +2,14 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { Duration } from '../../../../common/duration';
 import {
+	generateFigmaFileKey,
 	generateJiraIssueId,
 	generateJiraIssueKey,
 	generateJiraIssueUrl,
 } from '../../../../domain/entities/testing';
 import type { JwtTokenParams } from '../jwt-utils';
 import type {
+	Association,
 	GetIssuePropertyResponse,
 	GetIssueResponse,
 	SubmitDesignsRequest,
@@ -30,16 +32,29 @@ export const MOCK_JWT_TOKEN_PARAMS: JwtTokenParams = {
 export const MOCK_JWT_TOKEN = 'test-jwt-token';
 
 export const generateSubmitDesignsRequest = ({
-	id = uuidv4(),
+	id = generateFigmaFileKey(),
 	displayName = `Design ${uuidv4()}`,
-	url = `https://www.figma.com/file/UcmoEBi9SyNOX3SNhXqShY/${displayName}?type=design&node-id=0-1&mode=design`,
-	liveEmbedUrl = `https://www.figma.com/file/UcmoEBi9SyNOX3SNhXqShY/${displayName}?type=design&node-id=0-1&mode=design`,
+	url = `https://www.figma.com/file/${id}/${displayName}?type=design&mode=design`,
+	liveEmbedUrl = `https://www.figma.com/file/${id}/${displayName}?type=design&mode=design`,
+	inspectUrl = `https://www.figma.com/file/${id}/${displayName}?mode=dev",`,
 	status = 'UNKNOWN',
 	type = 'FILE',
 	lastUpdated = new Date().toISOString(),
 	updateSequenceNumber = Date.now(),
-	addAssociations = [],
-	removeAssociations = [],
+	addAssociations = null,
+	removeAssociations = null,
+}: {
+	id?: string;
+	displayName?: string;
+	url?: string;
+	liveEmbedUrl?: string;
+	inspectUrl?: string;
+	status?: string;
+	type?: string;
+	lastUpdated?: string;
+	updateSequenceNumber?: number;
+	addAssociations?: Association[] | null;
+	removeAssociations?: Association[] | null;
 } = {}): SubmitDesignsRequest => ({
 	designs: [
 		{
@@ -47,6 +62,7 @@ export const generateSubmitDesignsRequest = ({
 			displayName,
 			url,
 			liveEmbedUrl,
+			inspectUrl,
 			status,
 			type,
 			lastUpdated,

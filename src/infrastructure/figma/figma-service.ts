@@ -22,7 +22,7 @@ import type {
 } from '../../domain/entities';
 import { getLogger } from '../logger';
 
-export const buildDevResourceNameFromJiraIssue = (
+const buildDevResourceNameFromJiraIssue = (
 	issueKey: string,
 	issueSummary: string,
 ) => `[${issueKey}] ${issueSummary}`;

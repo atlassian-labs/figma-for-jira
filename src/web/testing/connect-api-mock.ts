@@ -4,16 +4,16 @@ import nock from 'nock';
 /**
  * @see https://developer.atlassian.com/cloud/jira/platform/security-for-connect-apps/#validating-installation-lifecycle-requests
  */
-export const mockConnectKeyEndpoint = ({
+export const mockConnectGetKeyEndpoint = ({
 	baseUrl,
 	keyId,
-	publicKey,
 	status = HttpStatusCode.Ok,
+	response,
 }: {
 	baseUrl: string;
 	keyId: string;
-	publicKey: string;
+	response?: string;
 	status: HttpStatusCode;
 }) => {
-	nock(baseUrl).get(`/${keyId}`).reply(status, publicKey);
+	nock(baseUrl).get(`/${keyId}`).reply(status, response);
 };
