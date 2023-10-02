@@ -14,6 +14,7 @@ const jwt = createJwtToken({
 	request: {
 		method,
 		pathname: url.pathname,
+		query: Object.fromEntries(url.searchParams),
 	},
 	connectAppKey: INSTALLATION_CLIENT_KEY,
 	connectSharedSecret: INSTALLATION_CLIENT_SECRET,

@@ -2,10 +2,14 @@ import { HttpStatusCode } from 'axios';
 import type { NextFunction } from 'express';
 import { Router } from 'express';
 
-import { CONNECT_LIFECYCLE_EVENT_REQUEST_BODY_SCHEMA } from './schemas';
+import {
+	INSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_BODY_SCHEMA,
+	UNINSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_BODY_SCHEMA,
+} from './schemas';
 import type {
-	ConnectLifecycleEventRequest,
 	ConnectLifecycleEventResponse,
+	InstalledConnectLifecycleEventRequest,
+	UninstalledConnectLifecycleEventRequest,
 } from './types';
 
 import type { ConnectInstallationCreateParams } from '../../../domain/entities';
@@ -24,11 +28,14 @@ lifecycleEventsRouter.post(
 	'/installed',
 	authHeaderAsymmetricJwtMiddleware,
 	(
-		req: ConnectLifecycleEventRequest,
+		req: InstalledConnectLifecycleEventRequest,
 		res: ConnectLifecycleEventResponse,
 		next: NextFunction,
 	) => {
-		assertSchema(req.body, CONNECT_LIFECYCLE_EVENT_REQUEST_BODY_SCHEMA);
+		assertSchema(
+			req.body,
+			INSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_BODY_SCHEMA,
+		);
 		const installation: ConnectInstallationCreateParams = {
 			key: req.body.key,
 			clientKey: req.body.clientKey,
@@ -72,11 +79,14 @@ lifecycleEventsRouter.post(
 	'/uninstalled',
 	authHeaderAsymmetricJwtMiddleware,
 	(
-		req: ConnectLifecycleEventRequest,
+		req: UninstalledConnectLifecycleEventRequest,
 		res: ConnectLifecycleEventResponse,
 		next: NextFunction,
 	) => {
-		assertSchema(req.body, CONNECT_LIFECYCLE_EVENT_REQUEST_BODY_SCHEMA);
+		assertSchema(
+			req.body,
+			UNINSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_BODY_SCHEMA,
+		);
 		const { clientKey } = req.body;
 		uninstalledUseCase
 			.execute(clientKey)
