@@ -5,9 +5,9 @@ import { generateConnectInstallation } from '../domain/entities/testing';
 import { figmaService } from '../infrastructure/figma';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
-import { configureFigmaTeamUseCase } from '.';
+import { connectFigmaTeamUseCase } from '.';
 
-describe('configureFigmaTeamUseCase', () => {
+describe('connectFigmaTeamUseCase', () => {
 	it('should create a webhook and FigmaTeam record', async () => {
 		const teamId = uuidv4();
 		const teamName = uuidv4();
@@ -23,7 +23,7 @@ describe('configureFigmaTeamUseCase', () => {
 			.spyOn(figmaTeamRepository, 'upsert')
 			.mockResolvedValue({} as FigmaTeam);
 
-		await configureFigmaTeamUseCase.execute(
+		await connectFigmaTeamUseCase.execute(
 			teamId,
 			atlassianUserId,
 			connectInstallation,
@@ -59,7 +59,7 @@ describe('configureFigmaTeamUseCase', () => {
 			.mockRejectedValue(error);
 
 		await expect(
-			configureFigmaTeamUseCase.execute(
+			connectFigmaTeamUseCase.execute(
 				uuidv4(),
 				uuidv4(),
 				generateConnectInstallation(),

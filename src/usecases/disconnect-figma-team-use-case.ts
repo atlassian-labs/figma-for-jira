@@ -1,7 +1,7 @@
 import { figmaService } from '../infrastructure/figma';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
-export const removeFigmaTeamUseCase = {
+export const disconnectFigmaTeamUseCase = {
 	execute: async (teamId: string, connectInstallationId: string) => {
 		const figmaTeam =
 			await figmaTeamRepository.getByTeamIdAndConnectInstallationId(

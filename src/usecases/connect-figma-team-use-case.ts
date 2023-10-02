@@ -7,7 +7,7 @@ import {
 import { figmaService } from '../infrastructure/figma';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
-export const configureFigmaTeamUseCase = {
+export const connectFigmaTeamUseCase = {
 	execute: async (
 		teamId: string,
 		atlassianUserId: string,
