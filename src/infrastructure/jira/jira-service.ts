@@ -14,7 +14,7 @@ import type {
 	JiraIssue,
 } from '../../domain/entities';
 import { AtlassianAssociation } from '../../domain/entities';
-import { assertSchema } from '../ajv';
+import { assertSchema, SchemaValidationError } from '../ajv';
 import { getLogger } from '../logger';
 
 type SubmitDesignParams = {
@@ -132,6 +132,21 @@ class JiraService {
 		{ url, displayName }: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
+		const setIssueProperty = async (value: string): Promise<void> => {
+			return jiraClient.setIssueProperty(
+				issueIdOrKey,
+				propertyKeys.ATTACHED_DESIGN_URL_V2,
+				value,
+				connectInstallation,
+			);
+		};
+
+		const newAttachedDesignUrlIssuePropertyValue: AttachedDesignUrlV2IssuePropertyValue =
+			{
+				url,
+				name: displayName,
+			};
+
 		let response: GetIssuePropertyResponse;
 		try {
 			response = await jiraClient.getIssueProperty(
@@ -141,52 +156,50 @@ class JiraService {
 			);
 		} catch (error) {
 			if (error instanceof JiraClientNotFoundError) {
-				const newAttachedDesignUrlIssuePropertyValue: AttachedDesignUrlV2IssuePropertyValue =
-					{
-						url,
-						name: displayName,
-					};
-				await jiraClient.setIssueProperty(
-					issueIdOrKey,
-					propertyKeys.ATTACHED_DESIGN_URL_V2,
+				await setIssueProperty(
 					this.superStringify([newAttachedDesignUrlIssuePropertyValue]),
-					connectInstallation,
 				);
 				return;
+			}
+
+			throw error;
+		}
+
+		try {
+			const storedAttachedDesignUrlIssuePropertyValue = JSON.parse(
+				ensureString(response.value),
+			) as unknown;
+
+			assertSchema<AttachedDesignUrlV2IssuePropertyValue[]>(
+				storedAttachedDesignUrlIssuePropertyValue,
+				ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
+			);
+
+			if (
+				!storedAttachedDesignUrlIssuePropertyValue.find(
+					(value) => value.url === url,
+				)
+			) {
+				await setIssueProperty(
+					this.superStringify([
+						...storedAttachedDesignUrlIssuePropertyValue,
+						newAttachedDesignUrlIssuePropertyValue,
+					]),
+				);
+			}
+		} catch (error) {
+			if (
+				error instanceof TypeError ||
+				error instanceof SyntaxError ||
+				error instanceof SchemaValidationError
+			) {
+				// If issue property value is in an unexpected format, overwrite it with the new value
+				await setIssueProperty(
+					this.superStringify([newAttachedDesignUrlIssuePropertyValue]),
+				);
 			} else {
 				throw error;
 			}
-		}
-
-		const storedAttachedDesignUrlIssuePropertyValue = JSON.parse(
-			ensureString(response.value),
-		) as unknown;
-
-		assertSchema<AttachedDesignUrlV2IssuePropertyValue[]>(
-			storedAttachedDesignUrlIssuePropertyValue,
-			ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
-		);
-
-		if (
-			!storedAttachedDesignUrlIssuePropertyValue.find(
-				(value) => value.url === url,
-			)
-		) {
-			const newAttachedDesignUrlIssuePropertyValue: AttachedDesignUrlV2IssuePropertyValue =
-				{
-					url,
-					name: displayName,
-				};
-
-			await jiraClient.setIssueProperty(
-				issueIdOrKey,
-				propertyKeys.ATTACHED_DESIGN_URL_V2,
-				this.superStringify([
-					...storedAttachedDesignUrlIssuePropertyValue,
-					newAttachedDesignUrlIssuePropertyValue,
-				]),
-				connectInstallation,
-			);
 		}
 	};
 
