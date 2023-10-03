@@ -147,7 +147,7 @@ export const generateConnectInstallation = ({
 });
 
 export const generateAtlassianDesign = ({
-	id = uuidv4(),
+	id = `${generateFigmaFileKey()}/${generateFigmaNodeId()}`,
 	displayName = `Design ${uuidv4()}`,
 	url = `https://www.figma.com/file/UcmoEBi9SyNOX3SNhXqShY/${displayName}?type=design&node-id=0-1&mode=design`,
 	liveEmbedUrl = `https://www.figma.com/file/UcmoEBi9SyNOX3SNhXqShY/${displayName}?type=design&node-id=0-1&mode=design`,

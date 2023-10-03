@@ -41,7 +41,10 @@ import {
 	transformFileToAtlassianDesign,
 	transformNodeToAtlassianDesign,
 } from '../../../infrastructure/figma/transformers';
-import { generateSuccessfulSubmitDesignsResponse } from '../../../infrastructure/jira/jira-client/testing';
+import {
+	generateSubmitDesignsRequest,
+	generateSuccessfulSubmitDesignsResponse,
+} from '../../../infrastructure/jira/jira-client/testing';
 import {
 	associatedFigmaDesignRepository,
 	connectInstallationRepository,
@@ -85,6 +88,7 @@ function generateAtlassianDesignFromDesignIdAndFileResponse(
 describe('/figma', () => {
 	describe('/webhook', () => {
 		describe('FILE_UPDATE event', () => {
+			const currentDate = new Date();
 			let connectInstallation: ConnectInstallation;
 			let figmaTeam: FigmaTeam;
 			let fileKey: string;
@@ -128,6 +132,14 @@ describe('/figma', () => {
 					file_name: generateFigmaFileName(),
 					passcode: figmaTeam.webhookPasscode,
 				});
+
+				jest
+					.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] })
+					.setSystemTime(currentDate);
+			});
+
+			afterEach(() => {
+				jest.useRealTimers();
 			});
 
 			it('should fetch and submit the associated designs to Jira', async () => {
@@ -166,13 +178,11 @@ describe('/figma', () => {
 				});
 				mockJiraSubmitDesignsEndpoint({
 					baseUrl: connectInstallation.baseUrl,
-					request: {
-						designs: associatedAtlassianDesigns.map((atlassianDesign) => ({
+					request: generateSubmitDesignsRequest(
+						associatedAtlassianDesigns.map((atlassianDesign) => ({
 							...atlassianDesign,
-							addAssociations: null,
-							removeAssociations: null,
 						})),
-					},
+					),
 					response: generateSuccessfulSubmitDesignsResponse(
 						associatedAtlassianDesigns.map(
 							(atlassianDesign) => atlassianDesign.id,
@@ -219,13 +229,11 @@ describe('/figma', () => {
 				});
 				mockJiraSubmitDesignsEndpoint({
 					baseUrl: connectInstallation.baseUrl,
-					request: {
-						designs: associatedAtlassianDesigns.map((atlassianDesign) => ({
+					request: generateSubmitDesignsRequest(
+						associatedAtlassianDesigns.map((atlassianDesign) => ({
 							...atlassianDesign,
-							addAssociations: null,
-							removeAssociations: null,
 						})),
-					},
+					),
 					response: generateSuccessfulSubmitDesignsResponse(
 						associatedAtlassianDesigns.map(
 							(atlassianDesign) => atlassianDesign.id,
