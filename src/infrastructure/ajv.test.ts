@@ -25,7 +25,7 @@ describe('ajv utils', () => {
 		it('should not throw when validating a valid object', () => {
 			const validObject: unknown = { value: 'test' };
 
-			assertSchema(validObject, TEST_SCHEMA);
+			expect(() => assertSchema(validObject, TEST_SCHEMA)).not.toThrow();
 		});
 
 		it('should throw when validating a non-conforming object', () => {
