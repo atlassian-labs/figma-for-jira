@@ -244,7 +244,7 @@ export const generateFigmaTeam = ({
 	authStatus = FigmaTeamAuthStatus.OK,
 	connectInstallationId = generateNumericStringId(),
 }: Partial<FigmaTeam> = {}): FigmaTeam =>
-	new FigmaTeam(
+	new FigmaTeam({
 		id,
 		webhookId,
 		webhookPasscode,
@@ -253,7 +253,7 @@ export const generateFigmaTeam = ({
 		figmaAdminAtlassianUserId,
 		authStatus,
 		connectInstallationId,
-	);
+	});
 
 export const generateFigmaTeamSummary = ({
 	teamId = uuidv4(),

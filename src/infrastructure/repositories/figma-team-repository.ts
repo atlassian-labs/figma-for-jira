@@ -176,16 +176,16 @@ export class FigmaTeamRepository {
 		authStatus,
 		connectInstallationId,
 	}: PrismaFigmaTeam): FigmaTeam =>
-		new FigmaTeam(
-			id.toString(),
+		new FigmaTeam({
+			id: id.toString(),
 			webhookId,
 			webhookPasscode,
 			teamId,
 			teamName,
 			figmaAdminAtlassianUserId,
-			FigmaTeamAuthStatus[authStatus],
-			connectInstallationId.toString(),
-		);
+			authStatus: FigmaTeamAuthStatus[authStatus],
+			connectInstallationId: connectInstallationId.toString(),
+		});
 
 	private mapToFigmaTeamSummary = ({
 		teamId,

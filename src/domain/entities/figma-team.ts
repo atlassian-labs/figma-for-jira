@@ -7,17 +7,34 @@ export enum FigmaTeamAuthStatus {
 
 export class FigmaTeam {
 	private readonly _adminInfo: ConnectUserInfo;
+	readonly id: string;
+	readonly webhookId: string;
+	readonly webhookPasscode: string;
+	readonly teamId: string;
+	readonly teamName: string;
+	readonly figmaAdminAtlassianUserId: string;
+	readonly authStatus: FigmaTeamAuthStatus;
+	readonly connectInstallationId: string;
 
-	constructor(
-		readonly id: string,
-		readonly webhookId: string,
-		readonly webhookPasscode: string,
-		readonly teamId: string,
-		readonly teamName: string,
-		readonly figmaAdminAtlassianUserId: string,
-		readonly authStatus: FigmaTeamAuthStatus,
-		readonly connectInstallationId: string,
-	) {
+	constructor(params: {
+		id: string;
+		webhookId: string;
+		webhookPasscode: string;
+		teamId: string;
+		teamName: string;
+		figmaAdminAtlassianUserId: string;
+		authStatus: FigmaTeamAuthStatus;
+		connectInstallationId: string;
+	}) {
+		this.id = params.id;
+		this.webhookId = params.webhookId;
+		this.webhookPasscode = params.webhookPasscode;
+		this.teamId = params.teamId;
+		this.teamName = params.teamName;
+		this.figmaAdminAtlassianUserId = params.figmaAdminAtlassianUserId;
+		this.authStatus = params.authStatus;
+		this.connectInstallationId = params.connectInstallationId;
+
 		this._adminInfo = {
 			atlassianUserId: this.figmaAdminAtlassianUserId,
 			connectInstallationId: this.connectInstallationId,
@@ -29,7 +46,15 @@ export class FigmaTeam {
 	}
 }
 
-export type FigmaTeamCreateParams = Omit<FigmaTeam, 'id' | 'adminInfo'>;
+export type FigmaTeamCreateParams = {
+	readonly webhookId: string;
+	readonly webhookPasscode: string;
+	readonly teamId: string;
+	readonly teamName: string;
+	readonly figmaAdminAtlassianUserId: string;
+	readonly authStatus: FigmaTeamAuthStatus;
+	readonly connectInstallationId: string;
+};
 
 export type FigmaTeamSummary = Pick<
 	FigmaTeam,
