@@ -30,6 +30,8 @@ export type SubmitDesignsRequest = {
 		readonly updateSequenceNumber: number;
 		readonly addAssociations: Association[] | null;
 		readonly removeAssociations: Association[] | null;
+		readonly associationsLastUpdated: string;
+		readonly associationsUpdateSequenceNumber: number;
 	}[];
 };
 

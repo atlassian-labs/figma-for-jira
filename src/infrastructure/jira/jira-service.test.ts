@@ -28,6 +28,16 @@ import { SchemaValidationError } from '../ajv';
 
 describe('JiraService', () => {
 	describe('submitDesigns', () => {
+		const currentDate = new Date();
+
+		beforeEach(() => {
+			jest.useFakeTimers().setSystemTime(currentDate);
+		});
+
+		afterEach(() => {
+			jest.useRealTimers();
+		});
+
 		it('should submit designs', async () => {
 			const connectInstallation = generateConnectInstallation();
 			const design1 = generateAtlassianDesign();
@@ -51,6 +61,8 @@ describe('JiraService', () => {
 						...design,
 						addAssociations: null,
 						removeAssociations: null,
+						associationsLastUpdated: currentDate.toISOString(),
+						associationsUpdateSequenceNumber: currentDate.valueOf(),
 					})),
 				},
 				connectInstallation,
@@ -94,6 +106,8 @@ describe('JiraService', () => {
 						...design,
 						addAssociations,
 						removeAssociations,
+						associationsLastUpdated: currentDate.toISOString(),
+						associationsUpdateSequenceNumber: currentDate.valueOf(),
 					})),
 				},
 				connectInstallation,

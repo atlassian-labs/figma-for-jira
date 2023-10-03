@@ -43,6 +43,8 @@ export const generateSubmitDesignsRequest = ({
 	updateSequenceNumber = Date.now(),
 	addAssociations = null,
 	removeAssociations = null,
+	associationsLastUpdated = new Date().toISOString(),
+	associationsUpdateSequenceNumber = Date.now(),
 }: {
 	id?: string;
 	displayName?: string;
@@ -55,6 +57,8 @@ export const generateSubmitDesignsRequest = ({
 	updateSequenceNumber?: number;
 	addAssociations?: Association[] | null;
 	removeAssociations?: Association[] | null;
+	associationsLastUpdated?: string;
+	associationsUpdateSequenceNumber?: number;
 } = {}): SubmitDesignsRequest => ({
 	designs: [
 		{
@@ -69,6 +73,8 @@ export const generateSubmitDesignsRequest = ({
 			updateSequenceNumber,
 			addAssociations,
 			removeAssociations,
+			associationsLastUpdated,
+			associationsUpdateSequenceNumber,
 		},
 	],
 });
