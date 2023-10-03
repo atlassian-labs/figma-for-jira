@@ -24,10 +24,7 @@ export const uninstalledUseCase = {
 
 		await Promise.allSettled(
 			figmaTeams.map((figmaTeam) =>
-				figmaService.tryDeleteWebhook(figmaTeam.webhookId, {
-					atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,
-					connectInstallationId: figmaTeam.connectInstallationId,
-				}),
+				figmaService.tryDeleteWebhook(figmaTeam.webhookId, figmaTeam.adminInfo),
 			),
 		);
 		// The `ConnectInstallation` deletion causes cascading deletion of all the related records.

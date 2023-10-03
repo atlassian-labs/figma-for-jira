@@ -97,16 +97,17 @@ describe('/teams', () => {
 				.expect(HttpStatusCode.Ok);
 
 			const figmaTeam = await figmaTeamRepository.getByWebhookId(webhookId);
-			expect(figmaTeam).toEqual({
-				id: expect.anything(),
-				webhookId,
-				webhookPasscode: figmaTeam.webhookPasscode,
-				teamId,
-				teamName,
-				figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
-				authStatus: FigmaTeamAuthStatus.OK,
-				connectInstallationId: connectInstallation.id,
-			});
+			expect(figmaTeam).toEqual(
+				expect.objectContaining({
+					webhookId,
+					webhookPasscode: figmaTeam.webhookPasscode,
+					teamId,
+					teamName,
+					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+					authStatus: FigmaTeamAuthStatus.OK,
+					connectInstallationId: connectInstallation.id,
+				}),
+			);
 		});
 
 		it('should return a 500 and not create a FigmaTeam when creating the webhook fails', async () => {

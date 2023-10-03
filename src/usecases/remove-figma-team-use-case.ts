@@ -3,17 +3,17 @@ import { figmaTeamRepository } from '../infrastructure/repositories';
 
 export const removeFigmaTeamUseCase = {
 	execute: async (teamId: string, connectInstallationId: string) => {
-		const { id, webhookId, figmaAdminAtlassianUserId } =
+		const figmaTeam =
 			await figmaTeamRepository.getByTeamIdAndConnectInstallationId(
 				teamId,
 				connectInstallationId,
 			);
 
-		await figmaService.tryDeleteWebhook(webhookId, {
-			atlassianUserId: figmaAdminAtlassianUserId,
-			connectInstallationId,
-		});
+		await figmaService.tryDeleteWebhook(
+			figmaTeam.webhookId,
+			figmaTeam.adminInfo,
+		);
 
-		await figmaTeamRepository.delete(id);
+		await figmaTeamRepository.delete(figmaTeam.id);
 	},
 };

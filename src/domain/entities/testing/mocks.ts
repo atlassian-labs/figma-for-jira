@@ -8,7 +8,6 @@ import type {
 	ConnectInstallationCreateParams,
 	ConnectUserInfo,
 	FigmaOAuth2UserCredentialsCreateParams,
-	FigmaTeam,
 	FigmaTeamCreateParams,
 	FigmaTeamSummary,
 	JiraIssue,
@@ -18,6 +17,7 @@ import {
 	AtlassianDesignType,
 	FigmaDesignIdentifier,
 	FigmaOAuth2UserCredentials,
+	FigmaTeam,
 	FigmaTeamAuthStatus,
 } from '..';
 import { Duration } from '../../../common/duration';
@@ -241,18 +241,19 @@ export const generateFigmaTeam = ({
 	teamId = uuidv4(),
 	teamName = uuidv4(),
 	figmaAdminAtlassianUserId = uuidv4(),
-	authStatus: status = FigmaTeamAuthStatus.OK,
+	authStatus = FigmaTeamAuthStatus.OK,
 	connectInstallationId = generateNumericStringId(),
-}: Partial<FigmaTeam> = {}): FigmaTeam => ({
-	id,
-	webhookId,
-	webhookPasscode,
-	teamId,
-	teamName,
-	figmaAdminAtlassianUserId,
-	authStatus: status,
-	connectInstallationId,
-});
+}: Partial<FigmaTeam> = {}): FigmaTeam =>
+	new FigmaTeam({
+		id,
+		webhookId,
+		webhookPasscode,
+		teamId,
+		teamName,
+		figmaAdminAtlassianUserId,
+		authStatus,
+		connectInstallationId,
+	});
 
 export const generateFigmaTeamSummary = ({
 	teamId = uuidv4(),
