@@ -178,11 +178,7 @@ describe('/figma', () => {
 				});
 				mockJiraSubmitDesignsEndpoint({
 					baseUrl: connectInstallation.baseUrl,
-					request: generateSubmitDesignsRequest(
-						associatedAtlassianDesigns.map((atlassianDesign) => ({
-							...atlassianDesign,
-						})),
-					),
+					request: generateSubmitDesignsRequest(associatedAtlassianDesigns),
 					response: generateSuccessfulSubmitDesignsResponse(
 						associatedAtlassianDesigns.map(
 							(atlassianDesign) => atlassianDesign.id,
@@ -229,11 +225,7 @@ describe('/figma', () => {
 				});
 				mockJiraSubmitDesignsEndpoint({
 					baseUrl: connectInstallation.baseUrl,
-					request: generateSubmitDesignsRequest(
-						associatedAtlassianDesigns.map((atlassianDesign) => ({
-							...atlassianDesign,
-						})),
-					),
+					request: generateSubmitDesignsRequest(associatedAtlassianDesigns),
 					response: generateSuccessfulSubmitDesignsResponse(
 						associatedAtlassianDesigns.map(
 							(atlassianDesign) => atlassianDesign.id,
