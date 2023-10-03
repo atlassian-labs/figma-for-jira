@@ -1,6 +1,8 @@
 import Ajv from 'ajv';
 import type { ErrorObject, JSONSchemaType, ValidateFunction } from 'ajv';
 
+import { ensureString } from '../common/stringUtils';
+
 export const ajv = new Ajv();
 
 export type JSONSchemaTypeWithId<T> = JSONSchemaType<T> & { $id: string };
@@ -32,10 +34,29 @@ export function assertSchema<T>(
 	}
 }
 
-export class SchemaValidationError extends Error {
-	errors?: ErrorObject[] | null;
+export function parseJsonOfSchema<T>(
+	value: unknown,
+	schema: JSONSchemaTypeWithId<T>,
+): T {
+	try {
+		const parsed: unknown = JSON.parse(ensureString(value));
+		assertSchema(parsed, schema);
+		return parsed;
+	} catch (error) {
+		if (error instanceof SchemaValidationError) {
+			throw error;
+		} else if (error instanceof Error) {
+			throw new SchemaValidationError(error.message, [error]);
+		} else {
+			throw new SchemaValidationError('Unknown error');
+		}
+	}
+}
 
-	constructor(message: string, errors?: ErrorObject[] | null) {
+export class SchemaValidationError extends Error {
+	errors?: ErrorObject[] | Error[] | null;
+
+	constructor(message: string, errors?: ErrorObject[] | Error[] | null) {
 		super(message);
 		this.errors = errors;
 	}

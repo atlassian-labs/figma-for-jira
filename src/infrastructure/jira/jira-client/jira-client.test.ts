@@ -184,12 +184,12 @@ describe('JiraClient', () => {
 	describe('setIssueProperty', () => {
 		const issueId = 'TEST-1';
 		const propertyKey = 'property-key';
-		it("should set an issue's properties and respond with a status code", async () => {
+		it("should set an issue's properties", async () => {
 			jest.spyOn(axios, 'put').mockResolvedValue({
 				status: HttpStatusCode.Ok,
 			});
 
-			const response = await jiraClient.setIssueProperty(
+			await jiraClient.setIssueProperty(
 				issueId,
 				propertyKey,
 				'some value',
@@ -205,14 +205,13 @@ describe('JiraClient', () => {
 				'some value',
 				{ headers },
 			);
-			expect(response).toBe(HttpStatusCode.Ok);
 		});
 	});
 
 	describe('deleteIssueProperty', () => {
 		const issueId = 'TEST-1';
 		const propertyKey = 'property-key';
-		it('should delete the issue property and respond with a status code', async () => {
+		it('should delete the issue property', async () => {
 			jest.spyOn(axios, 'delete').mockResolvedValue({
 				status: HttpStatusCode.NoContent,
 			});

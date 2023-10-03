@@ -17,7 +17,9 @@ describe('stringUtils', () => {
 	describe('ensureString', () => {
 		it('should throw when non-string is given', () => {
 			expect(() => ensureString(1)).toThrow(
-				'The provided value is not of the correct type. Expected string, but received: number',
+				new TypeError(
+					'The provided value is not of the correct type. Expected string, but received: number',
+				),
 			);
 		});
 	});

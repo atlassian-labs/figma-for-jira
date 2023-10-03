@@ -4,7 +4,7 @@ export function isString(value: unknown): value is string {
 
 export const ensureString = (value: unknown) => {
 	if (isString(value)) return value;
-	throw new Error(
+	throw new TypeError(
 		`The provided value is not of the correct type. Expected string, but received: ${typeof value}`,
 	);
 };

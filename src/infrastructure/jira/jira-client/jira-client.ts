@@ -160,13 +160,13 @@ class JiraClient {
 		propertyKey: string,
 		value: unknown,
 		connectInstallation: ConnectInstallation,
-	): Promise<number> => {
+	): Promise<void> => {
 		const url = new URL(
 			`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
 			connectInstallation.baseUrl,
 		);
 
-		const response = await axios.put(url.toString(), value, {
+		await axios.put(url.toString(), value, {
 			headers: new AxiosHeaders()
 				.setAuthorization(
 					this.buildAuthorizationHeader(url, 'PUT', connectInstallation),
@@ -174,8 +174,6 @@ class JiraClient {
 				.setAccept('application/json')
 				.setContentType('application/json'),
 		});
-
-		return response.status;
 	};
 
 	/**
