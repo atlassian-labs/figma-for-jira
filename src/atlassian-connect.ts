@@ -1,11 +1,4 @@
-import { HttpStatusCode } from 'axios';
-import type { Request, Response } from 'express';
-
-import { getConfig } from '../../config';
-
-export const connectDescriptorGet = (_: Request, res: Response) => {
-	res.status(HttpStatusCode.Ok).json(connectAppDescriptor);
-};
+import { getConfig } from './config';
 
 /**
  * General schema can be seen here: https://bitbucket.org/atlassian/connect-schemas/raw/master/jira-global-schema.json
