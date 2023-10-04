@@ -21,7 +21,7 @@ authRouter.use(authHeaderSymmetricJwtMiddleware);
  * @see https://hello.atlassian.net/wiki/spaces/MDT/pages/2796005496/RFC+-+Extending+generic+containers+specification+for+entity+associations#New-Provider-Actions
  */
 authRouter.get(
-	['/checkAuth', '/check3LO'], // TODO: Remove `check3LO` once the action is deleted.
+	['/checkAuth'],
 	function (req: CheckAuthRequest, res: CheckAuthResponse, next: NextFunction) {
 		assertSchema(req.query, CHECK_AUTH_QUERY_PARAMETERS_SCHEMA);
 		const { connectInstallation } = res.locals;
