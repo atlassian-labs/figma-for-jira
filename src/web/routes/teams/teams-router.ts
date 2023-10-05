@@ -3,22 +3,22 @@ import type { NextFunction, Request } from 'express';
 import { Router } from 'express';
 
 import {
-	CONFIGURE_FIGMA_TEAMS_REQUEST_BODY,
-	REMOVE_FIGMA_TEAM_QUERY_PARAMS_SCHEMA,
+	CONNECT_FIGMA_TEAM_ROUTE_PARAMS_SCHEMA,
+	DISCONNECT_FIGMA_TEAM_ROUTE_PARAMS_SCHEMA,
 } from './schemas';
 import type {
-	ConfigureFigmaTeamsRequest,
-	ConfigureFigmaTeamsResponse,
+	ConnectFigmaTeamRequest,
+	ConnectFigmaTeamResponse,
+	DisconnectFigmaTeamRequest,
+	DisconnectFigmaTeamResponse,
 	ListFigmaTeamsResponse,
-	RemoveFigmaTeamRequest,
-	RemoveFigmaTeamResponse,
 } from './types';
 
 import { assertSchema } from '../../../infrastructure';
 import {
-	configureFigmaTeamUseCase,
+	connectFigmaTeamUseCase,
+	disconnectFigmaTeamUseCase,
 	listFigmaTeamsUseCase,
-	removeFigmaTeamUseCase,
 } from '../../../usecases';
 import {
 	authHeaderSymmetricJwtMiddleware,
@@ -32,49 +32,48 @@ teamsRouter.use(
 	authHeaderSymmetricJwtMiddleware,
 );
 
-teamsRouter.post(
-	'/configure',
-	(
-		req: ConfigureFigmaTeamsRequest,
-		res: ConfigureFigmaTeamsResponse,
-		next: NextFunction,
-	) => {
-		assertSchema(req.body, CONFIGURE_FIGMA_TEAMS_REQUEST_BODY);
-		const { atlassianUserId, connectInstallation } = res.locals;
-
-		configureFigmaTeamUseCase
-			.execute(req.body.teamId, atlassianUserId, connectInstallation)
-			.then(() => res.sendStatus(HttpStatusCode.Ok))
-			.catch(next);
-	},
-);
-
-teamsRouter.delete(
-	'/configure',
-	(
-		req: RemoveFigmaTeamRequest,
-		res: RemoveFigmaTeamResponse,
-		next: NextFunction,
-	) => {
-		assertSchema(req.query, REMOVE_FIGMA_TEAM_QUERY_PARAMS_SCHEMA);
-		const { teamId } = req.query;
-		const { connectInstallation } = res.locals;
-
-		removeFigmaTeamUseCase
-			.execute(teamId, connectInstallation.id)
-			.then(() => res.sendStatus(HttpStatusCode.Ok))
-			.catch(next);
-	},
-);
-
 teamsRouter.get(
-	'/list',
+	'/',
 	(req: Request, res: ListFigmaTeamsResponse, next: NextFunction) => {
 		const { connectInstallation } = res.locals;
 
 		listFigmaTeamsUseCase
 			.execute(connectInstallation.id)
 			.then((teams) => res.status(HttpStatusCode.Ok).send(teams))
+			.catch(next);
+	},
+);
+
+teamsRouter.post(
+	'/:teamId/connect',
+	(
+		req: ConnectFigmaTeamRequest,
+		res: ConnectFigmaTeamResponse,
+		next: NextFunction,
+	) => {
+		assertSchema(req.params, CONNECT_FIGMA_TEAM_ROUTE_PARAMS_SCHEMA);
+		const { atlassianUserId, connectInstallation } = res.locals;
+
+		connectFigmaTeamUseCase
+			.execute(req.params.teamId, atlassianUserId, connectInstallation)
+			.then(() => res.sendStatus(HttpStatusCode.Ok))
+			.catch(next);
+	},
+);
+
+teamsRouter.delete(
+	'/:teamId/disconnect',
+	(
+		req: DisconnectFigmaTeamRequest,
+		res: DisconnectFigmaTeamResponse,
+		next: NextFunction,
+	) => {
+		assertSchema(req.params, DISCONNECT_FIGMA_TEAM_ROUTE_PARAMS_SCHEMA);
+		const { connectInstallation } = res.locals;
+
+		disconnectFigmaTeamUseCase
+			.execute(req.params.teamId, connectInstallation.id)
+			.then(() => res.sendStatus(HttpStatusCode.Ok))
 			.catch(next);
 	},
 );

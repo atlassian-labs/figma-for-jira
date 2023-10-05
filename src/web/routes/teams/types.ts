@@ -5,50 +5,53 @@ import type {
 	FigmaTeamSummary,
 } from '../../../domain/entities';
 
-export type ConfigureFigmaTeamRequestBody = {
+export type ConnectFigmaTeamRouteParams = {
 	readonly teamId: string;
 };
 
-type ConfigureFigmaTeamsLocals = {
+type ConnectFigmaTeamLocals = {
 	readonly connectInstallation: ConnectInstallation;
 	readonly atlassianUserId: string;
 };
 
-export type ConfigureFigmaTeamsRequest = Request<
-	Record<string, never>,
+export type ConnectFigmaTeamRequest = Request<
+	ConnectFigmaTeamRouteParams,
 	never,
-	ConfigureFigmaTeamRequestBody,
+	never,
 	Record<string, never>,
-	ConfigureFigmaTeamsLocals
+	ConnectFigmaTeamLocals
 >;
 
-export type ConfigureTeamsResponseBody = {
+export type ConnectTeamResponseBody = {
 	readonly success: string[];
 	readonly error: string[];
 };
 
-export type ConfigureFigmaTeamsResponse = Response<
-	ConfigureTeamsResponseBody,
-	ConfigureFigmaTeamsLocals
+export type ConnectFigmaTeamResponse = Response<
+	ConnectTeamResponseBody,
+	ConnectFigmaTeamLocals
 >;
 
-export type RemoveFigmaTeamQueryParams = {
+export type DisconnectFigmaTeamRouteParams = {
 	readonly teamId: string;
 };
 
-export type RemoveFigmaTeamLocals = {
+export type DisconnectFigmaTeamLocals = {
 	readonly connectInstallation: ConnectInstallation;
 };
 
-export type RemoveFigmaTeamRequest = Request<
+export type DisconnectFigmaTeamRequest = Request<
+	DisconnectFigmaTeamRouteParams,
+	never,
+	never,
 	Record<string, never>,
-	never,
-	never,
-	RemoveFigmaTeamQueryParams,
-	RemoveFigmaTeamLocals
+	DisconnectFigmaTeamLocals
 >;
 
-export type RemoveFigmaTeamResponse = Response<never, RemoveFigmaTeamLocals>;
+export type DisconnectFigmaTeamResponse = Response<
+	never,
+	DisconnectFigmaTeamLocals
+>;
 
 export type ListFigmaTeamsLocals = {
 	readonly connectInstallation: ConnectInstallation;

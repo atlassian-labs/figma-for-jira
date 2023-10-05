@@ -1,13 +1,13 @@
 import type {
-	ConfigureFigmaTeamRequestBody,
-	RemoveFigmaTeamQueryParams,
+	ConnectFigmaTeamRouteParams,
+	DisconnectFigmaTeamRouteParams,
 } from './types';
 
 import type { JSONSchemaTypeWithId } from '../../../infrastructure';
 
-export const CONFIGURE_FIGMA_TEAMS_REQUEST_BODY: JSONSchemaTypeWithId<ConfigureFigmaTeamRequestBody> =
+export const CONNECT_FIGMA_TEAM_ROUTE_PARAMS_SCHEMA: JSONSchemaTypeWithId<ConnectFigmaTeamRouteParams> =
 	{
-		$id: 'figma-for-jira:configure-figma-teams-request-body',
+		$id: 'figma-for-jira:connect-figma-team-route-params',
 		type: 'object',
 		properties: {
 			teamId: { type: 'string' },
@@ -15,9 +15,9 @@ export const CONFIGURE_FIGMA_TEAMS_REQUEST_BODY: JSONSchemaTypeWithId<ConfigureF
 		required: ['teamId'],
 	};
 
-export const REMOVE_FIGMA_TEAM_QUERY_PARAMS_SCHEMA: JSONSchemaTypeWithId<RemoveFigmaTeamQueryParams> =
+export const DISCONNECT_FIGMA_TEAM_ROUTE_PARAMS_SCHEMA: JSONSchemaTypeWithId<DisconnectFigmaTeamRouteParams> =
 	{
-		$id: 'figma-for-jira:remove-figma-team-request-query-params',
+		$id: 'figma-for-jira:disconnect-figma-team-request-route-params',
 		type: 'object',
 		properties: {
 			teamId: { type: 'string' },
