@@ -25,7 +25,7 @@ rootRouter.get('/atlassian-connect.json', (_: Request, res: Response) => {
 });
 
 // Static resources
-rootRouter.use('/public', Static(join(process.cwd(), 'static')));
+rootRouter.use('/static', Static(join(process.cwd(), 'static')));
 
 // Connect lifecycle events
 rootRouter.use('/lifecycleEvents', lifecycleEventsRouter);
