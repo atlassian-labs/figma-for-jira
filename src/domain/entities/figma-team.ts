@@ -6,7 +6,7 @@ export enum FigmaTeamAuthStatus {
 }
 
 export class FigmaTeam {
-	private readonly _adminInfo: ConnectUserInfo;
+	readonly #adminInfo: ConnectUserInfo;
 	readonly id: string;
 	readonly webhookId: string;
 	readonly webhookPasscode: string;
@@ -35,14 +35,14 @@ export class FigmaTeam {
 		this.authStatus = params.authStatus;
 		this.connectInstallationId = params.connectInstallationId;
 
-		this._adminInfo = {
+		this.#adminInfo = {
 			atlassianUserId: this.figmaAdminAtlassianUserId,
 			connectInstallationId: this.connectInstallationId,
 		};
 	}
 
 	get adminInfo() {
-		return this._adminInfo;
+		return this.#adminInfo;
 	}
 }
 

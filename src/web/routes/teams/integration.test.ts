@@ -38,206 +38,14 @@ import {
 const figmaTeamSummaryComparer = (a: FigmaTeamSummary, b: FigmaTeamSummary) =>
 	a.teamId.localeCompare(b.teamId);
 
-const TEAMS_CONFIGURE_ENDPOINT = '/teams/configure';
-const TEAMS_LIST_ENDPOINT = '/teams/list';
+const TEAMS_ENDPOINT = '/teams';
+const connectTeamEndpoint = (teamId: string): string =>
+	`${TEAMS_ENDPOINT}/${teamId}/connect`;
+const disconnectTeamEndpoint = (teamId: string): string =>
+	`${TEAMS_ENDPOINT}/${teamId}/disconnect`;
 
 describe('/teams', () => {
-	describe('POST /configure', () => {
-		let connectInstallation: ConnectInstallation;
-		let figmaOAuth2UserCredentials: FigmaOAuth2UserCredentials;
-
-		beforeEach(async () => {
-			connectInstallation = await connectInstallationRepository.upsert(
-				generateConnectInstallationCreateParams(),
-			);
-			figmaOAuth2UserCredentials =
-				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaOAuth2UserCredentialCreateParams({
-						connectInstallationId: connectInstallation.id,
-					}),
-				);
-		});
-
-		it('should create a webhook and FigmaTeam record', async () => {
-			const teamId = uuidv4();
-			const teamName = uuidv4();
-			const webhookId = uuidv4();
-			const jwt = generateInboundRequestSymmetricJwtToken({
-				method: 'POST',
-				pathname: TEAMS_CONFIGURE_ENDPOINT,
-				connectInstallation,
-			});
-
-			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
-			mockFigmaGetTeamProjectsEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-				teamId,
-				response: generateGetTeamProjectsResponse({ name: teamName }),
-			});
-			mockFigmaCreateWebhookEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-				request: {
-					event_type: 'FILE_UPDATE',
-					team_id: teamId,
-					endpoint: `${getConfig().app.baseUrl}/figma/webhook`,
-					passcode: /.+/i,
-					description: /.+/i,
-				},
-				response: generateCreateWebhookResponse({
-					id: webhookId,
-					teamId,
-				}),
-			});
-
-			await request(app)
-				.post(TEAMS_CONFIGURE_ENDPOINT)
-				.set('Authorization', `JWT ${jwt}`)
-				.set('User-Id', figmaOAuth2UserCredentials.atlassianUserId)
-				.send({ teamId })
-				.expect(HttpStatusCode.Ok);
-
-			const figmaTeam = await figmaTeamRepository.getByWebhookId(webhookId);
-			expect(figmaTeam).toEqual(
-				expect.objectContaining({
-					webhookId,
-					webhookPasscode: figmaTeam.webhookPasscode,
-					teamId,
-					teamName,
-					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
-					authStatus: FigmaTeamAuthStatus.OK,
-					connectInstallationId: connectInstallation.id,
-				}),
-			);
-		});
-
-		it('should return a 500 and not create a FigmaTeam when creating the webhook fails', async () => {
-			const teamId = uuidv4();
-			const teamName = uuidv4();
-			const webhookId = uuidv4();
-			const jwt = generateInboundRequestSymmetricJwtToken({
-				method: 'POST',
-				pathname: TEAMS_CONFIGURE_ENDPOINT,
-				connectInstallation,
-			});
-
-			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
-			mockFigmaGetTeamProjectsEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-				teamId,
-				response: generateGetTeamProjectsResponse({ name: teamName }),
-			});
-			mockFigmaCreateWebhookEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-				status: HttpStatusCode.InternalServerError,
-			});
-
-			await request(app)
-				.post(TEAMS_CONFIGURE_ENDPOINT)
-				.set('Authorization', `JWT ${jwt}`)
-				.set('User-Id', figmaOAuth2UserCredentials.atlassianUserId)
-				.send({ teamId })
-				.expect(HttpStatusCode.InternalServerError);
-
-			await expect(
-				figmaTeamRepository.getByWebhookId(webhookId),
-			).rejects.toBeInstanceOf(RepositoryRecordNotFoundError);
-		});
-	});
-
-	describe('DELETE /configure', () => {
-		let connectInstallation: ConnectInstallation;
-		let figmaOAuth2UserCredentials: FigmaOAuth2UserCredentials;
-
-		beforeEach(async () => {
-			connectInstallation = await connectInstallationRepository.upsert(
-				generateConnectInstallationCreateParams(),
-			);
-			figmaOAuth2UserCredentials =
-				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaOAuth2UserCredentialCreateParams({
-						connectInstallationId: connectInstallation.id,
-					}),
-				);
-		});
-
-		it('should delete the webhook and FigmaTeam record', async () => {
-			jest.spyOn(figmaClient, 'deleteWebhook');
-
-			const figmaTeam = await figmaTeamRepository.upsert(
-				generateFigmaTeamCreateParams({
-					connectInstallationId: connectInstallation.id,
-					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
-				}),
-			);
-			const queryParams = { teamId: figmaTeam.teamId };
-			const jwt = generateInboundRequestSymmetricJwtToken({
-				method: 'DELETE',
-				pathname: TEAMS_CONFIGURE_ENDPOINT,
-				query: queryParams,
-				connectInstallation,
-			});
-
-			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
-			mockFigmaDeleteWebhookEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-				webhookId: figmaTeam.webhookId,
-				accessToken: figmaOAuth2UserCredentials.accessToken,
-				status: HttpStatusCode.Ok,
-			});
-
-			await request(app)
-				.delete(TEAMS_CONFIGURE_ENDPOINT)
-				.query(queryParams)
-				.set('Authorization', `JWT ${jwt}`)
-				.set('User-Id', 'not-a-figma-team-admin')
-				.expect(HttpStatusCode.Ok);
-
-			await expect(
-				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
-			).rejects.toBeInstanceOf(RepositoryRecordNotFoundError);
-			expect(figmaClient.deleteWebhook).toBeCalledWith(
-				figmaTeam.webhookId,
-				figmaOAuth2UserCredentials.accessToken,
-			);
-		});
-
-		it('should return a 200 and delete the FigmaTeam when deleting the webhook fails', async () => {
-			const figmaTeam = await figmaTeamRepository.upsert(
-				generateFigmaTeamCreateParams({
-					connectInstallationId: connectInstallation.id,
-					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
-				}),
-			);
-			const queryParams = { teamId: figmaTeam.teamId };
-			const jwt = generateInboundRequestSymmetricJwtToken({
-				method: 'DELETE',
-				pathname: TEAMS_CONFIGURE_ENDPOINT,
-				query: queryParams,
-				connectInstallation,
-			});
-
-			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
-			mockFigmaDeleteWebhookEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-				webhookId: figmaTeam.webhookId,
-				accessToken: figmaOAuth2UserCredentials.accessToken,
-				status: HttpStatusCode.InternalServerError,
-			});
-
-			await request(app)
-				.delete(TEAMS_CONFIGURE_ENDPOINT)
-				.query(queryParams)
-				.set('Authorization', `JWT ${jwt}`)
-				.set('User-Id', 'not-a-figma-team-admin')
-				.expect(HttpStatusCode.Ok);
-
-			await expect(
-				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
-			).rejects.toBeInstanceOf(RepositoryRecordNotFoundError);
-		});
-	});
-
-	describe('/list', () => {
+	describe('GET', () => {
 		let targetConnectInstallation: ConnectInstallation;
 		let otherConnectInstallation: ConnectInstallation;
 		let figmaOAuth2UserCredentials: FigmaOAuth2UserCredentials;
@@ -278,14 +86,14 @@ describe('/teams', () => {
 
 			const jwt = generateInboundRequestSymmetricJwtToken({
 				method: 'GET',
-				pathname: TEAMS_LIST_ENDPOINT,
+				pathname: TEAMS_ENDPOINT,
 				connectInstallation: targetConnectInstallation,
 			});
 
 			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 
 			const response = await request(app)
-				.get(TEAMS_LIST_ENDPOINT)
+				.get(TEAMS_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
 				.set('User-Id', figmaOAuth2UserCredentials.atlassianUserId)
 				.expect(HttpStatusCode.Ok);
@@ -299,7 +107,7 @@ describe('/teams', () => {
 			);
 		});
 
-		it('should return an empty list if there are no teams configured for the given connect installation', async () => {
+		it('should return an empty list if there are no teams connected for the given connect installation', async () => {
 			await Promise.all([
 				figmaTeamRepository.upsert(
 					generateFigmaTeamCreateParams({
@@ -315,19 +123,209 @@ describe('/teams', () => {
 
 			const jwt = generateInboundRequestSymmetricJwtToken({
 				method: 'GET',
-				pathname: TEAMS_LIST_ENDPOINT,
+				pathname: TEAMS_ENDPOINT,
 				connectInstallation: targetConnectInstallation,
 			});
 
 			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 
 			const response = await request(app)
-				.get(TEAMS_LIST_ENDPOINT)
+				.get(TEAMS_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
 				.set('User-Id', figmaOAuth2UserCredentials.atlassianUserId)
 				.expect(HttpStatusCode.Ok);
 
 			expect(response.body).toEqual([]);
+		});
+	});
+
+	describe('POST /:teamId/connect', () => {
+		let connectInstallation: ConnectInstallation;
+		let figmaOAuth2UserCredentials: FigmaOAuth2UserCredentials;
+
+		beforeEach(async () => {
+			connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			figmaOAuth2UserCredentials =
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaOAuth2UserCredentialCreateParams({
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
+		});
+
+		it('should create a webhook and FigmaTeam record', async () => {
+			const teamId = uuidv4();
+			const teamName = uuidv4();
+			const webhookId = uuidv4();
+			const requestPath = connectTeamEndpoint(teamId);
+			const jwt = generateInboundRequestSymmetricJwtToken({
+				method: 'POST',
+				pathname: requestPath,
+				connectInstallation,
+			});
+
+			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
+			mockFigmaGetTeamProjectsEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				teamId,
+				response: generateGetTeamProjectsResponse({ name: teamName }),
+			});
+			mockFigmaCreateWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				request: {
+					event_type: 'FILE_UPDATE',
+					team_id: teamId,
+					endpoint: `${getConfig().app.baseUrl}/figma/webhook`,
+					passcode: /.+/i,
+					description: /.+/i,
+				},
+				response: generateCreateWebhookResponse({
+					id: webhookId,
+					teamId,
+				}),
+			});
+
+			await request(app)
+				.post(requestPath)
+				.set('Authorization', `JWT ${jwt}`)
+				.set('User-Id', figmaOAuth2UserCredentials.atlassianUserId)
+				.expect(HttpStatusCode.Ok);
+
+			const figmaTeam = await figmaTeamRepository.getByWebhookId(webhookId);
+			expect(figmaTeam).toEqual({
+				id: expect.anything(),
+				webhookId,
+				webhookPasscode: figmaTeam.webhookPasscode,
+				teamId,
+				teamName,
+				figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+				authStatus: FigmaTeamAuthStatus.OK,
+				connectInstallationId: connectInstallation.id,
+			});
+		});
+
+		it('should return a 500 and not create a FigmaTeam when creating the webhook fails', async () => {
+			const teamId = uuidv4();
+			const teamName = uuidv4();
+			const webhookId = uuidv4();
+			const requestPath = connectTeamEndpoint(teamId);
+			const jwt = generateInboundRequestSymmetricJwtToken({
+				method: 'POST',
+				pathname: requestPath,
+				connectInstallation,
+			});
+
+			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
+			mockFigmaGetTeamProjectsEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				teamId,
+				response: generateGetTeamProjectsResponse({ name: teamName }),
+			});
+			mockFigmaCreateWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				status: HttpStatusCode.InternalServerError,
+			});
+
+			await request(app)
+				.post(requestPath)
+				.set('Authorization', `JWT ${jwt}`)
+				.set('User-Id', figmaOAuth2UserCredentials.atlassianUserId)
+				.expect(HttpStatusCode.InternalServerError);
+
+			await expect(
+				figmaTeamRepository.getByWebhookId(webhookId),
+			).rejects.toBeInstanceOf(RepositoryRecordNotFoundError);
+		});
+	});
+
+	describe('DELETE /:teamId/disconnect', () => {
+		let connectInstallation: ConnectInstallation;
+		let figmaOAuth2UserCredentials: FigmaOAuth2UserCredentials;
+
+		beforeEach(async () => {
+			connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			figmaOAuth2UserCredentials =
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaOAuth2UserCredentialCreateParams({
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
+		});
+
+		it('should delete the webhook and FigmaTeam record', async () => {
+			jest.spyOn(figmaClient, 'deleteWebhook');
+
+			const figmaTeam = await figmaTeamRepository.upsert(
+				generateFigmaTeamCreateParams({
+					connectInstallationId: connectInstallation.id,
+					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+				}),
+			);
+			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
+			const jwt = generateInboundRequestSymmetricJwtToken({
+				method: 'DELETE',
+				pathname: requestPath,
+				connectInstallation,
+			});
+
+			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
+			mockFigmaDeleteWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				webhookId: figmaTeam.webhookId,
+				accessToken: figmaOAuth2UserCredentials.accessToken,
+				status: HttpStatusCode.Ok,
+			});
+
+			await request(app)
+				.delete(requestPath)
+				.set('Authorization', `JWT ${jwt}`)
+				.set('User-Id', 'not-a-figma-team-admin')
+				.expect(HttpStatusCode.Ok);
+
+			await expect(
+				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
+			).rejects.toBeInstanceOf(RepositoryRecordNotFoundError);
+			expect(figmaClient.deleteWebhook).toBeCalledWith(
+				figmaTeam.webhookId,
+				figmaOAuth2UserCredentials.accessToken,
+			);
+		});
+
+		it('should return a 200 and delete the FigmaTeam when deleting the webhook fails', async () => {
+			const figmaTeam = await figmaTeamRepository.upsert(
+				generateFigmaTeamCreateParams({
+					connectInstallationId: connectInstallation.id,
+					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+				}),
+			);
+			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
+			const jwt = generateInboundRequestSymmetricJwtToken({
+				method: 'DELETE',
+				pathname: requestPath,
+				connectInstallation,
+			});
+
+			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
+			mockFigmaDeleteWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				webhookId: figmaTeam.webhookId,
+				accessToken: figmaOAuth2UserCredentials.accessToken,
+				status: HttpStatusCode.InternalServerError,
+			});
+
+			await request(app)
+				.delete(requestPath)
+				.set('Authorization', `JWT ${jwt}`)
+				.set('User-Id', 'not-a-figma-team-admin')
+				.expect(HttpStatusCode.Ok);
+
+			await expect(
+				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
+			).rejects.toBeInstanceOf(RepositoryRecordNotFoundError);
 		});
 	});
 });
