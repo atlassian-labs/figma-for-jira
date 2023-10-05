@@ -131,21 +131,6 @@ export const connectAppDescriptor = {
 						getConfig().app.baseUrl
 					}/auth/checkAuth?userId={userId}`,
 				},
-				// TODO: Remove the actions below when the `checkAuth` action support is available in Jira.
-				grant3LO: {
-					templateUrl: `${getConfig().figma.apiBaseUrl}/oauth?client_id=${
-						getConfig().figma.clientId
-					}&redirect_uri=${
-						getConfig().app.baseUrl
-					}/figma/oauth/callback&scope=${
-						getConfig().figma.scope
-					}&state={state}&response_type=code`,
-				},
-				check3LO: {
-					templateUrl: `${
-						getConfig().app.baseUrl
-					}/auth/check3LO?userId={userId}`,
-				},
 			},
 		},
 	},
