@@ -45,6 +45,7 @@ class JiraService {
 		designs: SubmitDesignParams[],
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
+		const associationsLastUpdated = new Date();
 		const response = await jiraClient.submitDesigns(
 			{
 				designs: designs.map(
@@ -52,6 +53,8 @@ class JiraService {
 						...design,
 						addAssociations: addAssociations ?? null,
 						removeAssociations: removeAssociations ?? null,
+						associationsLastUpdated: associationsLastUpdated.toISOString(),
+						associationsUpdateSequenceNumber: associationsLastUpdated.valueOf(),
 					}),
 				),
 			},

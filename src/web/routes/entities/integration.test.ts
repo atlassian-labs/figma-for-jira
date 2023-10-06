@@ -126,6 +126,18 @@ const generateDisassociateEntityRequest = ({
 
 describe('/entities', () => {
 	describe('/associateEntity', () => {
+		const currentDate = new Date();
+
+		beforeEach(() => {
+			jest
+				.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] })
+				.setSystemTime(currentDate);
+		});
+
+		afterEach(() => {
+			jest.useRealTimers();
+		});
+
 		it('should associate Figma file and respond with created design entity', async () => {
 			const atlassianUserId = uuidv4();
 			const fileName = generateFigmaFileName();
@@ -176,15 +188,18 @@ describe('/entities', () => {
 			});
 			mockJiraSubmitDesignsEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				request: generateSubmitDesignsRequest({
-					...atlassianDesign,
-					addAssociations: [
-						// Nock does not correctly match a request body when provide an instance of a class
-						// (e.g., as `AtlassianAssociation`). Therefore, pass an object instead.
-						{ ...AtlassianAssociation.createDesignIssueAssociation(issueAri) },
-					],
-					removeAssociations: null,
-				}),
+				request: generateSubmitDesignsRequest([
+					{
+						...atlassianDesign,
+						addAssociations: [
+							// Nock does not correctly match a request body when provide an instance of a class
+							// (e.g., as `AtlassianAssociation`). Therefore, pass an object instead.
+							{
+								...AtlassianAssociation.createDesignIssueAssociation(issueAri),
+							},
+						],
+					},
+				]),
 			});
 			mockFigmaCreateDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
@@ -311,13 +326,16 @@ describe('/entities', () => {
 			});
 			mockJiraSubmitDesignsEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				request: generateSubmitDesignsRequest({
-					...atlassianDesign,
-					addAssociations: [
-						{ ...AtlassianAssociation.createDesignIssueAssociation(issueAri) },
-					],
-					removeAssociations: null,
-				}),
+				request: generateSubmitDesignsRequest([
+					{
+						...atlassianDesign,
+						addAssociations: [
+							{
+								...AtlassianAssociation.createDesignIssueAssociation(issueAri),
+							},
+						],
+					},
+				]),
 			});
 			mockFigmaCreateDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
@@ -465,6 +483,18 @@ describe('/entities', () => {
 	});
 
 	describe('/disassociateEntity', () => {
+		const currentDate = new Date();
+
+		beforeEach(() => {
+			jest
+				.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] })
+				.setSystemTime(currentDate);
+		});
+
+		afterEach(() => {
+			jest.useRealTimers();
+		});
+
 		it('should disassociate Figma file and respond with created design entity', async () => {
 			const atlassianUserId = uuidv4();
 			const fileName = generateFigmaFileName();
@@ -517,13 +547,16 @@ describe('/entities', () => {
 			});
 			mockJiraSubmitDesignsEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				request: generateSubmitDesignsRequest({
-					...atlassianDesign,
-					addAssociations: null,
-					removeAssociations: [
-						{ ...AtlassianAssociation.createDesignIssueAssociation(issueAri) },
-					],
-				}),
+				request: generateSubmitDesignsRequest([
+					{
+						...atlassianDesign,
+						removeAssociations: [
+							{
+								...AtlassianAssociation.createDesignIssueAssociation(issueAri),
+							},
+						],
+					},
+				]),
 			});
 			mockFigmaGetDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
@@ -656,13 +689,16 @@ describe('/entities', () => {
 			});
 			mockJiraSubmitDesignsEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				request: generateSubmitDesignsRequest({
-					...atlassianDesign,
-					addAssociations: null,
-					removeAssociations: [
-						{ ...AtlassianAssociation.createDesignIssueAssociation(issueAri) },
-					],
-				}),
+				request: generateSubmitDesignsRequest([
+					{
+						...atlassianDesign,
+						removeAssociations: [
+							{
+								...AtlassianAssociation.createDesignIssueAssociation(issueAri),
+							},
+						],
+					},
+				]),
 			});
 			mockFigmaGetDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
