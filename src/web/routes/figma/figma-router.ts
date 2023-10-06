@@ -16,7 +16,7 @@ import {
 	handleFigmaFileUpdateEventUseCase,
 } from '../../../usecases';
 
-const AUTH_RESOURCE_BASE_PATH = '/public/index.html';
+const AUTH_RESOURCE_BASE_PATH = '/static/auth-result';
 export const SUCCESS_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=true`;
 export const FAILURE_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=false`;
 

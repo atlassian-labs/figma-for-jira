@@ -1,5 +1,7 @@
 import { getConfig } from './config';
 
+const APP_NAME = 'Figma for Jira';
+
 /**
  * General schema can be seen here: https://bitbucket.org/atlassian/connect-schemas/raw/master/jira-global-schema.json
  */
@@ -7,12 +9,12 @@ export const connectAppDescriptor = {
 	/**
 	 * Name of the Connect app
 	 */
-	name: 'Figma for Jira',
+	name: APP_NAME,
 
 	/**
 	 * Description for the Connect app
 	 */
-	description: 'Figma for Jira',
+	description: 'Attach Figma designs and prototypes to JIRA issues.',
 
 	/**
 	 *  A unique key to identify your Connect app. This key must be <= 64 characters.
@@ -21,8 +23,6 @@ export const connectAppDescriptor = {
 
 	/**
 	 * The base url of the server, which is used for all communications between Connect and the app.
-	 *
-	 * The tunneled URL which is set in the `prestart.ts`
 	 */
 	baseUrl: getConfig().app.baseUrl,
 
@@ -71,16 +71,45 @@ export const connectAppDescriptor = {
 	/**
 	 * Extensions for the different parts of Jira
 	 * like links, panels, pages, permissions, workflows etc.
+	 * https://developer.atlassian.com/cloud/jira/platform/about-connect-modules-for-jira/
 	 */
 	modules: {
+		postInstallPage: {
+			key: 'figma-get-started',
+			name: {
+				value: 'Get Started',
+			},
+			url: '/static/admin',
+			conditions: [{ condition: 'user_is_admin' }],
+		},
+		webSections: [
+			{
+				key: 'figma-addon-admin-section',
+				name: {
+					value: APP_NAME,
+				},
+				location: 'admin_plugins_menu',
+			},
+		],
+		adminPages: [
+			{
+				key: 'figma-admin-configure',
+				name: {
+					value: 'Configure',
+				},
+				location: 'admin_plugins_menu/figma-addon-admin-section',
+				url: '/static/admin',
+				conditions: [{ condition: 'user_is_admin' }],
+			},
+		],
 		/**
 		 * This module renders the old Figma for Jira Connect app web panel.
 		 * This will only be required temporarily while the feature is being
-		 * rolled out. Rollout will be managed the the feature flag condition.
+		 * rolled out. Rollout will be managed the feature flag condition.
 		 */
 		webPanels: [
 			{
-				url: '/public/issue-panel.html?issueId={issue.id}&issueKey={issue.key}',
+				url: '/static/issue-panel/issue-panel.html?issueId={issue.id}&issueKey={issue.key}',
 				location: 'atl.jira.view.issue.left.context',
 				weight: 250,
 				key: 'figma-web-panel-jira-issue',
@@ -99,7 +128,6 @@ export const connectAppDescriptor = {
 		],
 		/**
 		 * This module allows third-party providers to send design information to Jira and associate it with an issue.
-		 *
 		 * https://developer.atlassian.com/cloud/jira/software/modules/design/
 		 */
 		jiraDesignInfoProvider: {
@@ -109,7 +137,7 @@ export const connectAppDescriptor = {
 			},
 			key: 'figma-integration',
 			handledDomainName: 'figma.com',
-			logoUrl: `${getConfig().app.baseUrl}/public/figma-logo.svg`,
+			logoUrl: `${getConfig().app.baseUrl}/static/figma-logo.svg`,
 			documentationUrl:
 				'https://help.figma.com/hc/en-us/articles/360039827834-Jira-and-Figma',
 			actions: {
