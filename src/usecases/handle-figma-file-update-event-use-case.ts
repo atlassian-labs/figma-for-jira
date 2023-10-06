@@ -39,6 +39,10 @@ export const handleFigmaFileUpdateEventUseCase = {
 			),
 		]);
 
+		if (!associatedFigmaDesigns.length) {
+			return;
+		}
+
 		try {
 			const designs = await figmaService.fetchDesignsByIds(
 				associatedFigmaDesigns.map((design) => design.designId),
