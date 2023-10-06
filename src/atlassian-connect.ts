@@ -1,5 +1,7 @@
 import { getConfig } from './config';
 
+const APP_NAME = 'Figma for Jira';
+
 /**
  * General schema can be seen here: https://bitbucket.org/atlassian/connect-schemas/raw/master/jira-global-schema.json
  */
@@ -7,12 +9,12 @@ export const connectAppDescriptor = {
 	/**
 	 * Name of the Connect app
 	 */
-	name: 'Figma for Jira',
+	name: APP_NAME,
 
 	/**
 	 * Description for the Connect app
 	 */
-	description: 'Figma for Jira',
+	description: 'Attach Figma designs and prototypes to JIRA issues.',
 
 	/**
 	 *  A unique key to identify your Connect app. This key must be <= 64 characters.
@@ -21,8 +23,6 @@ export const connectAppDescriptor = {
 
 	/**
 	 * The base url of the server, which is used for all communications between Connect and the app.
-	 *
-	 * The tunneled URL which is set in the `prestart.ts`
 	 */
 	baseUrl: getConfig().app.baseUrl,
 
@@ -86,7 +86,7 @@ export const connectAppDescriptor = {
 			{
 				key: 'figma-addon-admin-section',
 				name: {
-					value: 'Figma for Jira',
+					value: APP_NAME,
 				},
 				location: 'admin_plugins_menu',
 			},
