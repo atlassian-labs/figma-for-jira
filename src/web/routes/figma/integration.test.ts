@@ -192,6 +192,30 @@ describe('/figma', () => {
 					.expect(HttpStatusCode.Ok);
 			});
 
+			it('should return a 200 if no associated designs are found for the file key', async () => {
+				const otherFileKey = generateFigmaFileKey();
+				const otherFileWebhookEventPayload = generateFigmaWebhookEventPayload({
+					webhook_id: figmaTeam.webhookId,
+					file_key: otherFileKey,
+					file_name: generateFigmaFileName(),
+					passcode: figmaTeam.webhookPasscode,
+				});
+
+				mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
+				mockFigmaGetTeamProjectsEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					teamId: figmaTeam.teamId,
+					response: generateGetTeamProjectsResponse({
+						name: figmaTeam.teamName,
+					}),
+				});
+
+				await request(app)
+					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.send(otherFileWebhookEventPayload)
+					.expect(HttpStatusCode.Ok);
+			});
+
 			it('should return a 200 if fetching team name from Figma fails', async () => {
 				const associatedFigmaDesigns =
 					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
