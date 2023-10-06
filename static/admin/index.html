@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Figma for Jira</title>
+    <link rel="stylesheet" href="./index.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Hi!</h1>
+      <section>
+        <p>This is a placeholder for the configuration page.</p>
+        <p>Please, see for more detail:</p>
+        <ul>
+          <li>
+            <a
+              href="https://developer.atlassian.com/cloud/jira/platform/about-the-connect-javascript-api/"
+              target="_blank"
+              >Connect JavaScript API</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://github.com/atlassian/atlassian-connect-example-app-node"
+              target="_blank"
+              >Atlassian Connect Node Example App</a
+            >
+          </li>
+        </ul>
+      </section>
+    </div>
+    <!-- This script is needed for all the views in the Connect app -->
+    <!-- https://developer.atlassian.com/cloud/jira/software/about-the-javascript-api/ -->
+    <script
+      src="https://connect-cdn.atl-paas.net/all.js"
+      data-options="sizeToParent:true"
+    ></script>
+    <script>
+      // An example demonstrating how to call Figma for Jira APIs.
+      // For more detail, see https://developer.atlassian.com/cloud/jira/platform/jsapi/request/
+      async function callApi(user) {
+        const jwtToken = await AP.context.getToken();
+        const response = await fetch('/teams', {
+          headers: {
+            Authorization: `JWT ${jwtToken}`,
+            'User-Id': user.atlassianAccountId, // TODO: Remove the requirement to send the 'User-Id' header.
+          },
+        });
+
+        if (!response.ok) {
+          const error = await response.text();
+          console.error(error);
+          return;
+        }
+
+        const teams = await response.json();
+        console.log(teams);
+      }
+
+      AP.user.getCurrentUser(callApi);
+    </script>
+  </body>
+</html>

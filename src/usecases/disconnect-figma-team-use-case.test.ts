@@ -1,10 +1,10 @@
-import { removeFigmaTeamUseCase } from './remove-figma-team-use-case';
+import { disconnectFigmaTeamUseCase } from './disconnect-figma-team-use-case';
 
 import { generateFigmaTeam } from '../domain/entities/testing';
 import { figmaService } from '../infrastructure/figma';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
-describe('removeFigmaTeamUseCase', () => {
+describe('disconnectFigmaTeamUseCase', () => {
 	it('should delete the webhook and FigmaTeam', async () => {
 		const figmaTeam = generateFigmaTeam();
 		jest
@@ -13,7 +13,7 @@ describe('removeFigmaTeamUseCase', () => {
 		jest.spyOn(figmaService, 'tryDeleteWebhook').mockResolvedValue();
 		jest.spyOn(figmaTeamRepository, 'delete').mockResolvedValue(figmaTeam);
 
-		await removeFigmaTeamUseCase.execute(
+		await disconnectFigmaTeamUseCase.execute(
 			figmaTeam.teamId,
 			figmaTeam.connectInstallationId,
 		);
