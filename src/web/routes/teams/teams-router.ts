@@ -20,17 +20,11 @@ import {
 	disconnectFigmaTeamUseCase,
 	listFigmaTeamsUseCase,
 } from '../../../usecases';
-import {
-	authHeaderSymmetricJwtMiddleware,
-	extractUserIdFromHeadersMiddleware,
-} from '../../middleware';
+import { connectContextSymmetricJwtAuthMiddleware } from '../../middleware/auth';
 
 export const teamsRouter = Router();
 
-teamsRouter.use(
-	extractUserIdFromHeadersMiddleware,
-	authHeaderSymmetricJwtMiddleware,
-);
+teamsRouter.use(connectContextSymmetricJwtAuthMiddleware);
 
 teamsRouter.get(
 	'/',

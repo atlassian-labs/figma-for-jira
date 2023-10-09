@@ -1,8 +1,8 @@
 import { HttpStatusCode } from 'axios';
 import type { NextFunction, Request, Response } from 'express';
 
+import { AuthenticationException } from './auth/jwt-utils';
 import { UnauthorizedError } from './errors';
-import { JwtVerificationError } from './jwt-utils';
 
 import { SchemaValidationError } from '../../infrastructure';
 import {
@@ -26,7 +26,10 @@ export const errorHandlerMiddleware = (
 	// Setting `err` on the response, so it can be picked up by the `pino-http` logger
 	res.err = err;
 
-	if (err instanceof JwtVerificationError || err instanceof UnauthorizedError) {
+	if (
+		err instanceof AuthenticationException ||
+		err instanceof UnauthorizedError
+	) {
 		res.status(HttpStatusCode.Unauthorized).send(err.message);
 	} else if (err instanceof RepositoryRecordNotFoundError) {
 		res.status(HttpStatusCode.NotFound).send(err.message);

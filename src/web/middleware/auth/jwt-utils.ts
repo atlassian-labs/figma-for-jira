@@ -9,14 +9,14 @@ import {
 import type { Request } from 'atlassian-jwt/dist/lib/jwt';
 import axios from 'axios';
 
-import { getConfig } from '../../config';
-import type { ConnectInstallation } from '../../domain/entities';
+import { getConfig } from '../../../config';
+import type { ConnectInstallation } from '../../../domain/entities';
 import {
 	connectInstallationRepository,
 	RepositoryRecordNotFoundError,
-} from '../../infrastructure/repositories';
+} from '../../../infrastructure/repositories';
 
-export class JwtVerificationError extends Error {}
+export class AuthenticationException extends Error {}
 
 /**
  * This decodes the JWT token from Jira, verifies it against the jira tenant's shared secret
@@ -28,7 +28,7 @@ export const verifySymmetricJwtToken = async (
 	token?: string,
 ): Promise<ConnectInstallation> => {
 	if (!token) {
-		throw new JwtVerificationError('Missing JWT token');
+		throw new AuthenticationException('Missing JWT token');
 	}
 
 	// Decode jwt token without verification
@@ -39,7 +39,7 @@ export const verifySymmetricJwtToken = async (
 		installation = await connectInstallationRepository.getByClientKey(data.iss);
 	} catch (e: unknown) {
 		if (e instanceof RepositoryRecordNotFoundError) {
-			throw new JwtVerificationError(
+			throw new AuthenticationException(
 				`ConnectInstallation not found for clientKey ${data.iss}`,
 			);
 		}
@@ -67,7 +67,7 @@ export const verifyAsymmetricJwtToken = async (
 	token?: string,
 ): Promise<void> => {
 	if (!token) {
-		throw new JwtVerificationError('Missing JWT token');
+		throw new AuthenticationException('Missing JWT token');
 	}
 
 	const publicKey = await queryAtlassianConnectPublicKey(getKeyId(token));
@@ -79,14 +79,14 @@ export const verifyAsymmetricJwtToken = async (
 	);
 
 	if (!unverifiedClaims.iss) {
-		throw new JwtVerificationError(
+		throw new AuthenticationException(
 			'JWT claim did not contain the issuer (iss) claim',
 		);
 	}
 
 	// Make sure the AUD claim has the correct URL
 	if (!unverifiedClaims?.aud?.[0]?.includes(getConfig().app.baseUrl)) {
-		throw new JwtVerificationError(
+		throw new AuthenticationException(
 			'JWT claim did not contain the correct audience (aud) claim',
 		);
 	}
@@ -99,12 +99,14 @@ export const verifyAsymmetricJwtToken = async (
 
 	// If claim doesn't have QSH, reject
 	if (!verifiedClaims.qsh) {
-		throw new JwtVerificationError('JWT validation failed, no qsh claim');
+		throw new AuthenticationException('JWT validation failed, no qsh claim');
 	}
 
 	// Check that claim is still within expiration, give 3 second leeway in case of time drift
 	if (verifiedClaims.exp && Date.now() / 1000 - 3 >= verifiedClaims.exp) {
-		throw new JwtVerificationError('JWT validation failed, token is expired');
+		throw new AuthenticationException(
+			'JWT validation failed, token is expired',
+		);
 	}
 
 	validateQsh(verifiedClaims.qsh, request);
@@ -113,7 +115,7 @@ export const verifyAsymmetricJwtToken = async (
 // Check to see if QSH from token is the same as the request
 const validateQsh = (qsh: string, request: Request): void => {
 	if (qsh !== 'context-qsh' && qsh !== createQueryStringHash(request, false)) {
-		throw new JwtVerificationError('JWT verification failed, wrong qsh');
+		throw new AuthenticationException('JWT verification failed, wrong qsh');
 	}
 };
 
@@ -129,7 +131,7 @@ const queryAtlassianConnectPublicKey = async (
 		);
 		return response.data;
 	} catch (e: unknown) {
-		throw new JwtVerificationError(
+		throw new AuthenticationException(
 			`Unable to get public key for keyId ${keyId}`,
 		);
 	}

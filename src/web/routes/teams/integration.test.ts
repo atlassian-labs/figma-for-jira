@@ -27,8 +27,8 @@ import {
 	figmaTeamRepository,
 	RepositoryRecordNotFoundError,
 } from '../../../infrastructure/repositories';
+import { generateConnectContextSymmetricJwtToken } from '../../middleware/auth/testing';
 import {
-	generateInboundRequestSymmetricJwtToken,
 	mockFigmaCreateWebhookEndpoint,
 	mockFigmaDeleteWebhookEndpoint,
 	mockFigmaGetTeamProjectsEndpoint,
@@ -84,9 +84,8 @@ describe('/teams', () => {
 				),
 			]);
 
-			const jwt = generateInboundRequestSymmetricJwtToken({
-				method: 'GET',
-				pathname: TEAMS_ENDPOINT,
+			const jwt = generateConnectContextSymmetricJwtToken({
+				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				connectInstallation: targetConnectInstallation,
 			});
 
@@ -95,7 +94,6 @@ describe('/teams', () => {
 			const response = await request(app)
 				.get(TEAMS_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
-				.set('User-Id', figmaOAuth2UserCredentials.atlassianUserId)
 				.expect(HttpStatusCode.Ok);
 
 			expect(
@@ -121,9 +119,8 @@ describe('/teams', () => {
 				),
 			]);
 
-			const jwt = generateInboundRequestSymmetricJwtToken({
-				method: 'GET',
-				pathname: TEAMS_ENDPOINT,
+			const jwt = generateConnectContextSymmetricJwtToken({
+				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				connectInstallation: targetConnectInstallation,
 			});
 
@@ -132,7 +129,6 @@ describe('/teams', () => {
 			const response = await request(app)
 				.get(TEAMS_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
-				.set('User-Id', figmaOAuth2UserCredentials.atlassianUserId)
 				.expect(HttpStatusCode.Ok);
 
 			expect(response.body).toEqual([]);
@@ -160,9 +156,8 @@ describe('/teams', () => {
 			const teamName = uuidv4();
 			const webhookId = uuidv4();
 			const requestPath = connectTeamEndpoint(teamId);
-			const jwt = generateInboundRequestSymmetricJwtToken({
-				method: 'POST',
-				pathname: requestPath,
+			const jwt = generateConnectContextSymmetricJwtToken({
+				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				connectInstallation,
 			});
 
@@ -190,7 +185,6 @@ describe('/teams', () => {
 			await request(app)
 				.post(requestPath)
 				.set('Authorization', `JWT ${jwt}`)
-				.set('User-Id', figmaOAuth2UserCredentials.atlassianUserId)
 				.expect(HttpStatusCode.Ok);
 
 			const figmaTeam = await figmaTeamRepository.getByWebhookId(webhookId);
@@ -211,9 +205,8 @@ describe('/teams', () => {
 			const teamName = uuidv4();
 			const webhookId = uuidv4();
 			const requestPath = connectTeamEndpoint(teamId);
-			const jwt = generateInboundRequestSymmetricJwtToken({
-				method: 'POST',
-				pathname: requestPath,
+			const jwt = generateConnectContextSymmetricJwtToken({
+				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				connectInstallation,
 			});
 
@@ -231,7 +224,6 @@ describe('/teams', () => {
 			await request(app)
 				.post(requestPath)
 				.set('Authorization', `JWT ${jwt}`)
-				.set('User-Id', figmaOAuth2UserCredentials.atlassianUserId)
 				.expect(HttpStatusCode.InternalServerError);
 
 			await expect(
@@ -266,9 +258,8 @@ describe('/teams', () => {
 				}),
 			);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
-			const jwt = generateInboundRequestSymmetricJwtToken({
-				method: 'DELETE',
-				pathname: requestPath,
+			const jwt = generateConnectContextSymmetricJwtToken({
+				atlassianUserId: 'not-a-figma-team-admin',
 				connectInstallation,
 			});
 
@@ -283,7 +274,6 @@ describe('/teams', () => {
 			await request(app)
 				.delete(requestPath)
 				.set('Authorization', `JWT ${jwt}`)
-				.set('User-Id', 'not-a-figma-team-admin')
 				.expect(HttpStatusCode.Ok);
 
 			await expect(
@@ -303,9 +293,8 @@ describe('/teams', () => {
 				}),
 			);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
-			const jwt = generateInboundRequestSymmetricJwtToken({
-				method: 'DELETE',
-				pathname: requestPath,
+			const jwt = generateConnectContextSymmetricJwtToken({
+				atlassianUserId: 'not-a-figma-team-admin',
 				connectInstallation,
 			});
 
@@ -320,7 +309,6 @@ describe('/teams', () => {
 			await request(app)
 				.delete(requestPath)
 				.set('Authorization', `JWT ${jwt}`)
-				.set('User-Id', 'not-a-figma-team-admin')
 				.expect(HttpStatusCode.Ok);
 
 			await expect(
