@@ -256,7 +256,7 @@ describe('/entities', () => {
 				.set('Content-Type', 'application/json')
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
-				.expect({ design: atlassianDesign });
+				.expect(atlassianDesign);
 			expect(await associatedFigmaDesignRepository.getAll()).toEqual([
 				{
 					id: expect.anything(),
@@ -391,7 +391,7 @@ describe('/entities', () => {
 				.set('Content-Type', 'application/json')
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
-				.expect({ design: atlassianDesign });
+				.expect(atlassianDesign);
 			expect(await associatedFigmaDesignRepository.getAll()).toEqual([
 				{
 					id: expect.anything(),
@@ -628,7 +628,7 @@ describe('/entities', () => {
 				.set('Content-Type', 'application/json')
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
-				.expect({ design: atlassianDesign });
+				.expect(atlassianDesign);
 			expect(await associatedFigmaDesignRepository.getAll()).toEqual([]);
 		});
 
@@ -770,7 +770,7 @@ describe('/entities', () => {
 				.set('Content-Type', 'application/json')
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
-				.expect({ design: atlassianDesign });
+				.expect(atlassianDesign);
 			expect(await associatedFigmaDesignRepository.getAll()).toEqual([]);
 		});
 

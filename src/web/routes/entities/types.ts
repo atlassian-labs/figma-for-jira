@@ -9,9 +9,7 @@ import type {
 	DisassociateEntityUseCaseParams,
 } from '../../../usecases';
 
-export type EntitiesResponseBody =
-	| { readonly design: AtlassianDesign }
-	| string;
+export type EntitiesResponseBody = AtlassianDesign | string;
 
 export type EntitiesRequestLocals = {
 	readonly connectInstallation: ConnectInstallation;
