@@ -3,10 +3,7 @@ import { AsymmetricAlgorithm } from 'atlassian-jwt/dist/lib/jwt';
 import axios from 'axios';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
-import {
-	verifyExp,
-	verifyUrlBoundQsh,
-} from './connect-asymmetric-jwt-auth-middleware';
+import { verifyExp, verifyUrlBoundQsh } from './jwt-utils';
 import { CONNECT_JWT_TOKEN_CLAIMS_SCHEMA } from './schemas';
 
 import { isEnumValueOf } from '../../../common/enumUtils';
