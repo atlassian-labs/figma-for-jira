@@ -45,7 +45,7 @@ entitiesRouter.post(
 				atlassianUserId,
 				connectInstallation,
 			})
-			.then((design) => res.status(HttpStatusCode.Ok).send({ design }))
+			.then((design) => res.status(HttpStatusCode.Ok).send(design))
 			.catch((error) => next(error));
 	},
 );
@@ -65,7 +65,7 @@ entitiesRouter.post(
 				atlassianUserId,
 				connectInstallation,
 			})
-			.then((design) => res.status(HttpStatusCode.Ok).send({ design }))
+			.then((design) => res.status(HttpStatusCode.Ok).send(design))
 			.catch((error) => next(error));
 	},
 );
