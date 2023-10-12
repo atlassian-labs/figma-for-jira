@@ -26,13 +26,14 @@ describe('JiraContextSymmetricJwtTokenVerifier', () => {
 	describe('verify', () => {
 		it('should verify token and return relevant Connect Installation', async () => {
 			const atlassianUserId = uuidv4();
-			const connectInstallation = generateConnectInstallation();
+			const clientKey = uuidv4();
+			const connectInstallation = generateConnectInstallation({ clientKey });
 			jest
 				.spyOn(connectInstallationRepository, 'getByClientKey')
 				.mockResolvedValue(connectInstallation);
 			const jwtToken = encodeSymmetric(
 				{
-					iss: connectInstallation.clientKey,
+					iss: clientKey,
 					iat: NOW_IN_SECONDS,
 					exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
 					sub: atlassianUserId,
@@ -48,6 +49,9 @@ describe('JiraContextSymmetricJwtTokenVerifier', () => {
 				atlassianUserId,
 				connectInstallation,
 			});
+			expect(connectInstallationRepository.getByClientKey).toHaveBeenCalledWith(
+				clientKey,
+			);
 		});
 
 		it('should throw when there is no Connect Installation', async () => {
@@ -65,6 +69,14 @@ describe('JiraContextSymmetricJwtTokenVerifier', () => {
 				},
 				uuidv4(),
 			);
+
+			await expect(
+				jiraContextSymmetricJwtTokenVerifier.verify(jwtToken),
+			).rejects.toThrowError(UnauthorizedError);
+		});
+
+		it('should throw token is not a JWT token', async () => {
+			const jwtToken = uuidv4();
 
 			await expect(
 				jiraContextSymmetricJwtTokenVerifier.verify(jwtToken),
@@ -177,7 +189,7 @@ describe('JiraContextSymmetricJwtTokenVerifier', () => {
 
 			await expect(
 				jiraContextSymmetricJwtTokenVerifier.verify(jwtToken),
-			).rejects.toThrowError(UnauthorizedError);
+			).rejects.toThrowError(new UnauthorizedError('The token is expired.'));
 		});
 	});
 });

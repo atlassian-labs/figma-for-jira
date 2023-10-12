@@ -1,14 +1,13 @@
-import {
-	createQueryStringHash,
-	decodeAsymmetric,
-	getAlgorithm,
-	getKeyId,
-} from 'atlassian-jwt';
+import { decodeAsymmetric, getAlgorithm, getKeyId } from 'atlassian-jwt';
 import { AsymmetricAlgorithm } from 'atlassian-jwt/dist/lib/jwt';
 
 import { connectKeyServerClient } from './connect-key-server-client';
+import {
+	verifyAudClaimIncludesBaseUrl,
+	verifyExpClaim,
+	verifyQshClaimBoundToUrl,
+} from './jira-jwt-utils';
 
-import { Duration } from '../../../common/duration';
 import { isEnumValueOf } from '../../../common/enumUtils';
 import { ensureString } from '../../../common/stringUtils';
 import { getConfig } from '../../../config';
@@ -39,6 +38,7 @@ const JIRA_ASYMMETRIC_JWT_CLAIMS_SCHEMA = {
 			oneOf: [
 				{
 					type: 'string',
+					minLength: 1,
 					nullable: true,
 				},
 				{
@@ -54,8 +54,6 @@ const JIRA_ASYMMETRIC_JWT_CLAIMS_SCHEMA = {
 } as JSONSchemaTypeWithId<
 	Omit<JiraAsymmetricJwtClaims, 'aud'>
 > as JSONSchemaTypeWithId<JiraAsymmetricJwtClaims>;
-
-const TOKEN_EXPIRATION_LEEWAY = Duration.ofSeconds(3);
 
 /**
  * Verifier for asymmetric JWT tokens.
@@ -103,25 +101,9 @@ export class JiraAsymmetricJwtTokenVerifier {
 			) as unknown;
 
 			assertSchema(verifiedClaims, JIRA_ASYMMETRIC_JWT_CLAIMS_SCHEMA);
-
-			if (verifiedClaims.qsh !== createQueryStringHash(request, false)) {
-				throw new UnauthorizedError(
-					'The token contains an invalid `qsh` claim.',
-				);
-			}
-
-			if (
-				Date.now() / 1000 >
-				verifiedClaims.exp + TOKEN_EXPIRATION_LEEWAY.asSeconds
-			) {
-				throw new UnauthorizedError('The token is expired.');
-			}
-
-			if (!verifiedClaims.aud[0]?.includes(getConfig().app.baseUrl)) {
-				throw new UnauthorizedError(
-					'The token does not contain or contain an invalid `aud` claim.',
-				);
-			}
+			verifyQshClaimBoundToUrl(verifiedClaims, request);
+			verifyExpClaim(verifiedClaims);
+			verifyAudClaimIncludesBaseUrl(verifiedClaims, getConfig().app.baseUrl);
 		} catch (e: unknown) {
 			getLogger().warn(e, 'Failed to verify the asymmetric JWT token.');
 

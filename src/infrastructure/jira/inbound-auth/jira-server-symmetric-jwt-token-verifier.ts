@@ -1,11 +1,11 @@
 import {
-	createQueryStringHash,
 	decodeSymmetric,
 	getAlgorithm,
 	SymmetricAlgorithm,
 } from 'atlassian-jwt';
 
-import { Duration } from '../../../common/duration';
+import { verifyExpClaim, verifyQshClaimBoundToUrl } from './jira-jwt-utils';
+
 import { isEnumValueOf } from '../../../common/enumUtils';
 import type { ConnectInstallation } from '../../../domain/entities';
 import { UnauthorizedError } from '../../../web/middleware/errors';
@@ -35,7 +35,6 @@ const JIRA_SERVER_SYMMETRIC_JWT_CLAIMS_SCHEMA: JSONSchemaTypeWithId<JiraContextS
 		},
 		required: ['iss', 'iat', 'exp', 'qsh'],
 	};
-const TOKEN_EXPIRATION_LEEWAY = Duration.ofSeconds(3);
 
 /**
  * Verifier for server symmetric JWT tokens.
@@ -86,19 +85,8 @@ export class JiraServerSymmetricJwtTokenVerifier {
 			) as unknown;
 
 			assertSchema(verifiedClaims, JIRA_SERVER_SYMMETRIC_JWT_CLAIMS_SCHEMA);
-
-			if (verifiedClaims.qsh !== createQueryStringHash(request, false)) {
-				throw new UnauthorizedError(
-					'The token contains an invalid `qsh` claim.',
-				);
-			}
-
-			if (
-				Date.now() / 1000 >
-				verifiedClaims.exp + TOKEN_EXPIRATION_LEEWAY.asSeconds
-			) {
-				throw new UnauthorizedError('The token is expired.');
-			}
+			verifyQshClaimBoundToUrl(verifiedClaims, request);
+			verifyExpClaim(verifiedClaims);
 
 			return {
 				connectInstallation,

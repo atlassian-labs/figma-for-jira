@@ -19,7 +19,7 @@ const REQUEST = {
 	params: { v: uuidv4() },
 };
 
-describe('jiraServerSymmetricJwtTokenVerifier', () => {
+describe('JiraServerSymmetricJwtTokenVerifier', () => {
 	beforeEach(() => {
 		jest.useFakeTimers().setSystemTime(NOW);
 	});
@@ -30,7 +30,8 @@ describe('jiraServerSymmetricJwtTokenVerifier', () => {
 
 	describe('verify', () => {
 		it('should verify token and return relevant Connect Installation', async () => {
-			const connectInstallation = generateConnectInstallation();
+			const clientKey = uuidv4();
+			const connectInstallation = generateConnectInstallation({ clientKey });
 			jest
 				.spyOn(connectInstallationRepository, 'getByClientKey')
 				.mockResolvedValue(connectInstallation);
@@ -52,6 +53,9 @@ describe('jiraServerSymmetricJwtTokenVerifier', () => {
 			expect(result).toStrictEqual({
 				connectInstallation,
 			});
+			expect(connectInstallationRepository.getByClientKey).toHaveBeenCalledWith(
+				clientKey,
+			);
 		});
 
 		it('should throw when there is no Connect Installation', async () => {
@@ -67,6 +71,14 @@ describe('jiraServerSymmetricJwtTokenVerifier', () => {
 				},
 				uuidv4(),
 			);
+
+			await expect(
+				jiraServerSymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
+			).rejects.toThrowError(UnauthorizedError);
+		});
+
+		it('should throw token is not a JWT token', async () => {
+			const jwtToken = uuidv4();
 
 			await expect(
 				jiraServerSymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
@@ -136,7 +148,9 @@ describe('jiraServerSymmetricJwtTokenVerifier', () => {
 					...REQUEST,
 					method: 'GET',
 				}),
-			).rejects.toThrowError(UnauthorizedError);
+			).rejects.toThrowError(
+				new UnauthorizedError('The token contains an invalid `qsh` claim.'),
+			);
 		});
 
 		it('should throw when token is expired', async () => {
@@ -156,7 +170,7 @@ describe('jiraServerSymmetricJwtTokenVerifier', () => {
 
 			await expect(
 				jiraServerSymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
-			).rejects.toThrowError(UnauthorizedError);
+			).rejects.toThrowError(new UnauthorizedError('The token is expired.'));
 		});
 	});
 });

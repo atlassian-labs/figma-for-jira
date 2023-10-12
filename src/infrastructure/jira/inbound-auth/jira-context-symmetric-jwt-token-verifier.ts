@@ -4,7 +4,8 @@ import {
 	SymmetricAlgorithm,
 } from 'atlassian-jwt';
 
-import { Duration } from '../../../common/duration';
+import { verifyExpClaim } from './jira-jwt-utils';
+
 import { isEnumValueOf } from '../../../common/enumUtils';
 import type { ConnectInstallation } from '../../../domain/entities';
 import { UnauthorizedError } from '../../../web/middleware/errors';
@@ -36,8 +37,6 @@ const JIRA_CONTEXT_SYMMETRIC_JWT_CLAIMS_SCHEMA: JSONSchemaTypeWithId<JiraContext
 		},
 		required: ['iss', 'iat', 'exp', 'qsh', 'sub'],
 	};
-
-const TOKEN_EXPIRATION_LEEWAY = Duration.ofSeconds(3);
 
 /**
  * Verifier for context symmetric JWT tokens.
@@ -84,13 +83,7 @@ export class JiraContextSymmetricJwtTokenVerifier {
 			) as unknown;
 
 			assertSchema(verifiedClaims, JIRA_CONTEXT_SYMMETRIC_JWT_CLAIMS_SCHEMA);
-
-			if (
-				Date.now() / 1000 >
-				verifiedClaims.exp + TOKEN_EXPIRATION_LEEWAY.asSeconds
-			) {
-				throw new UnauthorizedError('The token is expired.');
-			}
+			verifyExpClaim(verifiedClaims);
 
 			return {
 				connectInstallation,
