@@ -20,8 +20,7 @@ import { UnauthorizedError } from '../errors';
  *
  * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#types-of-jwt-token
  */
-/* eslint-disable-next-line @typescript-eslint/no-misused-promises */
-export const connectAsymmetricJwtAuthMiddleware: RequestHandler = async (
+export const connectAsymmetricJwtAuthMiddleware: RequestHandler = (
 	req: Request,
 	res: Response,
 	next: NextFunction,
@@ -32,12 +31,9 @@ export const connectAsymmetricJwtAuthMiddleware: RequestHandler = async (
 		return next(new UnauthorizedError('Missing JWT token.'));
 	}
 
-	try {
-		await verifyAsymmetricJwtToken(req, token);
-		next();
-	} catch (e) {
-		next(e);
-	}
+	void verifyAsymmetricJwtToken(req, token)
+		.then(() => next())
+		.catch(next);
 };
 
 /**

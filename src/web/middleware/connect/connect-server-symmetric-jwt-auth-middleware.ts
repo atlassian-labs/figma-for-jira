@@ -25,8 +25,7 @@ import { UnauthorizedError } from '../errors';
  * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#types-of-jwt-token
  * @see https://community.developer.atlassian.com/t/action-required-atlassian-connect-vulnerability-allows-bypass-of-app-qsh-verification-via-context-jwts/47072
  */
-/* eslint-disable-next-line @typescript-eslint/no-misused-promises */
-export const connectServerSymmetricJwtAuthMiddleware: RequestHandler = async (
+export const connectServerSymmetricJwtAuthMiddleware: RequestHandler = (
 	req: Request,
 	res: Response,
 	next: NextFunction,
@@ -37,18 +36,12 @@ export const connectServerSymmetricJwtAuthMiddleware: RequestHandler = async (
 		return next(new UnauthorizedError('Missing JWT token.'));
 	}
 
-	try {
-		const { connectInstallation } = await verifyServerSymmetricJwtToken(
-			req,
-			token,
-		);
-
-		res.locals.connectInstallation = connectInstallation;
-
-		next();
-	} catch (e) {
-		next(e);
-	}
+	void verifyServerSymmetricJwtToken(req, token)
+		.then(({ connectInstallation }) => {
+			res.locals.connectInstallation = connectInstallation;
+			next();
+		})
+		.catch(next);
 };
 
 /**

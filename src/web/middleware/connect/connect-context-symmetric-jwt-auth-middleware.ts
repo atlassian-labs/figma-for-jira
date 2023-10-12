@@ -27,8 +27,7 @@ const CONTEXT_TOKEN_QSH = 'context-qsh';
  * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#types-of-jwt-token
  * @see https://community.developer.atlassian.com/t/action-required-atlassian-connect-vulnerability-allows-bypass-of-app-qsh-verification-via-context-jwts/47072
  */
-/* eslint-disable-next-line @typescript-eslint/no-misused-promises */
-export const connectContextSymmetricJwtAuthMiddleware: RequestHandler = async (
+export const connectContextSymmetricJwtAuthMiddleware: RequestHandler = (
 	req: Request,
 	res: Response,
 	next: NextFunction,
@@ -39,17 +38,13 @@ export const connectContextSymmetricJwtAuthMiddleware: RequestHandler = async (
 		return next(new UnauthorizedError('Missing JWT token.'));
 	}
 
-	try {
-		const { connectInstallation, atlassianUserId } =
-			await verifyContextSymmetricJwtToken(token);
-
-		res.locals.connectInstallation = connectInstallation;
-		res.locals.atlassianUserId = atlassianUserId;
-
-		next();
-	} catch (e) {
-		next(e);
-	}
+	void verifyContextSymmetricJwtToken(token)
+		.then(({ connectInstallation, atlassianUserId }) => {
+			res.locals.connectInstallation = connectInstallation;
+			res.locals.atlassianUserId = atlassianUserId;
+			next();
+		})
+		.then(next);
 };
 
 /**
