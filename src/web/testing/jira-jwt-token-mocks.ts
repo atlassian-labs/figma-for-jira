@@ -8,7 +8,7 @@ import { AsymmetricAlgorithm } from 'atlassian-jwt/dist/lib/jwt';
 import { generateKeyPair } from 'node:crypto';
 import { promisify } from 'util';
 
-import { Duration } from '../../../common/duration';
+import { Duration } from '../../common/duration';
 
 /**
  * Generates an asymmetric JWT token.
@@ -22,13 +22,14 @@ import { Duration } from '../../../common/duration';
  */
 export const generateJiraAsymmetricJwtToken = async ({
 	keyId,
-	pathname,
-	method,
+	request,
 	connectInstallation: { baseUrl, clientKey },
 }: {
 	keyId: string;
-	pathname: string;
-	method: string;
+	request: {
+		method: string;
+		pathname: string;
+	};
 	connectInstallation: {
 		baseUrl: string;
 		clientKey: string;
@@ -48,13 +49,13 @@ export const generateJiraAsymmetricJwtToken = async ({
 		},
 	});
 
-	const nowInSeconds = Math.floor(Date.now() / 1000);
+	const NOW_IN_SECONDS = Math.floor(Date.now() / 1000);
 	const jwtToken = encodeAsymmetric(
 		{
-			iat: nowInSeconds,
-			exp: nowInSeconds + 99999,
+			iat: NOW_IN_SECONDS,
+			exp: NOW_IN_SECONDS + 99999,
 			iss: clientKey,
-			qsh: createQueryStringHash({ pathname, method }),
+			qsh: createQueryStringHash(request),
 			aud: [baseUrl],
 		},
 		privateKey,
@@ -73,26 +74,26 @@ export const generateJiraAsymmetricJwtToken = async ({
  * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#types-of-jwt-token
  */
 export const generateJiraServerSymmetricJwtToken = ({
-	pathname,
-	method,
-	query,
+	request,
 	connectInstallation: { clientKey, sharedSecret },
 }: {
-	method: string;
-	pathname: string;
-	query?: Record<string, unknown>;
+	request: {
+		method: string;
+		pathname: string;
+		query?: Record<string, unknown>;
+	};
 	connectInstallation: {
 		clientKey: string;
 		sharedSecret: string;
 	};
 }) => {
-	const nowInSeconds = Math.floor(Date.now() / 1000);
+	const NOW_IN_SECONDS = Math.floor(Date.now() / 1000);
 	return encodeSymmetric(
 		{
-			iat: nowInSeconds,
-			exp: nowInSeconds + Duration.ofMinutes(5).asSeconds,
+			iat: NOW_IN_SECONDS,
+			exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
 			iss: clientKey,
-			qsh: createQueryStringHash({ method, pathname, query }),
+			qsh: createQueryStringHash(request),
 		},
 		sharedSecret,
 	);
@@ -113,11 +114,11 @@ export const generateJiraContextSymmetricJwtToken = ({
 		sharedSecret: string;
 	};
 }) => {
-	const nowInSeconds = Math.floor(Date.now() / 1000);
+	const NOW_IN_SECONDS = Math.floor(Date.now() / 1000);
 	return encodeSymmetric(
 		{
-			iat: nowInSeconds,
-			exp: nowInSeconds + Duration.ofMinutes(3).asSeconds,
+			iat: NOW_IN_SECONDS,
+			exp: NOW_IN_SECONDS + Duration.ofMinutes(3).asSeconds,
 			iss: clientKey,
 			sub: atlassianUserId,
 			qsh: 'context-qsh',

@@ -21,7 +21,6 @@ import {
 	generateCreateWebhookResponse,
 	generateGetTeamProjectsResponse,
 } from '../../../infrastructure/figma/figma-client/testing';
-import { generateJiraContextSymmetricJwtToken } from '../../../infrastructure/jira/testing';
 import {
 	connectInstallationRepository,
 	figmaOAuth2UserCredentialsRepository,
@@ -29,6 +28,7 @@ import {
 	RepositoryRecordNotFoundError,
 } from '../../../infrastructure/repositories';
 import {
+	generateJiraContextSymmetricJwtToken,
 	mockFigmaCreateWebhookEndpoint,
 	mockFigmaDeleteWebhookEndpoint,
 	mockFigmaGetTeamProjectsEndpoint,

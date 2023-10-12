@@ -1,7 +1,7 @@
 import { fromExpressRequest } from 'atlassian-jwt';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
-import { jiraInboundAuthService } from '../../../infrastructure/jira/jira-inbound-auth-service';
+import { jiraAsymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
 import { UnauthorizedError } from '../errors';
 
 /**
@@ -23,8 +23,8 @@ export const jiraAsymmetricJwtAuthMiddleware: RequestHandler = (
 		return next(new UnauthorizedError('Missing JWT token.'));
 	}
 
-	void jiraInboundAuthService
-		.verifyAsymmetricJwtToken(token, fromExpressRequest(req))
+	void jiraAsymmetricJwtTokenVerifier
+		.verify(token, fromExpressRequest(req))
 		.then(() => next())
 		.catch(next);
 };

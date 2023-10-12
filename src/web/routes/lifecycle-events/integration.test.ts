@@ -38,8 +38,10 @@ describe('/lifecycleEvents', () => {
 			const keyId = uuidv4();
 			const { jwtToken, publicKey } = await generateJiraAsymmetricJwtToken({
 				keyId,
-				method: 'POST',
-				pathname: '/lifecycleEvents/installed',
+				request: {
+					method: 'POST',
+					pathname: '/lifecycleEvents/installed',
+				},
 				connectInstallation: {
 					baseUrl: getConfig().app.baseUrl,
 					clientKey,
@@ -74,8 +76,10 @@ describe('/lifecycleEvents', () => {
 			const keyId = uuidv4();
 			const { jwtToken, publicKey } = await generateJiraAsymmetricJwtToken({
 				keyId,
-				method: 'POST',
-				pathname: '/incorrect-pathname',
+				request: {
+					method: 'POST',
+					pathname: '/incorrect-pathname',
+				},
 				connectInstallation: {
 					baseUrl: getConfig().app.baseUrl,
 					clientKey: uuidv4(),
@@ -175,8 +179,10 @@ describe('/lifecycleEvents', () => {
 			const keyId = uuidv4();
 			const { jwtToken, publicKey } = await generateJiraAsymmetricJwtToken({
 				keyId,
-				method: 'POST',
-				pathname: '/lifecycleEvents/uninstalled',
+				request: {
+					method: 'POST',
+					pathname: '/lifecycleEvents/uninstalled',
+				},
 				connectInstallation: {
 					baseUrl: getConfig().app.baseUrl,
 					clientKey: targetConnectInstallation.clientKey,
@@ -229,8 +235,10 @@ describe('/lifecycleEvents', () => {
 			const keyId = uuidv4();
 			const { jwtToken, publicKey } = await generateJiraAsymmetricJwtToken({
 				keyId,
-				method: 'POST',
-				pathname: '/incorrect-pathname',
+				request: {
+					method: 'POST',
+					pathname: '/incorrect-pathname',
+				},
 				connectInstallation: {
 					baseUrl: getConfig().app.baseUrl,
 					clientKey: uuidv4(),

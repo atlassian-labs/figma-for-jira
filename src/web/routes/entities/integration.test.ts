@@ -72,14 +72,18 @@ const MOCK_CONNECT_INSTALLATION_CREATE_PARAMS =
 	});
 
 const ASSOCIATE_JWT_TOKEN = `JWT ${generateJiraServerSymmetricJwtToken({
-	pathname: '/entities/associateEntity',
-	method: 'POST',
+	request: {
+		pathname: '/entities/associateEntity',
+		method: 'POST',
+	},
 	connectInstallation: MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
 })}`;
 
 const DISASSOCIATE_JWT_TOKEN = `JWT ${generateJiraServerSymmetricJwtToken({
-	pathname: '/entities/disassociateEntity',
-	method: 'POST',
+	request: {
+		pathname: '/entities/disassociateEntity',
+		method: 'POST',
+	},
 	connectInstallation: MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
 })}`;
 

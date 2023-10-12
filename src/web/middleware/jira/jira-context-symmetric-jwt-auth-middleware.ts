@@ -1,6 +1,6 @@
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
-import { jiraInboundAuthService } from '../../../infrastructure/jira/jira-inbound-auth-service';
+import { jiraContextSymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
 import { UnauthorizedError } from '../errors';
 
 /**
@@ -25,8 +25,8 @@ export const jiraContextSymmetricJwtAuthMiddleware: RequestHandler = (
 		return next(new UnauthorizedError('Missing JWT token.'));
 	}
 
-	void jiraInboundAuthService
-		.verifyContextSymmetricJwtToken(token)
+	void jiraContextSymmetricJwtTokenVerifier
+		.verify(token)
 		.then(({ connectInstallation, atlassianUserId }) => {
 			res.locals.connectInstallation = connectInstallation;
 			res.locals.atlassianUserId = atlassianUserId;

@@ -43,9 +43,11 @@ describe('/auth', () => {
 					}),
 				);
 				const jwt = generateJiraServerSymmetricJwtToken({
-					method: 'GET',
-					pathname: '/auth/checkAuth',
-					query: { userId: atlassianUserId },
+					request: {
+						method: 'GET',
+						pathname: '/auth/checkAuth',
+						query: { userId: atlassianUserId },
+					},
 					connectInstallation,
 				});
 
@@ -75,9 +77,11 @@ describe('/auth', () => {
 					}),
 				);
 				const jwt = generateJiraServerSymmetricJwtToken({
-					method: 'GET',
-					pathname: '/auth/checkAuth',
-					query: { userId: atlassianUserId },
+					request: {
+						method: 'GET',
+						pathname: '/auth/checkAuth',
+						query: { userId: atlassianUserId },
+					},
 					connectInstallation,
 				});
 
@@ -131,9 +135,11 @@ describe('/auth', () => {
 				);
 				const refreshTokenResponse = generateRefreshOAuth2TokenResponse();
 				const jwt = generateJiraServerSymmetricJwtToken({
-					method: 'GET',
-					pathname: '/auth/checkAuth',
-					query: { userId: atlassianUserId },
+					request: {
+						method: 'GET',
+						pathname: '/auth/checkAuth',
+						query: { userId: atlassianUserId },
+					},
 					connectInstallation,
 				});
 
@@ -177,9 +183,11 @@ describe('/auth', () => {
 					}),
 				);
 				const jwt = generateJiraServerSymmetricJwtToken({
-					method: 'GET',
-					pathname: '/auth/checkAuth',
-					query: { userId: atlassianUserId },
+					request: {
+						method: 'GET',
+						pathname: '/auth/checkAuth',
+						query: { userId: atlassianUserId },
+					},
 					connectInstallation,
 				});
 
@@ -219,9 +227,11 @@ describe('/auth', () => {
 				);
 				const atlassianUserId = uuidv4();
 				const jwt = generateJiraServerSymmetricJwtToken({
-					method: 'GET',
-					pathname: '/auth/checkAuth',
-					query: { userId: atlassianUserId },
+					request: {
+						method: 'GET',
+						pathname: '/auth/checkAuth',
+						query: { userId: atlassianUserId },
+					},
 					connectInstallation,
 				});
 
