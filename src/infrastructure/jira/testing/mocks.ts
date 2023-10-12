@@ -1,6 +1,6 @@
 import { encodeSymmetric } from 'atlassian-jwt';
 
-import { Duration } from '../../../../common/duration';
+import { Duration } from '../../../common/duration';
 
 /**
  * Generates a context symmetric JWT token.

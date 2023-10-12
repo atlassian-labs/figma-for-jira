@@ -21,13 +21,13 @@ import {
 	generateCreateWebhookResponse,
 	generateGetTeamProjectsResponse,
 } from '../../../infrastructure/figma/figma-client/testing';
+import { generateConnectContextSymmetricJwtToken } from '../../../infrastructure/jira/testing';
 import {
 	connectInstallationRepository,
 	figmaOAuth2UserCredentialsRepository,
 	figmaTeamRepository,
 	RepositoryRecordNotFoundError,
 } from '../../../infrastructure/repositories';
-import { generateConnectContextSymmetricJwtToken } from '../../middleware/jira/testing';
 import {
 	mockFigmaCreateWebhookEndpoint,
 	mockFigmaDeleteWebhookEndpoint,

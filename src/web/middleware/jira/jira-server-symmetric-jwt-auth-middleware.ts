@@ -1,16 +1,7 @@
-import {
-	decodeSymmetric,
-	getAlgorithm,
-	SymmetricAlgorithm,
-} from 'atlassian-jwt';
+import { fromExpressRequest } from 'atlassian-jwt';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
-import { verifyExpClaim, verifyQshClaimBoundToUrl } from './jwt-utils';
-import { CONNECT_JWT_CLAIMS_SCHEMA } from './schemas';
-
-import { isEnumValueOf } from '../../../common/enumUtils';
-import { assertSchema, getLogger } from '../../../infrastructure';
-import { connectInstallationRepository } from '../../../infrastructure/repositories';
+import { jiraInboundAuthService } from '../../../infrastructure/jira/jira-inbound-auth-service';
 import { UnauthorizedError } from '../errors';
 
 /**
@@ -35,59 +26,11 @@ export const jiraServerSymmetricJwtAuthMiddleware: RequestHandler = (
 		return next(new UnauthorizedError('Missing JWT token.'));
 	}
 
-	void verifyServerSymmetricJwtToken(token, req)
+	void jiraInboundAuthService
+		.verifyServerSymmetricJwtToken(token, fromExpressRequest(req))
 		.then(({ connectInstallation }) => {
 			res.locals.connectInstallation = connectInstallation;
 			next();
 		})
 		.catch(next);
-};
-
-/**
- * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#decoding-and-verifying-a-jwt-token
- */
-const verifyServerSymmetricJwtToken = async (
-	token: string,
-	request: Request,
-) => {
-	try {
-		const tokenSigningAlgorithm = getAlgorithm(token) as unknown;
-
-		if (!isEnumValueOf(SymmetricAlgorithm, tokenSigningAlgorithm)) {
-			throw new UnauthorizedError('Unsupported JWT signing algorithm.');
-		}
-
-		// Decode a JWT token without verification.
-		const unverifiedClaims = decodeSymmetric(
-			token,
-			'',
-			tokenSigningAlgorithm,
-			true,
-		) as unknown;
-
-		assertSchema(unverifiedClaims, CONNECT_JWT_CLAIMS_SCHEMA);
-
-		const connectInstallation =
-			await connectInstallationRepository.getByClientKey(unverifiedClaims.iss);
-
-		const verifiedClaims = decodeSymmetric(
-			token,
-			connectInstallation.sharedSecret,
-			tokenSigningAlgorithm,
-		) as unknown;
-
-		assertSchema(verifiedClaims, CONNECT_JWT_CLAIMS_SCHEMA);
-		verifyQshClaimBoundToUrl(verifiedClaims, request);
-		verifyExpClaim(verifiedClaims);
-
-		return {
-			connectInstallation,
-		};
-	} catch (e) {
-		getLogger().warn(e, 'Failed to verify the server symmetric JWT token.');
-
-		if (e instanceof UnauthorizedError) throw e;
-
-		throw new UnauthorizedError('Authentication failed.');
-	}
 };
