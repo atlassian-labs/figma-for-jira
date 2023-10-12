@@ -20,7 +20,7 @@ import {
 	disconnectFigmaTeamUseCase,
 	listFigmaTeamsUseCase,
 } from '../../../usecases';
-import { connectContextSymmetricJwtAuthMiddleware } from '../../middleware/auth';
+import { connectContextSymmetricJwtAuthMiddleware } from '../../middleware/connect';
 
 export const teamsRouter = Router();
 

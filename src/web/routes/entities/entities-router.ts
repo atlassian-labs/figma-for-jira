@@ -1,6 +1,6 @@
 import { HttpStatusCode } from 'axios';
-import { Router } from 'express';
 import type { NextFunction } from 'express';
+import { Router } from 'express';
 
 import {
 	ASSOCIATE_ENTITY_REQUEST_BODY_SCHEMA,
@@ -19,15 +19,15 @@ import {
 	disassociateEntityUseCase,
 } from '../../../usecases';
 import {
-	authHeaderSymmetricJwtMiddleware,
+	connectServerSymmetricJwtAuthMiddleware,
 	extractUserIdFromHeadersMiddleware,
-} from '../../middleware';
+} from '../../middleware/connect';
 
 export const entitiesRouter = Router();
 
 entitiesRouter.use(
 	extractUserIdFromHeadersMiddleware,
-	authHeaderSymmetricJwtMiddleware,
+	connectServerSymmetricJwtAuthMiddleware,
 );
 
 entitiesRouter.post(

@@ -1,42 +1,116 @@
-import { fromExpressRequest } from 'atlassian-jwt';
-import type { NextFunction, Request, Response } from 'express';
+import { decodeAsymmetric, getAlgorithm, getKeyId } from 'atlassian-jwt';
+import { AsymmetricAlgorithm } from 'atlassian-jwt/dist/lib/jwt';
+import axios from 'axios';
+import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
-import { verifyAsymmetricJwtToken, verifySymmetricJwtToken } from './jwt-utils';
+import {
+	verifyExp,
+	verifyUrlBoundQsh,
+} from './connect-asymmetric-jwt-auth-middleware';
+import { CONNECT_JWT_TOKEN_CLAIMS_SCHEMA } from './schemas';
 
-const validateAuthToken =
-	(type: 'symmetric' | 'asymmetric') =>
-	async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-		try {
-			// The jwt token is taken from the Authorization headers
-			const token = req.headers.authorization?.replace('JWT ', '');
-			const request = fromExpressRequest(req);
-			switch (type) {
-				case 'symmetric':
-					res.locals.connectInstallation = await verifySymmetricJwtToken(
-						request,
-						token,
-					);
-					break;
-				case 'asymmetric':
-					await verifyAsymmetricJwtToken(request, token);
-			}
-			next();
-		} catch (e: unknown) {
-			next(e);
-		}
-	};
+import { isEnumValueOf } from '../../../common/enumUtils';
+import { ensureString } from '../../../common/stringUtils';
+import { getConfig } from '../../../config';
+import { assertSchema, getLogger } from '../../../infrastructure';
+import { UnauthorizedError } from '../errors';
+
 /**
- * Takes JWT token from Authorization header and verifies it using jwt-middleware
- * Either specifies it as a symmetric (validated using shared secret given in installed lifecycle)
- * or asymmetric token (validated using connect public key based on key id)
+ * Authenticates requests using an asymmetric JWT token.
+ *
+ * @remarks
+ * Context JWT tokens are sent with lifecycle callback events by Jira server.
+ *
+ * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#types-of-jwt-token
  */
-export const authHeaderSymmetricJwtMiddleware = (
+/* eslint-disable-next-line @typescript-eslint/no-misused-promises */
+export const connectAsymmetricJwtAuthMiddleware: RequestHandler = async (
 	req: Request,
 	res: Response,
 	next: NextFunction,
-) => void validateAuthToken('symmetric')(req, res, next);
-export const authHeaderAsymmetricJwtMiddleware = (
-	req: Request,
-	res: Response,
-	next: NextFunction,
-) => void validateAuthToken('asymmetric')(req, res, next);
+) => {
+	const token = req.headers.authorization?.replace('JWT', '').trim();
+
+	if (!token) {
+		return next(new UnauthorizedError('Missing JWT token.'));
+	}
+
+	try {
+		await verifyAsymmetricJwtToken(req, token);
+		next();
+	} catch (e) {
+		next(e);
+	}
+};
+
+/**
+ * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#decoding-and-verifying-a-jwt-token
+ */
+export const verifyAsymmetricJwtToken = async (
+	request: Request,
+	token: string,
+): Promise<void> => {
+	try {
+		const tokenSigningAlgorithm: unknown = getAlgorithm(token);
+
+		if (!isEnumValueOf(AsymmetricAlgorithm, tokenSigningAlgorithm)) {
+			throw new UnauthorizedError('Unsupported JWT signing algorithm.');
+		}
+
+		// Decode the JWT token without verification.
+		const unverifiedClaims = decodeAsymmetric(
+			token,
+			'',
+			tokenSigningAlgorithm,
+			true,
+		) as unknown;
+
+		assertSchema(unverifiedClaims, CONNECT_JWT_TOKEN_CLAIMS_SCHEMA);
+
+		const keyId = ensureString(getKeyId(token));
+		const publicKey = await queryAtlassianConnectPublicKey(keyId);
+
+		// Decode the JWT token with verification.
+		const verifiedClaims = decodeAsymmetric(
+			token,
+			publicKey,
+			tokenSigningAlgorithm,
+		) as Record<string, unknown>;
+
+		assertSchema(verifiedClaims, CONNECT_JWT_TOKEN_CLAIMS_SCHEMA);
+
+		verifyUrlBoundQsh(verifiedClaims, request);
+		verifyExp(verifiedClaims);
+
+		// Verify that the AUD claim has the correct URL.
+		if (!verifiedClaims?.aud?.[0]?.includes(getConfig().app.baseUrl)) {
+			throw new UnauthorizedError(
+				'The token does not contain or contain an invalid `aud` claim.',
+			);
+		}
+	} catch (e: unknown) {
+		getLogger().warn(e, 'Failed to verify the asymmetric JWT token.');
+
+		if (e instanceof UnauthorizedError) throw e;
+
+		throw new UnauthorizedError('Authentication failed.');
+	}
+};
+
+/**
+ * Returns the public key for asymmetric JWT token validation.
+ *
+ * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#verifying-a-asymmetric-jwt-token-for-install-callbacks
+ */
+const queryAtlassianConnectPublicKey = async (
+	keyId: string,
+): Promise<string> => {
+	try {
+		const response = await axios.get<string>(
+			`${getConfig().jira.connectKeyServerUrl}/${keyId}`,
+		);
+		return response.data;
+	} catch (e: unknown) {
+		throw new UnauthorizedError(`Unable to get public key for keyId ${keyId}`);
+	}
+};
