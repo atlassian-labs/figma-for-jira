@@ -12,7 +12,8 @@ import { connectKeyServerClient } from './connect-key-server-client';
 import { jiraAsymmetricJwtTokenVerifier } from './jira-asymmetric-jwt-token-verifier';
 
 import { Duration } from '../../../common/duration';
-import { getConfig } from '../../../config';
+import * as configModule from '../../../config';
+import { mockConfig } from '../../../config/testing';
 import { UnauthorizedError } from '../../../web/middleware/errors';
 
 const NOW = Date.now();
@@ -43,13 +44,22 @@ const generateRsaKeyPair = async (): Promise<{
 	});
 };
 
+jest.mock('../../../config', () => {
+	return {
+		...jest.requireActual('../../../config'),
+		getConfig: jest.fn(),
+	};
+});
+
 describe('JiraAsymmetricJwtTokenVerifier', () => {
 	beforeEach(() => {
+		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
 		jest.useFakeTimers().setSystemTime(NOW);
 	});
 
 	afterEach(() => {
 		jest.useRealTimers();
+		jest.restoreAllMocks();
 	});
 
 	describe('verify', () => {
@@ -64,7 +74,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 					iat: NOW_IN_SECONDS,
 					exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
 					qsh: createQueryStringHash(REQUEST),
-					aud: [`${getConfig().app.baseUrl}/test`],
+					aud: [`${configModule.getConfig().app.baseUrl}/test`],
 				},
 				privateKey,
 				AsymmetricAlgorithm.RS256,
@@ -92,7 +102,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 					iat: NOW_IN_SECONDS,
 					exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
 					qsh: createQueryStringHash(REQUEST),
-					aud: [`${getConfig().app.baseUrl}/test`],
+					aud: [`${configModule.getConfig().app.baseUrl}/test`],
 				},
 				privateKey,
 				AsymmetricAlgorithm.RS256,
@@ -126,7 +136,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 					iat: NOW_IN_SECONDS,
 					exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
 					qsh: createQueryStringHash(REQUEST),
-					aud: [`${getConfig().app.baseUrl}/test`],
+					aud: [`${configModule.getConfig().app.baseUrl}/test`],
 				},
 				privateKey,
 				AsymmetricAlgorithm.RS256,
@@ -151,7 +161,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 					iat: NOW_IN_SECONDS,
 					exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
 					qsh: createQueryStringHash(REQUEST),
-					aud: [`${getConfig().app.baseUrl}/test`],
+					aud: [`${configModule.getConfig().app.baseUrl}/test`],
 				},
 				privateKey,
 				AsymmetricAlgorithm.RS256,
@@ -179,7 +189,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 						...REQUEST,
 						method: 'GET',
 					}),
-					aud: [`${getConfig().app.baseUrl}/test`],
+					aud: [`${configModule.getConfig().app.baseUrl}/test`],
 				},
 				privateKey,
 				AsymmetricAlgorithm.RS256,
@@ -209,7 +219,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 					iat: NOW_IN_SECONDS,
 					exp: NOW_IN_SECONDS - Duration.ofMinutes(5).asSeconds,
 					qsh: createQueryStringHash(REQUEST),
-					aud: [`${getConfig().app.baseUrl}/test`],
+					aud: [`${configModule.getConfig().app.baseUrl}/test`],
 				},
 				privateKey,
 				AsymmetricAlgorithm.RS256,
