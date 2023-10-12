@@ -21,7 +21,7 @@ import {
 	generateCreateWebhookResponse,
 	generateGetTeamProjectsResponse,
 } from '../../../infrastructure/figma/figma-client/testing';
-import { generateConnectContextSymmetricJwtToken } from '../../../infrastructure/jira/testing';
+import { generateJiraContextSymmetricJwtToken } from '../../../infrastructure/jira/testing';
 import {
 	connectInstallationRepository,
 	figmaOAuth2UserCredentialsRepository,
@@ -84,7 +84,7 @@ describe('/teams', () => {
 				),
 			]);
 
-			const jwt = generateConnectContextSymmetricJwtToken({
+			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				connectInstallation: targetConnectInstallation,
 			});
@@ -119,7 +119,7 @@ describe('/teams', () => {
 				),
 			]);
 
-			const jwt = generateConnectContextSymmetricJwtToken({
+			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				connectInstallation: targetConnectInstallation,
 			});
@@ -156,7 +156,7 @@ describe('/teams', () => {
 			const teamName = uuidv4();
 			const webhookId = uuidv4();
 			const requestPath = connectTeamEndpoint(teamId);
-			const jwt = generateConnectContextSymmetricJwtToken({
+			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				connectInstallation,
 			});
@@ -205,7 +205,7 @@ describe('/teams', () => {
 			const teamName = uuidv4();
 			const webhookId = uuidv4();
 			const requestPath = connectTeamEndpoint(teamId);
-			const jwt = generateConnectContextSymmetricJwtToken({
+			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				connectInstallation,
 			});
@@ -258,7 +258,7 @@ describe('/teams', () => {
 				}),
 			);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
-			const jwt = generateConnectContextSymmetricJwtToken({
+			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: 'not-a-figma-team-admin',
 				connectInstallation,
 			});
@@ -293,7 +293,7 @@ describe('/teams', () => {
 				}),
 			);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
-			const jwt = generateConnectContextSymmetricJwtToken({
+			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: 'not-a-figma-team-admin',
 				connectInstallation,
 			});

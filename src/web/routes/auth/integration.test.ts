@@ -19,7 +19,7 @@ import {
 	connectInstallationRepository,
 	figmaOAuth2UserCredentialsRepository,
 } from '../../../infrastructure/repositories';
-import { generateInboundRequestSymmetricJwtToken } from '../../testing';
+import { generateJiraServerSymmetricJwtToken } from '../../testing';
 
 const FIGMA_API_BASE_URL = getConfig().figma.apiBaseUrl;
 const FIGMA_OAUTH_API_BASE_URL = getConfig().figma.oauthApiBaseUrl;
@@ -42,7 +42,7 @@ describe('/auth', () => {
 						connectInstallationId: connectInstallation.id,
 					}),
 				);
-				const jwt = generateInboundRequestSymmetricJwtToken({
+				const jwt = generateJiraServerSymmetricJwtToken({
 					method: 'GET',
 					pathname: '/auth/checkAuth',
 					query: { userId: atlassianUserId },
@@ -74,7 +74,7 @@ describe('/auth', () => {
 						connectInstallationId: connectInstallation.id,
 					}),
 				);
-				const jwt = generateInboundRequestSymmetricJwtToken({
+				const jwt = generateJiraServerSymmetricJwtToken({
 					method: 'GET',
 					pathname: '/auth/checkAuth',
 					query: { userId: atlassianUserId },
@@ -130,7 +130,7 @@ describe('/auth', () => {
 					}),
 				);
 				const refreshTokenResponse = generateRefreshOAuth2TokenResponse();
-				const jwt = generateInboundRequestSymmetricJwtToken({
+				const jwt = generateJiraServerSymmetricJwtToken({
 					method: 'GET',
 					pathname: '/auth/checkAuth',
 					query: { userId: atlassianUserId },
@@ -176,7 +176,7 @@ describe('/auth', () => {
 						connectInstallationId: connectInstallation.id,
 					}),
 				);
-				const jwt = generateInboundRequestSymmetricJwtToken({
+				const jwt = generateJiraServerSymmetricJwtToken({
 					method: 'GET',
 					pathname: '/auth/checkAuth',
 					query: { userId: atlassianUserId },
@@ -218,7 +218,7 @@ describe('/auth', () => {
 					generateConnectInstallationCreateParams(),
 				);
 				const atlassianUserId = uuidv4();
-				const jwt = generateInboundRequestSymmetricJwtToken({
+				const jwt = generateJiraServerSymmetricJwtToken({
 					method: 'GET',
 					pathname: '/auth/checkAuth',
 					query: { userId: atlassianUserId },

@@ -51,7 +51,7 @@ import {
 	figmaOAuth2UserCredentialsRepository,
 } from '../../../infrastructure/repositories';
 import {
-	generateInboundRequestSymmetricJwtToken,
+	generateJiraServerSymmetricJwtToken,
 	mockFigmaCreateDevResourcesEndpoint,
 	mockFigmaDeleteDevResourcesEndpoint,
 	mockFigmaGetDevResourcesEndpoint,
@@ -71,13 +71,13 @@ const MOCK_CONNECT_INSTALLATION_CREATE_PARAMS =
 		sharedSecret: uuidv4(),
 	});
 
-const ASSOCIATE_JWT_TOKEN = `JWT ${generateInboundRequestSymmetricJwtToken({
+const ASSOCIATE_JWT_TOKEN = `JWT ${generateJiraServerSymmetricJwtToken({
 	pathname: '/entities/associateEntity',
 	method: 'POST',
 	connectInstallation: MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
 })}`;
 
-const DISASSOCIATE_JWT_TOKEN = `JWT ${generateInboundRequestSymmetricJwtToken({
+const DISASSOCIATE_JWT_TOKEN = `JWT ${generateJiraServerSymmetricJwtToken({
 	pathname: '/entities/disassociateEntity',
 	method: 'POST',
 	connectInstallation: MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
