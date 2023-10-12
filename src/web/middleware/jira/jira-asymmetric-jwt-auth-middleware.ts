@@ -3,7 +3,7 @@ import { AsymmetricAlgorithm } from 'atlassian-jwt/dist/lib/jwt';
 import axios from 'axios';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
-import { verifyExp, verifyUrlBoundQsh } from './jwt-utils';
+import { verifyExp, verifyIss, verifyUrlBoundQsh } from './jwt-utils';
 import { CONNECT_JWT_TOKEN_CLAIMS_SCHEMA } from './schemas';
 
 import { isEnumValueOf } from '../../../common/enumUtils';
@@ -20,7 +20,7 @@ import { UnauthorizedError } from '../errors';
  *
  * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#types-of-jwt-token
  */
-export const connectAsymmetricJwtAuthMiddleware: RequestHandler = (
+export const jiraAsymmetricJwtAuthMiddleware: RequestHandler = (
 	req: Request,
 	res: Response,
 	next: NextFunction,
@@ -44,7 +44,7 @@ export const verifyAsymmetricJwtToken = async (
 	token: string,
 ): Promise<void> => {
 	try {
-		const tokenSigningAlgorithm: unknown = getAlgorithm(token);
+		const tokenSigningAlgorithm = getAlgorithm(token) as unknown;
 
 		if (!isEnumValueOf(AsymmetricAlgorithm, tokenSigningAlgorithm)) {
 			throw new UnauthorizedError('Unsupported JWT signing algorithm.');
@@ -60,6 +60,8 @@ export const verifyAsymmetricJwtToken = async (
 
 		assertSchema(unverifiedClaims, CONNECT_JWT_TOKEN_CLAIMS_SCHEMA);
 
+		verifyIss(unverifiedClaims);
+
 		const keyId = ensureString(getKeyId(token));
 		const publicKey = await queryAtlassianConnectPublicKey(keyId);
 
@@ -68,7 +70,7 @@ export const verifyAsymmetricJwtToken = async (
 			token,
 			publicKey,
 			tokenSigningAlgorithm,
-		) as Record<string, unknown>;
+		) as unknown;
 
 		assertSchema(verifiedClaims, CONNECT_JWT_TOKEN_CLAIMS_SCHEMA);
 

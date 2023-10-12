@@ -19,15 +19,15 @@ import {
 	disassociateEntityUseCase,
 } from '../../../usecases';
 import {
-	connectServerSymmetricJwtAuthMiddleware,
 	extractUserIdFromHeadersMiddleware,
-} from '../../middleware/connect';
+	jiraServerSymmetricJwtAuthMiddleware,
+} from '../../middleware/jira';
 
 export const entitiesRouter = Router();
 
 entitiesRouter.use(
 	extractUserIdFromHeadersMiddleware,
-	connectServerSymmetricJwtAuthMiddleware,
+	jiraServerSymmetricJwtAuthMiddleware,
 );
 
 entitiesRouter.post(

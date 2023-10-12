@@ -27,7 +27,7 @@ import {
 	figmaTeamRepository,
 	RepositoryRecordNotFoundError,
 } from '../../../infrastructure/repositories';
-import { generateConnectContextSymmetricJwtToken } from '../../middleware/connect/testing';
+import { generateConnectContextSymmetricJwtToken } from '../../middleware/jira/testing';
 import {
 	mockFigmaCreateWebhookEndpoint,
 	mockFigmaDeleteWebhookEndpoint,

@@ -8,11 +8,11 @@ import { getConfig } from '../../../config';
 import { assertSchema } from '../../../infrastructure';
 import { figmaAuthService } from '../../../infrastructure/figma';
 import { checkUserFigmaAuthUseCase } from '../../../usecases';
-import { connectServerSymmetricJwtAuthMiddleware } from '../../middleware/connect';
+import { jiraServerSymmetricJwtAuthMiddleware } from '../../middleware/jira';
 
 export const authRouter = Router();
 
-authRouter.use(connectServerSymmetricJwtAuthMiddleware);
+authRouter.use(jiraServerSymmetricJwtAuthMiddleware);
 
 /**
  * Checks whether the given Atlassian user is authorized to call Figma API.

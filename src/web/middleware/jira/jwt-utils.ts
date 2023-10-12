@@ -6,6 +6,12 @@ import { UnauthorizedError } from '../errors';
 
 const TOKEN_EXPIRATION_LEEWAY = Duration.ofSeconds(3);
 
+export const verifyIss = ({ iss }: { iss: string }) => {
+	if (!iss) {
+		throw new UnauthorizedError('The token contains an invalid `iss` claim.');
+	}
+};
+
 /**
  * Verifies the `exp` claim to ensure that the token is still within expiration.
  * It gives a several second leeway in case of time drift.
