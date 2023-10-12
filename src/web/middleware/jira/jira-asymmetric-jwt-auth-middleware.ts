@@ -3,8 +3,12 @@ import { AsymmetricAlgorithm } from 'atlassian-jwt/dist/lib/jwt';
 import axios from 'axios';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
-import { verifyExp, verifyIss, verifyUrlBoundQsh } from './jwt-utils';
-import { CONNECT_JWT_TOKEN_CLAIMS_SCHEMA } from './schemas';
+import {
+	verifyAudClaimContainsBaseUrl,
+	verifyExpClaim,
+	verifyQshClaimBoundToUrl,
+} from './jwt-utils';
+import { CONNECT_JWT_CLAIMS_SCHEMA } from './schemas';
 
 import { isEnumValueOf } from '../../../common/enumUtils';
 import { ensureString } from '../../../common/stringUtils';
@@ -25,7 +29,7 @@ export const jiraAsymmetricJwtAuthMiddleware: RequestHandler = (
 	res: Response,
 	next: NextFunction,
 ) => {
-	const token = req.headers.authorization?.replace('JWT', '').trim();
+	const token = req.headers.authorization?.replace('JWT ', '');
 
 	if (!token) {
 		return next(new UnauthorizedError('Missing JWT token.'));
@@ -50,7 +54,7 @@ export const verifyAsymmetricJwtToken = async (
 			throw new UnauthorizedError('Unsupported JWT signing algorithm.');
 		}
 
-		// Decode the JWT token without verification.
+		// Decode a JWT token without verification.
 		const unverifiedClaims = decodeAsymmetric(
 			token,
 			'',
@@ -58,9 +62,7 @@ export const verifyAsymmetricJwtToken = async (
 			true,
 		) as unknown;
 
-		assertSchema(unverifiedClaims, CONNECT_JWT_TOKEN_CLAIMS_SCHEMA);
-
-		verifyIss(unverifiedClaims);
+		assertSchema(unverifiedClaims, CONNECT_JWT_CLAIMS_SCHEMA);
 
 		const keyId = ensureString(getKeyId(token));
 		const publicKey = await queryAtlassianConnectPublicKey(keyId);
@@ -72,17 +74,10 @@ export const verifyAsymmetricJwtToken = async (
 			tokenSigningAlgorithm,
 		) as unknown;
 
-		assertSchema(verifiedClaims, CONNECT_JWT_TOKEN_CLAIMS_SCHEMA);
-
-		verifyUrlBoundQsh(verifiedClaims, request);
-		verifyExp(verifiedClaims);
-
-		// Verify that the AUD claim has the correct URL.
-		if (!verifiedClaims?.aud?.[0]?.includes(getConfig().app.baseUrl)) {
-			throw new UnauthorizedError(
-				'The token does not contain or contain an invalid `aud` claim.',
-			);
-		}
+		assertSchema(verifiedClaims, CONNECT_JWT_CLAIMS_SCHEMA);
+		verifyQshClaimBoundToUrl(verifiedClaims, request);
+		verifyExpClaim(verifiedClaims);
+		verifyAudClaimContainsBaseUrl(verifiedClaims, getConfig().app.baseUrl);
 	} catch (e: unknown) {
 		getLogger().warn(e, 'Failed to verify the asymmetric JWT token.');
 

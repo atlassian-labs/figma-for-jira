@@ -5,11 +5,10 @@ import {
 } from 'atlassian-jwt';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
-import { verifyExp, verifyFixedQsh, verifyIss } from './jwt-utils';
-import { CONNECT_JWT_TOKEN_CLAIMS_SCHEMA } from './schemas';
+import { verifyExpClaim, verifyQshEqualTo } from './jwt-utils';
+import { CONNECT_JWT_CLAIMS_SCHEMA } from './schemas';
 
 import { isEnumValueOf } from '../../../common/enumUtils';
-import { ensureString } from '../../../common/stringUtils';
 import { assertSchema, getLogger } from '../../../infrastructure';
 import { connectInstallationRepository } from '../../../infrastructure/repositories';
 import { UnauthorizedError } from '../errors';
@@ -32,7 +31,7 @@ export const jiraContextSymmetricJwtAuthMiddleware: RequestHandler = (
 	res: Response,
 	next: NextFunction,
 ) => {
-	const token = req.headers.authorization?.replace('JWT', '').trim();
+	const token = req.headers.authorization?.replace('JWT ', '');
 
 	if (!token) {
 		return next(new UnauthorizedError('Missing JWT token.'));
@@ -44,7 +43,7 @@ export const jiraContextSymmetricJwtAuthMiddleware: RequestHandler = (
 			res.locals.atlassianUserId = atlassianUserId;
 			next();
 		})
-		.then(next);
+		.catch(next);
 };
 
 /**
@@ -58,7 +57,7 @@ const verifyContextSymmetricJwtToken = async (token: string) => {
 			throw new UnauthorizedError('Unsupported JWT signing algorithm.');
 		}
 
-		// Decode jwt token without verification
+		// Decode a JWT token without verification.
 		const unverifiedClaims = decodeSymmetric(
 			token,
 			'',
@@ -66,14 +65,10 @@ const verifyContextSymmetricJwtToken = async (token: string) => {
 			true,
 		) as unknown;
 
-		assertSchema(unverifiedClaims, CONNECT_JWT_TOKEN_CLAIMS_SCHEMA);
-
-		verifyIss(unverifiedClaims);
+		assertSchema(unverifiedClaims, CONNECT_JWT_CLAIMS_SCHEMA);
 
 		const connectInstallation =
-			await connectInstallationRepository.getByClientKey(
-				ensureString(unverifiedClaims.iss),
-			);
+			await connectInstallationRepository.getByClientKey(unverifiedClaims.iss);
 
 		const verifiedClaims = decodeSymmetric(
 			token,
@@ -81,14 +76,13 @@ const verifyContextSymmetricJwtToken = async (token: string) => {
 			tokenSigningAlgorithm,
 		) as unknown;
 
-		assertSchema(verifiedClaims, CONNECT_JWT_TOKEN_CLAIMS_SCHEMA);
-
-		verifyFixedQsh(verifiedClaims, CONTEXT_TOKEN_QSH);
-		verifyExp(verifiedClaims);
+		assertSchema(verifiedClaims, CONNECT_JWT_CLAIMS_SCHEMA);
+		verifyQshEqualTo(verifiedClaims, CONTEXT_TOKEN_QSH);
+		verifyExpClaim(verifiedClaims);
 
 		return {
 			connectInstallation,
-			atlassianUserId: ensureString(verifiedClaims.sub),
+			atlassianUserId: verifiedClaims.sub!,
 		};
 	} catch (e) {
 		getLogger().warn(e, 'Failed to verify the context symmetric JWT token.');

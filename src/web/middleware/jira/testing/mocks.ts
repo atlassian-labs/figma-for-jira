@@ -1,5 +1,7 @@
 import { encodeSymmetric } from 'atlassian-jwt';
 
+import { Duration } from '../../../../common/duration';
+
 /**
  * Generates a context symmetric JWT token.
  *
@@ -19,7 +21,7 @@ export const generateConnectContextSymmetricJwtToken = ({
 	return encodeSymmetric(
 		{
 			iat: nowInSeconds,
-			exp: nowInSeconds + 99999,
+			exp: nowInSeconds + Duration.ofMinutes(3).asSeconds,
 			iss: clientKey,
 			sub: atlassianUserId,
 			qsh: 'context-qsh',
