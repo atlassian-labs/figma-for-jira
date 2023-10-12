@@ -52,6 +52,9 @@ export const connectContextSymmetricJwtAuthMiddleware: RequestHandler = async (
 	}
 };
 
+/**
+ * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#decoding-and-verifying-a-jwt-token
+ */
 const verifyContextSymmetricJwtToken = async (token: string) => {
 	try {
 		const tokenSigningAlgorithm: unknown = getAlgorithm(token);
