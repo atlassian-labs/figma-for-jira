@@ -10,6 +10,8 @@ import type { Method } from 'axios';
 import { generateKeyPair } from 'node:crypto';
 import { promisify } from 'util';
 
+import { Duration } from '../../common/duration';
+
 /**
  * Generates an asymmetric JWT token that can be used to authorise lifecycle event requests in
  * integration tests.
@@ -92,7 +94,7 @@ export const generateInboundRequestSymmetricJwtToken = ({
 	return encodeSymmetric(
 		{
 			iat: nowInSeconds,
-			exp: nowInSeconds + 99999,
+			exp: nowInSeconds + Duration.ofMinutes(5).asSeconds,
 			iss: clientKey,
 			qsh: createQueryStringHash({ method, pathname, query }),
 		},

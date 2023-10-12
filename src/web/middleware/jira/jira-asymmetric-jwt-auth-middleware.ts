@@ -31,7 +31,7 @@ export const jiraAsymmetricJwtAuthMiddleware: RequestHandler = (
 		return next(new UnauthorizedError('Missing JWT token.'));
 	}
 
-	void verifyAsymmetricJwtToken(req, token)
+	void verifyAsymmetricJwtToken(token, req)
 		.then(() => next())
 		.catch(next);
 };
@@ -40,8 +40,8 @@ export const jiraAsymmetricJwtAuthMiddleware: RequestHandler = (
  * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#decoding-and-verifying-a-jwt-token
  */
 export const verifyAsymmetricJwtToken = async (
-	request: Request,
 	token: string,
+	request: Request,
 ): Promise<void> => {
 	try {
 		const tokenSigningAlgorithm = getAlgorithm(token) as unknown;

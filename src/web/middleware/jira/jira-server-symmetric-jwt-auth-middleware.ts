@@ -36,7 +36,7 @@ export const jiraServerSymmetricJwtAuthMiddleware: RequestHandler = (
 		return next(new UnauthorizedError('Missing JWT token.'));
 	}
 
-	void verifyServerSymmetricJwtToken(req, token)
+	void verifyServerSymmetricJwtToken(token, req)
 		.then(({ connectInstallation }) => {
 			res.locals.connectInstallation = connectInstallation;
 			next();
@@ -48,8 +48,8 @@ export const jiraServerSymmetricJwtAuthMiddleware: RequestHandler = (
  * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#decoding-and-verifying-a-jwt-token
  */
 const verifyServerSymmetricJwtToken = async (
-	request: Request,
 	token: string,
+	request: Request,
 ) => {
 	try {
 		const tokenSigningAlgorithm = getAlgorithm(token) as unknown;

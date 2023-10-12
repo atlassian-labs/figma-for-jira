@@ -1,4 +1,4 @@
-import { createQueryStringHash } from 'atlassian-jwt';
+import { createQueryStringHash, fromExpressRequest } from 'atlassian-jwt';
 import type { Request } from 'express';
 
 import { Duration } from '../../../common/duration';
@@ -17,7 +17,9 @@ export const verifyIss = ({ iss }: { iss: string }) => {
  * It gives a several second leeway in case of time drift.
  */
 export const verifyExp = ({ exp }: { exp: number }) => {
-	if (exp > Date.now() / 1000 - TOKEN_EXPIRATION_LEEWAY.asSeconds) {
+	const nowInSeconds = Date.now() / 1000;
+
+	if (nowInSeconds > exp + TOKEN_EXPIRATION_LEEWAY.asSeconds) {
 		throw new UnauthorizedError('The token is expired.');
 	}
 };
@@ -30,7 +32,7 @@ export const verifyUrlBoundQsh = (
 	{ qsh }: { qsh: string },
 	request: Request,
 ) => {
-	if (qsh !== createQueryStringHash(request, false)) {
+	if (qsh !== createQueryStringHash(fromExpressRequest(request), false)) {
 		throw new UnauthorizedError('The token contains an invalid `qsh` claim.');
 	}
 };
