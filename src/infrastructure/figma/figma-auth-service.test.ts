@@ -129,7 +129,7 @@ describe('FigmaAuthService', () => {
 			});
 		});
 
-		it('should throw when no credentials', async () => {
+		it('should throw UnauthorizedOperationError when no credentials', async () => {
 			const connectUserInfo = generateConnectUserInfo();
 			jest
 				.spyOn(figmaOAuth2UserCredentialsRepository, 'get')
@@ -140,7 +140,7 @@ describe('FigmaAuthService', () => {
 			).rejects.toBeInstanceOf(UnauthorizedOperationError);
 		});
 
-		it('should throw when refreshing expired credentials fails', async () => {
+		it('should throw UnauthorizedOperationError when refreshing expired credentials fails', async () => {
 			const now = Date.now();
 			jest.setSystemTime(now);
 			const connectUserInfo = generateConnectUserInfo();
@@ -158,7 +158,7 @@ describe('FigmaAuthService', () => {
 
 			await expect(
 				figmaAuthService.getCredentials(connectUserInfo),
-			).rejects.toThrowError(error);
+			).rejects.toThrowError(UnauthorizedOperationError);
 		});
 	});
 });

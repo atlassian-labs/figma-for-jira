@@ -38,17 +38,13 @@ export class FigmaAuthService {
 	getCredentials = async (
 		user: ConnectUserInfo,
 	): Promise<FigmaOAuth2UserCredentials> => {
+		let credentials: FigmaOAuth2UserCredentials;
+
 		try {
-			let credentials = await figmaOAuth2UserCredentialsRepository.get(
+			credentials = await figmaOAuth2UserCredentialsRepository.get(
 				user.atlassianUserId,
 				user.connectInstallationId,
 			);
-
-			if (credentials.isExpired()) {
-				credentials = await this.refreshCredentials(credentials);
-			}
-
-			return credentials;
 		} catch (e: unknown) {
 			if (e instanceof NotFoundOperationError) {
 				throw new UnauthorizedOperationError(
@@ -58,6 +54,19 @@ export class FigmaAuthService {
 			}
 
 			throw e;
+		}
+
+		try {
+			if (credentials.isExpired()) {
+				credentials = await this.refreshCredentials(credentials);
+			}
+
+			return credentials;
+		} catch (e: unknown) {
+			throw new UnauthorizedOperationError(
+				'Cannot refresh Figma credentials.',
+				e,
+			);
 		}
 	};
 
