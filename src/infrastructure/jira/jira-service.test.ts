@@ -1,6 +1,7 @@
 import type { AxiosResponse } from 'axios';
 import { AxiosError, HttpStatusCode } from 'axios';
 
+import { SubmitDesignJiraOperationError } from './errors';
 import { jiraClient } from './jira-client';
 import {
 	generateFailedSubmitDesignsResponse,
@@ -9,11 +10,7 @@ import {
 	generateSuccessfulSubmitDesignsResponse,
 } from './jira-client/testing';
 import type { AttachedDesignUrlV2IssuePropertyValue } from './jira-service';
-import {
-	jiraService,
-	propertyKeys,
-	SubmitDesignJiraOperationError,
-} from './jira-service';
+import { jiraService, propertyKeys } from './jira-service';
 
 import { NotFoundOperationError } from '../../common/errors';
 import type {
