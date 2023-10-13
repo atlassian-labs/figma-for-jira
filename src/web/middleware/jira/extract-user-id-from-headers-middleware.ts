@@ -1,8 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 
-import { UnauthorizedError } from './errors';
-
-import { ensureString } from '../../common/stringUtils';
+import { ensureString } from '../../../common/stringUtils';
+import { UnauthorizedError } from '../errors';
 
 export const extractUserIdFromHeadersMiddleware = (
 	req: Request,

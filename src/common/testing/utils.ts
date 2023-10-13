@@ -13,3 +13,5 @@ export function generateNumericId(): string {
 export function generateNumericStringId(): string {
 	return generateNumericId().toString();
 }
+
+export const flushPromises = () => new Promise(setImmediate);

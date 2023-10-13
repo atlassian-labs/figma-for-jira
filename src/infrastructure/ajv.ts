@@ -1,9 +1,9 @@
-import Ajv from 'ajv';
 import type { ErrorObject, JSONSchemaType, ValidateFunction } from 'ajv';
+import Ajv from 'ajv';
 
 import { ensureString } from '../common/stringUtils';
 
-export const ajv = new Ajv();
+export const ajv = new Ajv({ allowUnionTypes: true });
 
 export type JSONSchemaTypeWithId<T> = JSONSchemaType<T> & { $id: string };
 

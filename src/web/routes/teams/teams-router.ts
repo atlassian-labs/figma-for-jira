@@ -20,17 +20,11 @@ import {
 	disconnectFigmaTeamUseCase,
 	listFigmaTeamsUseCase,
 } from '../../../usecases';
-import {
-	authHeaderSymmetricJwtMiddleware,
-	extractUserIdFromHeadersMiddleware,
-} from '../../middleware';
+import { jiraContextSymmetricJwtAuthMiddleware } from '../../middleware/jira';
 
 export const teamsRouter = Router();
 
-teamsRouter.use(
-	extractUserIdFromHeadersMiddleware,
-	authHeaderSymmetricJwtMiddleware,
-);
+teamsRouter.use(jiraContextSymmetricJwtAuthMiddleware);
 
 teamsRouter.get(
 	'/',
