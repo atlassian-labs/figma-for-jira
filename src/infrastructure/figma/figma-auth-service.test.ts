@@ -1,10 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import {
-	figmaAuthService,
-	NoFigmaCredentialsError,
-	RefreshFigmaCredentialsError,
-} from './figma-auth-service';
+import { figmaAuthService } from './figma-auth-service';
 import { figmaClient } from './figma-client';
 import {
 	generateGetOAuth2TokenResponse,
@@ -13,13 +9,14 @@ import {
 
 import { Duration } from '../../common/duration';
 import {
+	NotFoundOperationError,
+	UnauthorizedOperationError,
+} from '../../common/errors';
+import {
 	generateConnectUserInfo,
 	generateFigmaOAuth2UserCredentials,
 } from '../../domain/entities/testing';
-import {
-	figmaOAuth2UserCredentialsRepository,
-	RepositoryRecordNotFoundError,
-} from '../repositories';
+import { figmaOAuth2UserCredentialsRepository } from '../repositories';
 
 const FIGMA_OAUTH_CODE = uuidv4();
 
@@ -136,11 +133,11 @@ describe('FigmaAuthService', () => {
 			const connectUserInfo = generateConnectUserInfo();
 			jest
 				.spyOn(figmaOAuth2UserCredentialsRepository, 'get')
-				.mockRejectedValue(new RepositoryRecordNotFoundError('error'));
+				.mockRejectedValue(new NotFoundOperationError('error'));
 
 			await expect(() =>
 				figmaAuthService.getCredentials(connectUserInfo),
-			).rejects.toBeInstanceOf(NoFigmaCredentialsError);
+			).rejects.toBeInstanceOf(UnauthorizedOperationError);
 		});
 
 		it('should throw when refreshing expired credentials fails', async () => {
@@ -152,17 +149,16 @@ describe('FigmaAuthService', () => {
 				atlassianUserId: connectUserInfo.atlassianUserId,
 				connectInstallationId: connectUserInfo.connectInstallationId,
 			});
+			const error = new Error('error');
 
 			jest
 				.spyOn(figmaOAuth2UserCredentialsRepository, 'get')
 				.mockResolvedValue(credentials);
-			jest
-				.spyOn(figmaClient, 'refreshOAuth2Token')
-				.mockRejectedValue(new Error('error'));
+			jest.spyOn(figmaClient, 'refreshOAuth2Token').mockRejectedValue(error);
 
 			await expect(
 				figmaAuthService.getCredentials(connectUserInfo),
-			).rejects.toBeInstanceOf(RefreshFigmaCredentialsError);
+			).rejects.toThrowError(error);
 		});
 	});
 });

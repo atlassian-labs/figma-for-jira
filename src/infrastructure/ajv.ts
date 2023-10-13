@@ -1,7 +1,7 @@
-import Ajv from 'ajv';
 import type { ErrorObject, JSONSchemaType, ValidateFunction } from 'ajv';
+import Ajv from 'ajv';
 
-import { ensureString } from '../common/stringUtils';
+import { ensureString } from '../common/string-utils';
 
 export const ajv = new Ajv();
 

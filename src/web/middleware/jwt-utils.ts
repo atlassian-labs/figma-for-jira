@@ -9,12 +9,10 @@ import {
 import type { Request } from 'atlassian-jwt/dist/lib/jwt';
 import axios from 'axios';
 
+import { NotFoundOperationError } from '../../common/errors';
 import { getConfig } from '../../config';
 import type { ConnectInstallation } from '../../domain/entities';
-import {
-	connectInstallationRepository,
-	RepositoryRecordNotFoundError,
-} from '../../infrastructure/repositories';
+import { connectInstallationRepository } from '../../infrastructure/repositories';
 
 export class JwtVerificationError extends Error {}
 
@@ -38,7 +36,7 @@ export const verifySymmetricJwtToken = async (
 	try {
 		installation = await connectInstallationRepository.getByClientKey(data.iss);
 	} catch (e: unknown) {
-		if (e instanceof RepositoryRecordNotFoundError) {
+		if (e instanceof NotFoundOperationError) {
 			throw new JwtVerificationError(
 				`ConnectInstallation not found for clientKey ${data.iss}`,
 			);

@@ -186,7 +186,7 @@ describe('/auth', () => {
 				nock(FIGMA_OAUTH_API_BASE_URL)
 					.post(FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT)
 					.query(REFRESH_TOKEN_QUERY_PARAMS)
-					.reply(HttpStatusCode.InternalServerError);
+					.reply(HttpStatusCode.Forbidden);
 
 				return request(app)
 					.get(CHECK_AUTH_ENDPOINT)

@@ -1,6 +1,3 @@
-import { AxiosError, HttpStatusCode } from 'axios';
-
-import { FigmaServiceCredentialsError, FigmaServiceError } from './errors';
 import { figmaAuthService } from './figma-auth-service';
 import type {
 	CreateDevResourcesRequest,
@@ -12,13 +9,16 @@ import {
 	transformNodeToAtlassianDesign,
 } from './transformers';
 
-import { isString } from '../../common/stringUtils';
+import {
+	ForbiddenOperationError,
+	UnauthorizedOperationError,
+} from '../../common/errors';
+import { isString } from '../../common/string-utils';
 import { getConfig } from '../../config';
 import type {
 	AtlassianDesign,
 	ConnectUserInfo,
 	FigmaDesignIdentifier,
-	FigmaOAuth2UserCredentials,
 } from '../../domain/entities';
 import { getLogger } from '../logger';
 
@@ -28,27 +28,21 @@ const buildDevResourceNameFromJiraIssue = (
 ) => `[${issueKey}] ${issueSummary}`;
 
 export class FigmaService {
-	getValidCredentialsOrThrow = async (
-		user: ConnectUserInfo,
-	): Promise<FigmaOAuth2UserCredentials> => {
+	checkAuth = async (user: ConnectUserInfo): Promise<boolean> => {
 		try {
 			const credentials = await figmaAuthService.getCredentials(user);
 			await figmaClient.me(credentials.accessToken);
 
-			return credentials;
+			return true;
 		} catch (e: unknown) {
 			if (
-				e instanceof AxiosError &&
-				e.response?.status !== HttpStatusCode.Unauthorized &&
-				e.response?.status !== HttpStatusCode.Forbidden
+				e instanceof UnauthorizedOperationError ||
+				e instanceof ForbiddenOperationError
 			) {
-				throw e;
+				return false;
 			}
 
-			throw new FigmaServiceCredentialsError(
-				user.atlassianUserId,
-				e instanceof Error ? e : undefined,
-			);
+			throw e;
 		}
 	};
 
@@ -56,7 +50,7 @@ export class FigmaService {
 		designId: FigmaDesignIdentifier,
 		user: ConnectUserInfo,
 	): Promise<AtlassianDesign> => {
-		const { accessToken } = await this.getValidCredentialsOrThrow(user);
+		const { accessToken } = await figmaAuthService.getCredentials(user);
 
 		if (designId.nodeId) {
 			const fileResponse = await figmaClient.getFile(
@@ -99,10 +93,10 @@ export class FigmaService {
 			(designId) => designId.fileKey === fileKey,
 		);
 		if (!sameFileKey) {
-			throw new FigmaServiceError('designIds must all have the same fileKey');
+			throw new Error('designIds must all have the same fileKey');
 		}
 
-		const credentials = await this.getValidCredentialsOrThrow(user);
+		const credentials = await figmaAuthService.getCredentials(user);
 
 		const { accessToken } = credentials;
 
@@ -144,7 +138,7 @@ export class FigmaService {
 		};
 		user: ConnectUserInfo;
 	}): Promise<void> => {
-		const { accessToken } = await this.getValidCredentialsOrThrow(user);
+		const { accessToken } = await figmaAuthService.getCredentials(user);
 
 		const devResource: CreateDevResourcesRequest = {
 			name: buildDevResourceNameFromJiraIssue(issue.key, issue.title),
@@ -175,7 +169,7 @@ export class FigmaService {
 		devResourceUrl: string;
 		user: ConnectUserInfo;
 	}): Promise<void> => {
-		const { accessToken } = await this.getValidCredentialsOrThrow(user);
+		const { accessToken } = await figmaAuthService.getCredentials(user);
 
 		const { dev_resources } = await figmaClient.getDevResources({
 			fileKey: designId.fileKey,
@@ -206,7 +200,7 @@ export class FigmaService {
 		passcode: string,
 		user: ConnectUserInfo,
 	): Promise<{ webhookId: string; teamId: string }> => {
-		const { accessToken } = await this.getValidCredentialsOrThrow(user);
+		const { accessToken } = await figmaAuthService.getCredentials(user);
 
 		const request: CreateWebhookRequest = {
 			event_type: 'FILE_UPDATE',
@@ -238,7 +232,7 @@ export class FigmaService {
 		user: ConnectUserInfo,
 	): Promise<void> => {
 		try {
-			const { accessToken } = await this.getValidCredentialsOrThrow(user);
+			const { accessToken } = await figmaAuthService.getCredentials(user);
 			await figmaClient.deleteWebhook(webhookId, accessToken);
 		} catch (e: unknown) {
 			getLogger().warn(
@@ -253,7 +247,7 @@ export class FigmaService {
 		teamId: string,
 		user: ConnectUserInfo,
 	): Promise<string> => {
-		const { accessToken } = await this.getValidCredentialsOrThrow(user);
+		const { accessToken } = await figmaAuthService.getCredentials(user);
 
 		const response = await figmaClient.getTeamProjects(teamId, accessToken);
 		return response.name;

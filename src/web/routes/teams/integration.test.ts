@@ -3,6 +3,7 @@ import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
 import app from '../../../app';
+import { NotFoundOperationError } from '../../../common/errors';
 import { getConfig } from '../../../config';
 import type {
 	ConnectInstallation,
@@ -25,7 +26,6 @@ import {
 	connectInstallationRepository,
 	figmaOAuth2UserCredentialsRepository,
 	figmaTeamRepository,
-	RepositoryRecordNotFoundError,
 } from '../../../infrastructure/repositories';
 import {
 	generateInboundRequestSymmetricJwtToken,
@@ -236,7 +236,7 @@ describe('/teams', () => {
 
 			await expect(
 				figmaTeamRepository.getByWebhookId(webhookId),
-			).rejects.toBeInstanceOf(RepositoryRecordNotFoundError);
+			).rejects.toBeInstanceOf(NotFoundOperationError);
 		});
 	});
 
@@ -288,7 +288,7 @@ describe('/teams', () => {
 
 			await expect(
 				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
-			).rejects.toBeInstanceOf(RepositoryRecordNotFoundError);
+			).rejects.toBeInstanceOf(NotFoundOperationError);
 			expect(figmaClient.deleteWebhook).toBeCalledWith(
 				figmaTeam.webhookId,
 				figmaOAuth2UserCredentials.accessToken,
@@ -325,7 +325,7 @@ describe('/teams', () => {
 
 			await expect(
 				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
-			).rejects.toBeInstanceOf(RepositoryRecordNotFoundError);
+			).rejects.toBeInstanceOf(NotFoundOperationError);
 		});
 	});
 });

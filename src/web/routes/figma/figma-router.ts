@@ -31,23 +31,19 @@ figmaRouter.post('/webhook', (req, res, next) => {
 
 	const { event_type, file_key, webhook_id, passcode } = req.body;
 
-	figmaWebhookService
-		.validateWebhookEvent(event_type, webhook_id, passcode)
-		.then((figmaTeam) => {
-			switch (event_type) {
-				case 'FILE_UPDATE':
-					return handleFigmaFileUpdateEventUseCase.execute(
-						figmaTeam,
-						file_key!,
-					);
-				default:
-					return Promise.resolve();
-			}
-		})
-		.then(() => {
-			res.sendStatus(HttpStatusCode.Ok);
-		})
-		.catch(next);
+	switch (event_type) {
+		case 'FILE_UPDATE':
+			figmaWebhookService
+				.validateWebhookEvent(webhook_id, passcode)
+				.then((figmaTeam) =>
+					handleFigmaFileUpdateEventUseCase.execute(figmaTeam, file_key!),
+				)
+				.then(() => res.sendStatus(HttpStatusCode.Ok))
+				.catch(next);
+			return;
+		default:
+			return res.sendStatus(HttpStatusCode.Ok);
+	}
 });
 
 /**

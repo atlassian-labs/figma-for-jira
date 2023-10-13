@@ -7,7 +7,7 @@ import { generateFigmaWebhookEventPayload } from './testing';
 import type { FigmaWebhookEventPayload } from './types';
 
 import app from '../../../app';
-import { isString } from '../../../common/stringUtils';
+import { isString } from '../../../common/string-utils';
 import { getConfig } from '../../../config';
 import type {
 	AtlassianDesign,
@@ -216,7 +216,7 @@ describe('/figma', () => {
 					.expect(HttpStatusCode.Ok);
 			});
 
-			it('should return a 200 if fetching team name from Figma fails', async () => {
+			it('should return a 200 if fetching Figma team name fails with non-auth error', async () => {
 				const associatedFigmaDesigns =
 					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
 						fileKey,
@@ -263,10 +263,114 @@ describe('/figma', () => {
 					.expect(HttpStatusCode.Ok);
 			});
 
-			it("should set the FigmaTeam status to 'ERROR' and return a 200 if we can't get valid OAuth2 credentials", async () => {
-				mockFigmaMeEndpoint({
+			it("should set the FigmaTeam status to 'ERROR' and return a 200 if fetching Figma team name fails with auth error", async () => {
+				const associatedFigmaDesigns =
+					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
+						fileKey,
+						connectInstallation.id,
+					);
+				const nodeIds = associatedFigmaDesigns
+					.map(({ designId }) => designId.nodeId!)
+					.filter(isString);
+				const fileResponse = generateGetFileResponseWithNodes({
+					nodes: nodeIds.map((nodeId) => generateChildNode({ id: nodeId })),
+				});
+				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
+					(design) =>
+						generateAtlassianDesignFromDesignIdAndFileResponse(
+							design.designId,
+							fileResponse,
+						),
+				);
+				mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
+				mockFigmaGetTeamProjectsEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
+					teamId: figmaTeam.teamId,
 					status: HttpStatusCode.Forbidden,
+				});
+				mockFigmaGetFileWithNodesEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					fileKey: fileKey,
+					nodeIds,
+					response: fileResponse,
+				});
+				mockJiraSubmitDesignsEndpoint({
+					baseUrl: connectInstallation.baseUrl,
+					request: generateSubmitDesignsRequest(associatedAtlassianDesigns),
+					response: generateSuccessfulSubmitDesignsResponse(
+						associatedAtlassianDesigns.map(
+							(atlassianDesign) => atlassianDesign.id,
+						),
+					),
+				});
+
+				await request(app)
+					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.send(webhookEventPayload)
+					.expect(HttpStatusCode.Ok);
+
+				const updatedFigmaTeam = await figmaTeamRepository.getByWebhookId(
+					figmaTeam.webhookId,
+				);
+				expect(updatedFigmaTeam.authStatus).toStrictEqual(
+					FigmaTeamAuthStatus.ERROR,
+				);
+			});
+
+			it('should return error if fetching Figma designs fails with non-auth error', async () => {
+				const associatedFigmaDesigns =
+					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
+						fileKey,
+						connectInstallation.id,
+					);
+				const nodeIds = associatedFigmaDesigns
+					.map(({ designId }) => designId.nodeId!)
+					.filter(isString);
+
+				mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
+				mockFigmaGetTeamProjectsEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					teamId: figmaTeam.teamId,
+					response: generateGetTeamProjectsResponse({
+						name: figmaTeam.teamName,
+					}),
+				});
+				mockFigmaGetFileWithNodesEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					fileKey: fileKey,
+					nodeIds,
+					status: HttpStatusCode.InternalServerError,
+				});
+
+				await request(app)
+					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.send(webhookEventPayload)
+					.expect(HttpStatusCode.InternalServerError);
+			});
+
+			it("should set the FigmaTeam status to 'ERROR' and return a 200 if fetching Figma designs fails with auth error", async () => {
+				const associatedFigmaDesigns =
+					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
+						fileKey,
+						connectInstallation.id,
+					);
+				const nodeIds = associatedFigmaDesigns
+					.map(({ designId }) => designId.nodeId!)
+					.filter(isString);
+
+				mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
+				mockFigmaGetTeamProjectsEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					teamId: figmaTeam.teamId,
+					response: generateGetTeamProjectsResponse({
+						name: figmaTeam.teamName,
+					}),
+				});
+				mockFigmaGetFileWithNodesEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					fileKey: fileKey,
+					nodeIds,
+					status: HttpStatusCode.Unauthorized,
 				});
 
 				await request(app)
