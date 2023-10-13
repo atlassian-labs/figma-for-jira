@@ -247,12 +247,11 @@ describe('/teams', () => {
 			const figmaTeam = await figmaTeamRepository.upsert(
 				generateFigmaTeamCreateParams({
 					connectInstallationId: connectInstallation.id,
-					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				}),
 			);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
-				atlassianUserId: 'not-a-figma-team-admin',
+				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				connectInstallation,
 			});
 
@@ -277,16 +276,44 @@ describe('/teams', () => {
 			);
 		});
 
-		it('should return a 200 and delete the FigmaTeam when deleting the webhook fails', async () => {
+		it('should return a 200 and delete the FigmaTeam when webhook is not found', async () => {
 			const figmaTeam = await figmaTeamRepository.upsert(
 				generateFigmaTeamCreateParams({
 					connectInstallationId: connectInstallation.id,
-					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				}),
 			);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
-				atlassianUserId: 'not-a-figma-team-admin',
+				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+				connectInstallation,
+			});
+
+			mockFigmaDeleteWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				webhookId: figmaTeam.webhookId,
+				accessToken: figmaOAuth2UserCredentials.accessToken,
+				status: HttpStatusCode.NotFound,
+			});
+
+			await request(app)
+				.delete(requestPath)
+				.set('Authorization', `JWT ${jwt}`)
+				.expect(HttpStatusCode.Ok);
+
+			await expect(
+				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
+			).rejects.toBeInstanceOf(NotFoundOperationError);
+		});
+
+		it('should return a 200 and delete the FigmaTeam when deleting the webhook fails', async () => {
+			const figmaTeam = await figmaTeamRepository.upsert(
+				generateFigmaTeamCreateParams({
+					connectInstallationId: connectInstallation.id,
+				}),
+			);
+			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
+			const jwt = generateJiraContextSymmetricJwtToken({
+				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				connectInstallation,
 			});
 
@@ -300,11 +327,11 @@ describe('/teams', () => {
 			await request(app)
 				.delete(requestPath)
 				.set('Authorization', `JWT ${jwt}`)
-				.expect(HttpStatusCode.Ok);
+				.expect(HttpStatusCode.InternalServerError);
 
 			await expect(
 				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
-			).rejects.toBeInstanceOf(NotFoundOperationError);
+			).resolves.toEqual(figmaTeam);
 		});
 	});
 });

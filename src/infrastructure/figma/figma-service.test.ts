@@ -24,6 +24,7 @@ import {
 
 import {
 	ForbiddenOperationError,
+	NotFoundOperationError,
 	UnauthorizedOperationError,
 } from '../../common/errors';
 import * as configModule from '../../config';
@@ -444,7 +445,7 @@ describe('FigmaService', () => {
 		});
 	});
 
-	describe('tryDeleteWebhook', () => {
+	describe('deleteWebhook', () => {
 		beforeEach(() => {
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
@@ -463,13 +464,24 @@ describe('FigmaService', () => {
 			);
 		});
 
-		it('should not throw when deletion fails', async () => {
+		it('should not throw when a webhook is not found', async () => {
+			const webhookId = uuidv4();
+			jest
+				.spyOn(figmaClient, 'deleteWebhook')
+				.mockRejectedValue(new NotFoundOperationError());
+
+			await expect(
+				figmaService.tryDeleteWebhook(webhookId, MOCK_CONNECT_USER_INFO),
+			).resolves.toBeUndefined();
+		});
+
+		it('should throw when deletion fails', async () => {
 			const webhookId = uuidv4();
 			jest.spyOn(figmaClient, 'deleteWebhook').mockRejectedValue(new Error());
 
 			await expect(
 				figmaService.tryDeleteWebhook(webhookId, MOCK_CONNECT_USER_INFO),
-			).resolves.toBeUndefined();
+			).rejects.toThrowError();
 		});
 	});
 
