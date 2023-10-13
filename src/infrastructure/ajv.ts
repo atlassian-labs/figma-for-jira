@@ -3,7 +3,7 @@ import Ajv from 'ajv';
 
 import { ensureString } from '../common/string-utils';
 
-export const ajv = new Ajv();
+export const ajv = new Ajv({ allowUnionTypes: true });
 
 export type JSONSchemaTypeWithId<T> = JSONSchemaType<T> & { $id: string };
 

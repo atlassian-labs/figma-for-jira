@@ -22,7 +22,7 @@ import {
 	figmaTeamRepository,
 } from '../../../infrastructure/repositories';
 import {
-	generateInboundRequestAsymmetricJwtToken,
+	generateJiraAsymmetricJwtToken,
 	mockConnectGetKeyEndpoint,
 	mockFigmaDeleteWebhookEndpoint,
 } from '../../testing';
@@ -35,16 +35,17 @@ describe('/lifecycleEvents', () => {
 				clientKey,
 			});
 			const keyId = uuidv4();
-			const { jwtToken, publicKey } =
-				await generateInboundRequestAsymmetricJwtToken({
-					keyId,
+			const { jwtToken, publicKey } = await generateJiraAsymmetricJwtToken({
+				keyId,
+				request: {
 					method: 'POST',
 					pathname: '/lifecycleEvents/installed',
-					connectInstallation: {
-						baseUrl: getConfig().app.baseUrl,
-						clientKey,
-					},
-				});
+				},
+				connectInstallation: {
+					baseUrl: getConfig().app.baseUrl,
+					clientKey,
+				},
+			});
 
 			mockConnectGetKeyEndpoint({
 				baseUrl: getConfig().jira.connectKeyServerUrl,
@@ -72,16 +73,17 @@ describe('/lifecycleEvents', () => {
 
 		it('should respond 401 when JWT token is invalid (unknown issuer)', async () => {
 			const keyId = uuidv4();
-			const { jwtToken, publicKey } =
-				await generateInboundRequestAsymmetricJwtToken({
-					keyId,
+			const { jwtToken, publicKey } = await generateJiraAsymmetricJwtToken({
+				keyId,
+				request: {
 					method: 'POST',
 					pathname: '/incorrect-pathname',
-					connectInstallation: {
-						baseUrl: getConfig().app.baseUrl,
-						clientKey: uuidv4(),
-					},
-				});
+				},
+				connectInstallation: {
+					baseUrl: getConfig().app.baseUrl,
+					clientKey: uuidv4(),
+				},
+			});
 
 			mockConnectGetKeyEndpoint({
 				baseUrl: getConfig().jira.connectKeyServerUrl,
@@ -174,16 +176,17 @@ describe('/lifecycleEvents', () => {
 			]);
 
 			const keyId = uuidv4();
-			const { jwtToken, publicKey } =
-				await generateInboundRequestAsymmetricJwtToken({
-					keyId,
+			const { jwtToken, publicKey } = await generateJiraAsymmetricJwtToken({
+				keyId,
+				request: {
 					method: 'POST',
 					pathname: '/lifecycleEvents/uninstalled',
-					connectInstallation: {
-						baseUrl: getConfig().app.baseUrl,
-						clientKey: targetConnectInstallation.clientKey,
-					},
-				});
+				},
+				connectInstallation: {
+					baseUrl: getConfig().app.baseUrl,
+					clientKey: targetConnectInstallation.clientKey,
+				},
+			});
 
 			mockConnectGetKeyEndpoint({
 				baseUrl: getConfig().jira.connectKeyServerUrl,
@@ -228,16 +231,17 @@ describe('/lifecycleEvents', () => {
 
 		it('should respond 401 when JWT token is invalid (unknown issuer)', async () => {
 			const keyId = uuidv4();
-			const { jwtToken, publicKey } =
-				await generateInboundRequestAsymmetricJwtToken({
-					keyId,
+			const { jwtToken, publicKey } = await generateJiraAsymmetricJwtToken({
+				keyId,
+				request: {
 					method: 'POST',
 					pathname: '/incorrect-pathname',
-					connectInstallation: {
-						baseUrl: getConfig().app.baseUrl,
-						clientKey: uuidv4(),
-					},
-				});
+				},
+				connectInstallation: {
+					baseUrl: getConfig().app.baseUrl,
+					clientKey: uuidv4(),
+				},
+			});
 
 			mockConnectGetKeyEndpoint({
 				baseUrl: getConfig().jira.connectKeyServerUrl,

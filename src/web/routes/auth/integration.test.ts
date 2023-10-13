@@ -19,7 +19,7 @@ import {
 	connectInstallationRepository,
 	figmaOAuth2UserCredentialsRepository,
 } from '../../../infrastructure/repositories';
-import { generateInboundRequestSymmetricJwtToken } from '../../testing';
+import { generateJiraServerSymmetricJwtToken } from '../../testing';
 
 const FIGMA_API_BASE_URL = getConfig().figma.apiBaseUrl;
 const FIGMA_OAUTH_API_BASE_URL = getConfig().figma.oauthApiBaseUrl;
@@ -42,10 +42,12 @@ describe('/auth', () => {
 						connectInstallationId: connectInstallation.id,
 					}),
 				);
-				const jwt = generateInboundRequestSymmetricJwtToken({
-					method: 'GET',
-					pathname: '/auth/checkAuth',
-					query: { userId: atlassianUserId },
+				const jwt = generateJiraServerSymmetricJwtToken({
+					request: {
+						method: 'GET',
+						pathname: '/auth/checkAuth',
+						query: { userId: atlassianUserId },
+					},
 					connectInstallation,
 				});
 
@@ -74,10 +76,12 @@ describe('/auth', () => {
 						connectInstallationId: connectInstallation.id,
 					}),
 				);
-				const jwt = generateInboundRequestSymmetricJwtToken({
-					method: 'GET',
-					pathname: '/auth/checkAuth',
-					query: { userId: atlassianUserId },
+				const jwt = generateJiraServerSymmetricJwtToken({
+					request: {
+						method: 'GET',
+						pathname: '/auth/checkAuth',
+						query: { userId: atlassianUserId },
+					},
 					connectInstallation,
 				});
 
@@ -130,10 +134,12 @@ describe('/auth', () => {
 					}),
 				);
 				const refreshTokenResponse = generateRefreshOAuth2TokenResponse();
-				const jwt = generateInboundRequestSymmetricJwtToken({
-					method: 'GET',
-					pathname: '/auth/checkAuth',
-					query: { userId: atlassianUserId },
+				const jwt = generateJiraServerSymmetricJwtToken({
+					request: {
+						method: 'GET',
+						pathname: '/auth/checkAuth',
+						query: { userId: atlassianUserId },
+					},
 					connectInstallation,
 				});
 
@@ -176,10 +182,12 @@ describe('/auth', () => {
 						connectInstallationId: connectInstallation.id,
 					}),
 				);
-				const jwt = generateInboundRequestSymmetricJwtToken({
-					method: 'GET',
-					pathname: '/auth/checkAuth',
-					query: { userId: atlassianUserId },
+				const jwt = generateJiraServerSymmetricJwtToken({
+					request: {
+						method: 'GET',
+						pathname: '/auth/checkAuth',
+						query: { userId: atlassianUserId },
+					},
 					connectInstallation,
 				});
 
@@ -218,10 +226,12 @@ describe('/auth', () => {
 					generateConnectInstallationCreateParams(),
 				);
 				const atlassianUserId = uuidv4();
-				const jwt = generateInboundRequestSymmetricJwtToken({
-					method: 'GET',
-					pathname: '/auth/checkAuth',
-					query: { userId: atlassianUserId },
+				const jwt = generateJiraServerSymmetricJwtToken({
+					request: {
+						method: 'GET',
+						pathname: '/auth/checkAuth',
+						query: { userId: atlassianUserId },
+					},
 					connectInstallation,
 				});
 

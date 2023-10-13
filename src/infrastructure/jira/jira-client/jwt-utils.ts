@@ -7,7 +7,6 @@ export type JwtTokenParams = {
 		readonly method: string;
 		readonly pathname?: string;
 		readonly query?: Record<string, unknown>;
-		readonly body?: Record<string, unknown>;
 	};
 	readonly connectAppKey: string;
 	readonly connectSharedSecret: string;

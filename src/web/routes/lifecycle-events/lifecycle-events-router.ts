@@ -15,9 +15,11 @@ import type {
 import type { ConnectInstallationCreateParams } from '../../../domain/entities';
 import { assertSchema } from '../../../infrastructure';
 import { installedUseCase, uninstalledUseCase } from '../../../usecases';
-import { authHeaderAsymmetricJwtMiddleware } from '../../middleware';
+import { jiraAsymmetricJwtAuthMiddleware } from '../../middleware/jira';
 
 export const lifecycleEventsRouter = Router();
+
+lifecycleEventsRouter.use(jiraAsymmetricJwtAuthMiddleware);
 
 /**
  * Handles an "Installed" lifecycle event.
@@ -26,7 +28,6 @@ export const lifecycleEventsRouter = Router();
  */
 lifecycleEventsRouter.post(
 	'/installed',
-	authHeaderAsymmetricJwtMiddleware,
 	(
 		req: InstalledConnectLifecycleEventRequest,
 		res: ConnectLifecycleEventResponse,
@@ -77,7 +78,6 @@ lifecycleEventsRouter.post(
  */
 lifecycleEventsRouter.post(
 	'/uninstalled',
-	authHeaderAsymmetricJwtMiddleware,
 	(
 		req: UninstalledConnectLifecycleEventRequest,
 		res: ConnectLifecycleEventResponse,

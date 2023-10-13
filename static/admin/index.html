@@ -39,12 +39,11 @@
     <script>
       // An example demonstrating how to call Figma for Jira APIs.
       // For more detail, see https://developer.atlassian.com/cloud/jira/platform/jsapi/request/
-      async function callApi(user) {
+      async function callApi() {
         const jwtToken = await AP.context.getToken();
         const response = await fetch('/teams', {
           headers: {
             Authorization: `JWT ${jwtToken}`,
-            'User-Id': user.atlassianAccountId, // TODO: Remove the requirement to send the 'User-Id' header.
           },
         });
 
@@ -58,7 +57,7 @@
         console.log(teams);
       }
 
-      AP.user.getCurrentUser(callApi);
+      void callApi();
     </script>
   </body>
 </html>
