@@ -56,7 +56,6 @@ import {
 	mockFigmaDeleteDevResourcesEndpoint,
 	mockFigmaGetDevResourcesEndpoint,
 	mockFigmaGetFileEndpoint,
-	mockFigmaMeEndpoint,
 	mockJiraDeleteIssuePropertyEndpoint,
 	mockJiraGetIssueEndpoint,
 	mockJiraGetIssuePropertyEndpoint,
@@ -171,9 +170,6 @@ describe('/entities', () => {
 					}),
 				);
 
-			mockFigmaMeEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-			});
 			mockFigmaGetFileEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				fileKey,
@@ -306,9 +302,6 @@ describe('/entities', () => {
 					}),
 				);
 
-			mockFigmaMeEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-			});
 			mockFigmaGetFileEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				fileKey,
@@ -452,9 +445,6 @@ describe('/entities', () => {
 					}),
 				);
 
-			mockFigmaMeEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-			});
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId,
@@ -524,15 +514,12 @@ describe('/entities', () => {
 						connectInstallationId: connectInstallation.id,
 					}),
 				);
-
 			await associatedFigmaDesignRepository.upsert({
 				designId,
 				associatedWithAri: issueAri,
 				connectInstallationId: connectInstallation.id,
 			});
-			mockFigmaMeEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-			});
+
 			mockFigmaGetFileEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				fileKey,
@@ -672,9 +659,6 @@ describe('/entities', () => {
 				connectInstallationId: connectInstallation.id,
 			});
 
-			mockFigmaMeEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-			});
 			mockFigmaGetFileEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				fileKey,
@@ -791,9 +775,6 @@ describe('/entities', () => {
 					}),
 				);
 
-			mockFigmaMeEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-			});
 			mockFigmaGetFileEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				fileKey,
@@ -886,9 +867,6 @@ describe('/entities', () => {
 					}),
 				);
 
-			mockFigmaMeEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-			});
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId,

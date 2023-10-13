@@ -36,7 +36,21 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 			}),
 		);
 
-		it('should continue  if fetching Figma team name fails with non-auth error', async () => {
+		it('should set team status to ERROR and return if fetching Figma team name fails with auth error', async () => {
+			jest
+				.spyOn(figmaService, 'getTeamName')
+				.mockRejectedValue(new ForbiddenOperationError());
+			jest.spyOn(figmaTeamRepository, 'updateAuthStatus').mockResolvedValue();
+
+			await handleFigmaFileUpdateEventUseCase.execute(figmaTeam, fileKey);
+
+			expect(figmaTeamRepository.updateAuthStatus).toBeCalledWith(
+				figmaTeam.id,
+				FigmaTeamAuthStatus.ERROR,
+			);
+		});
+
+		it('should continue if fetching Figma team name fails with non-auth error', async () => {
 			const associatedAtlassianDesigns = associatedFigmaDesigns.map(
 				(figmaDesign) =>
 					generateAtlassianDesign({
@@ -63,46 +77,6 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 			await handleFigmaFileUpdateEventUseCase.execute(figmaTeam, fileKey);
 
 			expect(figmaTeamRepository.updateAuthStatus).not.toBeCalled();
-			expect(jiraService.submitDesigns).toBeCalledWith(
-				associatedAtlassianDesigns.map((design) => ({
-					design,
-				})),
-				connectInstallation,
-			);
-		});
-
-		it('should set team status to ERROR and continue if fetching Figma team name fails with auth error', async () => {
-			const associatedAtlassianDesigns = associatedFigmaDesigns.map(
-				(figmaDesign) =>
-					generateAtlassianDesign({
-						id: figmaDesign.designId.toAtlassianDesignId(),
-					}),
-			);
-
-			jest
-				.spyOn(figmaService, 'getTeamName')
-				.mockRejectedValue(new ForbiddenOperationError());
-			jest.spyOn(figmaTeamRepository, 'updateAuthStatus').mockResolvedValue();
-			jest
-				.spyOn(connectInstallationRepository, 'get')
-				.mockResolvedValue(connectInstallation);
-			jest
-				.spyOn(
-					associatedFigmaDesignRepository,
-					'findManyByFileKeyAndConnectInstallationId',
-				)
-				.mockResolvedValue(associatedFigmaDesigns);
-			jest
-				.spyOn(figmaService, 'fetchDesignsByIds')
-				.mockResolvedValue(associatedAtlassianDesigns);
-			jest.spyOn(jiraService, 'submitDesigns').mockResolvedValue();
-
-			await handleFigmaFileUpdateEventUseCase.execute(figmaTeam, fileKey);
-
-			expect(figmaTeamRepository.updateAuthStatus).toBeCalledWith(
-				figmaTeam.id,
-				FigmaTeamAuthStatus.ERROR,
-			);
 			expect(jiraService.submitDesigns).toBeCalledWith(
 				associatedAtlassianDesigns.map((design) => ({
 					design,

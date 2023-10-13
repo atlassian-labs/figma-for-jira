@@ -54,7 +54,6 @@ import {
 import {
 	mockFigmaGetFileWithNodesEndpoint,
 	mockFigmaGetTeamProjectsEndpoint,
-	mockFigmaMeEndpoint,
 	mockJiraSubmitDesignsEndpoint,
 } from '../../testing';
 
@@ -162,7 +161,6 @@ describe('/figma', () => {
 						),
 				);
 
-				mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 				mockFigmaGetTeamProjectsEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
 					teamId: figmaTeam.teamId,
@@ -201,7 +199,6 @@ describe('/figma', () => {
 					passcode: figmaTeam.webhookPasscode,
 				});
 
-				mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 				mockFigmaGetTeamProjectsEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
 					teamId: figmaTeam.teamId,
@@ -235,7 +232,6 @@ describe('/figma', () => {
 							fileResponse,
 						),
 				);
-				mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 				mockFigmaGetTeamProjectsEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
 					teamId: figmaTeam.teamId,
@@ -264,44 +260,10 @@ describe('/figma', () => {
 			});
 
 			it("should set the FigmaTeam status to 'ERROR' and return a 200 if fetching Figma team name fails with auth error", async () => {
-				const associatedFigmaDesigns =
-					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
-						fileKey,
-						connectInstallation.id,
-					);
-				const nodeIds = associatedFigmaDesigns
-					.map(({ designId }) => designId.nodeId!)
-					.filter(isString);
-				const fileResponse = generateGetFileResponseWithNodes({
-					nodes: nodeIds.map((nodeId) => generateChildNode({ id: nodeId })),
-				});
-				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
-					(design) =>
-						generateAtlassianDesignFromDesignIdAndFileResponse(
-							design.designId,
-							fileResponse,
-						),
-				);
-				mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 				mockFigmaGetTeamProjectsEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
 					teamId: figmaTeam.teamId,
 					status: HttpStatusCode.Forbidden,
-				});
-				mockFigmaGetFileWithNodesEndpoint({
-					baseUrl: getConfig().figma.apiBaseUrl,
-					fileKey: fileKey,
-					nodeIds,
-					response: fileResponse,
-				});
-				mockJiraSubmitDesignsEndpoint({
-					baseUrl: connectInstallation.baseUrl,
-					request: generateSubmitDesignsRequest(associatedAtlassianDesigns),
-					response: generateSuccessfulSubmitDesignsResponse(
-						associatedAtlassianDesigns.map(
-							(atlassianDesign) => atlassianDesign.id,
-						),
-					),
 				});
 
 				await request(app)
@@ -327,7 +289,6 @@ describe('/figma', () => {
 					.map(({ designId }) => designId.nodeId!)
 					.filter(isString);
 
-				mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 				mockFigmaGetTeamProjectsEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
 					teamId: figmaTeam.teamId,
@@ -358,7 +319,6 @@ describe('/figma', () => {
 					.map(({ designId }) => designId.nodeId!)
 					.filter(isString);
 
-				mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 				mockFigmaGetTeamProjectsEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
 					teamId: figmaTeam.teamId,
@@ -410,7 +370,6 @@ describe('/figma', () => {
 					.map(({ designId }) => designId.nodeId!)
 					.filter(isString);
 
-				mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 				mockFigmaGetTeamProjectsEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
 					teamId: figmaTeam.teamId,

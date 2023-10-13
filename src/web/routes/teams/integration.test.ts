@@ -32,7 +32,6 @@ import {
 	mockFigmaCreateWebhookEndpoint,
 	mockFigmaDeleteWebhookEndpoint,
 	mockFigmaGetTeamProjectsEndpoint,
-	mockFigmaMeEndpoint,
 } from '../../testing';
 
 const figmaTeamSummaryComparer = (a: FigmaTeamSummary, b: FigmaTeamSummary) =>
@@ -90,8 +89,6 @@ describe('/teams', () => {
 				connectInstallation: targetConnectInstallation,
 			});
 
-			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
-
 			const response = await request(app)
 				.get(TEAMS_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
@@ -126,8 +123,6 @@ describe('/teams', () => {
 				pathname: TEAMS_ENDPOINT,
 				connectInstallation: targetConnectInstallation,
 			});
-
-			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 
 			const response = await request(app)
 				.get(TEAMS_ENDPOINT)
@@ -166,7 +161,6 @@ describe('/teams', () => {
 				connectInstallation,
 			});
 
-			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 			mockFigmaGetTeamProjectsEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				teamId,
@@ -217,7 +211,6 @@ describe('/teams', () => {
 				connectInstallation,
 			});
 
-			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 			mockFigmaGetTeamProjectsEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				teamId,
@@ -272,7 +265,6 @@ describe('/teams', () => {
 				connectInstallation,
 			});
 
-			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 			mockFigmaDeleteWebhookEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				webhookId: figmaTeam.webhookId,
@@ -309,7 +301,6 @@ describe('/teams', () => {
 				connectInstallation,
 			});
 
-			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 			mockFigmaDeleteWebhookEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				webhookId: figmaTeam.webhookId,

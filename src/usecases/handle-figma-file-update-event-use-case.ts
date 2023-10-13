@@ -22,14 +22,15 @@ export const handleFigmaFileUpdateEventUseCase = {
 			);
 			await figmaTeamRepository.updateTeamName(figmaTeam.id, teamName);
 		} catch (e: unknown) {
-			getLogger().warn(e, `Failed to sync team name for ${figmaTeam.id}`);
-
 			if (isAuthRelatedError(e)) {
 				await figmaTeamRepository.updateAuthStatus(
 					figmaTeam.id,
 					FigmaTeamAuthStatus.ERROR,
 				);
+				return;
 			}
+
+			getLogger().warn(e, `Failed to sync team name for ${figmaTeam.id}`);
 		}
 
 		const [connectInstallation, associatedFigmaDesigns] = await Promise.all([

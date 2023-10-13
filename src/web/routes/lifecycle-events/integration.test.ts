@@ -25,7 +25,6 @@ import {
 	generateInboundRequestAsymmetricJwtToken,
 	mockConnectGetKeyEndpoint,
 	mockFigmaDeleteWebhookEndpoint,
-	mockFigmaMeEndpoint,
 } from '../../testing';
 
 describe('/lifecycleEvents', () => {
@@ -192,7 +191,6 @@ describe('/lifecycleEvents', () => {
 				response: publicKey,
 				status: HttpStatusCode.Ok,
 			});
-			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 			mockFigmaDeleteWebhookEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				webhookId: targetFigmaTeam1.webhookId,
