@@ -247,11 +247,12 @@ describe('/teams', () => {
 			const figmaTeam = await figmaTeamRepository.upsert(
 				generateFigmaTeamCreateParams({
 					connectInstallationId: connectInstallation.id,
+					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				}),
 			);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
-				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+				atlassianUserId: 'jira-admin-but-not-a-figma-team-admin',
 				connectInstallation,
 			});
 
@@ -280,11 +281,12 @@ describe('/teams', () => {
 			const figmaTeam = await figmaTeamRepository.upsert(
 				generateFigmaTeamCreateParams({
 					connectInstallationId: connectInstallation.id,
+					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				}),
 			);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
-				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+				atlassianUserId: 'jira-admin-but-not-a-figma-team-admin',
 				connectInstallation,
 			});
 
@@ -309,11 +311,12 @@ describe('/teams', () => {
 			const figmaTeam = await figmaTeamRepository.upsert(
 				generateFigmaTeamCreateParams({
 					connectInstallationId: connectInstallation.id,
+					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				}),
 			);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
-				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+				atlassianUserId: 'jira-admin-but-not-a-figma-team-admin',
 				connectInstallation,
 			});
 

@@ -32,7 +32,7 @@ teamsRouter.get(
 		const { connectInstallation } = res.locals;
 
 		listFigmaTeamsUseCase
-			.execute(connectInstallation.id)
+			.execute(connectInstallation)
 			.then((teams) => res.status(HttpStatusCode.Ok).send(teams))
 			.catch(next);
 	},
@@ -63,10 +63,10 @@ teamsRouter.delete(
 		next: NextFunction,
 	) => {
 		assertSchema(req.params, DISCONNECT_FIGMA_TEAM_ROUTE_PARAMS_SCHEMA);
-		const { atlassianUserId, connectInstallation } = res.locals;
+		const { connectInstallation } = res.locals;
 
 		disconnectFigmaTeamUseCase
-			.execute(req.params.teamId, atlassianUserId, connectInstallation)
+			.execute(req.params.teamId, connectInstallation)
 			.then(() => res.sendStatus(HttpStatusCode.Ok))
 			.catch(next);
 	},
