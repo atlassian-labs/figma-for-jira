@@ -9,7 +9,10 @@ import {
 	generateSubmitDesignsResponseWithUnknownData,
 	generateSuccessfulSubmitDesignsResponse,
 } from './jira-client/testing';
-import type {AttachedDesignUrlV2IssuePropertyValue, IngestedDesignUrlIssuePropertyValue} from './jira-service';
+import type {
+	AttachedDesignUrlV2IssuePropertyValue,
+	IngestedDesignUrlIssuePropertyValue,
+} from './jira-service';
 import { jiraService, propertyKeys } from './jira-service';
 
 import type {
@@ -542,14 +545,12 @@ describe('JiraService', () => {
 			);
 
 			const expectedIssuePropertyValue = JSON.stringify(
-				JSON.stringify([
-						design.url
-				]),
+				JSON.stringify([design.url]),
 			);
 
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
-				propertyKeys.INGESTED_DESIGN_URL,
+				propertyKeys.INGESTED_DESIGN_URLS,
 				expectedIssuePropertyValue,
 				connectInstallation,
 			);
@@ -557,12 +558,10 @@ describe('JiraService', () => {
 
 		it('should add to the issue property url array if ingested designs already exist', async () => {
 			const ingestedDesignPropertyValues: IngestedDesignUrlIssuePropertyValue[] =
-				[
-					'https://www.figma.com/file/UcmoEBi9SyNOX3SNhXqShY/test-file',
-				];
+				['https://www.figma.com/file/UcmoEBi9SyNOX3SNhXqShY/test-file'];
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
-					key: propertyKeys.INGESTED_DESIGN_URL,
+					key: propertyKeys.INGESTED_DESIGN_URLS,
 					value: JSON.stringify(ingestedDesignPropertyValues),
 				}),
 			);
@@ -575,15 +574,12 @@ describe('JiraService', () => {
 			);
 
 			const expectedIssuePropertyValue = JSON.stringify(
-				JSON.stringify([
-					...ingestedDesignPropertyValues,
-					design.url
-				]),
+				JSON.stringify([...ingestedDesignPropertyValues, design.url]),
 			);
 
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
-				propertyKeys.INGESTED_DESIGN_URL,
+				propertyKeys.INGESTED_DESIGN_URLS,
 				expectedIssuePropertyValue,
 				connectInstallation,
 			);
@@ -592,10 +588,8 @@ describe('JiraService', () => {
 		it('should not update the ingested designs issue property if the design already exists', async () => {
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
-					key: propertyKeys.INGESTED_DESIGN_URL,
-					value: JSON.stringify([
-						design.url
-					]),
+					key: propertyKeys.INGESTED_DESIGN_URLS,
+					value: JSON.stringify([design.url]),
 				}),
 			);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
@@ -609,22 +603,16 @@ describe('JiraService', () => {
 			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
 		});
 
-		it.each([
-			1,
-			null,
-			{url: 'url'},
-		])(
+		it.each([1, null, { url: 'url' }])(
 			'should overwrite the existing value if the issue property value is not in the expected shape',
 			async (value) => {
 				const expectedIssuePropertyValue = JSON.stringify(
-					JSON.stringify([
-						design.url
-					]),
+					JSON.stringify([design.url]),
 				);
 
 				jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 					generateGetIssuePropertyResponse({
-						key: propertyKeys.INGESTED_DESIGN_URL,
+						key: propertyKeys.INGESTED_DESIGN_URLS,
 						value: JSON.stringify(value),
 					}),
 				);
@@ -638,7 +626,7 @@ describe('JiraService', () => {
 
 				expect(jiraClient.setIssueProperty).toBeCalledWith(
 					issueId,
-					propertyKeys.INGESTED_DESIGN_URL,
+					propertyKeys.INGESTED_DESIGN_URLS,
 					expectedIssuePropertyValue,
 					connectInstallation,
 				);
@@ -647,9 +635,7 @@ describe('JiraService', () => {
 
 		it('should overwrite with the new value if the issue property value received from jira is not a string', async () => {
 			const expectedIssuePropertyValue = JSON.stringify(
-				JSON.stringify([
-					design.url
-				]),
+				JSON.stringify([design.url]),
 			);
 
 			jest
@@ -665,7 +651,7 @@ describe('JiraService', () => {
 
 			expect(jiraClient.setIssueProperty).toBeCalledWith(
 				issueId,
-				propertyKeys.INGESTED_DESIGN_URL,
+				propertyKeys.INGESTED_DESIGN_URLS,
 				expectedIssuePropertyValue,
 				connectInstallation,
 			);
