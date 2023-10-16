@@ -1,21 +1,22 @@
-import { JiraServiceSubmitDesignError } from './errors';
+import {JiraServiceSubmitDesignError} from './errors';
 import type {
 	GetIssuePropertyResponse,
 	SubmitDesignsResponse,
 } from './jira-client';
-import { jiraClient, JiraClientNotFoundError } from './jira-client';
-import { ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA } from './schemas';
+import {jiraClient, JiraClientNotFoundError} from './jira-client';
+import {ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA, INGESTED_DESIGN_URL_VALUE_SCHEMA} from './schemas';
 
-import { ensureString } from '../../common/stringUtils';
+import {ensureString} from '../../common/stringUtils';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
 	FigmaDesignIdentifier,
 	JiraIssue,
 } from '../../domain/entities';
-import { AtlassianAssociation } from '../../domain/entities';
-import { assertSchema, parseJsonOfSchema, SchemaValidationError } from '../ajv';
-import { getLogger } from '../logger';
+import {AtlassianAssociation} from '../../domain/entities';
+import type {JSONSchemaTypeWithId} from '../ajv';
+import {assertSchema, parseJsonOfSchema, SchemaValidationError} from '../ajv';
+import {getLogger} from '../logger';
 
 type SubmitDesignParams = {
 	readonly design: AtlassianDesign;
@@ -28,9 +29,12 @@ export type AttachedDesignUrlV2IssuePropertyValue = {
 	readonly name: string;
 };
 
+export type IngestedDesignUrlIssuePropertyValue = string
+
 export const propertyKeys = {
 	ATTACHED_DESIGN_URL: 'attached-design-url',
 	ATTACHED_DESIGN_URL_V2: 'attached-design-url-v2',
+	INGESTED_DESIGN_URL: 'ingested-design-url',
 };
 
 class JiraService {
@@ -49,7 +53,7 @@ class JiraService {
 		const response = await jiraClient.submitDesigns(
 			{
 				designs: designs.map(
-					({ design, addAssociations, removeAssociations }) => ({
+					({design, addAssociations, removeAssociations}) => ({
 						...design,
 						addAssociations: addAssociations ?? null,
 						removeAssociations: removeAssociations ?? null,
@@ -103,7 +107,7 @@ class JiraService {
 	 */
 	setAttachedDesignUrlInIssuePropertiesIfMissing = async (
 		issueIdOrKey: string,
-		{ url }: AtlassianDesign,
+		{url}: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		try {
@@ -132,44 +136,25 @@ class JiraService {
 	 */
 	updateAttachedDesignUrlV2IssueProperty = async (
 		issueIdOrKey: string,
-		{ url, displayName }: AtlassianDesign,
+		{url, displayName}: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		const newValueItem: AttachedDesignUrlV2IssuePropertyValue = {
 			url,
 			name: displayName,
 		};
-		let newValue: AttachedDesignUrlV2IssuePropertyValue[];
 
-		try {
-			const response = await jiraClient.getIssueProperty(
-				issueIdOrKey,
-				propertyKeys.ATTACHED_DESIGN_URL_V2,
-				connectInstallation,
-			);
-
-			const storedValue = parseJsonOfSchema(
-				response.value,
-				ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
-			);
-
-			if (storedValue.some((value) => value.url === url)) {
-				return;
-			}
-
-			newValue = [...storedValue, newValueItem];
-		} catch (error) {
-			if (
-				error instanceof JiraClientNotFoundError ||
-				error instanceof SchemaValidationError
-			) {
-				// If issue property does not exist, or if the value is in an
-				// unexpected format, overwrite it with the new value.
-				newValue = [newValueItem];
-			} else {
-				throw error;
-			}
+		const storedValue = await this.getStoredValue<AttachedDesignUrlV2IssuePropertyValue>(
+			issueIdOrKey,
+			propertyKeys.ATTACHED_DESIGN_URL_V2,
+			connectInstallation,
+			ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
+		);
+		if (storedValue && storedValue.some((value) => value.url === url)) {
+			return;
 		}
+
+		const newValue = storedValue ? [...storedValue, newValueItem] : [newValueItem];
 
 		return jiraClient.setIssueProperty(
 			issueIdOrKey,
@@ -178,6 +163,56 @@ class JiraService {
 			connectInstallation,
 		);
 	};
+
+	updateIngestedDesignsIssueProperty = async (
+		issueIdOrKey: string,
+		{url}: AtlassianDesign,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> => {
+
+		const storedValue = await this.getStoredValue<IngestedDesignUrlIssuePropertyValue>(
+			issueIdOrKey,
+			propertyKeys.INGESTED_DESIGN_URL,
+			connectInstallation,
+			INGESTED_DESIGN_URL_VALUE_SCHEMA,
+		);
+		if (storedValue && storedValue.some((value) => value === url)) {
+			return;
+		}
+
+		const newValue = storedValue ? [...storedValue, url] : [url];
+
+		return jiraClient.setIssueProperty(
+			issueIdOrKey,
+			propertyKeys.INGESTED_DESIGN_URL,
+			this.superStringify(newValue),
+			connectInstallation,
+		);
+	};
+
+	private async getStoredValue<T>(
+		issueIdOrKey: string,
+		propertyKey: string, connectInstallation: ConnectInstallation,
+		schema: JSONSchemaTypeWithId<T[]>): Promise<T[] | null>
+	{
+		try {
+			const response = await jiraClient.getIssueProperty(
+				issueIdOrKey,
+				propertyKey,
+				connectInstallation
+			);
+			return parseJsonOfSchema(response.value, schema);
+		} catch (error) {
+			if (
+				error instanceof JiraClientNotFoundError ||
+				error instanceof SchemaValidationError
+			) {
+				return null; // If property does not exist or value is in unexpected format, return null
+			} else {
+				throw error;
+			}
+		}
+	}
 
 	deleteDesignUrlInIssueProperties = async (
 		issueIdOrKey: string,
@@ -237,7 +272,7 @@ class JiraService {
 	 */
 	deleteFromAttachedDesignUrlV2IssueProperties = async (
 		issueIdOrKey: string,
-		{ url, displayName }: AtlassianDesign,
+		{url, displayName}: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		let response: GetIssuePropertyResponse;
@@ -270,7 +305,7 @@ class JiraService {
 
 		const newAttachedDesignUrlIssuePropertyValue =
 			storedAttachedDesignUrlIssuePropertyValue.filter(
-				({ url }) => url !== issuePropertyValueToRemove.url,
+				({url}) => url !== issuePropertyValueToRemove.url,
 			);
 
 		if (
@@ -295,7 +330,7 @@ class JiraService {
 	 * Need to keep this way so current implementation doesn't break
 	 */
 	private superStringify(
-		issuePropertyValue: AttachedDesignUrlV2IssuePropertyValue[],
+		issuePropertyValue: AttachedDesignUrlV2IssuePropertyValue[] | IngestedDesignUrlIssuePropertyValue[],
 	) {
 		return JSON.stringify(JSON.stringify(issuePropertyValue));
 	}
@@ -304,7 +339,7 @@ class JiraService {
 		response: SubmitDesignsResponse,
 	) => {
 		if (response.rejectedEntities.length) {
-			const { key, errors } = response.rejectedEntities[0];
+			const {key, errors} = response.rejectedEntities[0];
 			throw JiraServiceSubmitDesignError.designRejected(key.designId, errors);
 		}
 
