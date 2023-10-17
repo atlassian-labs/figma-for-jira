@@ -544,9 +544,7 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			const expectedIssuePropertyValue = JSON.stringify(
-				JSON.stringify([design.url]),
-			);
+			const expectedIssuePropertyValue = [design.url];
 
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
@@ -573,9 +571,10 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			const expectedIssuePropertyValue = JSON.stringify(
-				JSON.stringify([...ingestedDesignPropertyValues, design.url]),
-			);
+			const expectedIssuePropertyValue = [
+				...ingestedDesignPropertyValues,
+				design.url,
+			];
 
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
@@ -606,9 +605,7 @@ describe('JiraService', () => {
 		it.each([1, null, { url: 'url' }])(
 			'should overwrite the existing value if the issue property value is not in the expected shape',
 			async (value) => {
-				const expectedIssuePropertyValue = JSON.stringify(
-					JSON.stringify([design.url]),
-				);
+				const expectedIssuePropertyValue = [design.url];
 
 				jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 					generateGetIssuePropertyResponse({
@@ -634,9 +631,7 @@ describe('JiraService', () => {
 		);
 
 		it('should overwrite with the new value if the issue property value received from jira is not a string', async () => {
-			const expectedIssuePropertyValue = JSON.stringify(
-				JSON.stringify([design.url]),
-			);
+			const expectedIssuePropertyValue = [design.url];
 
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')

@@ -196,7 +196,7 @@ class JiraService {
 		return jiraClient.setIssueProperty(
 			issueIdOrKey,
 			propertyKeys.INGESTED_DESIGN_URLS,
-			this.superStringify(newValue),
+			newValue,
 			connectInstallation,
 		);
 	};
@@ -342,9 +342,7 @@ class JiraService {
 	 * Need to keep this way so current implementation doesn't break
 	 */
 	private superStringify(
-		issuePropertyValue:
-			| AttachedDesignUrlV2IssuePropertyValue[]
-			| IngestedDesignUrlIssuePropertyValue[],
+		issuePropertyValue: AttachedDesignUrlV2IssuePropertyValue[],
 	) {
 		return JSON.stringify(JSON.stringify(issuePropertyValue));
 	}

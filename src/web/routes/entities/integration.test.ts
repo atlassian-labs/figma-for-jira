@@ -256,7 +256,7 @@ describe('/entities', () => {
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
 				propertyKey: propertyKeys.INGESTED_DESIGN_URLS,
-				request: JSON.stringify(JSON.stringify([normalizedFigmaDesignUrl])),
+				request: [normalizedFigmaDesignUrl],
 			});
 
 			await request(app)
@@ -403,7 +403,7 @@ describe('/entities', () => {
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
 				propertyKey: propertyKeys.INGESTED_DESIGN_URLS,
-				request: JSON.stringify(JSON.stringify([normalizedFigmaDesignUrl])),
+				request: [normalizedFigmaDesignUrl],
 			});
 
 			await request(app)
