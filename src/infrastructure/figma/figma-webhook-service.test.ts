@@ -1,68 +1,26 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import {
-	FigmaWebhookServiceEventTypeValidationError,
-	FigmaWebhookServicePasscodeValidationError,
-} from './errors';
-import { figmaService } from './figma-service';
 import { figmaWebhookService } from './figma-webhook-service';
 
-import type { FigmaWebhookEventType } from '../../domain/entities';
+import { ValidationError } from '../../common/errors';
 import { generateFigmaTeam } from '../../domain/entities/testing';
 import { figmaTeamRepository } from '../repositories';
 
 describe('FigmaWebhookService', () => {
-	it.each([
-		'PING',
-		'FILE_VERSION_UPDATE',
-		'FILE_DELETE',
-		'LIBRARY_PUBLISH',
-		'FILE_COMMENT',
-	] as FigmaWebhookEventType[])(
-		'should throw a WebhookServiceEventTypeValidationError for unsupported event types',
-		async (eventType: FigmaWebhookEventType) => {
-			const webhookId = uuidv4();
-			const passcode = uuidv4();
-			const expectedError = new FigmaWebhookServiceEventTypeValidationError(
-				webhookId,
-			);
-
-			jest.spyOn(figmaTeamRepository, 'getByWebhookId');
-			jest.spyOn(figmaService, 'getValidCredentialsOrThrow');
-
-			await expect(
-				figmaWebhookService.validateWebhookEvent(
-					eventType,
-					webhookId,
-					passcode,
-				),
-			).rejects.toStrictEqual(expectedError);
-			expect(figmaTeamRepository.getByWebhookId).not.toBeCalled();
-			expect(figmaService.getValidCredentialsOrThrow).not.toBeCalled();
-		},
-	);
-
-	it('should throw a FigmaWebhookPasscodeValidationError if passcode is invalid', async () => {
-		const eventType: FigmaWebhookEventType = 'FILE_UPDATE';
+	it('should throw a ValidationError if passcode is invalid', async () => {
 		const webhookId = uuidv4();
 		const invalidPasscode = uuidv4();
 		const figmaTeam = generateFigmaTeam({ webhookId });
-		const expectedError = new FigmaWebhookServicePasscodeValidationError(
-			webhookId,
+		const expectedError = new ValidationError(
+			`Received webhook event for ${webhookId} with invalid passcode.`,
 		);
 
 		jest
 			.spyOn(figmaTeamRepository, 'getByWebhookId')
 			.mockResolvedValue(figmaTeam);
-		jest.spyOn(figmaService, 'getValidCredentialsOrThrow');
 
 		await expect(
-			figmaWebhookService.validateWebhookEvent(
-				eventType,
-				webhookId,
-				invalidPasscode,
-			),
+			figmaWebhookService.validateWebhookEvent(webhookId, invalidPasscode),
 		).rejects.toStrictEqual(expectedError);
-		expect(figmaService.getValidCredentialsOrThrow).not.toBeCalled();
 	});
 });

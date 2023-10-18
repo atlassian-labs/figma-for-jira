@@ -1,4 +1,4 @@
-import { ensureString, isString } from './stringUtils';
+import { ensureString, isString } from './string-utils';
 
 describe('stringUtils', () => {
 	describe('isString', () => {

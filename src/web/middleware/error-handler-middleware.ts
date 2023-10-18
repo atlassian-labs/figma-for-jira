@@ -3,13 +3,12 @@ import type { NextFunction, Request, Response } from 'express';
 
 import { UnauthorizedError } from './errors';
 
-import { SchemaValidationError } from '../../infrastructure';
 import {
-	FigmaServiceCredentialsError,
-	FigmaWebhookServiceEventTypeValidationError,
-	FigmaWebhookServicePasscodeValidationError,
-} from '../../infrastructure/figma';
-import { RepositoryRecordNotFoundError } from '../../infrastructure/repositories';
+	ForbiddenOperationError,
+	NotFoundOperationError,
+	UnauthorizedOperationError,
+	ValidationError,
+} from '../../common/errors';
 
 export const errorHandlerMiddleware = (
 	err: Error,
@@ -27,16 +26,14 @@ export const errorHandlerMiddleware = (
 
 	if (err instanceof UnauthorizedError) {
 		res.status(HttpStatusCode.Unauthorized).send(err.message);
-	} else if (err instanceof RepositoryRecordNotFoundError) {
+	} else if (err instanceof NotFoundOperationError) {
 		res.status(HttpStatusCode.NotFound).send(err.message);
-	} else if (err instanceof FigmaServiceCredentialsError) {
-		res.status(HttpStatusCode.Forbidden).send(err.message);
-	} else if (err instanceof FigmaWebhookServiceEventTypeValidationError) {
-		res.sendStatus(HttpStatusCode.Ok);
 	} else if (
-		err instanceof FigmaWebhookServicePasscodeValidationError ||
-		err instanceof SchemaValidationError
+		err instanceof UnauthorizedOperationError ||
+		err instanceof ForbiddenOperationError
 	) {
+		res.status(HttpStatusCode.Forbidden).send(err.message);
+	} else if (err instanceof ValidationError) {
 		res.sendStatus(HttpStatusCode.BadRequest);
 	} else {
 		res.sendStatus(HttpStatusCode.InternalServerError);

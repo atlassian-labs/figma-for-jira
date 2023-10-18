@@ -1,12 +1,13 @@
-import { JiraServiceSubmitDesignError } from './errors';
+import { SubmitDesignJiraOperationError } from './errors';
 import type {
 	GetIssuePropertyResponse,
 	SubmitDesignsResponse,
 } from './jira-client';
-import { jiraClient, JiraClientNotFoundError } from './jira-client';
+import { jiraClient } from './jira-client';
 import { ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA } from './schemas';
 
-import { ensureString } from '../../common/stringUtils';
+import { NotFoundOperationError } from '../../common/errors';
+import { ensureString } from '../../common/string-utils';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
@@ -113,7 +114,7 @@ class JiraService {
 				connectInstallation,
 			);
 		} catch (error) {
-			if (error instanceof JiraClientNotFoundError) {
+			if (error instanceof NotFoundOperationError) {
 				await jiraClient.setIssueProperty(
 					issueIdOrKey,
 					propertyKeys.ATTACHED_DESIGN_URL,
@@ -160,7 +161,7 @@ class JiraService {
 			newValue = [...storedValue, newValueItem];
 		} catch (error) {
 			if (
-				error instanceof JiraClientNotFoundError ||
+				error instanceof NotFoundOperationError ||
 				error instanceof SchemaValidationError
 			) {
 				// If issue property does not exist, or if the value is in an
@@ -224,7 +225,7 @@ class JiraService {
 				);
 			}
 		} catch (error) {
-			if (error instanceof JiraClientNotFoundError) {
+			if (error instanceof NotFoundOperationError) {
 				return; // Swallow not found errors
 			}
 			throw error;
@@ -248,7 +249,7 @@ class JiraService {
 				connectInstallation,
 			);
 		} catch (error) {
-			if (error instanceof JiraClientNotFoundError) {
+			if (error instanceof NotFoundOperationError) {
 				return; // Swallow not found errors
 			}
 			throw error;
@@ -305,18 +306,18 @@ class JiraService {
 	) => {
 		if (response.rejectedEntities.length) {
 			const { key, errors } = response.rejectedEntities[0];
-			throw JiraServiceSubmitDesignError.designRejected(key.designId, errors);
+			throw SubmitDesignJiraOperationError.designRejected(key.designId, errors);
 		}
 
 		// TODO: Confirm whether we need to consider the use case below as a failure and throw or just leave a warning.
 		if (response.unknownIssueKeys?.length) {
-			throw JiraServiceSubmitDesignError.unknownIssueKeys(
+			throw SubmitDesignJiraOperationError.unknownIssueKeys(
 				response.unknownIssueKeys,
 			);
 		}
 
 		if (response.unknownAssociations?.length) {
-			throw JiraServiceSubmitDesignError.unknownAssociations(
+			throw SubmitDesignJiraOperationError.unknownAssociations(
 				response.unknownAssociations.map(
 					(x) => new AtlassianAssociation(x.associationType, x.values),
 				),
