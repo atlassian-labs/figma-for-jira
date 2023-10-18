@@ -37,7 +37,7 @@ export type IngestedDesignUrlIssuePropertyValue = string;
 export const propertyKeys = {
 	ATTACHED_DESIGN_URL: 'attached-design-url',
 	ATTACHED_DESIGN_URL_V2: 'attached-design-url-v2',
-	INGESTED_DESIGN_URLS: 'ingested-design-urls',
+	INGESTED_DESIGN_URLS: 'figma-for-jira:ingested-design-urls',
 };
 
 class JiraService {
@@ -153,13 +153,13 @@ class JiraService {
 		};
 
 		const storedValue =
-			await this.getStoredIssuePropertyValue<AttachedDesignUrlV2IssuePropertyValue>(
+			await this.getIssuePropertyJsonValue<AttachedDesignUrlV2IssuePropertyValue>(
 				issueIdOrKey,
 				propertyKeys.ATTACHED_DESIGN_URL_V2,
 				connectInstallation,
 				ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 			);
-		if (storedValue && storedValue.some((value) => value.url === url)) {
+		if (storedValue?.some((value) => value.url === url)) {
 			return;
 		}
 
@@ -181,13 +181,13 @@ class JiraService {
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		const storedValue =
-			await this.getStoredIssuePropertyValue<IngestedDesignUrlIssuePropertyValue>(
+			await this.getIssuePropertyJsonValue<IngestedDesignUrlIssuePropertyValue>(
 				issueIdOrKey,
 				propertyKeys.INGESTED_DESIGN_URLS,
 				connectInstallation,
 				INGESTED_DESIGN_URL_VALUE_SCHEMA,
 			);
-		if (storedValue && storedValue.some((value) => value === url)) {
+		if (storedValue?.some((value) => value === url)) {
 			return;
 		}
 
@@ -312,7 +312,7 @@ class JiraService {
 		}
 	};
 
-	private async getStoredIssuePropertyValue<T>(
+	private async getIssuePropertyJsonValue<T>(
 		issueIdOrKey: string,
 		propertyKey: string,
 		connectInstallation: ConnectInstallation,
