@@ -38,6 +38,7 @@ export type DisconnectFigmaTeamRouteParams = {
 
 export type DisconnectFigmaTeamLocals = {
 	readonly connectInstallation: ConnectInstallation;
+	readonly atlassianUserId: string;
 };
 
 export type DisconnectFigmaTeamRequest = Request<

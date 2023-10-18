@@ -11,6 +11,7 @@ import {
 
 import {
 	ForbiddenOperationError,
+	NotFoundOperationError,
 	UnauthorizedOperationError,
 } from '../../common/errors';
 import { isString } from '../../common/string-utils';
@@ -215,11 +216,11 @@ export class FigmaService {
 	};
 
 	/**
-	 * Tries to delete the given webhook. It makes the best effort to delete the webhook but does not throw an error
-	 * in case of a failure since it can be caused by valid scenarios (e.g., a Figma team admin revoked his/her
-	 * token or was deleted from the organization).
+	 * Tries to delete the given webhook.
 	 *
-	 * As a result, it is possible to get orphaned active and constantly failing webhooks.
+	 * It makes the best effort to delete the webhook but does not throw an error
+	 * in case of failures caused by valid scenarios, which out of the control of the app (e.g., a user was excluded
+	 * was team admins). As a result, it is possible to get orphaned active webhooks.
 	 *
 	 * @remarks
 	 * Ideally, they can be deleted automatically on the Figma side. However, according to the Figma docs,
@@ -235,11 +236,18 @@ export class FigmaService {
 			const { accessToken } = await figmaAuthService.getCredentials(user);
 			await figmaClient.deleteWebhook(webhookId, accessToken);
 		} catch (e: unknown) {
-			getLogger().warn(
-				e,
-				`Failed to remove webhook ${webhookId} for user ${user.atlassianUserId}.`,
-				user,
-			);
+			// Figma API returns "Not Found" when "webhook does not exist or you do not have permissions to access this webhook".
+			// https://www.figma.com/developers/api#webhooks-v2-delete-endpoint
+			if (e instanceof NotFoundOperationError) {
+				getLogger().warn(
+					e,
+					`Cannot delete the webhook ${webhookId} since it has been already deleted or the user does not permissions.`,
+					{ webhookId, user },
+				);
+				return;
+			}
+
+			throw e;
 		}
 	};
 
