@@ -1,7 +1,6 @@
-import type { AxiosResponse, Method } from 'axios';
-import axios, { AxiosHeaders, HttpStatusCode, isAxiosError } from 'axios';
+import type { Method } from 'axios';
+import axios, { AxiosHeaders } from 'axios';
 
-import { JiraClientNotFoundError } from './errors';
 import { createJwtToken } from './jwt-utils';
 import {
 	GET_ISSUE_PROPERTY_RESPONSE_SCHEMA,
@@ -21,6 +20,7 @@ import type {
 	FigmaDesignIdentifier,
 } from '../../../domain/entities';
 import { assertSchema } from '../../ajv';
+import { withOperationErrorTranslation } from '../../axios-utils';
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
 
@@ -30,8 +30,6 @@ const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
  * @see https://developer.atlassian.com/cloud/jira/software/rest/intro/#introduction
  */
 class JiraClient {
-	// TODO: This method has not been tested due to the issue on the Jira side. Therefore, issues in the contract
-	// 	definition and implementation are very likely. Test the method and address found issues.
 	/**
 	 * Insert/update design data.
 	 *
@@ -47,41 +45,46 @@ class JiraClient {
 	submitDesigns = async (
 		payload: SubmitDesignsRequest,
 		connectInstallation: ConnectInstallation,
-	): Promise<SubmitDesignsResponse> => {
-		const url = new URL('/rest/designs/1.0/bulk', connectInstallation.baseUrl);
+	): Promise<SubmitDesignsResponse> =>
+		withOperationErrorTranslation(async () => {
+			const url = new URL(
+				'/rest/designs/1.0/bulk',
+				connectInstallation.baseUrl,
+			);
 
-		const response = await axios.post<SubmitDesignsResponse>(
-			url.toString(),
-			payload,
-			{
-				headers: new AxiosHeaders().setAuthorization(
-					this.buildAuthorizationHeader(url, 'POST', connectInstallation),
-				),
-			},
-		);
+			const response = await axios.post<SubmitDesignsResponse>(
+				url.toString(),
+				payload,
+				{
+					headers: new AxiosHeaders().setAuthorization(
+						this.buildAuthorizationHeader(url, 'POST', connectInstallation),
+					),
+				},
+			);
 
-		assertSchema(response.data, SUBMIT_DESIGNS_RESPONSE_SCHEMA);
+			assertSchema(response.data, SUBMIT_DESIGNS_RESPONSE_SCHEMA);
 
-		return response.data;
-	};
+			return response.data;
+		});
 
 	deleteDesign = async (
 		designId: FigmaDesignIdentifier,
 		connectInstallation: ConnectInstallation,
-	): Promise<FigmaDesignIdentifier> => {
-		const url = new URL(
-			`/rest/designs/1.0/design/${designId.toAtlassianDesignId()}`,
-			connectInstallation.baseUrl,
-		);
+	): Promise<FigmaDesignIdentifier> =>
+		withOperationErrorTranslation(async () => {
+			const url = new URL(
+				`/rest/designs/1.0/design/${designId.toAtlassianDesignId()}`,
+				connectInstallation.baseUrl,
+			);
 
-		await axios.delete(url.toString(), {
-			headers: new AxiosHeaders().setAuthorization(
-				this.buildAuthorizationHeader(url, 'DELETE', connectInstallation),
-			),
+			await axios.delete(url.toString(), {
+				headers: new AxiosHeaders().setAuthorization(
+					this.buildAuthorizationHeader(url, 'DELETE', connectInstallation),
+				),
+			});
+
+			return designId;
 		});
-
-		return designId;
-	};
 
 	/**
 	 * Returns a single issue, for a given issue ID or issue key.
@@ -91,22 +94,23 @@ class JiraClient {
 	getIssue = async (
 		issueIdOrKey: string,
 		connectInstallation: ConnectInstallation,
-	): Promise<GetIssueResponse> => {
-		const url = new URL(
-			`/rest/agile/1.0/issue/${issueIdOrKey}`,
-			connectInstallation.baseUrl,
-		);
+	): Promise<GetIssueResponse> =>
+		withOperationErrorTranslation(async () => {
+			const url = new URL(
+				`/rest/agile/1.0/issue/${issueIdOrKey}`,
+				connectInstallation.baseUrl,
+			);
 
-		const response = await axios.get<GetIssueResponse>(url.toString(), {
-			headers: new AxiosHeaders().setAuthorization(
-				this.buildAuthorizationHeader(url, 'GET', connectInstallation),
-			),
+			const response = await axios.get<GetIssueResponse>(url.toString(), {
+				headers: new AxiosHeaders().setAuthorization(
+					this.buildAuthorizationHeader(url, 'GET', connectInstallation),
+				),
+			});
+
+			assertSchema(response.data, GET_ISSUE_RESPONSE_SCHEMA);
+
+			return response.data;
 		});
-
-		assertSchema(response.data, GET_ISSUE_RESPONSE_SCHEMA);
-
-		return response.data;
-	};
 
 	/**
 	 * Returns the key and value of an issue's property
@@ -117,38 +121,31 @@ class JiraClient {
 		issueIdOrKey: string,
 		propertyKey: string,
 		connectInstallation: ConnectInstallation,
-	): Promise<GetIssuePropertyResponse> => {
-		const url = new URL(
-			`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
-			connectInstallation.baseUrl,
-		);
-		let response: AxiosResponse<GetIssuePropertyResponse>;
-		try {
-			response = await axios.get<GetIssuePropertyResponse>(url.toString(), {
-				headers: new AxiosHeaders()
-					.setAuthorization(
-						this.buildAuthorizationHeader(url, 'GET', connectInstallation),
-					)
-					.setAccept('application/json'),
-			});
-		} catch (error) {
-			if (
-				isAxiosError(error) &&
-				error.response?.status === HttpStatusCode.NotFound
-			) {
-				throw new JiraClientNotFoundError();
-			} else {
-				throw error;
-			}
-		}
+	): Promise<GetIssuePropertyResponse> =>
+		withOperationErrorTranslation(async () => {
+			const url = new URL(
+				`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
+				connectInstallation.baseUrl,
+			);
 
-		assertSchema<Omit<GetIssuePropertyResponse, 'value'>>(
-			response.data,
-			GET_ISSUE_PROPERTY_RESPONSE_SCHEMA,
-		);
+			const response = await axios.get<GetIssuePropertyResponse>(
+				url.toString(),
+				{
+					headers: new AxiosHeaders()
+						.setAuthorization(
+							this.buildAuthorizationHeader(url, 'GET', connectInstallation),
+						)
+						.setAccept('application/json'),
+				},
+			);
 
-		return response.data;
-	};
+			assertSchema<Omit<GetIssuePropertyResponse, 'value'>>(
+				response.data,
+				GET_ISSUE_PROPERTY_RESPONSE_SCHEMA,
+			);
+
+			return response.data;
+		});
 
 	/**
 	 * Sets the value of an issue's property. Use this resource to store custom data against an issue.
@@ -160,21 +157,22 @@ class JiraClient {
 		propertyKey: string,
 		value: unknown,
 		connectInstallation: ConnectInstallation,
-	): Promise<void> => {
-		const url = new URL(
-			`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
-			connectInstallation.baseUrl,
-		);
+	): Promise<void> =>
+		withOperationErrorTranslation(async () => {
+			const url = new URL(
+				`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
+				connectInstallation.baseUrl,
+			);
 
-		await axios.put(url.toString(), value, {
-			headers: new AxiosHeaders()
-				.setAuthorization(
-					this.buildAuthorizationHeader(url, 'PUT', connectInstallation),
-				)
-				.setAccept('application/json')
-				.setContentType('application/json'),
+			await axios.put(url.toString(), value, {
+				headers: new AxiosHeaders()
+					.setAuthorization(
+						this.buildAuthorizationHeader(url, 'PUT', connectInstallation),
+					)
+					.setAccept('application/json')
+					.setContentType('application/json'),
+			});
 		});
-	};
 
 	/**
 	 * Deletes an issue's property
@@ -185,29 +183,19 @@ class JiraClient {
 		issueIdOrKey: string,
 		propertyKey: string,
 		connectInstallation: ConnectInstallation,
-	): Promise<void> => {
-		const url = new URL(
-			`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
-			connectInstallation.baseUrl,
-		);
+	): Promise<void> =>
+		withOperationErrorTranslation(async () => {
+			const url = new URL(
+				`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
+				connectInstallation.baseUrl,
+			);
 
-		try {
 			await axios.delete(url.toString(), {
 				headers: new AxiosHeaders().setAuthorization(
 					this.buildAuthorizationHeader(url, 'DELETE', connectInstallation),
 				),
 			});
-		} catch (error) {
-			if (
-				isAxiosError(error) &&
-				error.response?.status === HttpStatusCode.NotFound
-			) {
-				throw new JiraClientNotFoundError();
-			} else {
-				throw error;
-			}
-		}
-	};
+		});
 
 	private buildAuthorizationHeader(
 		url: URL,

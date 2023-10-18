@@ -2,9 +2,9 @@ import type { ConnectInstallation as PrismaConnectInstallation } from '@prisma/c
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 import { PrismaErrorCode } from './constants';
-import { RepositoryRecordNotFoundError } from './errors';
 import { prismaClient } from './prisma-client';
 
+import { NotFoundOperationError } from '../../common/errors';
 import type {
 	ConnectInstallation,
 	ConnectInstallationCreateParams,
@@ -16,7 +16,7 @@ export class ConnectInstallationRepository {
 			where: { id: BigInt(id) },
 		});
 		if (dbModel === null) {
-			throw new RepositoryRecordNotFoundError(
+			throw new NotFoundOperationError(
 				`Failed to find ConnectInstallation for id ${id}`,
 			);
 		}
@@ -38,7 +38,7 @@ export class ConnectInstallationRepository {
 			where: { clientKey },
 		});
 		if (dbModel === null) {
-			throw new RepositoryRecordNotFoundError(
+			throw new NotFoundOperationError(
 				`Failed to find ConnectInstallation for clientKey ${clientKey}`,
 			);
 		}
@@ -72,7 +72,10 @@ export class ConnectInstallationRepository {
 				e instanceof PrismaClientKnownRequestError &&
 				e.code === PrismaErrorCode.RecordNotFound
 			) {
-				throw new RepositoryRecordNotFoundError(e.message);
+				throw new NotFoundOperationError(
+					'Connect installation is not found.',
+					e,
+				);
 			}
 			throw e;
 		}

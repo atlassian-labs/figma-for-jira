@@ -32,7 +32,7 @@ teamsRouter.get(
 		const { connectInstallation } = res.locals;
 
 		listFigmaTeamsUseCase
-			.execute(connectInstallation.id)
+			.execute(connectInstallation)
 			.then((teams) => res.status(HttpStatusCode.Ok).send(teams))
 			.catch(next);
 	},
@@ -66,7 +66,7 @@ teamsRouter.delete(
 		const { connectInstallation } = res.locals;
 
 		disconnectFigmaTeamUseCase
-			.execute(req.params.teamId, connectInstallation.id)
+			.execute(req.params.teamId, connectInstallation)
 			.then(() => res.sendStatus(HttpStatusCode.Ok))
 			.catch(next);
 	},

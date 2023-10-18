@@ -4,12 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { jiraServerSymmetricJwtTokenVerifier } from './jira-server-symmetric-jwt-token-verifier';
 
 import { Duration } from '../../../common/duration';
+import { NotFoundOperationError } from '../../../common/errors';
 import { generateConnectInstallation } from '../../../domain/entities/testing';
 import { UnauthorizedError } from '../../../web/middleware/errors';
-import {
-	connectInstallationRepository,
-	RepositoryRecordNotFoundError,
-} from '../../repositories';
+import { connectInstallationRepository } from '../../repositories';
 
 const NOW = Date.now();
 const NOW_IN_SECONDS = Math.floor(NOW / 1000);
@@ -61,7 +59,7 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 		it('should throw when there is no Connect Installation', async () => {
 			jest
 				.spyOn(connectInstallationRepository, 'getByClientKey')
-				.mockRejectedValue(new RepositoryRecordNotFoundError());
+				.mockRejectedValue(new NotFoundOperationError());
 			const jwtToken = encodeSymmetric(
 				{
 					iss: uuidv4(),

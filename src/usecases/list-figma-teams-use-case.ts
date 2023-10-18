@@ -1,12 +1,12 @@
-import type { FigmaTeamSummary } from '../domain/entities';
+import type { ConnectInstallation, FigmaTeamSummary } from '../domain/entities';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
 export const listFigmaTeamsUseCase = {
 	execute: async (
-		connectInstallationId: string,
+		connectInstallation: ConnectInstallation,
 	): Promise<FigmaTeamSummary[]> => {
 		return figmaTeamRepository.findManySummaryByConnectInstallationId(
-			connectInstallationId,
+			connectInstallation.id,
 		);
 	},
 };

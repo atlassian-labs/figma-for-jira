@@ -1,7 +1,6 @@
 import type { AxiosResponse } from 'axios';
 import axios, { AxiosError, AxiosHeaders, HttpStatusCode } from 'axios';
 
-import { JiraClientNotFoundError } from './errors';
 import { jiraClient } from './jira-client';
 import { createJwtToken } from './jwt-utils';
 import {
@@ -12,6 +11,7 @@ import {
 	MOCK_JWT_TOKEN,
 } from './testing';
 
+import { NotFoundOperationError } from '../../../common/errors';
 import type { ConnectInstallation } from '../../../domain/entities';
 import {
 	generateConnectInstallation,
@@ -177,7 +177,7 @@ describe('JiraClient', () => {
 
 			await expect(() =>
 				jiraClient.getIssueProperty(issueId, propertyKey, connectInstallation),
-			).rejects.toThrowError(JiraClientNotFoundError);
+			).rejects.toThrowError(NotFoundOperationError);
 		});
 	});
 
@@ -247,7 +247,7 @@ describe('JiraClient', () => {
 					propertyKey,
 					connectInstallation,
 				),
-			).rejects.toThrowError(JiraClientNotFoundError);
+			).rejects.toThrowError(NotFoundOperationError);
 		});
 	});
 });
