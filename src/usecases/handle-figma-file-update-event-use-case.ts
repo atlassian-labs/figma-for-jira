@@ -1,9 +1,11 @@
-import { type FigmaTeam, FigmaTeamAuthStatus } from '../domain/entities';
-import { getLogger } from '../infrastructure';
 import {
-	figmaService,
-	FigmaServiceCredentialsError,
-} from '../infrastructure/figma';
+	ForbiddenOperationError,
+	UnauthorizedOperationError,
+} from '../common/errors';
+import type { AtlassianDesign, FigmaTeam } from '../domain/entities';
+import { FigmaTeamAuthStatus } from '../domain/entities';
+import { getLogger } from '../infrastructure';
+import { figmaService } from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
 import {
 	associatedFigmaDesignRepository,
@@ -20,7 +22,7 @@ export const handleFigmaFileUpdateEventUseCase = {
 			);
 			await figmaTeamRepository.updateTeamName(figmaTeam.id, teamName);
 		} catch (e: unknown) {
-			if (e instanceof FigmaServiceCredentialsError) {
+			if (isAuthRelatedError(e)) {
 				await figmaTeamRepository.updateAuthStatus(
 					figmaTeam.id,
 					FigmaTeamAuthStatus.ERROR,
@@ -39,29 +41,35 @@ export const handleFigmaFileUpdateEventUseCase = {
 			),
 		]);
 
-		if (!associatedFigmaDesigns.length) {
-			return;
-		}
+		if (!associatedFigmaDesigns.length) return;
+
+		let designs: AtlassianDesign[];
 
 		try {
-			const designs = await figmaService.fetchDesignsByIds(
+			designs = await figmaService.fetchDesignsByIds(
 				associatedFigmaDesigns.map((design) => design.designId),
 				figmaTeam.adminInfo,
 			);
-
-			await jiraService.submitDesigns(
-				designs.map((design) => ({ design })),
-				connectInstallation,
-			);
 		} catch (e: unknown) {
-			if (e instanceof FigmaServiceCredentialsError) {
-				await figmaTeamRepository.updateAuthStatus(
+			if (isAuthRelatedError(e)) {
+				return figmaTeamRepository.updateAuthStatus(
 					figmaTeam.id,
 					FigmaTeamAuthStatus.ERROR,
 				);
-			} else {
-				throw e;
 			}
+			throw e;
 		}
+
+		await jiraService.submitDesigns(
+			designs.map((design) => ({ design })),
+			connectInstallation,
+		);
 	},
+};
+
+const isAuthRelatedError = (e: unknown): boolean => {
+	return (
+		e instanceof UnauthorizedOperationError ||
+		e instanceof ForbiddenOperationError
+	);
 };

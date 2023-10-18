@@ -1,8 +1,8 @@
 import type { FigmaOAuth2UserCredentials as PrismaFigmaOAuth2UserCredentials } from '@prisma/client';
 
-import { RepositoryRecordNotFoundError } from './errors';
 import { prismaClient } from './prisma-client';
 
+import { NotFoundOperationError } from '../../common/errors';
 import type { FigmaOAuth2UserCredentialsCreateParams } from '../../domain/entities';
 import { FigmaOAuth2UserCredentials } from '../../domain/entities';
 
@@ -43,8 +43,8 @@ export class FigmaOAuth2UserCredentialsRepository {
 				},
 			});
 		if (credentials === null) {
-			throw new RepositoryRecordNotFoundError(
-				`Failed to find FigmaOAuth2UserCredentials with atlassianUserId ${atlassianUserId}`,
+			throw new NotFoundOperationError(
+				`FigmaOAuth2UserCredentials for user ${atlassianUserId} is not found.`,
 			);
 		}
 

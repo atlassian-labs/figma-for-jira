@@ -9,7 +9,7 @@ import {
 } from './jira-jwt-utils';
 
 import { isEnumValueOf } from '../../../common/enumUtils';
-import { ensureString } from '../../../common/stringUtils';
+import { ensureString } from '../../../common/string-utils';
 import { getConfig } from '../../../config';
 import { UnauthorizedError } from '../../../web/middleware/errors';
 import type { JSONSchemaTypeWithId } from '../../index';

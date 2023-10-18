@@ -1,8 +1,7 @@
+import { OperationError } from '../../common/errors';
 import type { AtlassianAssociation } from '../../domain/entities';
 
-export class JiraServiceError extends Error {}
-
-export class JiraServiceSubmitDesignError extends JiraServiceError {
+export class SubmitDesignJiraOperationError extends OperationError {
 	designId?: string;
 	rejectionErrors?: { readonly message: string }[];
 	unknownIssueKeys?: string[];
@@ -31,8 +30,8 @@ export class JiraServiceSubmitDesignError extends JiraServiceError {
 	static designRejected(
 		designId: string,
 		rejectionErrors: { readonly message: string }[],
-	): JiraServiceSubmitDesignError {
-		return new JiraServiceSubmitDesignError({
+	): SubmitDesignJiraOperationError {
+		return new SubmitDesignJiraOperationError({
 			message: 'The design submission has been rejected',
 			designId,
 			rejectionErrors,
@@ -40,14 +39,14 @@ export class JiraServiceSubmitDesignError extends JiraServiceError {
 	}
 
 	static unknownIssueKeys(unknownIssueKeys: string[]) {
-		return new JiraServiceSubmitDesignError({
+		return new SubmitDesignJiraOperationError({
 			message: 'The design has unknown issue keys',
 			unknownIssueKeys,
 		});
 	}
 
 	static unknownAssociations(unknownAssociations: AtlassianAssociation[]) {
-		return new JiraServiceSubmitDesignError({
+		return new SubmitDesignJiraOperationError({
 			message: 'The design has unknown associations',
 			unknownAssociations,
 		});
