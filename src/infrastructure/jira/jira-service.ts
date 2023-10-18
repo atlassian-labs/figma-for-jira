@@ -4,7 +4,10 @@ import type {
 	SubmitDesignsResponse,
 } from './jira-client';
 import { jiraClient } from './jira-client';
-import { ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA } from './schemas';
+import {
+	ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
+	INGESTED_DESIGN_URL_VALUE_SCHEMA,
+} from './schemas';
 
 import { NotFoundOperationError } from '../../common/errors';
 import { ensureString } from '../../common/string-utils';
@@ -15,6 +18,7 @@ import type {
 	JiraIssue,
 } from '../../domain/entities';
 import { AtlassianAssociation } from '../../domain/entities';
+import type { JSONSchemaTypeWithId } from '../ajv';
 import { assertSchema, parseJsonOfSchema, SchemaValidationError } from '../ajv';
 import { getLogger } from '../logger';
 
@@ -29,9 +33,12 @@ export type AttachedDesignUrlV2IssuePropertyValue = {
 	readonly name: string;
 };
 
+export type IngestedDesignUrlIssuePropertyValue = string;
+
 export const propertyKeys = {
 	ATTACHED_DESIGN_URL: 'attached-design-url',
 	ATTACHED_DESIGN_URL_V2: 'attached-design-url-v2',
+	INGESTED_DESIGN_URLS: 'figma-for-jira:ingested-design-urls',
 };
 
 class JiraService {
@@ -95,6 +102,11 @@ class JiraService {
 				design,
 				connectInstallation,
 			),
+			this.updateIngestedDesignsIssueProperty(
+				issueIdOrKey,
+				design,
+				connectInstallation,
+			),
 		]);
 	};
 
@@ -140,42 +152,52 @@ class JiraService {
 			url,
 			name: displayName,
 		};
-		let newValue: AttachedDesignUrlV2IssuePropertyValue[];
 
-		try {
-			const response = await jiraClient.getIssueProperty(
+		const storedValue =
+			await this.getIssuePropertyJsonValue<AttachedDesignUrlV2IssuePropertyValue>(
 				issueIdOrKey,
 				propertyKeys.ATTACHED_DESIGN_URL_V2,
 				connectInstallation,
-			);
-
-			const storedValue = parseJsonOfSchema(
-				response.value,
 				ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 			);
-
-			if (storedValue.some((value) => value.url === url)) {
-				return;
-			}
-
-			newValue = [...storedValue, newValueItem];
-		} catch (error) {
-			if (
-				error instanceof NotFoundOperationError ||
-				error instanceof SchemaValidationError
-			) {
-				// If issue property does not exist, or if the value is in an
-				// unexpected format, overwrite it with the new value.
-				newValue = [newValueItem];
-			} else {
-				throw error;
-			}
+		if (storedValue?.some((value) => value.url === url)) {
+			return;
 		}
+
+		const newValue = storedValue
+			? [...storedValue, newValueItem]
+			: [newValueItem];
 
 		return jiraClient.setIssueProperty(
 			issueIdOrKey,
 			propertyKeys.ATTACHED_DESIGN_URL_V2,
 			this.superStringify(newValue),
+			connectInstallation,
+		);
+	};
+
+	updateIngestedDesignsIssueProperty = async (
+		issueIdOrKey: string,
+		{ url }: AtlassianDesign,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> => {
+		const storedValue =
+			await this.getIssuePropertyJsonValue<IngestedDesignUrlIssuePropertyValue>(
+				issueIdOrKey,
+				propertyKeys.INGESTED_DESIGN_URLS,
+				connectInstallation,
+				INGESTED_DESIGN_URL_VALUE_SCHEMA,
+			);
+		if (storedValue?.some((value) => value === url)) {
+			return;
+		}
+
+		const newValue = storedValue ? [...storedValue, url] : [url];
+
+		return jiraClient.setIssueProperty(
+			issueIdOrKey,
+			propertyKeys.INGESTED_DESIGN_URLS,
+			newValue,
 			connectInstallation,
 		);
 	};
@@ -290,6 +312,31 @@ class JiraService {
 			);
 		}
 	};
+
+	private async getIssuePropertyJsonValue<T>(
+		issueIdOrKey: string,
+		propertyKey: string,
+		connectInstallation: ConnectInstallation,
+		schema: JSONSchemaTypeWithId<T[]>,
+	): Promise<T[] | null> {
+		try {
+			const response = await jiraClient.getIssueProperty(
+				issueIdOrKey,
+				propertyKey,
+				connectInstallation,
+			);
+			return parseJsonOfSchema(response.value, schema);
+		} catch (error) {
+			if (
+				error instanceof NotFoundOperationError ||
+				error instanceof SchemaValidationError
+			) {
+				return null; // If property does not exist or value is in unexpected format, return null
+			} else {
+				throw error;
+			}
+		}
+	}
 
 	/**
 	 * This isn't ideal but must be done as it's how the current implementation works

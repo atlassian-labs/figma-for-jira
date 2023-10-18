@@ -9,7 +9,10 @@ import {
 	generateSubmitDesignsResponseWithUnknownData,
 	generateSuccessfulSubmitDesignsResponse,
 } from './jira-client/testing';
-import type { AttachedDesignUrlV2IssuePropertyValue } from './jira-service';
+import type {
+	AttachedDesignUrlV2IssuePropertyValue,
+	IngestedDesignUrlIssuePropertyValue,
+} from './jira-service';
 import { jiraService, propertyKeys } from './jira-service';
 
 import { NotFoundOperationError } from '../../common/errors';
@@ -512,6 +515,160 @@ describe('JiraService', () => {
 
 			await expect(
 				jiraService.updateAttachedDesignUrlV2IssueProperty(
+					issueId,
+					design,
+					connectInstallation,
+				),
+			).rejects.toThrowError(unexpectedError);
+		});
+	});
+
+	describe('updateIngestedDesignsIssueProperty', () => {
+		const issueId = generateJiraIssueKey();
+		let connectInstallation: ConnectInstallation;
+		let design: AtlassianDesign;
+
+		beforeEach(() => {
+			connectInstallation = generateConnectInstallation();
+			design = generateAtlassianDesign();
+		});
+
+		it('should set the issue property if not present', async () => {
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockRejectedValue(new NotFoundOperationError());
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await jiraService.updateIngestedDesignsIssueProperty(
+				issueId,
+				design,
+				connectInstallation,
+			);
+
+			const expectedIssuePropertyValue = [design.url];
+
+			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
+				issueId,
+				propertyKeys.INGESTED_DESIGN_URLS,
+				expectedIssuePropertyValue,
+				connectInstallation,
+			);
+		});
+
+		it('should add to the issue property url array if ingested designs already exist', async () => {
+			const ingestedDesignPropertyValues: IngestedDesignUrlIssuePropertyValue[] =
+				['https://www.figma.com/file/UcmoEBi9SyNOX3SNhXqShY/test-file'];
+			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+				generateGetIssuePropertyResponse({
+					key: propertyKeys.INGESTED_DESIGN_URLS,
+					value: JSON.stringify(ingestedDesignPropertyValues),
+				}),
+			);
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await jiraService.updateIngestedDesignsIssueProperty(
+				issueId,
+				design,
+				connectInstallation,
+			);
+
+			const expectedIssuePropertyValue = [
+				...ingestedDesignPropertyValues,
+				design.url,
+			];
+
+			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
+				issueId,
+				propertyKeys.INGESTED_DESIGN_URLS,
+				expectedIssuePropertyValue,
+				connectInstallation,
+			);
+		});
+
+		it('should not update the ingested designs issue property if the design already exists', async () => {
+			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+				generateGetIssuePropertyResponse({
+					key: propertyKeys.INGESTED_DESIGN_URLS,
+					value: JSON.stringify([design.url]),
+				}),
+			);
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await jiraService.updateIngestedDesignsIssueProperty(
+				issueId,
+				design,
+				connectInstallation,
+			);
+
+			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
+		});
+
+		it.each([1, null, { url: 'url' }])(
+			'should overwrite the existing value if the issue property value is not in the expected shape',
+			async (value) => {
+				const expectedIssuePropertyValue = [design.url];
+
+				jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+					generateGetIssuePropertyResponse({
+						key: propertyKeys.INGESTED_DESIGN_URLS,
+						value: JSON.stringify(value),
+					}),
+				);
+				jest.spyOn(jiraClient, 'setIssueProperty').mockResolvedValue();
+
+				await jiraService.updateIngestedDesignsIssueProperty(
+					issueId,
+					design,
+					connectInstallation,
+				);
+
+				expect(jiraClient.setIssueProperty).toBeCalledWith(
+					issueId,
+					propertyKeys.INGESTED_DESIGN_URLS,
+					expectedIssuePropertyValue,
+					connectInstallation,
+				);
+			},
+		);
+
+		it('should overwrite with the new value if the issue property value received from jira is not a string', async () => {
+			const expectedIssuePropertyValue = [design.url];
+
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockResolvedValue(generateGetIssuePropertyResponse({ value: 1 }));
+			jest.spyOn(jiraClient, 'setIssueProperty').mockResolvedValue();
+
+			await jiraService.updateIngestedDesignsIssueProperty(
+				issueId,
+				design,
+				connectInstallation,
+			);
+
+			expect(jiraClient.setIssueProperty).toBeCalledWith(
+				issueId,
+				propertyKeys.INGESTED_DESIGN_URLS,
+				expectedIssuePropertyValue,
+				connectInstallation,
+			);
+		});
+
+		it('should rethrow unknown errors', async () => {
+			const unexpectedError = new AxiosError(
+				'Forbidden.',
+				HttpStatusCode.Forbidden.toString(),
+				undefined,
+				undefined,
+				{
+					status: HttpStatusCode.Forbidden,
+				} as AxiosResponse,
+			);
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockRejectedValue(unexpectedError);
+
+			await expect(
+				jiraService.updateIngestedDesignsIssueProperty(
 					issueId,
 					design,
 					connectInstallation,
