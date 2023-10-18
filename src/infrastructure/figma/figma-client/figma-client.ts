@@ -17,7 +17,7 @@ import type {
 } from './types';
 
 import { getConfig } from '../../../config';
-import { withOperationErrorTranslation } from '../../axios-utils';
+import { withAxiosErrorTranslation } from '../../axios-utils';
 
 /**
  * A generic Figma API client.
@@ -32,7 +32,7 @@ export class FigmaClient {
 	 * @see https://www.figma.com/developers/api#oauth2
 	 */
 	getOAuth2Token = async (code: string): Promise<GetOAuth2TokenResponse> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const params = new URLSearchParams();
 			params.append('client_id', getConfig().figma.clientId);
 			params.append('client_secret', getConfig().figma.clientSecret);
@@ -62,7 +62,7 @@ export class FigmaClient {
 	refreshOAuth2Token = async (
 		refreshToken: string,
 	): Promise<RefreshOAuth2TokenResponse> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const params = new URLSearchParams();
 			params.append('client_id', getConfig().figma.clientId);
 			params.append('client_secret', getConfig().figma.clientSecret);
@@ -83,7 +83,7 @@ export class FigmaClient {
 	 * @see https://www.figma.com/developers/api#get-me-endpoint
 	 */
 	me = async (accessToken: string): Promise<MeResponse> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const response = await axios.get<MeResponse>(
 				`${getConfig().figma.apiBaseUrl}/v1/me`,
 				{
@@ -106,7 +106,7 @@ export class FigmaClient {
 		params: GetFileParams,
 		accessToken: string,
 	): Promise<FileResponse> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`${getConfig().figma.apiBaseUrl}/v1/files/${fileKey}`,
 			);
@@ -142,7 +142,7 @@ export class FigmaClient {
 		devResources: CreateDevResourcesRequest[],
 		accessToken: string,
 	): Promise<CreateDevResourcesResponse> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const response = await axios.post<CreateDevResourcesResponse>(
 				`${getConfig().figma.apiBaseUrl}/v1/dev_resources`,
 				{
@@ -168,7 +168,7 @@ export class FigmaClient {
 		nodeIds: node_ids,
 		accessToken,
 	}: GetDevResourcesRequest): Promise<GetDevResourcesResponse> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const response = await axios.get<GetDevResourcesResponse>(
 				`${getConfig().figma.apiBaseUrl}/v1/files/${fileKey}/dev_resources`,
 				{
@@ -194,7 +194,7 @@ export class FigmaClient {
 		devResourceId,
 		accessToken,
 	}: DeleteDevResourceRequest): Promise<void> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const response = await axios.delete<void>(
 				`${
 					getConfig().figma.apiBaseUrl
@@ -218,7 +218,7 @@ export class FigmaClient {
 		request: CreateWebhookRequest,
 		accessToken: string,
 	): Promise<CreateWebhookResponse> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const response = await axios.post<CreateWebhookResponse>(
 				`${getConfig().figma.apiBaseUrl}/v2/webhooks`,
 				request,
@@ -241,7 +241,7 @@ export class FigmaClient {
 		webhookId: string,
 		accessToken: string,
 	): Promise<void> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			await axios.delete<CreateWebhookResponse>(
 				`${getConfig().figma.apiBaseUrl}/v2/webhooks/${webhookId}`,
 				{
@@ -256,7 +256,7 @@ export class FigmaClient {
 		teamId: string,
 		accessToken: string,
 	): Promise<GetTeamProjectsResponse> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const response = await axios.get<GetTeamProjectsResponse>(
 				`${getConfig().figma.apiBaseUrl}/v1/teams/${teamId}/projects`,
 				{

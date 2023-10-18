@@ -109,7 +109,7 @@ export class JiraAsymmetricJwtTokenVerifier {
 
 			if (e instanceof UnauthorizedError) throw e;
 
-			throw new UnauthorizedError('Invalid token.');
+			throw new UnauthorizedError('Invalid token.', e);
 		}
 	};
 }

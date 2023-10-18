@@ -20,7 +20,7 @@ import type {
 	FigmaDesignIdentifier,
 } from '../../../domain/entities';
 import { assertSchema } from '../../ajv';
-import { withOperationErrorTranslation } from '../../axios-utils';
+import { withAxiosErrorTranslation } from '../../axios-utils';
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
 
@@ -46,7 +46,7 @@ class JiraClient {
 		payload: SubmitDesignsRequest,
 		connectInstallation: ConnectInstallation,
 	): Promise<SubmitDesignsResponse> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				'/rest/designs/1.0/bulk',
 				connectInstallation.baseUrl,
@@ -71,7 +71,7 @@ class JiraClient {
 		designId: FigmaDesignIdentifier,
 		connectInstallation: ConnectInstallation,
 	): Promise<FigmaDesignIdentifier> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`/rest/designs/1.0/design/${designId.toAtlassianDesignId()}`,
 				connectInstallation.baseUrl,
@@ -95,7 +95,7 @@ class JiraClient {
 		issueIdOrKey: string,
 		connectInstallation: ConnectInstallation,
 	): Promise<GetIssueResponse> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`/rest/agile/1.0/issue/${issueIdOrKey}`,
 				connectInstallation.baseUrl,
@@ -122,7 +122,7 @@ class JiraClient {
 		propertyKey: string,
 		connectInstallation: ConnectInstallation,
 	): Promise<GetIssuePropertyResponse> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
 				connectInstallation.baseUrl,
@@ -158,7 +158,7 @@ class JiraClient {
 		value: unknown,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
 				connectInstallation.baseUrl,
@@ -184,7 +184,7 @@ class JiraClient {
 		propertyKey: string,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
 				connectInstallation.baseUrl,

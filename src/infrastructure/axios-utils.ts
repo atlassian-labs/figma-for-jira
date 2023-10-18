@@ -7,9 +7,7 @@ import {
 	UnauthorizedOperationError,
 } from '../common/errors';
 
-export const withOperationErrorTranslation = async <T>(
-	fn: () => Promise<T>,
-) => {
+export const withAxiosErrorTranslation = async <T>(fn: () => Promise<T>) => {
 	try {
 		return await fn();
 	} catch (e: unknown) {
