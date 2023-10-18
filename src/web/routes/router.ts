@@ -9,6 +9,7 @@ import { authRouter } from './auth';
 import { entitiesRouter } from './entities';
 import { figmaRouter } from './figma';
 import { lifecycleEventsRouter } from './lifecycle-events';
+import { spaRouter } from './spa';
 import { teamsRouter } from './teams';
 
 import { connectAppDescriptor } from '../../atlassian-connect';
@@ -36,6 +37,8 @@ rootRouter.use('/admin', adminRouter);
 rootRouter.use('/auth', authRouter);
 
 rootRouter.use('/entities', entitiesRouter);
+
+rootRouter.use('/spa', spaRouter);
 
 rootRouter.use('/teams', teamsRouter);
 
