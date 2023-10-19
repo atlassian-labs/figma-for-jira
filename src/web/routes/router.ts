@@ -4,6 +4,7 @@ import { Router, static as Static } from 'express';
 
 import { join } from 'path';
 
+import { adminRouter } from './admin';
 import { authRouter } from './auth';
 import { entitiesRouter } from './entities';
 import { figmaRouter } from './figma';
@@ -29,6 +30,8 @@ rootRouter.use('/static', Static(join(process.cwd(), 'static')));
 
 // Connect lifecycle events
 rootRouter.use('/lifecycleEvents', lifecycleEventsRouter);
+
+rootRouter.use('/admin', adminRouter);
 
 rootRouter.use('/auth', authRouter);
 
