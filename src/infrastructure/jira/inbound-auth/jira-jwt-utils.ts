@@ -17,7 +17,7 @@ export const verifyQshClaimBoundToUrl = (
 		query?: Record<string, unknown>;
 	},
 ) => {
-	if (qsh !== createQueryStringHash(request, false)) {
+	if (qsh !== createQueryStringHash(request, false) && qsh !== 'context-qsh') {
 		throw new UnauthorizedError('The token contains an invalid `qsh` claim.');
 	}
 };
