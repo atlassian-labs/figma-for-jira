@@ -102,11 +102,11 @@ describe('/auth', () => {
 						authorized: false,
 						grant: {
 							authorizationEndpoint:
-								figmaAuthService.createOAuth2AuthorizationRequest(
+								figmaAuthService.createOAuth2AuthorizationRequest({
 									atlassianUserId,
 									connectInstallation,
-									`${getConfig().app.baseUrl}/figma/oauth/callback`,
-								),
+									redirectEndpoint: 'figma/oauth/callback',
+								}),
 						},
 					});
 			});
@@ -207,11 +207,11 @@ describe('/auth', () => {
 						authorized: false,
 						grant: {
 							authorizationEndpoint:
-								figmaAuthService.createOAuth2AuthorizationRequest(
+								figmaAuthService.createOAuth2AuthorizationRequest({
 									atlassianUserId,
 									connectInstallation,
-									`${getConfig().app.baseUrl}/figma/oauth/callback`,
-								),
+									redirectEndpoint: 'figma/oauth/callback',
+								}),
 						},
 					});
 			});
@@ -244,11 +244,11 @@ describe('/auth', () => {
 						authorized: false,
 						grant: {
 							authorizationEndpoint:
-								figmaAuthService.createOAuth2AuthorizationRequest(
+								figmaAuthService.createOAuth2AuthorizationRequest({
 									atlassianUserId,
 									connectInstallation,
-									`${getConfig().app.baseUrl}/figma/oauth/callback`,
-								),
+									redirectEndpoint: 'figma/oauth/callback',
+								}),
 						},
 					});
 			});

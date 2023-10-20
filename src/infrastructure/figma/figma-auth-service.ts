@@ -46,7 +46,6 @@ const FIGMA_OAUTH2_STATE_JWT_CLAIMS_SCHEMA: JSONSchemaTypeWithId<FigmaOAuth2Stat
 		},
 		required: ['iss', 'iat', 'exp', 'sub', 'aud'],
 	};
-const FIGMA_OAUTH2_STATE_JWT_TOKEN_EXPIRATION_LEEWAY = Duration.ofSeconds(3);
 
 export class FigmaAuthService {
 	/**
@@ -116,11 +115,15 @@ export class FigmaAuthService {
 	 *
 	 * @see https://www.figma.com/developers/api#oauth2
 	 */
-	createOAuth2AuthorizationRequest = (
-		atlassianUserId: string,
-		connectInstallation: ConnectInstallation,
-		redirectUri: string,
-	): string => {
+	createOAuth2AuthorizationRequest = ({
+		atlassianUserId,
+		connectInstallation,
+		redirectEndpoint,
+	}: {
+		atlassianUserId: string;
+		connectInstallation: ConnectInstallation;
+		redirectEndpoint: string;
+	}): string => {
 		const authorizationEndpoint = new URL(
 			'/oauth',
 			getConfig().figma.oauth2.authorizationServerBaseUrl,
@@ -130,9 +133,9 @@ export class FigmaAuthService {
 
 		const state = encodeSymmetric(
 			{
+				iss: connectInstallation.clientKey,
 				iat: nowInSeconds,
 				exp: nowInSeconds + Duration.ofMinutes(5).asSeconds,
-				iss: connectInstallation.clientKey,
 				sub: atlassianUserId,
 				aud: [getConfig().app.baseUrl],
 			},
@@ -142,7 +145,7 @@ export class FigmaAuthService {
 
 		authorizationEndpoint.search = new URLSearchParams({
 			client_id: getConfig().figma.oauth2.clientId,
-			redirect_uri: redirectUri,
+			redirect_uri: `${getConfig().app.baseUrl}/${redirectEndpoint}`,
 			scope: getConfig().figma.oauth2.scope,
 			state,
 			response_type: 'code',
@@ -173,15 +176,12 @@ export class FigmaAuthService {
 
 		const nowInSeconds = Date.now() / 1000;
 
-		if (
-			nowInSeconds >=
-			claims.exp + FIGMA_OAUTH2_STATE_JWT_TOKEN_EXPIRATION_LEEWAY.asSeconds
-		) {
+		if (nowInSeconds > claims.exp) {
 			throw new Error('The token is expired.');
 		}
 
 		if (claims.aud[0] !== getConfig().app.baseUrl) {
-			throw new Error();
+			throw new Error('The token contains an invalid `aud` claim.');
 		}
 
 		return {
