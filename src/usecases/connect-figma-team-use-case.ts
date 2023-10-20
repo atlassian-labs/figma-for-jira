@@ -5,6 +5,7 @@ import {
 	FigmaTeamAuthStatus,
 } from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
+import { ConfigurationState, jiraService } from '../infrastructure/jira';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
 export const connectFigmaTeamUseCase = {
@@ -35,5 +36,10 @@ export const connectFigmaTeamUseCase = {
 			authStatus: FigmaTeamAuthStatus.OK,
 			connectInstallationId: connectInstallation.id,
 		});
+
+		await jiraService.setConfigurationStateInAppProperties(
+			ConfigurationState.CONFIGURED,
+			connectInstallation,
+		);
 	},
 };

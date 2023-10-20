@@ -35,11 +35,20 @@ export type AttachedDesignUrlV2IssuePropertyValue = {
 
 export type IngestedDesignUrlIssuePropertyValue = string;
 
-export const propertyKeys = {
+export const appPropertyKeys = {
+	CONFIGURATION_STATE: 'is-configured',
+};
+
+export const issuePropertyKeys = {
 	ATTACHED_DESIGN_URL: 'attached-design-url',
 	ATTACHED_DESIGN_URL_V2: 'attached-design-url-v2',
 	INGESTED_DESIGN_URLS: 'figma-for-jira:ingested-design-urls',
 };
+
+export enum ConfigurationState {
+	CONFIGURED = 'CONFIGURED',
+	UNCONFIGURED = 'UNCONFIGURED',
+}
 
 class JiraService {
 	submitDesign = async (
@@ -122,14 +131,14 @@ class JiraService {
 		try {
 			await jiraClient.getIssueProperty(
 				issueIdOrKey,
-				propertyKeys.ATTACHED_DESIGN_URL,
+				issuePropertyKeys.ATTACHED_DESIGN_URL,
 				connectInstallation,
 			);
 		} catch (error) {
 			if (error instanceof NotFoundOperationError) {
 				await jiraClient.setIssueProperty(
 					issueIdOrKey,
-					propertyKeys.ATTACHED_DESIGN_URL,
+					issuePropertyKeys.ATTACHED_DESIGN_URL,
 					url,
 					connectInstallation,
 				);
@@ -156,7 +165,7 @@ class JiraService {
 		const storedValue =
 			await this.getIssuePropertyJsonValue<AttachedDesignUrlV2IssuePropertyValue>(
 				issueIdOrKey,
-				propertyKeys.ATTACHED_DESIGN_URL_V2,
+				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				connectInstallation,
 				ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 			);
@@ -170,7 +179,7 @@ class JiraService {
 
 		return jiraClient.setIssueProperty(
 			issueIdOrKey,
-			propertyKeys.ATTACHED_DESIGN_URL_V2,
+			issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 			this.superStringify(newValue),
 			connectInstallation,
 		);
@@ -184,7 +193,7 @@ class JiraService {
 		const storedValue =
 			await this.getIssuePropertyJsonValue<IngestedDesignUrlIssuePropertyValue>(
 				issueIdOrKey,
-				propertyKeys.INGESTED_DESIGN_URLS,
+				issuePropertyKeys.INGESTED_DESIGN_URLS,
 				connectInstallation,
 				INGESTED_DESIGN_URL_VALUE_SCHEMA,
 			);
@@ -196,7 +205,7 @@ class JiraService {
 
 		return jiraClient.setIssueProperty(
 			issueIdOrKey,
-			propertyKeys.INGESTED_DESIGN_URLS,
+			issuePropertyKeys.INGESTED_DESIGN_URLS,
 			newValue,
 			connectInstallation,
 		);
@@ -233,7 +242,7 @@ class JiraService {
 		try {
 			const response = await jiraClient.getIssueProperty(
 				issueIdOrKey,
-				propertyKeys.ATTACHED_DESIGN_URL,
+				issuePropertyKeys.ATTACHED_DESIGN_URL,
 				connectInstallation,
 			);
 
@@ -242,7 +251,7 @@ class JiraService {
 			if (storedUrl === design.url) {
 				await jiraClient.deleteIssueProperty(
 					issueIdOrKey,
-					propertyKeys.ATTACHED_DESIGN_URL,
+					issuePropertyKeys.ATTACHED_DESIGN_URL,
 					connectInstallation,
 				);
 			}
@@ -267,7 +276,7 @@ class JiraService {
 		try {
 			response = await jiraClient.getIssueProperty(
 				issueIdOrKey,
-				propertyKeys.ATTACHED_DESIGN_URL_V2,
+				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				connectInstallation,
 			);
 		} catch (error) {
@@ -302,7 +311,7 @@ class JiraService {
 		) {
 			await jiraClient.setIssueProperty(
 				issueIdOrKey,
-				propertyKeys.ATTACHED_DESIGN_URL_V2,
+				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				this.superStringify(newAttachedDesignUrlIssuePropertyValue),
 				connectInstallation,
 			);
@@ -311,6 +320,17 @@ class JiraService {
 				`Design with url: ${url} that was requested to be deleted was not removed from the 'attached-design-v2' issue property array`,
 			);
 		}
+	};
+
+	setConfigurationStateInAppProperties = async (
+		configurationState: ConfigurationState,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> => {
+		return await jiraClient.setAppProperty(
+			appPropertyKeys.CONFIGURATION_STATE,
+			configurationState.valueOf(),
+			connectInstallation,
+		);
 	};
 
 	private async getIssuePropertyJsonValue<T>(
