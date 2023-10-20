@@ -13,7 +13,9 @@ import {
 	NotFoundOperationError,
 	UnauthorizedOperationError,
 } from '../../common/errors';
+import * as configModule from '../../config';
 import { getConfig } from '../../config';
+import { mockConfig } from '../../config/testing';
 import {
 	generateConnectInstallation,
 	generateConnectUserInfo,
@@ -21,19 +23,27 @@ import {
 } from '../../domain/entities/testing';
 import { figmaOAuth2UserCredentialsRepository } from '../repositories';
 
+const NOW = Date.now();
+const NOW_IN_SECONDS = Math.floor(Date.now() / 1000);
 const FIGMA_OAUTH_CODE = uuidv4();
 
-describe('FigmaAuthService', () => {
-	const NOW = Date.now();
-	const NOW_IN_SECONDS = Math.floor(Date.now() / 1000);
+jest.mock('../../config', () => {
+	return {
+		...jest.requireActual('../../config'),
+		getConfig: jest.fn(),
+	};
+});
 
+describe('FigmaAuthService', () => {
 	beforeEach(() => {
 		jest.useFakeTimers();
+		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
 	});
 
 	afterEach(() => {
 		jest.runOnlyPendingTimers();
 		jest.useRealTimers();
+		jest.clearAllMocks();
 	});
 
 	describe('createCredentials', () => {
