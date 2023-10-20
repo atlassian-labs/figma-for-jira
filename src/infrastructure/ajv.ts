@@ -53,6 +53,24 @@ export function parseJsonOfSchema<T>(
 	}
 }
 
+export function parseJsonOfSchemaFromObject<T>(
+	value: object,
+	schema: JSONSchemaTypeWithId<T>,
+): T {
+	try {
+		assertSchema(value, schema);
+		return value;
+	} catch (error) {
+		if (error instanceof SchemaValidationError) {
+			throw error;
+		} else if (error instanceof Error) {
+			throw new SchemaValidationError(error.message, [error]);
+		} else {
+			throw new SchemaValidationError('Unknown error');
+		}
+	}
+}
+
 export class SchemaValidationError extends Error {
 	errors?: ErrorObject[] | Error[] | null;
 

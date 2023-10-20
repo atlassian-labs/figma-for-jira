@@ -21,6 +21,8 @@ import type {
 	ConnectUserInfo,
 	FigmaDesignIdentifier,
 } from '../../domain/entities';
+import { parseJsonOfSchemaFromObject } from '../ajv';
+import { FILE_RESPONSE_SCHEMA } from '../jira/schemas';
 import { getLogger } from '../logger';
 
 const buildDevResourceNameFromJiraIssue = (
@@ -62,6 +64,9 @@ export class FigmaService {
 				},
 				accessToken,
 			);
+
+			parseJsonOfSchemaFromObject(fileResponse, FILE_RESPONSE_SCHEMA);
+
 			return transformNodeToAtlassianDesign({
 				fileKey: designId.fileKey,
 				nodeId: designId.nodeId,
@@ -111,6 +116,8 @@ export class FigmaService {
 		);
 
 		return designIds.map((designId) => {
+			parseJsonOfSchemaFromObject(fileResponse, FILE_RESPONSE_SCHEMA);
+
 			if (!designId.nodeId) {
 				return transformFileToAtlassianDesign({
 					fileKey: designId.fileKey,
