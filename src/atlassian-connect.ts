@@ -98,7 +98,7 @@ export const connectAppDescriptor = {
 					value: 'Configure',
 				},
 				location: 'admin_plugins_menu/figma-addon-admin-section',
-				url: '/static/admin',
+				url: '/admin',
 				conditions: [{ condition: 'user_is_admin' }],
 			},
 		],

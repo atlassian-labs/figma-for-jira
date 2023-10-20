@@ -3,6 +3,7 @@ FROM node:18-bookworm-slim as build
 # Compile TS
 WORKDIR /app
 COPY package.json package-lock.json tsconfig.json tsconfig.build.json ./
+COPY admin ./admin
 RUN npm ci
 COPY prisma ./prisma
 RUN npm run db:generate
