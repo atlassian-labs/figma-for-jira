@@ -157,7 +157,7 @@ To run a database migration do the following:
 2. Spin up dependencies using `npm run start:sandbox`. This will also run the `prisma migrate dev` command, applying all
    existing migrations. See the [Prisma docs](https://www.prisma.io/docs/concepts/components/prisma-migrate/migrate-development-production#development-environments)
    for more info
-3. To create a new migration after making schema changes, with the sandbox already running, run `npm run db:migrate --name <migration_name>` - this will create your migration in a new folder under `prisma/migrations`. If you omit the `--name` option, you will be prompted to name the migration
+3. To create a new migration after making schema changes, with the sandbox already running, run `npm run db:migrate --name <migration_name>` - this will create your migration in a new folder under `prisma/migrations`. If you o the `--name` option, you will be prompted to name the migration
 4. Running `prisma migrate dev` will trigger generation of artifacts automatically, but you can trigger these manually
    by running `npm run db:generate` to rebuild the `@prisma/client`, which provides type safety and utility functions
    for any newly added tables and fields
@@ -185,4 +185,4 @@ If you have feedback, found a bug or need some help, please create a [new issue 
 
 ## License
 
-The project is available as open source under the terms of the [MIT License](./LICENSE).
+The project is available as open source under the terms of the [Apache 2.0 License](./LICENSE).

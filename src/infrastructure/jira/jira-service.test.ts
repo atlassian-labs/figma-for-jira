@@ -1,17 +1,21 @@
 import type { AxiosResponse } from 'axios';
 import { AxiosError, HttpStatusCode } from 'axios';
 
-import { JiraServiceSubmitDesignError } from './errors';
-import { jiraClient, JiraClientNotFoundError } from './jira-client';
+import { SubmitDesignJiraOperationError } from './errors';
+import { jiraClient } from './jira-client';
 import {
 	generateFailedSubmitDesignsResponse,
 	generateGetIssuePropertyResponse,
 	generateSubmitDesignsResponseWithUnknownData,
 	generateSuccessfulSubmitDesignsResponse,
 } from './jira-client/testing';
-import type { AttachedDesignUrlV2IssuePropertyValue } from './jira-service';
+import type {
+	AttachedDesignUrlV2IssuePropertyValue,
+	IngestedDesignUrlIssuePropertyValue,
+} from './jira-service';
 import { jiraService, propertyKeys } from './jira-service';
 
+import { NotFoundOperationError } from '../../common/errors';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
@@ -123,7 +127,7 @@ describe('JiraService', () => {
 			const submitDesignsResponse = generateFailedSubmitDesignsResponse(
 				designs.map((design) => design.id),
 			);
-			const expectedError = JiraServiceSubmitDesignError.designRejected(
+			const expectedError = SubmitDesignJiraOperationError.designRejected(
 				submitDesignsResponse.rejectedEntities[0].key.designId,
 				submitDesignsResponse.rejectedEntities[0].errors,
 			);
@@ -148,7 +152,7 @@ describe('JiraService', () => {
 				generateSubmitDesignsResponseWithUnknownData({
 					unknownAssociations: [],
 				});
-			const expectedError = JiraServiceSubmitDesignError.unknownIssueKeys(
+			const expectedError = SubmitDesignJiraOperationError.unknownIssueKeys(
 				submitDesignsResponse.unknownIssueKeys!,
 			);
 			jest
@@ -172,7 +176,7 @@ describe('JiraService', () => {
 				generateSubmitDesignsResponseWithUnknownData({
 					unknownIssueKeys: [],
 				});
-			const expectedError = JiraServiceSubmitDesignError.unknownAssociations(
+			const expectedError = SubmitDesignJiraOperationError.unknownAssociations(
 				submitDesignsResponse.unknownAssociations!,
 			);
 			jest
@@ -268,7 +272,7 @@ describe('JiraService', () => {
 		it('should set the issue property if not present', async () => {
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
-				.mockRejectedValue(new JiraClientNotFoundError());
+				.mockRejectedValue(new NotFoundOperationError());
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
 			await jiraService.setAttachedDesignUrlInIssuePropertiesIfMissing(
@@ -339,7 +343,7 @@ describe('JiraService', () => {
 		it('should set the issue property if not present', async () => {
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
-				.mockRejectedValue(new JiraClientNotFoundError());
+				.mockRejectedValue(new NotFoundOperationError());
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
 			await jiraService.updateAttachedDesignUrlV2IssueProperty(
@@ -519,6 +523,160 @@ describe('JiraService', () => {
 		});
 	});
 
+	describe('updateIngestedDesignsIssueProperty', () => {
+		const issueId = generateJiraIssueKey();
+		let connectInstallation: ConnectInstallation;
+		let design: AtlassianDesign;
+
+		beforeEach(() => {
+			connectInstallation = generateConnectInstallation();
+			design = generateAtlassianDesign();
+		});
+
+		it('should set the issue property if not present', async () => {
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockRejectedValue(new NotFoundOperationError());
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await jiraService.updateIngestedDesignsIssueProperty(
+				issueId,
+				design,
+				connectInstallation,
+			);
+
+			const expectedIssuePropertyValue = [design.url];
+
+			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
+				issueId,
+				propertyKeys.INGESTED_DESIGN_URLS,
+				expectedIssuePropertyValue,
+				connectInstallation,
+			);
+		});
+
+		it('should add to the issue property url array if ingested designs already exist', async () => {
+			const ingestedDesignPropertyValues: IngestedDesignUrlIssuePropertyValue[] =
+				['https://www.figma.com/file/UcmoEBi9SyNOX3SNhXqShY/test-file'];
+			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+				generateGetIssuePropertyResponse({
+					key: propertyKeys.INGESTED_DESIGN_URLS,
+					value: JSON.stringify(ingestedDesignPropertyValues),
+				}),
+			);
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await jiraService.updateIngestedDesignsIssueProperty(
+				issueId,
+				design,
+				connectInstallation,
+			);
+
+			const expectedIssuePropertyValue = [
+				...ingestedDesignPropertyValues,
+				design.url,
+			];
+
+			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
+				issueId,
+				propertyKeys.INGESTED_DESIGN_URLS,
+				expectedIssuePropertyValue,
+				connectInstallation,
+			);
+		});
+
+		it('should not update the ingested designs issue property if the design already exists', async () => {
+			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+				generateGetIssuePropertyResponse({
+					key: propertyKeys.INGESTED_DESIGN_URLS,
+					value: JSON.stringify([design.url]),
+				}),
+			);
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await jiraService.updateIngestedDesignsIssueProperty(
+				issueId,
+				design,
+				connectInstallation,
+			);
+
+			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
+		});
+
+		it.each([1, null, { url: 'url' }])(
+			'should overwrite the existing value if the issue property value is not in the expected shape',
+			async (value) => {
+				const expectedIssuePropertyValue = [design.url];
+
+				jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+					generateGetIssuePropertyResponse({
+						key: propertyKeys.INGESTED_DESIGN_URLS,
+						value: JSON.stringify(value),
+					}),
+				);
+				jest.spyOn(jiraClient, 'setIssueProperty').mockResolvedValue();
+
+				await jiraService.updateIngestedDesignsIssueProperty(
+					issueId,
+					design,
+					connectInstallation,
+				);
+
+				expect(jiraClient.setIssueProperty).toBeCalledWith(
+					issueId,
+					propertyKeys.INGESTED_DESIGN_URLS,
+					expectedIssuePropertyValue,
+					connectInstallation,
+				);
+			},
+		);
+
+		it('should overwrite with the new value if the issue property value received from jira is not a string', async () => {
+			const expectedIssuePropertyValue = [design.url];
+
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockResolvedValue(generateGetIssuePropertyResponse({ value: 1 }));
+			jest.spyOn(jiraClient, 'setIssueProperty').mockResolvedValue();
+
+			await jiraService.updateIngestedDesignsIssueProperty(
+				issueId,
+				design,
+				connectInstallation,
+			);
+
+			expect(jiraClient.setIssueProperty).toBeCalledWith(
+				issueId,
+				propertyKeys.INGESTED_DESIGN_URLS,
+				expectedIssuePropertyValue,
+				connectInstallation,
+			);
+		});
+
+		it('should rethrow unknown errors', async () => {
+			const unexpectedError = new AxiosError(
+				'Forbidden.',
+				HttpStatusCode.Forbidden.toString(),
+				undefined,
+				undefined,
+				{
+					status: HttpStatusCode.Forbidden,
+				} as AxiosResponse,
+			);
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockRejectedValue(unexpectedError);
+
+			await expect(
+				jiraService.updateIngestedDesignsIssueProperty(
+					issueId,
+					design,
+					connectInstallation,
+				),
+			).rejects.toThrowError(unexpectedError);
+		});
+	});
+
 	describe('deleteAttachedDesignUrlInIssuePropertiesIfPresent', () => {
 		const issueId = 'TEST-1';
 		let connectInstallation: ConnectInstallation;
@@ -597,7 +755,7 @@ describe('JiraService', () => {
 		});
 
 		it('should not rethrow JiraClientNotFound errors', async () => {
-			const notFoundError = new JiraClientNotFoundError();
+			const notFoundError = new NotFoundOperationError();
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockRejectedValue(notFoundError);
@@ -758,7 +916,7 @@ describe('JiraService', () => {
 		});
 
 		it('should not rethrow JiraClientNotFound errors', async () => {
-			const notFoundError = new JiraClientNotFoundError();
+			const notFoundError = new NotFoundOperationError();
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockRejectedValue(notFoundError);

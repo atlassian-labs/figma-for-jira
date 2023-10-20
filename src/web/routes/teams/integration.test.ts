@@ -3,6 +3,7 @@ import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
 import app from '../../../app';
+import { NotFoundOperationError } from '../../../common/errors';
 import { getConfig } from '../../../config';
 import type {
 	ConnectInstallation,
@@ -25,14 +26,12 @@ import {
 	connectInstallationRepository,
 	figmaOAuth2UserCredentialsRepository,
 	figmaTeamRepository,
-	RepositoryRecordNotFoundError,
 } from '../../../infrastructure/repositories';
 import {
 	generateJiraContextSymmetricJwtToken,
 	mockFigmaCreateWebhookEndpoint,
 	mockFigmaDeleteWebhookEndpoint,
 	mockFigmaGetTeamProjectsEndpoint,
-	mockFigmaMeEndpoint,
 } from '../../testing';
 
 const figmaTeamSummaryComparer = (a: FigmaTeamSummary, b: FigmaTeamSummary) =>
@@ -89,8 +88,6 @@ describe('/teams', () => {
 				connectInstallation: targetConnectInstallation,
 			});
 
-			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
-
 			const response = await request(app)
 				.get(TEAMS_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
@@ -123,8 +120,6 @@ describe('/teams', () => {
 				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				connectInstallation: targetConnectInstallation,
 			});
-
-			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 
 			const response = await request(app)
 				.get(TEAMS_ENDPOINT)
@@ -161,7 +156,6 @@ describe('/teams', () => {
 				connectInstallation,
 			});
 
-			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 			mockFigmaGetTeamProjectsEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				teamId,
@@ -210,7 +204,6 @@ describe('/teams', () => {
 				connectInstallation,
 			});
 
-			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 			mockFigmaGetTeamProjectsEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				teamId,
@@ -228,7 +221,7 @@ describe('/teams', () => {
 
 			await expect(
 				figmaTeamRepository.getByWebhookId(webhookId),
-			).rejects.toBeInstanceOf(RepositoryRecordNotFoundError);
+			).rejects.toBeInstanceOf(NotFoundOperationError);
 		});
 	});
 
@@ -259,11 +252,10 @@ describe('/teams', () => {
 			);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
-				atlassianUserId: 'not-a-figma-team-admin',
+				atlassianUserId: 'jira-admin-but-not-a-figma-team-admin',
 				connectInstallation,
 			});
 
-			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 			mockFigmaDeleteWebhookEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				webhookId: figmaTeam.webhookId,
@@ -278,11 +270,41 @@ describe('/teams', () => {
 
 			await expect(
 				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
-			).rejects.toBeInstanceOf(RepositoryRecordNotFoundError);
+			).rejects.toBeInstanceOf(NotFoundOperationError);
 			expect(figmaClient.deleteWebhook).toBeCalledWith(
 				figmaTeam.webhookId,
 				figmaOAuth2UserCredentials.accessToken,
 			);
+		});
+
+		it('should return a 200 and delete the FigmaTeam when webhook is not found', async () => {
+			const figmaTeam = await figmaTeamRepository.upsert(
+				generateFigmaTeamCreateParams({
+					connectInstallationId: connectInstallation.id,
+					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+				}),
+			);
+			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
+			const jwt = generateJiraContextSymmetricJwtToken({
+				atlassianUserId: 'jira-admin-but-not-a-figma-team-admin',
+				connectInstallation,
+			});
+
+			mockFigmaDeleteWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				webhookId: figmaTeam.webhookId,
+				accessToken: figmaOAuth2UserCredentials.accessToken,
+				status: HttpStatusCode.NotFound,
+			});
+
+			await request(app)
+				.delete(requestPath)
+				.set('Authorization', `JWT ${jwt}`)
+				.expect(HttpStatusCode.Ok);
+
+			await expect(
+				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
+			).rejects.toBeInstanceOf(NotFoundOperationError);
 		});
 
 		it('should return a 200 and delete the FigmaTeam when deleting the webhook fails', async () => {
@@ -294,11 +316,10 @@ describe('/teams', () => {
 			);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
-				atlassianUserId: 'not-a-figma-team-admin',
+				atlassianUserId: 'jira-admin-but-not-a-figma-team-admin',
 				connectInstallation,
 			});
 
-			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 			mockFigmaDeleteWebhookEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				webhookId: figmaTeam.webhookId,
@@ -309,11 +330,11 @@ describe('/teams', () => {
 			await request(app)
 				.delete(requestPath)
 				.set('Authorization', `JWT ${jwt}`)
-				.expect(HttpStatusCode.Ok);
+				.expect(HttpStatusCode.InternalServerError);
 
 			await expect(
 				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
-			).rejects.toBeInstanceOf(RepositoryRecordNotFoundError);
+			).resolves.toEqual(figmaTeam);
 		});
 	});
 });

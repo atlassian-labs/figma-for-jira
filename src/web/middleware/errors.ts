@@ -1,1 +1,3 @@
-export class UnauthorizedError extends Error {}
+import { CauseAwareError } from '../../common/errors';
+
+export class UnauthorizedError extends CauseAwareError {}

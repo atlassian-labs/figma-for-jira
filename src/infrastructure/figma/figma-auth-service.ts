@@ -7,7 +7,11 @@ import {
 import { figmaClient } from './figma-client';
 
 import { Duration } from '../../common/duration';
-import { ensureString } from '../../common/stringUtils';
+import {
+	NotFoundOperationError,
+	UnauthorizedOperationError,
+} from '../../common/errors';
+import { ensureString } from '../../common/string-utils';
 import { getConfig } from '../../config';
 import type {
 	ConnectInstallation,
@@ -72,27 +76,35 @@ export class FigmaAuthService {
 		user: ConnectUserInfo,
 	): Promise<FigmaOAuth2UserCredentials> => {
 		let credentials: FigmaOAuth2UserCredentials;
+
 		try {
 			credentials = await figmaOAuth2UserCredentialsRepository.get(
 				user.atlassianUserId,
 				user.connectInstallationId,
 			);
 		} catch (e: unknown) {
-			throw new NoFigmaCredentialsError(
-				`No credential available for user ${user.atlassianUserId} within Connect installation ${user.connectInstallationId}.`,
-			);
-		}
-
-		if (credentials.isExpired()) {
-			try {
-				credentials = await this.refreshCredentials(credentials);
-			} catch (e: unknown) {
-				throw new RefreshFigmaCredentialsError(
-					`Failed to refresh credentials for user ${user.atlassianUserId} within Connect installation ${user.connectInstallationId}.`,
+			if (e instanceof NotFoundOperationError) {
+				throw new UnauthorizedOperationError(
+					'Cannot get Figma credentials.',
+					e,
 				);
 			}
+
+			throw e;
 		}
-		return credentials;
+
+		try {
+			if (credentials.isExpired()) {
+				credentials = await this.refreshCredentials(credentials);
+			}
+
+			return credentials;
+		} catch (e: unknown) {
+			throw new UnauthorizedOperationError(
+				'Cannot refresh Figma credentials.',
+				e,
+			);
+		}
 	};
 
 	/**
@@ -200,9 +212,5 @@ export class FigmaAuthService {
 		return new Date(Date.now() + expiresInSeconds * 1000);
 	}
 }
-
-export class NoFigmaCredentialsError extends Error {}
-
-export class RefreshFigmaCredentialsError extends Error {}
 
 export const figmaAuthService = new FigmaAuthService();

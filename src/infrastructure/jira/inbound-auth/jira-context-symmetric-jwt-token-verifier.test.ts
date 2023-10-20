@@ -4,12 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { jiraContextSymmetricJwtTokenVerifier } from './jira-context-symmetric-jwt-token-verifier';
 
 import { Duration } from '../../../common/duration';
+import { NotFoundOperationError } from '../../../common/errors';
 import { generateConnectInstallation } from '../../../domain/entities/testing';
 import { UnauthorizedError } from '../../../web/middleware/errors';
-import {
-	connectInstallationRepository,
-	RepositoryRecordNotFoundError,
-} from '../../repositories';
+import { connectInstallationRepository } from '../../repositories';
 
 const NOW = Date.now();
 const NOW_IN_SECONDS = Math.floor(NOW / 1000);
@@ -58,7 +56,7 @@ describe('JiraContextSymmetricJwtTokenVerifier', () => {
 			const atlassianUserId = uuidv4();
 			jest
 				.spyOn(connectInstallationRepository, 'getByClientKey')
-				.mockRejectedValue(new RepositoryRecordNotFoundError());
+				.mockRejectedValue(new NotFoundOperationError());
 			const jwtToken = encodeSymmetric(
 				{
 					iss: uuidv4(),
