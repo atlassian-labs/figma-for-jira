@@ -108,10 +108,11 @@ export class FigmaAuthService {
 	};
 
 	/**
-	 * Returns an OAuth 2.0 authorization request for the given user.
+	 * Returns an authorization endpoint URL for the given user.
 	 *
 	 * @remarks
-	 * The authorization request represents the URL of Figma's authorization endpoint.
+	 * As a countermeasure against Cross-Site Request Forgery (CSRF) attacks, the URL includes the `state`
+	 * query parameter, which represents a user-bound signed JWT token.
 	 *
 	 * @see https://www.figma.com/developers/api#oauth2
 	 */
@@ -151,12 +152,9 @@ export class FigmaAuthService {
 	};
 
 	/**
-	 * Verifies the OAuth 2.0 authorization response and returns the information about the user,
-	 * initiated the flow.
+	 * Verifies and returns the OAuth 2.0 authorization response state.
 	 *
-	 * @remarks
-	 * A value of the `state` query parameter bypassed by the authorization server through OAuth 2.0 flow.
-	 * 	 This is the same value, which was created by {@link createOAuth2AuthorizationRequest}.
+	 * It verifies the state represents an authentic non-expired JWT token.
 	 *
 	 * @see https://www.figma.com/developers/api#oauth2
 	 */
