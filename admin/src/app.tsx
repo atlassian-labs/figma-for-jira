@@ -1,12 +1,10 @@
-import Button from '@atlaskit/button';
-import ArrowRightIcon from '@atlaskit/icon/glyph/arrow-right';
 import Spinner from '@atlaskit/spinner';
 import { useQuery } from '@tanstack/react-query';
-import React from 'react';
 
 import { checkAuth, getTeams } from './api';
 import { getCurrentUser } from './api/connect_api';
-import { popup } from './utils';
+import { ConnectTeam } from './screens/connect-team';
+import { PromptAuth } from './screens/prompt-auth';
 
 export function App() {
 	const currentUserQuery = useQuery({
@@ -57,22 +55,10 @@ export function App() {
 	const checkAuthResponse = checkAuthQuery.data;
 
 	if (!checkAuthResponse.authorized) {
-		const { authorizationEndpoint } = checkAuthResponse.grant;
 		return (
-			<div className="w-screen h-screen flex items-center justify-center">
-				<div className="flex flex-col">
-					<h1>Connect Figma to Jira</h1>
-					<p>Before you start, you should have:</p>
-					<div></div>
-					<Button
-						appearance="primary"
-						onClick={() => popup(authorizationEndpoint)}
-						iconAfter={<ArrowRightIcon label="" size="medium" />}
-					>
-						Continue
-					</Button>
-				</div>
-			</div>
+			<PromptAuth
+				authorizationEndpoint={checkAuthResponse.grant.authorizationEndpoint}
+			/>
 		);
 	}
 
@@ -83,8 +69,7 @@ export function App() {
 
 	const teams = teamsQuery.data;
 	if (teams.length === 0) {
-		// TODO: render a screen that tells the user to add a team
-		return null;
+		return <ConnectTeam />;
 	}
 
 	// TODO: render a screen listing all the teams the user has configured

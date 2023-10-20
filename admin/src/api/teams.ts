@@ -18,3 +18,9 @@ export async function getTeams(): Promise<
 > {
 	return await axiosRest.get('/teams');
 }
+
+export async function connectTeam(
+	teamId: string,
+): Promise<AxiosResponse<void>> {
+	return await axiosRest.post(`/teams/${teamId}/connect`);
+}
