@@ -472,7 +472,7 @@ describe('FigmaService', () => {
 				id: webhookId,
 				team_id: teamId,
 				event_type: 'FILE_UPDATE',
-				client_id: mockConfig.figma.clientId,
+				client_id: mockConfig.figma.oauth2.clientId,
 				endpoint,
 				passcode,
 				status: 'ACTIVE',

@@ -35,11 +35,9 @@ authRouter.get(
 				}
 
 				const authorizationEndpoint =
-					figmaAuthService.buildAuthorizationEndpoint(
-						{
-							connectInstallationId: connectInstallation.id,
-							atlassianUserId,
-						},
+					figmaAuthService.createOAuth2AuthorizationRequest(
+						atlassianUserId,
+						connectInstallation,
 						`${getConfig().app.baseUrl}/figma/oauth/callback`,
 					);
 

@@ -1,6 +1,7 @@
 import { HttpStatusCode } from 'axios';
 import nock from 'nock';
 import request from 'supertest';
+import { v4 as uuidv4 } from 'uuid';
 
 import { FAILURE_PAGE_URL, SUCCESS_PAGE_URL } from './figma-router';
 import { generateFigmaWebhookEventPayload } from './testing';
@@ -21,7 +22,6 @@ import {
 	generateAssociatedFigmaDesignCreateParams,
 	generateConnectInstallation,
 	generateConnectInstallationCreateParams,
-	generateConnectUserInfo,
 	generateFigmaDesignIdentifier,
 	generateFigmaFileKey,
 	generateFigmaFileName,
@@ -57,8 +57,10 @@ import {
 	mockFigmaMeEndpoint,
 	mockJiraSubmitDesignsEndpoint,
 } from '../../testing';
+import { generateFigmaOAuth2State } from '../../testing/figma-jwt-token-mocks';
 
-const FIGMA_OAUTH_API_BASE_URL = getConfig().figma.oauthApiBaseUrl;
+const FIGMA_OAUTH_API_BASE_URL =
+	getConfig().figma.oauth2.authorizationServerBaseUrl;
 const FIGMA_OAUTH_CALLBACK_ENDPOINT = '/figma/oauth/callback';
 const FIGMA_OAUTH_TOKEN_ENDPOINT = '/api/oauth/token';
 
@@ -355,8 +357,8 @@ describe('/figma', () => {
 
 	describe('/oauth/callback', () => {
 		const getTokenQueryParams = generateGetOAuth2TokenQueryParams({
-			client_id: getConfig().figma.clientId,
-			client_secret: getConfig().figma.clientSecret,
+			client_id: getConfig().figma.oauth2.clientId,
+			client_secret: getConfig().figma.oauth2.clientSecret,
 			redirect_uri: `${
 				getConfig().app.baseUrl
 			}${FIGMA_OAUTH_CALLBACK_ENDPOINT}`,
@@ -366,9 +368,7 @@ describe('/figma', () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallation(),
 			);
-			const connectUserInfo = generateConnectUserInfo({
-				connectInstallationId: connectInstallation.id,
-			});
+			const atlassianUserId = uuidv4();
 
 			nock(FIGMA_OAUTH_API_BASE_URL)
 				.post(FIGMA_OAUTH_TOKEN_ENDPOINT)
@@ -378,20 +378,23 @@ describe('/figma', () => {
 			return request(app)
 				.get(FIGMA_OAUTH_CALLBACK_ENDPOINT)
 				.query({
-					state: `${connectUserInfo.connectInstallationId}/${connectUserInfo.atlassianUserId}`,
+					state: generateFigmaOAuth2State({
+						atlassianUserId,
+						appBaseUrl: getConfig().app.baseUrl,
+						connectClientKey: connectInstallation.clientKey,
+						secretKey: getConfig().figma.oauth2.stateSecretKey,
+					}),
 					code: getTokenQueryParams.code,
 				})
 				.expect(HttpStatusCode.Found)
 				.expect('Location', SUCCESS_PAGE_URL);
 		});
 
-		it('should redirect to failure page if auth callback to figma fails', async () => {
+		it('should redirect to failure page if auth callback is invalid', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallation(),
 			);
-			const connectUserInfo = generateConnectUserInfo({
-				connectInstallationId: connectInstallation.id,
-			});
+			const atlassianUserId = uuidv4();
 
 			nock(FIGMA_OAUTH_API_BASE_URL)
 				.post(FIGMA_OAUTH_TOKEN_ENDPOINT)
@@ -401,7 +404,38 @@ describe('/figma', () => {
 			return request(app)
 				.get(FIGMA_OAUTH_CALLBACK_ENDPOINT)
 				.query({
-					state: `${connectUserInfo.connectInstallationId}/${connectUserInfo.atlassianUserId}`,
+					state: generateFigmaOAuth2State({
+						atlassianUserId,
+						appBaseUrl: getConfig().app.baseUrl,
+						connectClientKey: connectInstallation.clientKey,
+						secretKey: uuidv4(),
+					}),
+					code: getTokenQueryParams.code,
+				})
+				.expect(HttpStatusCode.Found)
+				.expect('Location', FAILURE_PAGE_URL);
+		});
+
+		it('should redirect to failure page if auth callback to figma fails', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallation(),
+			);
+			const atlassianUserId = uuidv4();
+
+			nock(FIGMA_OAUTH_API_BASE_URL)
+				.post(FIGMA_OAUTH_TOKEN_ENDPOINT)
+				.query(getTokenQueryParams)
+				.reply(HttpStatusCode.Unauthorized);
+
+			return request(app)
+				.get(FIGMA_OAUTH_CALLBACK_ENDPOINT)
+				.query({
+					state: generateFigmaOAuth2State({
+						atlassianUserId,
+						appBaseUrl: getConfig().app.baseUrl,
+						connectClientKey: connectInstallation.clientKey,
+						secretKey: getConfig().figma.oauth2.stateSecretKey,
+					}),
 					code: getTokenQueryParams.code,
 				})
 				.expect(HttpStatusCode.Found)
