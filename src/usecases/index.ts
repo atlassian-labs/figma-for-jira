@@ -1,4 +1,4 @@
-export * from './add-figma-oauth-credentials-use-case';
+export * from './handle-figma-authorization-response-use-case';
 export * from './installed-use-case';
 export * from './uninstalled-use-case';
 export * from './check-user-figma-auth-use-case';

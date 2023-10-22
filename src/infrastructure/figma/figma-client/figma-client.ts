@@ -34,8 +34,8 @@ export class FigmaClient {
 	getOAuth2Token = async (code: string): Promise<GetOAuth2TokenResponse> =>
 		withAxiosErrorTranslation(async () => {
 			const params = new URLSearchParams();
-			params.append('client_id', getConfig().figma.clientId);
-			params.append('client_secret', getConfig().figma.clientSecret);
+			params.append('client_id', getConfig().figma.oauth2.clientId);
+			params.append('client_secret', getConfig().figma.oauth2.clientSecret);
 			params.append(
 				'redirect_uri',
 				`${getConfig().app.baseUrl}/figma/oauth/callback`,
@@ -44,7 +44,9 @@ export class FigmaClient {
 			params.append('grant_type', 'authorization_code');
 
 			const response = await axios.post<GetOAuth2TokenResponse>(
-				`${getConfig().figma.oauthApiBaseUrl}/api/oauth/token`,
+				`${
+					getConfig().figma.oauth2.authorizationServerBaseUrl
+				}/api/oauth/token`,
 				null,
 				{
 					params,
@@ -64,12 +66,14 @@ export class FigmaClient {
 	): Promise<RefreshOAuth2TokenResponse> =>
 		withAxiosErrorTranslation(async () => {
 			const params = new URLSearchParams();
-			params.append('client_id', getConfig().figma.clientId);
-			params.append('client_secret', getConfig().figma.clientSecret);
+			params.append('client_id', getConfig().figma.oauth2.clientId);
+			params.append('client_secret', getConfig().figma.oauth2.clientSecret);
 			params.append('refresh_token', refreshToken);
 
 			const response = await axios.post<RefreshOAuth2TokenResponse>(
-				`${getConfig().figma.oauthApiBaseUrl}/api/oauth/refresh`,
+				`${
+					getConfig().figma.oauth2.authorizationServerBaseUrl
+				}/api/oauth/refresh`,
 				null,
 				{ params },
 			);

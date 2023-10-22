@@ -13,11 +13,14 @@ export type Config = {
 	};
 	readonly figma: {
 		readonly webBaseUrl: string;
-		readonly oauthApiBaseUrl: string;
 		readonly apiBaseUrl: string;
-		readonly clientId: string;
-		readonly clientSecret: string;
-		readonly scope: string;
+		readonly oauth2: {
+			readonly authorizationServerBaseUrl: string;
+			readonly clientId: string;
+			readonly clientSecret: string;
+			readonly scope: string;
+			readonly stateSecretKey: string;
+		};
 	};
 	readonly jira: {
 		readonly connectKeyServerUrl: string;
@@ -41,12 +44,17 @@ export const getConfig = (): Config => {
 			},
 			figma: {
 				webBaseUrl: readEnvVarString('FIGMA_WEB_BASE_URL'),
-				oauthApiBaseUrl: readEnvVarString('FIGMA_OAUTH_API_BASE_URL'),
 				apiBaseUrl: readEnvVarString('FIGMA_API_BASE_URL'),
-				clientId: readEnvVarString('FIGMA_OAUTH_CLIENT_ID'),
-				clientSecret: readEnvVarString('FIGMA_OAUTH_CLIENT_SECRET'),
-				scope:
-					'files:read,file_dev_resources:read,file_dev_resources:write,webhooks:write',
+				oauth2: {
+					authorizationServerBaseUrl: readEnvVarString(
+						'FIGMA_OAUTH2_AUTHORIZATION_SERVER_BASE_URL',
+					),
+					clientId: readEnvVarString('FIGMA_OAUTH2_CLIENT_ID'),
+					clientSecret: readEnvVarString('FIGMA_OAUTH2_CLIENT_SECRET'),
+					scope:
+						'files:read,file_dev_resources:read,file_dev_resources:write,webhooks:write',
+					stateSecretKey: readEnvVarString('FIGMA_OAUTH2_STATE_SECRET_KEY'),
+				},
 			},
 			jira: {
 				connectKeyServerUrl: readEnvVarString('JIRA_CONNECT_KEY_SERVER_URL'),

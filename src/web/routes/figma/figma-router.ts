@@ -3,16 +3,15 @@ import type { Response } from 'express';
 import { Router } from 'express';
 
 import {
-	FIGMA_OAUTH_CALLBACK_QUERY_PARAMETERS_SCHEMA,
+	FIGMA_OAUTH2_CALLBACK_QUERY_PARAMETERS_SCHEMA,
 	FIGMA_WEBHOOK_PAYLOAD_SCHEMA,
 } from './schemas';
-import type { FigmaAuthCallbackRequest } from './types';
+import type { FigmaOAuth2CallbackRequest } from './types';
 
 import { assertSchema, getLogger } from '../../../infrastructure';
-import { figmaAuthService } from '../../../infrastructure/figma';
 import { figmaWebhookService } from '../../../infrastructure/figma/figma-webhook-service';
 import {
-	addFigmaOAuthCredentialsUseCase,
+	handleFigmaAuthorizationResponseUseCase,
 	handleFigmaFileUpdateEventUseCase,
 } from '../../../usecases';
 
@@ -53,14 +52,12 @@ figmaRouter.post('/webhook', (req, res, next) => {
  */
 figmaRouter.get(
 	'/oauth/callback',
-	function (req: FigmaAuthCallbackRequest, res: Response) {
-		assertSchema(req.query, FIGMA_OAUTH_CALLBACK_QUERY_PARAMETERS_SCHEMA);
+	function (req: FigmaOAuth2CallbackRequest, res: Response) {
+		assertSchema(req.query, FIGMA_OAUTH2_CALLBACK_QUERY_PARAMETERS_SCHEMA);
 		const { code, state } = req.query;
 
-		const user = figmaAuthService.getUserFromAuthorizationCallbackState(state);
-
-		addFigmaOAuthCredentialsUseCase
-			.execute(code, user)
+		handleFigmaAuthorizationResponseUseCase
+			.execute(code, state)
 			.then(() => {
 				res.redirect(SUCCESS_PAGE_URL);
 			})

@@ -1,3 +1,4 @@
+import { encodeSymmetric, SymmetricAlgorithm } from 'atlassian-jwt';
 import { v4 as uuidv4 } from 'uuid';
 
 import { figmaAuthService } from './figma-auth-service';
@@ -12,22 +13,37 @@ import {
 	NotFoundOperationError,
 	UnauthorizedOperationError,
 } from '../../common/errors';
+import * as configModule from '../../config';
+import { getConfig } from '../../config';
+import { mockConfig } from '../../config/testing';
 import {
+	generateConnectInstallation,
 	generateConnectUserInfo,
 	generateFigmaOAuth2UserCredentials,
 } from '../../domain/entities/testing';
 import { figmaOAuth2UserCredentialsRepository } from '../repositories';
 
+const NOW = Date.now();
+const NOW_IN_SECONDS = Math.floor(Date.now() / 1000);
 const FIGMA_OAUTH_CODE = uuidv4();
+
+jest.mock('../../config', () => {
+	return {
+		...jest.requireActual('../../config'),
+		getConfig: jest.fn(),
+	};
+});
 
 describe('FigmaAuthService', () => {
 	beforeEach(() => {
 		jest.useFakeTimers();
+		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
 	});
 
 	afterEach(() => {
 		jest.runOnlyPendingTimers();
 		jest.useRealTimers();
+		jest.clearAllMocks();
 	});
 
 	describe('createCredentials', () => {
@@ -159,6 +175,182 @@ describe('FigmaAuthService', () => {
 			await expect(
 				figmaAuthService.getCredentials(connectUserInfo),
 			).rejects.toThrowError(UnauthorizedOperationError);
+		});
+	});
+
+	describe('createOAuth2AuthorizationRequest', () => {
+		it('should return an authorisation request', () => {
+			jest.setSystemTime(NOW);
+			const connectInstallation = generateConnectInstallation();
+			const atlassianUserId = uuidv4();
+
+			const result = figmaAuthService.createOAuth2AuthorizationRequest({
+				atlassianUserId,
+				connectInstallation,
+				redirectEndpoint: `figma/oauth2/callback`,
+			});
+
+			const expectedUrl = new URL(
+				'/oauth',
+				getConfig().figma.oauth2.authorizationServerBaseUrl,
+			);
+			expectedUrl.search = new URLSearchParams({
+				client_id: getConfig().figma.oauth2.clientId,
+				redirect_uri: `${getConfig().app.baseUrl}/figma/oauth2/callback`,
+				scope: getConfig().figma.oauth2.scope,
+				state: encodeSymmetric(
+					{
+						iss: connectInstallation.clientKey,
+						iat: NOW_IN_SECONDS,
+						exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
+						sub: atlassianUserId,
+						aud: [getConfig().app.baseUrl],
+					},
+					getConfig().figma.oauth2.stateSecretKey,
+					SymmetricAlgorithm.HS256,
+				),
+				response_type: 'code',
+			}).toString();
+
+			expect(result).toBe(expectedUrl.toString());
+		});
+	});
+
+	describe('createOAuth2AuthorizationRequest', () => {
+		it('should return decoded state when state is valid', () => {
+			jest.setSystemTime(NOW);
+			const connectInstallation = generateConnectInstallation();
+			const atlassianUserId = uuidv4();
+			const state = encodeSymmetric(
+				{
+					iss: connectInstallation.clientKey,
+					iat: NOW_IN_SECONDS,
+					exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
+					sub: atlassianUserId,
+					aud: [getConfig().app.baseUrl],
+				},
+				getConfig().figma.oauth2.stateSecretKey,
+				SymmetricAlgorithm.HS256,
+			);
+
+			const result =
+				figmaAuthService.verifyOAuth2AuthorizationResponseState(state);
+
+			expect(result).toEqual({
+				atlassianUserId,
+				connectClientKey: connectInstallation.clientKey,
+			});
+		});
+
+		it('should throw when state is not a JWT token', () => {
+			const state = uuidv4();
+
+			expect(() =>
+				figmaAuthService.verifyOAuth2AuthorizationResponseState(state),
+			).toThrow();
+		});
+
+		it('should throw when token is signed with unexpected key', () => {
+			jest.setSystemTime(NOW);
+			const connectInstallation = generateConnectInstallation();
+			const atlassianUserId = uuidv4();
+			const state = encodeSymmetric(
+				{
+					iss: connectInstallation.clientKey,
+					iat: NOW_IN_SECONDS,
+					exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
+					sub: atlassianUserId,
+					aud: [getConfig().app.baseUrl],
+				},
+				uuidv4(),
+				SymmetricAlgorithm.HS256,
+			);
+
+			expect(() =>
+				figmaAuthService.verifyOAuth2AuthorizationResponseState(state),
+			).toThrow();
+		});
+
+		it('should throw when `iss` claim is invalid', () => {
+			jest.setSystemTime(NOW);
+			const atlassianUserId = uuidv4();
+			const state = encodeSymmetric(
+				{
+					iss: '',
+					iat: NOW_IN_SECONDS,
+					exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
+					sub: atlassianUserId,
+					aud: [getConfig().app.baseUrl],
+				},
+				getConfig().figma.oauth2.stateSecretKey,
+				SymmetricAlgorithm.HS256,
+			);
+
+			expect(() =>
+				figmaAuthService.verifyOAuth2AuthorizationResponseState(state),
+			).toThrow();
+		});
+
+		it('should throw when `sub` claim is invalid', () => {
+			jest.setSystemTime(NOW);
+			const connectInstallation = generateConnectInstallation();
+			const state = encodeSymmetric(
+				{
+					iss: connectInstallation.clientKey,
+					iat: NOW_IN_SECONDS,
+					exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
+					sub: '',
+					aud: [getConfig().app.baseUrl],
+				},
+				getConfig().figma.oauth2.stateSecretKey,
+				SymmetricAlgorithm.HS256,
+			);
+
+			expect(() =>
+				figmaAuthService.verifyOAuth2AuthorizationResponseState(state),
+			).toThrow();
+		});
+
+		it('should throw when `aud` claim does not contain app base URL', () => {
+			jest.setSystemTime(NOW);
+			const connectInstallation = generateConnectInstallation();
+			const atlassianUserId = uuidv4();
+			const state = encodeSymmetric(
+				{
+					iss: connectInstallation.clientKey,
+					iat: NOW_IN_SECONDS,
+					exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
+					sub: atlassianUserId,
+					aud: [`https://${uuidv4()}.com`],
+				},
+				getConfig().figma.oauth2.stateSecretKey,
+				SymmetricAlgorithm.HS256,
+			);
+
+			expect(() =>
+				figmaAuthService.verifyOAuth2AuthorizationResponseState(state),
+			).toThrow();
+		});
+
+		it('should throw when token is expired', () => {
+			jest.setSystemTime(NOW);
+			const connectInstallation = generateConnectInstallation();
+			const atlassianUserId = uuidv4();
+			const state = encodeSymmetric(
+				{
+					iss: connectInstallation.clientKey,
+					iat: NOW_IN_SECONDS,
+					exp: NOW_IN_SECONDS - Duration.ofMinutes(1).asSeconds,
+					sub: atlassianUserId,
+					aud: [getConfig().app.baseUrl],
+				},
+				getConfig().figma.oauth2.stateSecretKey,
+				SymmetricAlgorithm.HS256,
+			);
+
+			expect(() =>
+				figmaAuthService.verifyOAuth2AuthorizationResponseState(state),
+			).toThrow();
 		});
 	});
 });

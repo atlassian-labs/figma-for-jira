@@ -22,7 +22,8 @@ import {
 import { generateJiraServerSymmetricJwtToken } from '../../testing';
 
 const FIGMA_API_BASE_URL = getConfig().figma.apiBaseUrl;
-const FIGMA_OAUTH_API_BASE_URL = getConfig().figma.oauthApiBaseUrl;
+const FIGMA_OAUTH_API_BASE_URL =
+	getConfig().figma.oauth2.authorizationServerBaseUrl;
 
 const FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT = '/api/oauth/refresh';
 const FIGMA_ME_ENDPOINT = '/v1/me';
@@ -101,13 +102,11 @@ describe('/auth', () => {
 						authorized: false,
 						grant: {
 							authorizationEndpoint:
-								figmaAuthService.buildAuthorizationEndpoint(
-									{
-										atlassianUserId,
-										connectInstallationId: connectInstallation.id,
-									},
-									`${getConfig().app.baseUrl}/figma/oauth/callback`,
-								),
+								figmaAuthService.createOAuth2AuthorizationRequest({
+									atlassianUserId,
+									connectInstallation,
+									redirectEndpoint: 'figma/oauth/callback',
+								}),
 						},
 					});
 			});
@@ -116,8 +115,8 @@ describe('/auth', () => {
 		describe('with expired OAuth credentials stored', () => {
 			const REFRESH_TOKEN = uuidv4();
 			const REFRESH_TOKEN_QUERY_PARAMS = generateRefreshOAuth2TokenQueryParams({
-				client_id: getConfig().figma.clientId,
-				client_secret: getConfig().figma.clientSecret,
+				client_id: getConfig().figma.oauth2.clientId,
+				client_secret: getConfig().figma.oauth2.clientSecret,
 				refresh_token: REFRESH_TOKEN,
 			});
 
@@ -208,13 +207,11 @@ describe('/auth', () => {
 						authorized: false,
 						grant: {
 							authorizationEndpoint:
-								figmaAuthService.buildAuthorizationEndpoint(
-									{
-										atlassianUserId,
-										connectInstallationId: connectInstallation.id,
-									},
-									`${getConfig().app.baseUrl}/figma/oauth/callback`,
-								),
+								figmaAuthService.createOAuth2AuthorizationRequest({
+									atlassianUserId,
+									connectInstallation,
+									redirectEndpoint: 'figma/oauth/callback',
+								}),
 						},
 					});
 			});
@@ -247,13 +244,11 @@ describe('/auth', () => {
 						authorized: false,
 						grant: {
 							authorizationEndpoint:
-								figmaAuthService.buildAuthorizationEndpoint(
-									{
-										atlassianUserId,
-										connectInstallationId: connectInstallation.id,
-									},
-									`${getConfig().app.baseUrl}/figma/oauth/callback`,
-								),
+								figmaAuthService.createOAuth2AuthorizationRequest({
+									atlassianUserId,
+									connectInstallation,
+									redirectEndpoint: 'figma/oauth/callback',
+								}),
 						},
 					});
 			});
