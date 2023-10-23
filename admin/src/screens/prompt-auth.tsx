@@ -31,7 +31,7 @@ export function PromptAuth({ authorizationEndpoint }: PromptAuthProps) {
 					gap: 24,
 				})}
 			>
-				<ConnectBanner />
+				<ConnectBanner type="sync" />
 				<div
 					css={css({
 						fontWeight: 'medium',

@@ -65,11 +65,13 @@ describe('FigmaService', () => {
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
-			jest.spyOn(figmaClient, 'me').mockResolvedValue({} as MeResponse);
+			jest
+				.spyOn(figmaClient, 'me')
+				.mockResolvedValue({ email: 'foo' } as MeResponse);
 
 			const result = await figmaService.checkAuth(MOCK_CONNECT_USER_INFO);
 
-			expect(result).toBe(true);
+			expect(result).toBe('foo');
 			expect(figmaAuthService.getCredentials).toHaveBeenCalledWith(
 				MOCK_CONNECT_USER_INFO,
 			);
@@ -83,7 +85,7 @@ describe('FigmaService', () => {
 
 			const result = await figmaService.checkAuth(MOCK_CONNECT_USER_INFO);
 
-			expect(result).toBe(false);
+			expect(result).toBe(null);
 		});
 
 		it('should return false if user is not authorized to call Figma API', async () => {
@@ -96,7 +98,7 @@ describe('FigmaService', () => {
 
 			const result = await figmaService.checkAuth(MOCK_CONNECT_USER_INFO);
 
-			expect(result).toBe(false);
+			expect(result).toBe(null);
 		});
 
 		it('should return false if request Figma API fails with no auth-related error', async () => {

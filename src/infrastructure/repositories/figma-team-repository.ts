@@ -18,7 +18,9 @@ type PrismaFigmaTeamSummary = Pick<
 >;
 
 export class FigmaTeamRepository {
-	upsert = async (createParams: FigmaTeamCreateParams): Promise<FigmaTeam> => {
+	upsert = async (
+		createParams: FigmaTeamCreateParams,
+	): Promise<FigmaTeamSummary> => {
 		const createParamsDbModel = this.mapCreateParamsToDbModel(createParams);
 
 		const dbModel = await prismaClient.get().figmaTeam.upsert({
@@ -31,7 +33,7 @@ export class FigmaTeamRepository {
 				},
 			},
 		});
-		return this.mapToFigmaTeam(dbModel);
+		return this.mapToFigmaTeamSummary(dbModel);
 	};
 
 	/**

@@ -21,6 +21,12 @@ export async function getTeams(): Promise<
 
 export async function connectTeam(
 	teamId: string,
-): Promise<AxiosResponse<void>> {
+): Promise<AxiosResponse<Readonly<FigmaTeamSummary>>> {
 	return await axiosRest.post(`/teams/${teamId}/connect`);
+}
+
+export async function disconnectTeam(
+	teamId: string,
+): Promise<AxiosResponse<void>> {
+	return await axiosRest.delete(`/teams/${teamId}/disconnect`);
 }

@@ -243,13 +243,11 @@ describe('/teams', () => {
 
 		it('should delete the webhook and FigmaTeam record', async () => {
 			jest.spyOn(figmaClient, 'deleteWebhook');
-
-			const figmaTeam = await figmaTeamRepository.upsert(
-				generateFigmaTeamCreateParams({
-					connectInstallationId: connectInstallation.id,
-					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
-				}),
-			);
+			const figmaTeamCreateParams = generateFigmaTeamCreateParams({
+				connectInstallationId: connectInstallation.id,
+				figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+			});
+			const figmaTeam = await figmaTeamRepository.upsert(figmaTeamCreateParams);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: 'jira-admin-but-not-a-figma-team-admin',
@@ -258,7 +256,7 @@ describe('/teams', () => {
 
 			mockFigmaDeleteWebhookEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
-				webhookId: figmaTeam.webhookId,
+				webhookId: figmaTeamCreateParams.webhookId,
 				accessToken: figmaOAuth2UserCredentials.accessToken,
 				status: HttpStatusCode.Ok,
 			});
@@ -269,21 +267,20 @@ describe('/teams', () => {
 				.expect(HttpStatusCode.Ok);
 
 			await expect(
-				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
+				figmaTeamRepository.getByWebhookId(figmaTeamCreateParams.webhookId),
 			).rejects.toBeInstanceOf(NotFoundOperationError);
 			expect(figmaClient.deleteWebhook).toBeCalledWith(
-				figmaTeam.webhookId,
+				figmaTeamCreateParams.webhookId,
 				figmaOAuth2UserCredentials.accessToken,
 			);
 		});
 
 		it('should return a 200 and delete the FigmaTeam when webhook is not found', async () => {
-			const figmaTeam = await figmaTeamRepository.upsert(
-				generateFigmaTeamCreateParams({
-					connectInstallationId: connectInstallation.id,
-					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
-				}),
-			);
+			const figmaTeamCreateParams = generateFigmaTeamCreateParams({
+				connectInstallationId: connectInstallation.id,
+				figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+			});
+			const figmaTeam = await figmaTeamRepository.upsert(figmaTeamCreateParams);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: 'jira-admin-but-not-a-figma-team-admin',
@@ -292,7 +289,7 @@ describe('/teams', () => {
 
 			mockFigmaDeleteWebhookEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
-				webhookId: figmaTeam.webhookId,
+				webhookId: figmaTeamCreateParams.webhookId,
 				accessToken: figmaOAuth2UserCredentials.accessToken,
 				status: HttpStatusCode.NotFound,
 			});
@@ -303,17 +300,16 @@ describe('/teams', () => {
 				.expect(HttpStatusCode.Ok);
 
 			await expect(
-				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
+				figmaTeamRepository.getByWebhookId(figmaTeamCreateParams.webhookId),
 			).rejects.toBeInstanceOf(NotFoundOperationError);
 		});
 
 		it('should return a 200 and delete the FigmaTeam when deleting the webhook fails', async () => {
-			const figmaTeam = await figmaTeamRepository.upsert(
-				generateFigmaTeamCreateParams({
-					connectInstallationId: connectInstallation.id,
-					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
-				}),
-			);
+			const figmaTeamCreateParams = generateFigmaTeamCreateParams({
+				connectInstallationId: connectInstallation.id,
+				figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+			});
+			const figmaTeam = await figmaTeamRepository.upsert(figmaTeamCreateParams);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: 'jira-admin-but-not-a-figma-team-admin',
@@ -322,7 +318,7 @@ describe('/teams', () => {
 
 			mockFigmaDeleteWebhookEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
-				webhookId: figmaTeam.webhookId,
+				webhookId: figmaTeamCreateParams.webhookId,
 				accessToken: figmaOAuth2UserCredentials.accessToken,
 				status: HttpStatusCode.InternalServerError,
 			});
@@ -333,7 +329,7 @@ describe('/teams', () => {
 				.expect(HttpStatusCode.InternalServerError);
 
 			await expect(
-				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
+				figmaTeamRepository.getByWebhookId(figmaTeamCreateParams.webhookId),
 			).resolves.toEqual(figmaTeam);
 		});
 	});

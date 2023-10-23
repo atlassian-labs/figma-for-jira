@@ -5,7 +5,7 @@ export const checkUserFigmaAuthUseCase = {
 	execute: async (
 		atlassianUserId: string,
 		connectInstallation: ConnectInstallation,
-	): Promise<boolean> => {
+	): Promise<string | null> => {
 		return figmaService.checkAuth({
 			atlassianUserId,
 			connectInstallationId: connectInstallation.id,

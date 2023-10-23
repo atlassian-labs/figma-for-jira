@@ -29,18 +29,18 @@ const buildDevResourceNameFromJiraIssue = (
 ) => `[${issueKey}] ${issueSummary}`;
 
 export class FigmaService {
-	checkAuth = async (user: ConnectUserInfo): Promise<boolean> => {
+	checkAuth = async (user: ConnectUserInfo): Promise<string | null> => {
 		try {
 			const credentials = await figmaAuthService.getCredentials(user);
-			await figmaClient.me(credentials.accessToken);
+			const meResponse = await figmaClient.me(credentials.accessToken);
 
-			return true;
+			return meResponse.email;
 		} catch (e: unknown) {
 			if (
 				e instanceof UnauthorizedOperationError ||
 				e instanceof ForbiddenOperationError
 			) {
-				return false;
+				return null;
 			}
 
 			throw e;

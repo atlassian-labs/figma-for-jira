@@ -50,7 +50,7 @@ teamsRouter.post(
 
 		connectFigmaTeamUseCase
 			.execute(req.params.teamId, atlassianUserId, connectInstallation)
-			.then(() => res.sendStatus(HttpStatusCode.Ok))
+			.then((team) => res.status(HttpStatusCode.Ok).send(team))
 			.catch(next);
 	},
 );

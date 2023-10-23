@@ -7,9 +7,10 @@ export type CheckAuthQueryParameters = { readonly userId: string };
 export type CheckAuthResponseBody = {
 	readonly type: '3LO';
 	readonly authorized: boolean;
-	readonly grant?: {
+	readonly grant: {
 		readonly authorizationEndpoint: string;
 	};
+	readonly email?: string;
 };
 
 type CheckAuthRequestLocals = {

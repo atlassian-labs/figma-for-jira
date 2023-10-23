@@ -6,6 +6,10 @@ export type CheckAuthResponseBody =
 	| {
 			readonly type: '3LO';
 			readonly authorized: true;
+			readonly grant: {
+				readonly authorizationEndpoint: string;
+			};
+			readonly email: string;
 	  }
 	| {
 			readonly type: '3LO';

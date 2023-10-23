@@ -29,11 +29,7 @@ authRouter.get(
 
 		checkUserFigmaAuthUseCase
 			.execute(atlassianUserId, connectInstallation)
-			.then((authorized) => {
-				if (authorized) {
-					return res.send({ type: '3LO', authorized });
-				}
-
+			.then((figmaUserEmail) => {
 				const authorizationEndpoint =
 					figmaAuthService.buildAuthorizationEndpoint(
 						{
@@ -43,9 +39,18 @@ authRouter.get(
 						`${getConfig().app.baseUrl}/figma/oauth/callback`,
 					);
 
+				if (figmaUserEmail) {
+					return res.send({
+						type: '3LO',
+						authorized: true,
+						grant: { authorizationEndpoint },
+						email: figmaUserEmail,
+					});
+				}
+
 				return res.send({
 					type: '3LO',
-					authorized,
+					authorized: false,
 					grant: { authorizationEndpoint },
 				});
 			})

@@ -1,12 +1,17 @@
 import Spinner from '@atlaskit/spinner';
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 
 import { checkAuth, getTeams } from './api';
-import { getCurrentUser } from './api/connect_api';
-import { ConnectTeam } from './screens/connect-team';
+import { getCurrentSite, getCurrentUser } from './api/connect_api';
+import { Page } from './components';
+import { ConnectedTeams } from './screens/connected-teams';
+import { FigmaTeamConnector } from './screens/figma-team-connector';
 import { PromptAuth } from './screens/prompt-auth';
 
 export function App() {
+	const [isConnectingTeam, setIsConnectingTeam] = useState(false);
+
 	const currentUserQuery = useQuery({
 		queryKey: ['currentUser'],
 		queryFn: getCurrentUser,
@@ -22,10 +27,21 @@ export function App() {
 		enabled: atlassianAccountId != null,
 	});
 
+	const currentSiteQuery = useQuery({
+		queryKey: ['currentSite'],
+		queryFn: getCurrentSite,
+		initialData: '',
+		placeholderData: '',
+	});
+
 	const teamsQuery = useQuery({
 		queryKey: ['teams', currentUserQuery.data?.atlassianAccountId],
 		queryFn: async () => {
-			return (await getTeams()).data;
+			const teams = (await getTeams()).data;
+			if (teams.length === 0) {
+				setIsConnectingTeam(true);
+			}
+			return teams;
 		},
 		enabled: checkAuthQuery.data?.authorized ?? false,
 	});
@@ -36,9 +52,9 @@ export function App() {
 		teamsQuery.isLoading
 	) {
 		return (
-			<div className="w-screen h-screen flex items-center justify-center">
+			<Page>
 				<Spinner size="large" />
-			</div>
+			</Page>
 		);
 	}
 
@@ -68,10 +84,24 @@ export function App() {
 	}
 
 	const teams = teamsQuery.data;
-	if (teams.length === 0) {
-		return <ConnectTeam />;
+	if (isConnectingTeam) {
+		return (
+			<FigmaTeamConnector
+				site={currentSiteQuery.data}
+				onClose={
+					teams.length > 0 ? () => setIsConnectingTeam(false) : undefined
+				}
+				email={checkAuthResponse.email}
+				authorizationEndpoint={checkAuthResponse.grant.authorizationEndpoint}
+			/>
+		);
 	}
 
-	// TODO: render a screen listing all the teams the user has configured
-	return <div>Hello, world!</div>;
+	return (
+		<ConnectedTeams
+			site={currentSiteQuery.data}
+			teams={teams}
+			addTeam={() => setIsConnectingTeam(true)}
+		/>
+	);
 }

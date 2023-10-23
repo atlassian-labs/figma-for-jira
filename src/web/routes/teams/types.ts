@@ -22,10 +22,7 @@ export type ConnectFigmaTeamRequest = Request<
 	ConnectFigmaTeamLocals
 >;
 
-export type ConnectTeamResponseBody = {
-	readonly success: string[];
-	readonly error: string[];
-};
+export type ConnectTeamResponseBody = Readonly<FigmaTeamSummary>;
 
 export type ConnectFigmaTeamResponse = Response<
 	ConnectTeamResponseBody,
