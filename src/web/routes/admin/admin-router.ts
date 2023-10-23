@@ -1,7 +1,13 @@
-import { Router, static as Static } from 'express';
+import { Router } from 'express';
 
-import path from 'path';
+import { authRouter } from './auth';
+import { teamsRouter } from './teams';
+
+import { jiraContextSymmetricJwtAuthMiddleware } from '../../middleware/jira';
 
 export const adminRouter = Router();
 
-adminRouter.use('/', Static(path.join(process.cwd(), 'admin/dist')));
+adminRouter.use(jiraContextSymmetricJwtAuthMiddleware);
+
+adminRouter.use('/auth', authRouter);
+adminRouter.use('/teams', teamsRouter);

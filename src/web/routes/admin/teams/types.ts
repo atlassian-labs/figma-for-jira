@@ -3,7 +3,7 @@ import type { Request, Response } from 'express';
 import type {
 	ConnectInstallation,
 	FigmaTeamSummary,
-} from '../../../domain/entities';
+} from '../../../../domain/entities';
 
 export type ConnectFigmaTeamRouteParams = {
 	readonly teamId: string;

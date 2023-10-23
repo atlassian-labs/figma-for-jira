@@ -2,49 +2,49 @@ import { HttpStatusCode } from 'axios';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
-import app from '../../../app';
-import { NotFoundOperationError } from '../../../common/errors';
-import { getConfig } from '../../../config';
+import app from '../../../../app';
+import { NotFoundOperationError } from '../../../../common/errors';
+import { getConfig } from '../../../../config';
 import type {
 	ConnectInstallation,
 	FigmaOAuth2UserCredentials,
 	FigmaTeamSummary,
-} from '../../../domain/entities';
-import { FigmaTeamAuthStatus } from '../../../domain/entities';
+} from '../../../../domain/entities';
+import { FigmaTeamAuthStatus } from '../../../../domain/entities';
 import {
 	generateConnectInstallationCreateParams,
 	generateFigmaOAuth2UserCredentialCreateParams,
 	generateFigmaTeamCreateParams,
 	generateFigmaTeamSummary,
-} from '../../../domain/entities/testing';
-import { figmaClient } from '../../../infrastructure/figma/figma-client';
+} from '../../../../domain/entities/testing';
+import { figmaClient } from '../../../../infrastructure/figma/figma-client';
 import {
 	generateCreateWebhookResponse,
 	generateGetTeamProjectsResponse,
-} from '../../../infrastructure/figma/figma-client/testing';
+} from '../../../../infrastructure/figma/figma-client/testing';
 import {
 	connectInstallationRepository,
 	figmaOAuth2UserCredentialsRepository,
 	figmaTeamRepository,
-} from '../../../infrastructure/repositories';
+} from '../../../../infrastructure/repositories';
 import {
 	generateJiraContextSymmetricJwtToken,
 	mockFigmaCreateWebhookEndpoint,
 	mockFigmaDeleteWebhookEndpoint,
 	mockFigmaGetTeamProjectsEndpoint,
 	mockJiraSetAppPropertyEndpoint,
-} from '../../testing';
+} from '../../../testing';
 
 const figmaTeamSummaryComparer = (a: FigmaTeamSummary, b: FigmaTeamSummary) =>
 	a.teamId.localeCompare(b.teamId);
 
-const TEAMS_ENDPOINT = '/teams';
+const TEAMS_ENDPOINT = '/admin/teams';
 const connectTeamEndpoint = (teamId: string): string =>
-	`${TEAMS_ENDPOINT}/${teamId}/connect`;
+	`/admin/teams/${teamId}/connect`;
 const disconnectTeamEndpoint = (teamId: string): string =>
-	`${TEAMS_ENDPOINT}/${teamId}/disconnect`;
+	`/admin/teams/${teamId}/disconnect`;
 
-describe('/teams', () => {
+describe('/admin/teams', () => {
 	describe('GET', () => {
 		let targetConnectInstallation: ConnectInstallation;
 		let otherConnectInstallation: ConnectInstallation;

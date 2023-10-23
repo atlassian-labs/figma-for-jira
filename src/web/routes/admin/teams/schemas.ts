@@ -3,7 +3,7 @@ import type {
 	DisconnectFigmaTeamRouteParams,
 } from './types';
 
-import type { JSONSchemaTypeWithId } from '../../../infrastructure';
+import type { JSONSchemaTypeWithId } from '../../../../infrastructure';
 
 export const CONNECT_FIGMA_TEAM_ROUTE_PARAMS_SCHEMA: JSONSchemaTypeWithId<ConnectFigmaTeamRouteParams> =
 	{
