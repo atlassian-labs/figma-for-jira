@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+import { FILE_RESPONSE_SCHEMA } from './schemas';
 import type {
 	CreateDevResourcesRequest,
 	CreateDevResourcesResponse,
@@ -17,6 +18,7 @@ import type {
 } from './types';
 
 import { getConfig } from '../../../config';
+import { assertSchema } from '../../ajv';
 import { withOperationErrorTranslation } from '../../axios-utils';
 
 /**
@@ -129,6 +131,8 @@ export class FigmaClient {
 					['Authorization']: `Bearer ${accessToken}`,
 				},
 			});
+
+			assertSchema(response.data, FILE_RESPONSE_SCHEMA);
 
 			return response.data;
 		});

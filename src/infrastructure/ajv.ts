@@ -39,27 +39,12 @@ export function parseJsonOfSchema<T>(
 	schema: JSONSchemaTypeWithId<T>,
 ): T {
 	try {
-		const parsed: unknown = JSON.parse(ensureString(value));
+		let parsed: unknown = value;
+		if (typeof value != 'object') {
+			parsed = JSON.parse(ensureString(value));
+		}
 		assertSchema(parsed, schema);
 		return parsed;
-	} catch (error) {
-		if (error instanceof SchemaValidationError) {
-			throw error;
-		} else if (error instanceof Error) {
-			throw new SchemaValidationError(error.message, [error]);
-		} else {
-			throw new SchemaValidationError('Unknown error');
-		}
-	}
-}
-
-export function parseJsonOfSchemaFromObject<T>(
-	value: object,
-	schema: JSONSchemaTypeWithId<T>,
-): T {
-	try {
-		assertSchema(value, schema);
-		return value;
 	} catch (error) {
 		if (error instanceof SchemaValidationError) {
 			throw error;

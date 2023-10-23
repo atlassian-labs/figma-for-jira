@@ -36,9 +36,9 @@ describe('connectFigmaTeamUseCase', () => {
 		);
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		const generatedPasscode = (
-			figmaService.createFileUpdateWebhook as jest.Mock
-		).mock.calls[0][1];
+		const generatedPasscode =
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			(figmaService.createFileUpdateWebhook as jest.Mock).mock.calls[0][1];
 
 		expect(figmaTeamRepository.upsert).toBeCalledWith({
 			webhookId,
