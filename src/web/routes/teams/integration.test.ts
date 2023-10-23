@@ -32,6 +32,7 @@ import {
 	mockFigmaCreateWebhookEndpoint,
 	mockFigmaDeleteWebhookEndpoint,
 	mockFigmaGetTeamProjectsEndpoint,
+	mockJiraSetAppPropertyEndpoint,
 } from '../../testing';
 
 const figmaTeamSummaryComparer = (a: FigmaTeamSummary, b: FigmaTeamSummary) =>
@@ -175,6 +176,12 @@ describe('/teams', () => {
 					teamId,
 				}),
 			});
+			mockJiraSetAppPropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				appKey: connectInstallation.key,
+				propertyKey: 'is-configured',
+				request: `CONFIGURED`,
+			});
 
 			await request(app)
 				.post(requestPath)
@@ -262,6 +269,12 @@ describe('/teams', () => {
 				accessToken: figmaOAuth2UserCredentials.accessToken,
 				status: HttpStatusCode.Ok,
 			});
+			mockJiraSetAppPropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				appKey: connectInstallation.key,
+				propertyKey: 'is-configured',
+				request: `UNCONFIGURED`,
+			});
 
 			await request(app)
 				.delete(requestPath)
@@ -295,6 +308,12 @@ describe('/teams', () => {
 				webhookId: figmaTeam.webhookId,
 				accessToken: figmaOAuth2UserCredentials.accessToken,
 				status: HttpStatusCode.NotFound,
+			});
+			mockJiraSetAppPropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				appKey: connectInstallation.key,
+				propertyKey: 'is-configured',
+				request: `UNCONFIGURED`,
 			});
 
 			await request(app)

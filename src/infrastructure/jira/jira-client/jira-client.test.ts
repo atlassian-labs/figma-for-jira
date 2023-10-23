@@ -266,7 +266,7 @@ describe('JiraClient', () => {
 
 			const headers = defaultExpectedRequestHeaders()
 				.headers.setAccept('application/json')
-				.setContentType('application/json');
+				.setContentType('text/plain');
 
 			expect(axios.put).toHaveBeenCalledWith(
 				`${connectInstallation.baseUrl}/rest/atlassian-connect/1/addons/${connectInstallation.key}/properties/${propertyKey}`,

@@ -93,3 +93,24 @@ export const mockJiraDeleteIssuePropertyEndpoint = ({
 		.delete(`/rest/api/2/issue/${issueId}/properties/${propertyKey}`)
 		.reply(status);
 };
+
+export const mockJiraSetAppPropertyEndpoint = ({
+	baseUrl,
+	appKey,
+	propertyKey,
+	request,
+	status = HttpStatusCode.Ok,
+}: {
+	baseUrl: string;
+	appKey: string;
+	propertyKey: string;
+	request: RequestBodyMatcher;
+	status?: HttpStatusCode;
+}) => {
+	nock(baseUrl)
+		.put(
+			`/rest/atlassian-connect/1/addons/${appKey}/properties/${propertyKey}`,
+			request,
+		)
+		.reply(status);
+};

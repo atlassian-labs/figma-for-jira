@@ -219,7 +219,7 @@ class JiraClient {
 						this.buildAuthorizationHeader(url, 'PUT', connectInstallation),
 					)
 					.setAccept('application/json')
-					.setContentType('application/json'),
+					.setContentType('text/plain'),
 			});
 		});
 
