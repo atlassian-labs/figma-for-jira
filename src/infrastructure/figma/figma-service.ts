@@ -62,7 +62,6 @@ export class FigmaService {
 				},
 				accessToken,
 			);
-
 			return transformNodeToAtlassianDesign({
 				fileKey: designId.fileKey,
 				nodeId: designId.nodeId,

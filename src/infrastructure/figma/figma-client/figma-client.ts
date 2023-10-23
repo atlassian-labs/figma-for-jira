@@ -1,6 +1,15 @@
 import axios from 'axios';
 
-import { FILE_RESPONSE_SCHEMA } from './schemas';
+import {
+	CREATE_DEV_RESOURCE_RESPONSE_SCHEMA,
+	CREATE_WEBHOOK_RESPONSE,
+	FILE_RESPONSE_SCHEMA,
+	GET_DEV_RESOURCE_RESPONSE_SCHEMA,
+	GET_OAUTH2_TOKEN_RESPONSE_SCHEMA,
+	GET_TEAM_PROJECTS_RESPONSE_SCHEMA,
+	ME_RESPONSE_SCHEMA,
+	REFRESH_OAUTH2_TOKEN_RESPONSE_SCHEMA,
+} from './schemas';
 import type {
 	CreateDevResourcesRequest,
 	CreateDevResourcesResponse,
@@ -53,6 +62,8 @@ export class FigmaClient {
 				},
 			);
 
+			assertSchema(response.data, GET_OAUTH2_TOKEN_RESPONSE_SCHEMA);
+
 			return response.data;
 		});
 
@@ -76,6 +87,8 @@ export class FigmaClient {
 				{ params },
 			);
 
+			assertSchema(response.data, REFRESH_OAUTH2_TOKEN_RESPONSE_SCHEMA);
+
 			return response.data;
 		});
 
@@ -94,6 +107,8 @@ export class FigmaClient {
 					},
 				},
 			);
+
+			assertSchema(response.data, ME_RESPONSE_SCHEMA);
 
 			return response.data;
 		});
@@ -159,6 +174,8 @@ export class FigmaClient {
 				},
 			);
 
+			assertSchema(response.data, CREATE_DEV_RESOURCE_RESPONSE_SCHEMA);
+
 			return response.data;
 		});
 
@@ -184,6 +201,8 @@ export class FigmaClient {
 					},
 				},
 			);
+
+			assertSchema(response.data, GET_DEV_RESOURCE_RESPONSE_SCHEMA);
 
 			return response.data;
 		});
@@ -233,6 +252,8 @@ export class FigmaClient {
 				},
 			);
 
+			assertSchema(response.data, CREATE_WEBHOOK_RESPONSE);
+
 			return response.data;
 		});
 
@@ -269,6 +290,8 @@ export class FigmaClient {
 					},
 				},
 			);
+
+			assertSchema(response.data, GET_TEAM_PROJECTS_RESPONSE_SCHEMA);
 
 			return response.data;
 		});

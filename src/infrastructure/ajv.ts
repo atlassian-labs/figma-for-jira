@@ -39,10 +39,7 @@ export function parseJsonOfSchema<T>(
 	schema: JSONSchemaTypeWithId<T>,
 ): T {
 	try {
-		let parsed: unknown = value;
-		if (typeof value != 'object') {
-			parsed = JSON.parse(ensureString(value));
-		}
+		const parsed: unknown = JSON.parse(ensureString(value));
 		assertSchema(parsed, schema);
 		return parsed;
 	} catch (error) {

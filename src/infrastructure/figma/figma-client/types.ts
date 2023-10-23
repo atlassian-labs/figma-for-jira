@@ -61,7 +61,7 @@ export type DevResource = {
 
 export type CreateDevResourcesRequest = Omit<DevResource, 'id'>;
 
-type CreateDevResourceError = {
+export type CreateDevResourceError = {
 	readonly file_key: string | null;
 	readonly node_id: string | null;
 	readonly error: string;

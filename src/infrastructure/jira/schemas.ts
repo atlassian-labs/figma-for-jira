@@ -1,6 +1,7 @@
 import type { AttachedDesignUrlV2IssuePropertyValue } from './jira-service';
 
 import type { JSONSchemaTypeWithId } from '../ajv';
+
 export const ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA: JSONSchemaTypeWithId<
 	AttachedDesignUrlV2IssuePropertyValue[]
 > = {
