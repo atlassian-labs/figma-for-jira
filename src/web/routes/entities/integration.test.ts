@@ -40,7 +40,7 @@ import {
 	transformNodeToAtlassianDesign,
 } from '../../../infrastructure/figma/transformers';
 import type { AttachedDesignUrlV2IssuePropertyValue } from '../../../infrastructure/jira';
-import { propertyKeys } from '../../../infrastructure/jira';
+import { issuePropertyKeys } from '../../../infrastructure/jira';
 import {
 	generateGetIssuePropertyResponse,
 	generateSubmitDesignsRequest,
@@ -214,25 +214,25 @@ describe('/entities', () => {
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				status: HttpStatusCode.NotFound,
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				request: JSON.stringify(normalizedFigmaDesignUrl),
 			});
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				status: HttpStatusCode.NotFound,
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				request: JSON.stringify(
 					JSON.stringify([
 						{
@@ -245,13 +245,13 @@ describe('/entities', () => {
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.INGESTED_DESIGN_URLS,
+				propertyKey: issuePropertyKeys.INGESTED_DESIGN_URLS,
 				status: HttpStatusCode.NotFound,
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.INGESTED_DESIGN_URLS,
+				propertyKey: issuePropertyKeys.INGESTED_DESIGN_URLS,
 				request: [normalizedFigmaDesignUrl],
 			});
 
@@ -358,25 +358,25 @@ describe('/entities', () => {
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				status: HttpStatusCode.NotFound,
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				request: JSON.stringify(normalizedFigmaDesignUrl),
 			});
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				status: HttpStatusCode.NotFound,
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				request: JSON.stringify(
 					JSON.stringify([
 						{
@@ -389,13 +389,13 @@ describe('/entities', () => {
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.INGESTED_DESIGN_URLS,
+				propertyKey: issuePropertyKeys.INGESTED_DESIGN_URLS,
 				status: HttpStatusCode.NotFound,
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.INGESTED_DESIGN_URLS,
+				propertyKey: issuePropertyKeys.INGESTED_DESIGN_URLS,
 				request: [normalizedFigmaDesignUrl],
 			});
 
@@ -593,16 +593,16 @@ describe('/entities', () => {
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				response: generateGetIssuePropertyResponse({
-					key: propertyKeys.ATTACHED_DESIGN_URL,
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL,
 					value: figmaDesignUrl,
 				}),
 			});
 			mockJiraDeleteIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 			});
 
 			const expectedDesignUrlV2Value: AttachedDesignUrlV2IssuePropertyValue = {
@@ -617,16 +617,16 @@ describe('/entities', () => {
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				response: generateGetIssuePropertyResponse({
-					key: propertyKeys.ATTACHED_DESIGN_URL_V2,
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 					value: JSON.stringify(attachedDesignUrlV2Values),
 				}),
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				request: JSON.stringify(JSON.stringify([expectedDesignUrlV2Value])),
 			});
 
@@ -732,16 +732,16 @@ describe('/entities', () => {
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				response: generateGetIssuePropertyResponse({
-					key: propertyKeys.ATTACHED_DESIGN_URL,
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL,
 					value: figmaDesignUrl,
 				}),
 			});
 			mockJiraDeleteIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 			});
 
 			const expectedDesignUrlV2Value: AttachedDesignUrlV2IssuePropertyValue = {
@@ -756,16 +756,16 @@ describe('/entities', () => {
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				response: generateGetIssuePropertyResponse({
-					key: propertyKeys.ATTACHED_DESIGN_URL_V2,
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 					value: JSON.stringify(attachedDesignUrlV2Values),
 				}),
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				request: JSON.stringify(JSON.stringify([expectedDesignUrlV2Value])),
 			});
 
@@ -821,13 +821,13 @@ describe('/entities', () => {
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				status: HttpStatusCode.NotFound,
 			});
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				propertyKey: propertyKeys.ATTACHED_DESIGN_URL_V2,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				status: HttpStatusCode.NotFound,
 			});
 			mockFigmaGetDevResourcesEndpoint({

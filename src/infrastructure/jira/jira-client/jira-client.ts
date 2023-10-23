@@ -197,6 +197,32 @@ class JiraClient {
 			});
 		});
 
+	/**
+	 * Sets a connect app property
+	 *
+	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-app-properties/#api-rest-atlassian-connect-1-addons-addonkey-properties-propertykey-put
+	 */
+	setAppProperty = async (
+		propertyKey: string,
+		value: unknown,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> =>
+		withAxiosErrorTranslation(async () => {
+			const url = new URL(
+				`/rest/atlassian-connect/1/addons/${connectInstallation.key}/properties/${propertyKey}`,
+				connectInstallation.baseUrl,
+			);
+
+			await axios.put(url.toString(), value, {
+				headers: new AxiosHeaders()
+					.setAuthorization(
+						this.buildAuthorizationHeader(url, 'PUT', connectInstallation),
+					)
+					.setAccept('application/json')
+					.setContentType('text/plain'),
+			});
+		});
+
 	private buildAuthorizationHeader(
 		url: URL,
 		method: Method,

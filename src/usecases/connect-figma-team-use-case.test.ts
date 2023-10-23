@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { type FigmaTeam, FigmaTeamAuthStatus } from '../domain/entities';
 import { generateConnectInstallation } from '../domain/entities/testing';
 import { figmaService } from '../infrastructure/figma';
+import { ConfigurationState, jiraService } from '../infrastructure/jira';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
 import { connectFigmaTeamUseCase } from '.';
@@ -22,6 +23,9 @@ describe('connectFigmaTeamUseCase', () => {
 		jest
 			.spyOn(figmaTeamRepository, 'upsert')
 			.mockResolvedValue({} as FigmaTeam);
+		jest
+			.spyOn(jiraService, 'setConfigurationStateInAppProperties')
+			.mockResolvedValue(undefined);
 
 		await connectFigmaTeamUseCase.execute(
 			teamId,
@@ -49,6 +53,11 @@ describe('connectFigmaTeamUseCase', () => {
 			authStatus: FigmaTeamAuthStatus.OK,
 			connectInstallationId: connectInstallation.id,
 		});
+
+		expect(jiraService.setConfigurationStateInAppProperties).toBeCalledWith(
+			ConfigurationState.CONFIGURED,
+			connectInstallation,
+		);
 	});
 
 	it('should throw and not create a FigmaTeam record if creating the webhook fails', async () => {
