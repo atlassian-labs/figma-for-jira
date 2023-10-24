@@ -14,13 +14,13 @@ import type {
 	ListFigmaTeamsResponse,
 } from './types';
 
-import { assertSchema } from '../../../infrastructure';
+import { assertSchema } from '../../../../infrastructure';
 import {
 	connectFigmaTeamUseCase,
 	disconnectFigmaTeamUseCase,
 	listFigmaTeamsUseCase,
-} from '../../../usecases';
-import { jiraContextSymmetricJwtAuthMiddleware } from '../../middleware/jira';
+} from '../../../../usecases';
+import { jiraContextSymmetricJwtAuthMiddleware } from '../../../middleware/jira';
 
 export const teamsRouter = Router();
 

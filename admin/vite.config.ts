@@ -4,7 +4,7 @@ import { defineConfig } from 'vite';
 // https://vitejs.dev/config/
 export default () => {
 	return defineConfig({
-		base: '/admin',
+		base: '/static/admin',
 		plugins: [react()],
 	});
 };

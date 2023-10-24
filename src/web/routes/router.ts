@@ -9,7 +9,6 @@ import { authRouter } from './auth';
 import { entitiesRouter } from './entities';
 import { figmaRouter } from './figma';
 import { lifecycleEventsRouter } from './lifecycle-events';
-import { teamsRouter } from './teams';
 
 import { connectAppDescriptor } from '../../atlassian-connect';
 
@@ -26,6 +25,7 @@ rootRouter.get('/atlassian-connect.json', (_: Request, res: Response) => {
 });
 
 // Static resources
+rootRouter.use('/static/admin', Static(join(process.cwd(), 'admin/dist')));
 rootRouter.use('/static', Static(join(process.cwd(), 'static')));
 
 // Connect lifecycle events
@@ -36,8 +36,6 @@ rootRouter.use('/admin', adminRouter);
 rootRouter.use('/auth', authRouter);
 
 rootRouter.use('/entities', entitiesRouter);
-
-rootRouter.use('/teams', teamsRouter);
 
 // Endpoints to handle requests from Figma
 rootRouter.use('/figma', figmaRouter);
