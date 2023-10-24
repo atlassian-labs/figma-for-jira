@@ -1,8 +1,6 @@
 import type { ErrorObject, JSONSchemaType, ValidateFunction } from 'ajv';
 import Ajv from 'ajv';
 
-import { ensureString } from '../common/string-utils';
-
 export const ajv = new Ajv({ allowUnionTypes: true });
 
 export type JSONSchemaTypeWithId<T> = JSONSchemaType<T> & { $id: string };
@@ -39,9 +37,11 @@ export function parseJsonOfSchema<T>(
 	schema: JSONSchemaTypeWithId<T>,
 ): T {
 	try {
-		const parsed: unknown = JSON.parse(ensureString(value));
-		assertSchema(parsed, schema);
-		return parsed;
+		if (typeof value === 'string') {
+			value = JSON.parse(value);
+		}
+		assertSchema(value, schema);
+		return value;
 	} catch (error) {
 		if (error instanceof SchemaValidationError) {
 			throw error;

@@ -565,7 +565,7 @@ describe('JiraService', () => {
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
 					key: issuePropertyKeys.INGESTED_DESIGN_URLS,
-					value: JSON.stringify(ingestedDesignPropertyValues),
+					value: ingestedDesignPropertyValues,
 				}),
 			);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
@@ -593,7 +593,7 @@ describe('JiraService', () => {
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
 					key: issuePropertyKeys.INGESTED_DESIGN_URLS,
-					value: JSON.stringify([design.url]),
+					value: [design.url],
 				}),
 			);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
@@ -607,7 +607,7 @@ describe('JiraService', () => {
 			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
 		});
 
-		it.each([1, null, { url: 'url' }])(
+		it.each([1, [1], null, { url: 'url' }])(
 			'should overwrite the existing value if the issue property value is not in the expected shape',
 			async (value) => {
 				const expectedIssuePropertyValue = [design.url];
@@ -615,7 +615,7 @@ describe('JiraService', () => {
 				jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 					generateGetIssuePropertyResponse({
 						key: issuePropertyKeys.INGESTED_DESIGN_URLS,
-						value: JSON.stringify(value),
+						value: value,
 					}),
 				);
 				jest.spyOn(jiraClient, 'setIssueProperty').mockResolvedValue();
