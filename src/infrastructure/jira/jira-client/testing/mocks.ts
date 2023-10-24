@@ -11,6 +11,8 @@ import {
 import type { JwtTokenParams } from '../jwt-utils';
 import type {
 	Association,
+	CheckPermissionsRequest,
+	CheckPermissionsResponse,
 	GetIssuePropertyResponse,
 	GetIssueResponse,
 	SubmitDesignsRequest,
@@ -134,4 +136,18 @@ export const generateGetIssuePropertyResponse = ({
 }: Partial<GetIssuePropertyResponse> = {}): GetIssuePropertyResponse => ({
 	key,
 	value,
+});
+
+export const generateCheckPermissionsRequest = ({
+	accountId = uuidv4(),
+	globalPermissions = ['ADMINISTER'],
+}: Partial<CheckPermissionsRequest> = {}): CheckPermissionsRequest => ({
+	accountId,
+	globalPermissions,
+});
+
+export const generateCheckPermissionsResponse = ({
+	globalPermissions = ['ADMINISTER'],
+}: Partial<CheckPermissionsResponse> = {}): CheckPermissionsResponse => ({
+	globalPermissions,
 });

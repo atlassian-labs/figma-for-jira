@@ -6,6 +6,7 @@ import type { JSONSchemaType } from 'ajv';
 
 import type {
 	Association,
+	CheckPermissionsResponse,
 	DesignKey,
 	GetIssuePropertyResponse,
 	GetIssueResponse,
@@ -36,7 +37,7 @@ const ASSOCIATION_SCHEMA: JSONSchemaType<Association> = {
 
 export const SUBMIT_DESIGNS_RESPONSE_SCHEMA: JSONSchemaTypeWithId<SubmitDesignsResponse> =
 	{
-		$id: 'jira-software-cloud-api:submit-design-data:response',
+		$id: 'jira-software-cloud-api:post:submit-design-data:response',
 		type: 'object',
 		properties: {
 			acceptedEntities: {
@@ -79,7 +80,7 @@ export const SUBMIT_DESIGNS_RESPONSE_SCHEMA: JSONSchemaTypeWithId<SubmitDesignsR
 
 export const GET_ISSUE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetIssueResponse> =
 	{
-		$id: 'jira-software-cloud-api:get-issue:response',
+		$id: 'jira-software-cloud-api:get:issue:response',
 		type: 'object',
 		properties: {
 			id: { type: 'string' },
@@ -96,13 +97,26 @@ export const GET_ISSUE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetIssueResponse> =
 		required: ['id', 'key', 'self'],
 	} as const;
 
-export const GET_ISSUE_PROPERTY_RESPONSE_SCHEMA: JSONSchemaTypeWithId<
-	Omit<GetIssuePropertyResponse, 'value'>
-> = {
-	$id: 'jira-software-cloud-api:get-issue-property:response',
+export const GET_ISSUE_PROPERTY_RESPONSE_SCHEMA = {
+	$id: 'jira-software-cloud-api:get:issue-property:response',
 	type: 'object',
 	properties: {
 		key: { type: 'string' },
 	},
 	required: ['key'],
-} as const;
+} as JSONSchemaTypeWithId<
+	Omit<GetIssuePropertyResponse, 'value'>
+> as JSONSchemaTypeWithId<GetIssuePropertyResponse>;
+
+export const CHECK_PERMISSIONS_RESPONSE_SCHEMA: JSONSchemaTypeWithId<CheckPermissionsResponse> =
+	{
+		$id: 'jira-software-cloud-api:post:check-permissions:response',
+		type: 'object',
+		properties: {
+			globalPermissions: {
+				type: 'array',
+				items: { type: 'string' },
+			},
+		},
+		required: ['globalPermissions'],
+	} as const;

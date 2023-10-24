@@ -32,6 +32,7 @@ import {
 	mockFigmaCreateWebhookEndpoint,
 	mockFigmaDeleteWebhookEndpoint,
 	mockFigmaGetTeamProjectsEndpoint,
+	mockJiraCheckPermissionsEndpoint,
 	mockJiraSetAppPropertyEndpoint,
 } from '../../../testing';
 
@@ -45,7 +46,7 @@ const disconnectTeamEndpoint = (teamId: string): string =>
 	`/admin/teams/${teamId}/disconnect`;
 
 describe('/admin/teams', () => {
-	describe('GET', () => {
+	describe('GET /', () => {
 		let targetConnectInstallation: ConnectInstallation;
 		let otherConnectInstallation: ConnectInstallation;
 		let figmaOAuth2UserCredentials: FigmaOAuth2UserCredentials;
@@ -83,10 +84,20 @@ describe('/admin/teams', () => {
 					}),
 				),
 			]);
-
 			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				connectInstallation: targetConnectInstallation,
+			});
+
+			mockJiraCheckPermissionsEndpoint({
+				baseUrl: targetConnectInstallation.baseUrl,
+				request: {
+					accountId: figmaOAuth2UserCredentials.atlassianUserId,
+					globalPermissions: ['ADMINISTER'],
+				},
+				response: {
+					globalPermissions: ['ADMINISTER'],
+				},
 			});
 
 			const response = await request(app)
@@ -104,6 +115,11 @@ describe('/admin/teams', () => {
 		});
 
 		it('should return an empty list if there are no teams connected for the given connect installation', async () => {
+			const jwt = generateJiraContextSymmetricJwtToken({
+				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+				connectInstallation: targetConnectInstallation,
+			});
+
 			await Promise.all([
 				figmaTeamRepository.upsert(
 					generateFigmaTeamCreateParams({
@@ -117,9 +133,15 @@ describe('/admin/teams', () => {
 				),
 			]);
 
-			const jwt = generateJiraContextSymmetricJwtToken({
-				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
-				connectInstallation: targetConnectInstallation,
+			mockJiraCheckPermissionsEndpoint({
+				baseUrl: targetConnectInstallation.baseUrl,
+				request: {
+					accountId: figmaOAuth2UserCredentials.atlassianUserId,
+					globalPermissions: ['ADMINISTER'],
+				},
+				response: {
+					globalPermissions: ['ADMINISTER'],
+				},
 			});
 
 			const response = await request(app)
@@ -128,6 +150,29 @@ describe('/admin/teams', () => {
 				.expect(HttpStatusCode.Ok);
 
 			expect(response.body).toEqual([]);
+		});
+
+		it('should return unauthorized error if a user is not Jira admin', async () => {
+			const jwt = generateJiraContextSymmetricJwtToken({
+				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+				connectInstallation: targetConnectInstallation,
+			});
+
+			mockJiraCheckPermissionsEndpoint({
+				baseUrl: targetConnectInstallation.baseUrl,
+				request: {
+					accountId: figmaOAuth2UserCredentials.atlassianUserId,
+					globalPermissions: ['ADMINISTER'],
+				},
+				response: {
+					globalPermissions: [],
+				},
+			});
+
+			await request(app)
+				.get(TEAMS_ENDPOINT)
+				.set('Authorization', `JWT ${jwt}`)
+				.expect(HttpStatusCode.Unauthorized);
 		});
 	});
 
@@ -157,6 +202,16 @@ describe('/admin/teams', () => {
 				connectInstallation,
 			});
 
+			mockJiraCheckPermissionsEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				request: {
+					accountId: figmaOAuth2UserCredentials.atlassianUserId,
+					globalPermissions: ['ADMINISTER'],
+				},
+				response: {
+					globalPermissions: ['ADMINISTER'],
+				},
+			});
 			mockFigmaGetTeamProjectsEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				teamId,
@@ -211,6 +266,16 @@ describe('/admin/teams', () => {
 				connectInstallation,
 			});
 
+			mockJiraCheckPermissionsEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				request: {
+					accountId: figmaOAuth2UserCredentials.atlassianUserId,
+					globalPermissions: ['ADMINISTER'],
+				},
+				response: {
+					globalPermissions: ['ADMINISTER'],
+				},
+			});
 			mockFigmaGetTeamProjectsEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				teamId,
@@ -229,6 +294,31 @@ describe('/admin/teams', () => {
 			await expect(
 				figmaTeamRepository.getByWebhookId(webhookId),
 			).rejects.toBeInstanceOf(NotFoundOperationError);
+		});
+
+		it('should return unauthorized error if a user is not Jira admin', async () => {
+			const teamId = uuidv4();
+			const requestPath = connectTeamEndpoint(teamId);
+			const jwt = generateJiraContextSymmetricJwtToken({
+				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+				connectInstallation,
+			});
+
+			mockJiraCheckPermissionsEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				request: {
+					accountId: figmaOAuth2UserCredentials.atlassianUserId,
+					globalPermissions: ['ADMINISTER'],
+				},
+				response: {
+					globalPermissions: [],
+				},
+			});
+
+			await request(app)
+				.post(requestPath)
+				.set('Authorization', `JWT ${jwt}`)
+				.expect(HttpStatusCode.Unauthorized);
 		});
 	});
 
@@ -250,7 +340,7 @@ describe('/admin/teams', () => {
 
 		it('should delete the webhook and FigmaTeam record', async () => {
 			jest.spyOn(figmaClient, 'deleteWebhook');
-
+			const nonFigmaTeamAdminAtlassianUserId = uuidv4();
 			const figmaTeam = await figmaTeamRepository.upsert(
 				generateFigmaTeamCreateParams({
 					connectInstallationId: connectInstallation.id,
@@ -259,10 +349,20 @@ describe('/admin/teams', () => {
 			);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
-				atlassianUserId: 'jira-admin-but-not-a-figma-team-admin',
+				atlassianUserId: nonFigmaTeamAdminAtlassianUserId,
 				connectInstallation,
 			});
 
+			mockJiraCheckPermissionsEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				request: {
+					accountId: nonFigmaTeamAdminAtlassianUserId,
+					globalPermissions: ['ADMINISTER'],
+				},
+				response: {
+					globalPermissions: ['ADMINISTER'],
+				},
+			});
 			mockFigmaDeleteWebhookEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				webhookId: figmaTeam.webhookId,
@@ -291,6 +391,7 @@ describe('/admin/teams', () => {
 		});
 
 		it('should return a 200 and delete the FigmaTeam when webhook is not found', async () => {
+			const nonFigmaTeamAdminAtlassianUserId = uuidv4();
 			const figmaTeam = await figmaTeamRepository.upsert(
 				generateFigmaTeamCreateParams({
 					connectInstallationId: connectInstallation.id,
@@ -299,10 +400,20 @@ describe('/admin/teams', () => {
 			);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
-				atlassianUserId: 'jira-admin-but-not-a-figma-team-admin',
+				atlassianUserId: nonFigmaTeamAdminAtlassianUserId,
 				connectInstallation,
 			});
 
+			mockJiraCheckPermissionsEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				request: {
+					accountId: nonFigmaTeamAdminAtlassianUserId,
+					globalPermissions: ['ADMINISTER'],
+				},
+				response: {
+					globalPermissions: ['ADMINISTER'],
+				},
+			});
 			mockFigmaDeleteWebhookEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				webhookId: figmaTeam.webhookId,
@@ -327,6 +438,7 @@ describe('/admin/teams', () => {
 		});
 
 		it('should return a 200 and delete the FigmaTeam when deleting the webhook fails', async () => {
+			const nonFigmaTeamAdminAtlassianUserId = uuidv4();
 			const figmaTeam = await figmaTeamRepository.upsert(
 				generateFigmaTeamCreateParams({
 					connectInstallationId: connectInstallation.id,
@@ -335,10 +447,20 @@ describe('/admin/teams', () => {
 			);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
-				atlassianUserId: 'jira-admin-but-not-a-figma-team-admin',
+				atlassianUserId: nonFigmaTeamAdminAtlassianUserId,
 				connectInstallation,
 			});
 
+			mockJiraCheckPermissionsEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				request: {
+					accountId: nonFigmaTeamAdminAtlassianUserId,
+					globalPermissions: ['ADMINISTER'],
+				},
+				response: {
+					globalPermissions: ['ADMINISTER'],
+				},
+			});
 			mockFigmaDeleteWebhookEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				webhookId: figmaTeam.webhookId,
@@ -354,6 +476,33 @@ describe('/admin/teams', () => {
 			await expect(
 				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
 			).resolves.toEqual(figmaTeam);
+		});
+
+		it('should return unauthorized error if a user is not Jira admin', async () => {
+			jest.spyOn(figmaClient, 'deleteWebhook');
+			const atlassianUserId = uuidv4();
+			const figmaTeamId = uuidv4();
+			const requestPath = disconnectTeamEndpoint(figmaTeamId);
+			const jwt = generateJiraContextSymmetricJwtToken({
+				atlassianUserId: atlassianUserId,
+				connectInstallation,
+			});
+
+			mockJiraCheckPermissionsEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				request: {
+					accountId: atlassianUserId,
+					globalPermissions: ['ADMINISTER'],
+				},
+				response: {
+					globalPermissions: [],
+				},
+			});
+
+			await request(app)
+				.delete(requestPath)
+				.set('Authorization', `JWT ${jwt}`)
+				.expect(HttpStatusCode.Unauthorized);
 		});
 	});
 });

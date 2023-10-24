@@ -4,12 +4,18 @@ import axios, { AxiosError, AxiosHeaders, HttpStatusCode } from 'axios';
 import { jiraClient } from './jira-client';
 import { createJwtToken } from './jwt-utils';
 import {
+	generateCheckPermissionsRequest,
+	generateCheckPermissionsResponse,
 	generateGetIssuePropertyResponse,
 	generateGetIssueResponse,
 	generateSubmitDesignsRequest,
 	generateSuccessfulSubmitDesignsResponse,
 	MOCK_JWT_TOKEN,
 } from './testing';
+import type {
+	CheckPermissionsRequest,
+	CheckPermissionsResponse,
+} from './types';
 
 import { NotFoundOperationError } from '../../../common/errors';
 import type { ConnectInstallation } from '../../../domain/entities';
@@ -272,6 +278,31 @@ describe('JiraClient', () => {
 				`${connectInstallation.baseUrl}/rest/atlassian-connect/1/addons/${connectInstallation.key}/properties/${propertyKey}`,
 				'some value',
 				{ headers },
+			);
+		});
+	});
+
+	describe('checkPermissions', () => {
+		it('should check permissions', async () => {
+			const request: CheckPermissionsRequest =
+				generateCheckPermissionsRequest();
+			const response: CheckPermissionsResponse =
+				generateCheckPermissionsResponse();
+			jest.spyOn(axios, 'post').mockResolvedValue({
+				status: HttpStatusCode.Ok,
+				data: response,
+			});
+
+			const result = await jiraClient.checkPermissions(
+				request,
+				connectInstallation,
+			);
+
+			expect(result).toBe(response);
+			expect(axios.post).toHaveBeenCalledWith(
+				`${connectInstallation.baseUrl}/rest/api/3/permissions/check`,
+				request,
+				defaultExpectedRequestHeaders(),
 			);
 		});
 	});
