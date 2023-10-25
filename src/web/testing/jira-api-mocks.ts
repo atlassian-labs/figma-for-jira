@@ -4,11 +4,14 @@ import nock from 'nock';
 
 import { generateJiraIssueId } from '../../domain/entities/testing';
 import type {
+	CheckPermissionsRequest,
+	CheckPermissionsResponse,
 	GetIssuePropertyResponse,
 	SubmitDesignsRequest,
 	SubmitDesignsResponse,
 } from '../../infrastructure/jira/jira-client';
 import {
+	generateCheckPermissionsResponse,
 	generateGetIssuePropertyResponse,
 	generateGetIssueResponse,
 	generateSuccessfulSubmitDesignsResponse,
@@ -113,4 +116,20 @@ export const mockJiraSetAppPropertyEndpoint = ({
 			request,
 		)
 		.reply(status);
+};
+
+export const mockJiraCheckPermissionsEndpoint = ({
+	baseUrl,
+	request,
+	status = HttpStatusCode.Ok,
+	response = generateCheckPermissionsResponse(),
+}: {
+	baseUrl: string;
+	request: CheckPermissionsRequest;
+	status?: HttpStatusCode;
+	response?: CheckPermissionsResponse;
+}) => {
+	nock(baseUrl)
+		.post(`/rest/api/3/permissions/check`, request)
+		.reply(status, response);
 };

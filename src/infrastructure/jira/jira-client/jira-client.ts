@@ -1,13 +1,16 @@
-import type { Method } from 'axios';
+import type { AxiosResponse, Method } from 'axios';
 import axios, { AxiosHeaders } from 'axios';
 
 import { createJwtToken } from './jwt-utils';
 import {
+	CHECK_PERMISSIONS_RESPONSE_SCHEMA,
 	GET_ISSUE_PROPERTY_RESPONSE_SCHEMA,
 	GET_ISSUE_RESPONSE_SCHEMA,
 	SUBMIT_DESIGNS_RESPONSE_SCHEMA,
 } from './schemas';
 import type {
+	CheckPermissionsRequest,
+	CheckPermissionsResponse,
 	GetIssuePropertyResponse,
 	GetIssueResponse,
 	SubmitDesignsRequest,
@@ -52,15 +55,12 @@ class JiraClient {
 				connectInstallation.baseUrl,
 			);
 
-			const response = await axios.post<SubmitDesignsResponse>(
-				url.toString(),
-				payload,
-				{
+			const response: AxiosResponse<unknown> =
+				await axios.post<SubmitDesignsResponse>(url.toString(), payload, {
 					headers: new AxiosHeaders().setAuthorization(
 						this.buildAuthorizationHeader(url, 'POST', connectInstallation),
 					),
-				},
-			);
+				});
 
 			assertSchema(response.data, SUBMIT_DESIGNS_RESPONSE_SCHEMA);
 
@@ -101,11 +101,12 @@ class JiraClient {
 				connectInstallation.baseUrl,
 			);
 
-			const response = await axios.get<GetIssueResponse>(url.toString(), {
-				headers: new AxiosHeaders().setAuthorization(
-					this.buildAuthorizationHeader(url, 'GET', connectInstallation),
-				),
-			});
+			const response: AxiosResponse<unknown> =
+				await axios.get<GetIssueResponse>(url.toString(), {
+					headers: new AxiosHeaders().setAuthorization(
+						this.buildAuthorizationHeader(url, 'GET', connectInstallation),
+					),
+				});
 
 			assertSchema(response.data, GET_ISSUE_RESPONSE_SCHEMA);
 
@@ -128,18 +129,16 @@ class JiraClient {
 				connectInstallation.baseUrl,
 			);
 
-			const response = await axios.get<GetIssuePropertyResponse>(
-				url.toString(),
-				{
+			const response: AxiosResponse<unknown> =
+				await axios.get<GetIssuePropertyResponse>(url.toString(), {
 					headers: new AxiosHeaders()
 						.setAuthorization(
 							this.buildAuthorizationHeader(url, 'GET', connectInstallation),
 						)
 						.setAccept('application/json'),
-				},
-			);
+				});
 
-			assertSchema<Omit<GetIssuePropertyResponse, 'value'>>(
+			assertSchema<GetIssuePropertyResponse>(
 				response.data,
 				GET_ISSUE_PROPERTY_RESPONSE_SCHEMA,
 			);
@@ -221,6 +220,36 @@ class JiraClient {
 					.setAccept('application/json')
 					.setContentType('text/plain'),
 			});
+		});
+
+	/**
+	 * Returns a list of requested global and project permissions.
+	 *
+	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-permissions/#api-rest-api-3-permissions-check-post
+	 */
+	checkPermissions = async (
+		payload: CheckPermissionsRequest,
+		connectInstallation: ConnectInstallation,
+	): Promise<CheckPermissionsResponse> =>
+		withAxiosErrorTranslation(async () => {
+			const url = new URL(
+				`/rest/api/3/permissions/check`,
+				connectInstallation.baseUrl,
+			);
+
+			const response: AxiosResponse<unknown> = await axios.post(
+				url.toString(),
+				payload,
+				{
+					headers: new AxiosHeaders().setAuthorization(
+						this.buildAuthorizationHeader(url, 'POST', connectInstallation),
+					),
+				},
+			);
+
+			assertSchema(response.data, CHECK_PERMISSIONS_RESPONSE_SCHEMA);
+
+			return response.data;
 		});
 
 	private buildAuthorizationHeader(

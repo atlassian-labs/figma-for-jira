@@ -1,9 +1,11 @@
 import type { AxiosResponse } from 'axios';
 import { AxiosError, HttpStatusCode } from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 
 import { SubmitDesignJiraOperationError } from './errors';
 import { jiraClient } from './jira-client';
 import {
+	generateCheckPermissionsResponse,
 	generateFailedSubmitDesignsResponse,
 	generateGetIssuePropertyResponse,
 	generateSubmitDesignsResponseWithUnknownData,
@@ -954,6 +956,42 @@ describe('JiraService', () => {
 				configurationState.valueOf(),
 				connectInstallation,
 			);
+		});
+	});
+
+	describe('setConfigurationStateInAppProperties', () => {
+		it('should return false if user does not have ADMINISTER permission', async () => {
+			const atlassianUserId = uuidv4();
+			const connectInstallation = generateConnectInstallation();
+			jest.spyOn(jiraClient, 'checkPermissions').mockResolvedValue(
+				generateCheckPermissionsResponse({
+					globalPermissions: [],
+				}),
+			);
+
+			const result = await jiraService.isAdmin(
+				atlassianUserId,
+				connectInstallation,
+			);
+
+			expect(result).toBe(false);
+		});
+
+		it('should return false if user has ADMINISTER permission', async () => {
+			const atlassianUserId = uuidv4();
+			const connectInstallation = generateConnectInstallation();
+			jest.spyOn(jiraClient, 'checkPermissions').mockResolvedValue(
+				generateCheckPermissionsResponse({
+					globalPermissions: ['ADMINISTER'],
+				}),
+			);
+
+			const result = await jiraService.isAdmin(
+				atlassianUserId,
+				connectInstallation,
+			);
+
+			expect(result).toBe(true);
 		});
 	});
 });

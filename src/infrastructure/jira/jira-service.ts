@@ -50,6 +50,8 @@ export enum ConfigurationState {
 	UNCONFIGURED = 'UNCONFIGURED',
 }
 
+export const JIRA_ADMIN_GLOBAL_PERMISSION = 'ADMINISTER';
+
 class JiraService {
 	submitDesign = async (
 		params: SubmitDesignParams,
@@ -357,6 +359,21 @@ class JiraService {
 			}
 		}
 	}
+
+	isAdmin = async (
+		atlassianUserId: string,
+		connectInstallation: ConnectInstallation,
+	): Promise<boolean> => {
+		const response = await jiraClient.checkPermissions(
+			{
+				accountId: atlassianUserId,
+				globalPermissions: [JIRA_ADMIN_GLOBAL_PERMISSION],
+			},
+			connectInstallation,
+		);
+
+		return response.globalPermissions.includes(JIRA_ADMIN_GLOBAL_PERMISSION);
+	};
 
 	/**
 	 * This isn't ideal but must be done as it's how the current implementation works
