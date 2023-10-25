@@ -18,7 +18,7 @@ export type CheckAuthResponseBody =
 export async function checkAuth(
 	atlassianUserId: string,
 ): Promise<AxiosResponse<CheckAuthResponseBody>> {
-	return await axiosRest.get<CheckAuthResponseBody>('/auth/checkAuth', {
+	return await axiosRest.get<CheckAuthResponseBody>('/admin/auth/checkAuth', {
 		params: { userId: atlassianUserId },
 	});
 }

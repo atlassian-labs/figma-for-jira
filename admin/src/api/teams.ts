@@ -16,5 +16,5 @@ export type FigmaTeamSummary = {
 export async function getTeams(): Promise<
 	AxiosResponse<ReadonlyArray<FigmaTeamSummary>>
 > {
-	return await axiosRest.get('/teams');
+	return await axiosRest.get('/admin/teams');
 }
