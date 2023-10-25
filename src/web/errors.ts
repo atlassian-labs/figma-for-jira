@@ -3,7 +3,7 @@ import { HttpStatusCode } from 'axios';
 import { CauseAwareError } from '../common/errors';
 
 /**
- * A base exception associated with specific HTTP response status codes.
+ * A base error associated with specific HTTP response status codes.
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
  */

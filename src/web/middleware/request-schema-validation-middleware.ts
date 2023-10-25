@@ -4,6 +4,10 @@ import type { JSONSchemaTypeWithId } from '../../common/schema-validation';
 import { validateSchema } from '../../common/schema-validation';
 import { BadRequestResponseStatusError } from '../errors';
 
+/**
+ * Validates the request (e.g., query or body) to match the given schema. If the request is invalid,
+ * pass `BadRequestResponseStatusError` to the Express pipeline, which wil result in HTTP 400.
+ */
 export const requestSchemaValidationMiddleware = <T>(
 	schema: JSONSchemaTypeWithId<T>,
 ) =>
