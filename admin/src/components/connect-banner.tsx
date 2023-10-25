@@ -10,11 +10,11 @@ export function ConnectBanner() {
 			`}
 		>
 			<div css={css({ padding: 16 })}>
-				<Image src="/admin/jira-logo.svg" />
+				<Image src="/static/admin/jira-logo.svg" />
 			</div>
-			<Image src="/admin/sync.svg" />
+			<Image src="/static/admin/sync.svg" />
 			<div css={css({ padding: 16 })}>
-				<Image src="/admin/figma-logo.svg" />
+				<Image src="/static/admin/figma-logo.svg" />
 			</div>
 		</div>
 	);

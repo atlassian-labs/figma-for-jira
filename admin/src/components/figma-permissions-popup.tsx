@@ -41,7 +41,7 @@ export function FigmaPermissionsPopup({
 						</ol>
 					</div>
 
-					<Image src="/admin/figma-teams-ui.svg" />
+					<Image src="/static/admin/figma-teams-ui.svg" />
 				</div>
 			)}
 			trigger={(triggerProps) => (
