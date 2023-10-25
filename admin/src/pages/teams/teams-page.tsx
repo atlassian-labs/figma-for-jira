@@ -2,7 +2,9 @@ import Spinner from '@atlaskit/spinner';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 
-import { getTeams } from '../../api';
+import { FigmaTeamConnector } from './figma-teams-connector';
+
+import { getCurrentAtlassianSite, getTeams } from '../../api';
 import { Page } from '../../components';
 
 export function TeamsPage() {
@@ -19,6 +21,13 @@ export function TeamsPage() {
 		},
 	});
 
+	const currentAtlassianSiteQuery = useQuery({
+		queryKey: ['currentSite'],
+		queryFn: getCurrentAtlassianSite,
+		initialData: '',
+		placeholderData: '',
+	});
+
 	if (teamsQuery.isPending) {
 		return (
 			<Page>
@@ -32,9 +41,17 @@ export function TeamsPage() {
 		return null;
 	}
 
+	const teams = teamsQuery.data;
+
 	if (isConnectingTeam) {
-		// TODO: render a page for connecting a team
-		return <Page>Connect a team placeholder</Page>;
+		return (
+			<FigmaTeamConnector
+				site={currentAtlassianSiteQuery.data}
+				onClose={
+					teams.length > 0 ? () => setIsConnectingTeam(false) : undefined
+				}
+			/>
+		);
 	}
 
 	// TODO: render a page for displaying a list of connected teams
