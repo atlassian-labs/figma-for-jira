@@ -11,6 +11,8 @@
 		"@atlaskit/button": "^16.11.0",
 		"@atlaskit/css-reset": "^6.6.1",
 		"@atlaskit/icon": "^21.12.7",
+		"@atlaskit/image": "^1.1.6",
+		"@atlaskit/popup": "^1.11.2",
 		"@atlaskit/spinner": "^15.6.1",
 		"@atlaskit/tokens": "^1.28.0",
 		"@emotion/css": "^11.11.2",
