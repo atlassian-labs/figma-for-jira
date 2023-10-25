@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from 'express';
 
 import type { ConnectInstallation } from '../../../domain/entities';
 import { jiraService } from '../../../infrastructure/jira';
-import { UnauthorizedError } from '../errors';
+import { UnauthorizedResultError } from '../../../usecases';
 
 export const jiraAdminOnlyAuthMiddleware = (
 	req: Request,
@@ -19,7 +19,7 @@ export const jiraAdminOnlyAuthMiddleware = (
 		.then((isAdmin) => {
 			if (!isAdmin) {
 				return next(
-					new UnauthorizedError(
+					new UnauthorizedResultError(
 						'Unauthorized. The resource is available only for admins.',
 					),
 				);

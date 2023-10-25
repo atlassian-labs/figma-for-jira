@@ -14,7 +14,6 @@ import { jiraAsymmetricJwtTokenVerifier } from './jira-asymmetric-jwt-token-veri
 import { Duration } from '../../../common/duration';
 import * as configModule from '../../../config';
 import { mockConfig } from '../../../config/testing';
-import { UnauthorizedError } from '../../../web/middleware/errors';
 
 const NOW = Date.now();
 const NOW_IN_SECONDS = Math.floor(NOW / 1000);
@@ -113,7 +112,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 
 			await expect(
 				jiraAsymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
-			).rejects.toThrowError(UnauthorizedError);
+			).rejects.toThrowError();
 		});
 
 		it('should throw token is not a JWT token', async () => {
@@ -121,7 +120,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 
 			await expect(
 				jiraAsymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
-			).rejects.toThrowError(UnauthorizedError);
+			).rejects.toThrowError();
 		});
 
 		it('should throw when token is signed with unexpected key', async () => {
@@ -147,7 +146,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 
 			await expect(
 				jiraAsymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
-			).rejects.toThrowError(UnauthorizedError);
+			).rejects.toThrowError();
 		});
 
 		it('should throw when `iss` claim is incorrect', async () => {
@@ -172,7 +171,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 
 			await expect(
 				jiraAsymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
-			).rejects.toThrowError(UnauthorizedError);
+			).rejects.toThrowError();
 		});
 
 		it('should throw when `qsh` claim is incorrect', async () => {
@@ -203,9 +202,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 					...REQUEST,
 					method: 'POST',
 				}),
-			).rejects.toThrowError(
-				new UnauthorizedError('The token contains an invalid `qsh` claim.'),
-			);
+			).rejects.toThrowError('The token contains an invalid `qsh` claim.');
 		});
 
 		it('should throw when token is expired', async () => {
@@ -230,7 +227,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 
 			await expect(
 				jiraAsymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
-			).rejects.toThrowError(new UnauthorizedError('The token is expired.'));
+			).rejects.toThrowError('The token is expired.');
 		});
 
 		it('should throw when `aud` is invalid', async () => {
@@ -255,7 +252,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 
 			await expect(
 				jiraAsymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
-			).rejects.toThrowError(UnauthorizedError);
+			).rejects.toThrowError();
 		});
 
 		it('should throw when `aud` does not contain app base URL', async () => {
@@ -280,9 +277,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 
 			await expect(
 				jiraAsymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
-			).rejects.toThrowError(
-				new UnauthorizedError('The token contains an invalid `aud` claim.'),
-			);
+			).rejects.toThrowError('The token contains an invalid `aud` claim.');
 		});
 	});
 });

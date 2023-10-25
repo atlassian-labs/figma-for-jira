@@ -2,7 +2,7 @@ import { fromExpressRequest } from 'atlassian-jwt';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
 import { jiraAsymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
-import { UnauthorizedError } from '../errors';
+import { UnauthorizedResultError } from '../../../usecases';
 
 /**
  * Authenticates requests using an asymmetric JWT token.
@@ -20,11 +20,11 @@ export const jiraAsymmetricJwtAuthMiddleware: RequestHandler = (
 	const token = req.headers.authorization?.replace('JWT ', '');
 
 	if (!token) {
-		return next(new UnauthorizedError('Missing JWT token.'));
+		return next(new UnauthorizedResultError('Missing token.'));
 	}
 
 	void jiraAsymmetricJwtTokenVerifier
 		.verify(token, fromExpressRequest(req))
 		.then(() => next())
-		.catch(next);
+		.catch((e) => next(new UnauthorizedResultError('Unauthorized.', e)));
 };

@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 
 import { ensureString } from '../../../common/string-utils';
-import { UnauthorizedError } from '../errors';
+import { UnauthorizedResultError } from '../../../usecases';
 
 export const extractUserIdFromHeadersMiddleware = (
 	req: Request,
@@ -12,7 +12,9 @@ export const extractUserIdFromHeadersMiddleware = (
 		const userId = ensureString(req.headers['user-id']);
 		res.locals.atlassianUserId = userId;
 	} catch (e: unknown) {
-		return next(new UnauthorizedError('Missing or invalid User-Id header'));
+		return next(
+			new UnauthorizedResultError('Missing or invalid User-Id header'),
+		);
 	}
 
 	next();

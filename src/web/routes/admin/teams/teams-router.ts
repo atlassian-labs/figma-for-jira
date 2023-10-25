@@ -2,10 +2,6 @@ import { HttpStatusCode } from 'axios';
 import type { NextFunction, Request } from 'express';
 import { Router } from 'express';
 
-import {
-	CONNECT_FIGMA_TEAM_ROUTE_PARAMS_SCHEMA,
-	DISCONNECT_FIGMA_TEAM_ROUTE_PARAMS_SCHEMA,
-} from './schemas';
 import type {
 	ConnectFigmaTeamRequest,
 	ConnectFigmaTeamResponse,
@@ -14,7 +10,6 @@ import type {
 	ListFigmaTeamsResponse,
 } from './types';
 
-import { assertSchema } from '../../../../infrastructure';
 import {
 	connectFigmaTeamUseCase,
 	disconnectFigmaTeamUseCase,
@@ -45,7 +40,6 @@ teamsRouter.post(
 		res: ConnectFigmaTeamResponse,
 		next: NextFunction,
 	) => {
-		assertSchema(req.params, CONNECT_FIGMA_TEAM_ROUTE_PARAMS_SCHEMA);
 		const { atlassianUserId, connectInstallation } = res.locals;
 
 		connectFigmaTeamUseCase
@@ -62,7 +56,6 @@ teamsRouter.delete(
 		res: DisconnectFigmaTeamResponse,
 		next: NextFunction,
 	) => {
-		assertSchema(req.params, DISCONNECT_FIGMA_TEAM_ROUTE_PARAMS_SCHEMA);
 		const { connectInstallation } = res.locals;
 
 		disconnectFigmaTeamUseCase

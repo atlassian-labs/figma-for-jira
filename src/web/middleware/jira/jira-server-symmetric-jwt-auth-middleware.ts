@@ -2,7 +2,7 @@ import { fromExpressRequest } from 'atlassian-jwt';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
 import { jiraServerSymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
-import { UnauthorizedError } from '../errors';
+import { UnauthorizedResultError } from '../../../usecases';
 
 /**
  * Authenticates requests using an iframe or server-to-server symmetric JWT token.
@@ -23,7 +23,7 @@ export const jiraServerSymmetricJwtAuthMiddleware: RequestHandler = (
 	const token = req.headers.authorization?.replace('JWT ', '');
 
 	if (!token) {
-		return next(new UnauthorizedError('Missing JWT token.'));
+		return next(new UnauthorizedResultError('Missing JWT token.'));
 	}
 
 	void jiraServerSymmetricJwtTokenVerifier
@@ -32,5 +32,5 @@ export const jiraServerSymmetricJwtAuthMiddleware: RequestHandler = (
 			res.locals.connectInstallation = connectInstallation;
 			next();
 		})
-		.catch(next);
+		.catch((e) => next(new UnauthorizedResultError('Unauthorized.', e)));
 };

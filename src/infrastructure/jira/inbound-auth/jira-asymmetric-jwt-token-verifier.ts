@@ -11,9 +11,8 @@ import {
 import { isEnumValueOf } from '../../../common/enumUtils';
 import { ensureString } from '../../../common/string-utils';
 import { getConfig } from '../../../config';
-import { UnauthorizedError } from '../../../web/middleware/errors';
 import type { JSONSchemaTypeWithId } from '../../index';
-import { assertSchema, getLogger } from '../../index';
+import { assertSchema } from '../../index';
 
 type JiraAsymmetricJwtClaims = {
 	readonly iss: string;
@@ -72,45 +71,37 @@ export class JiraAsymmetricJwtTokenVerifier {
 			query?: Record<string, unknown>;
 		},
 	): Promise<void> => {
-		try {
-			const tokenSigningAlgorithm = getAlgorithm(token) as unknown;
+		const tokenSigningAlgorithm = getAlgorithm(token) as unknown;
 
-			if (!isEnumValueOf(AsymmetricAlgorithm, tokenSigningAlgorithm)) {
-				throw new UnauthorizedError('Unsupported JWT signing algorithm.');
-			}
-
-			// Decode a JWT token without verification.
-			const unverifiedClaims = decodeAsymmetric(
-				token,
-				'',
-				tokenSigningAlgorithm,
-				true,
-			) as unknown;
-
-			assertSchema(unverifiedClaims, JIRA_ASYMMETRIC_JWT_CLAIMS_SCHEMA);
-
-			const keyId = ensureString(getKeyId(token));
-			const publicKey =
-				await connectKeyServerClient.getAtlassianConnectPublicKey(keyId);
-
-			// Decode the JWT token with verification.
-			const verifiedClaims = decodeAsymmetric(
-				token,
-				publicKey,
-				tokenSigningAlgorithm,
-			) as unknown;
-
-			assertSchema(verifiedClaims, JIRA_ASYMMETRIC_JWT_CLAIMS_SCHEMA);
-			verifyQshClaimBoundToUrl(verifiedClaims, request);
-			verifyExpClaim(verifiedClaims);
-			verifyAudClaimIncludesBaseUrl(verifiedClaims, getConfig().app.baseUrl);
-		} catch (e: unknown) {
-			getLogger().warn(e, 'Failed to verify the asymmetric JWT token.');
-
-			if (e instanceof UnauthorizedError) throw e;
-
-			throw new UnauthorizedError('Invalid token.', e);
+		if (!isEnumValueOf(AsymmetricAlgorithm, tokenSigningAlgorithm)) {
+			throw new Error('Unsupported JWT signing algorithm.');
 		}
+
+		// Decode a JWT token without verification.
+		const unverifiedClaims = decodeAsymmetric(
+			token,
+			'',
+			tokenSigningAlgorithm,
+			true,
+		) as unknown;
+
+		assertSchema(unverifiedClaims, JIRA_ASYMMETRIC_JWT_CLAIMS_SCHEMA);
+
+		const keyId = ensureString(getKeyId(token));
+		const publicKey =
+			await connectKeyServerClient.getAtlassianConnectPublicKey(keyId);
+
+		// Decode the JWT token with verification.
+		const verifiedClaims = decodeAsymmetric(
+			token,
+			publicKey,
+			tokenSigningAlgorithm,
+		) as unknown;
+
+		assertSchema(verifiedClaims, JIRA_ASYMMETRIC_JWT_CLAIMS_SCHEMA);
+		verifyQshClaimBoundToUrl(verifiedClaims, request);
+		verifyExpClaim(verifiedClaims);
+		verifyAudClaimIncludesBaseUrl(verifiedClaims, getConfig().app.baseUrl);
 	};
 }
 

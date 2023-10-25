@@ -13,8 +13,8 @@ import type {
 } from './types';
 
 import type { ConnectInstallationCreateParams } from '../../../domain/entities';
-import { assertSchema } from '../../../infrastructure';
 import { installedUseCase, uninstalledUseCase } from '../../../usecases';
+import { requestBodySchemaValidationMiddleware } from '../../middleware';
 import { jiraAsymmetricJwtAuthMiddleware } from '../../middleware/jira';
 
 export const lifecycleEventsRouter = Router();
@@ -28,15 +28,14 @@ lifecycleEventsRouter.use(jiraAsymmetricJwtAuthMiddleware);
  */
 lifecycleEventsRouter.post(
 	'/installed',
+	requestBodySchemaValidationMiddleware(
+		INSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_BODY_SCHEMA,
+	),
 	(
 		req: InstalledConnectLifecycleEventRequest,
 		res: ConnectLifecycleEventResponse,
 		next: NextFunction,
 	) => {
-		assertSchema(
-			req.body,
-			INSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_BODY_SCHEMA,
-		);
 		const installation: ConnectInstallationCreateParams = {
 			key: req.body.key,
 			clientKey: req.body.clientKey,
@@ -78,15 +77,14 @@ lifecycleEventsRouter.post(
  */
 lifecycleEventsRouter.post(
 	'/uninstalled',
+	requestBodySchemaValidationMiddleware(
+		UNINSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_BODY_SCHEMA,
+	),
 	(
 		req: UninstalledConnectLifecycleEventRequest,
 		res: ConnectLifecycleEventResponse,
 		next: NextFunction,
 	) => {
-		assertSchema(
-			req.body,
-			UNINSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_BODY_SCHEMA,
-		);
 		const { clientKey } = req.body;
 		uninstalledUseCase
 			.execute(clientKey)

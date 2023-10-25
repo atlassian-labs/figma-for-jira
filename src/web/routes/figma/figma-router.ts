@@ -6,14 +6,18 @@ import {
 	FIGMA_OAUTH2_CALLBACK_QUERY_PARAMETERS_SCHEMA,
 	FIGMA_WEBHOOK_PAYLOAD_SCHEMA,
 } from './schemas';
-import type { FigmaOAuth2CallbackRequest } from './types';
+import type { FigmaOAuth2CallbackRequest, FigmaWebhookRequest } from './types';
 
-import { assertSchema, getLogger } from '../../../infrastructure';
+import { getLogger } from '../../../infrastructure';
 import { figmaWebhookService } from '../../../infrastructure/figma/figma-webhook-service';
 import {
 	handleFigmaAuthorizationResponseUseCase,
 	handleFigmaFileUpdateEventUseCase,
 } from '../../../usecases';
+import {
+	requestBodySchemaValidationMiddleware,
+	requestQuerySchemaValidationMiddleware,
+} from '../../middleware';
 
 const AUTH_RESOURCE_BASE_PATH = '/static/auth-result';
 export const SUCCESS_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=true`;
@@ -25,25 +29,27 @@ export const figmaRouter = Router();
 // retry sending the event up to 3 times at 5/30/180 minutes.
 //
 // see https://www.figma.com/developers/api#webhooks-v2-intro
-figmaRouter.post('/webhook', (req, res, next) => {
-	assertSchema(req.body, FIGMA_WEBHOOK_PAYLOAD_SCHEMA);
+figmaRouter.post(
+	'/webhook',
+	requestBodySchemaValidationMiddleware(FIGMA_WEBHOOK_PAYLOAD_SCHEMA),
+	(req: FigmaWebhookRequest, res, next) => {
+		const { event_type, file_key, webhook_id, passcode } = req.body;
 
-	const { event_type, file_key, webhook_id, passcode } = req.body;
-
-	switch (event_type) {
-		case 'FILE_UPDATE':
-			figmaWebhookService
-				.validateWebhookEvent(webhook_id, passcode)
-				.then((figmaTeam) =>
-					handleFigmaFileUpdateEventUseCase.execute(figmaTeam, file_key!),
-				)
-				.then(() => res.sendStatus(HttpStatusCode.Ok))
-				.catch(next);
-			return;
-		default:
-			return res.sendStatus(HttpStatusCode.Ok);
-	}
-});
+		switch (event_type) {
+			case 'FILE_UPDATE':
+				figmaWebhookService
+					.validateWebhookEvent(webhook_id, passcode)
+					.then((figmaTeam) =>
+						handleFigmaFileUpdateEventUseCase.execute(figmaTeam, file_key!),
+					)
+					.then(() => res.sendStatus(HttpStatusCode.Ok))
+					.catch(next);
+				return;
+			default:
+				return res.sendStatus(HttpStatusCode.Ok);
+		}
+	},
+);
 
 /**
  * A callback called by Figma authentication server with the access token included.
@@ -52,8 +58,10 @@ figmaRouter.post('/webhook', (req, res, next) => {
  */
 figmaRouter.get(
 	'/oauth/callback',
+	requestQuerySchemaValidationMiddleware(
+		FIGMA_OAUTH2_CALLBACK_QUERY_PARAMETERS_SCHEMA,
+	),
 	function (req: FigmaOAuth2CallbackRequest, res: Response) {
-		assertSchema(req.query, FIGMA_OAUTH2_CALLBACK_QUERY_PARAMETERS_SCHEMA);
 		const { code, state } = req.query;
 
 		handleFigmaAuthorizationResponseUseCase

@@ -6,7 +6,7 @@ import { jiraAsymmetricJwtAuthMiddleware } from './jira-asymmetric-jwt-auth-midd
 
 import { flushPromises } from '../../../common/testing/utils';
 import { jiraAsymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
-import { UnauthorizedError } from '../errors';
+import { UnauthorizedResultError } from '../../../usecases';
 
 describe('jiraAsymmetricJwtAuthMiddleware', () => {
 	it('should authenticate request with valid token ', async () => {
@@ -37,15 +37,17 @@ describe('jiraAsymmetricJwtAuthMiddleware', () => {
 			},
 		} as Request;
 		const next = jest.fn();
-		const error = new UnauthorizedError();
+		const error = new Error();
 		jest
 			.spyOn(jiraAsymmetricJwtTokenVerifier, 'verify')
-			.mockRejectedValue(error);
+			.mockRejectedValue(new Error());
 
 		jiraAsymmetricJwtAuthMiddleware(request, {} as Response, next);
 		await flushPromises();
 
-		expect(next).toHaveBeenCalledWith(error);
+		expect(next).toHaveBeenCalledWith(
+			new UnauthorizedResultError('Unauthorized.', error),
+		);
 	});
 
 	it('should not authenticate request with no token', async () => {
@@ -58,7 +60,7 @@ describe('jiraAsymmetricJwtAuthMiddleware', () => {
 		await flushPromises();
 
 		expect(next).toHaveBeenCalledWith(
-			new UnauthorizedError('Missing JWT token.'),
+			new UnauthorizedResultError('Missing token.'),
 		);
 	});
 });

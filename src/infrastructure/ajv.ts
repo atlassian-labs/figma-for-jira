@@ -1,9 +1,10 @@
 import type { ErrorObject, JSONSchemaType, ValidateFunction } from 'ajv';
 import Ajv from 'ajv';
 
-export const ajv = new Ajv({ allowUnionTypes: true });
+import { CauseAwareError } from '../common/errors';
+import { isString } from '../common/string-utils';
 
-export type JSONSchemaTypeWithId<T> = JSONSchemaType<T> & { $id: string };
+const ajv = new Ajv({ allowUnionTypes: true });
 
 /**
  * Returns the schema defined with Ajv.
@@ -12,22 +13,37 @@ export type JSONSchemaTypeWithId<T> = JSONSchemaType<T> & { $id: string };
  *
  * @see https://ajv.js.org/guide/managing-schemas.html#pre-adding-all-schemas-vs-adding-on-demand
  */
-export const getAjvSchema = <T>(
+const getAjvSchema = <T>(
 	schema: JSONSchemaTypeWithId<T>,
 ): ValidateFunction<T> => {
 	return ajv.getSchema(schema.$id) ?? ajv.compile(schema);
 };
 
+export type JSONSchemaTypeWithId<T> = JSONSchemaType<T> & { $id: string };
+
+export function validateSchema<T>(
+	value: unknown,
+	schema: JSONSchemaTypeWithId<T>,
+): { valid: boolean; errors?: ErrorObject<string, unknown>[] } {
+	const validate = getAjvSchema(schema);
+
+	if (!validate(value)) {
+		return { valid: false, errors: validate.errors ?? undefined };
+	}
+
+	return { valid: true };
+}
+
 export function assertSchema<T>(
 	value: unknown,
 	schema: JSONSchemaTypeWithId<T>,
 ): asserts value is T {
-	const validate = getAjvSchema(schema);
+	const { valid, errors } = validateSchema(value, schema);
 
-	if (!validate(value)) {
+	if (!valid) {
 		throw new SchemaValidationError(
 			`Error validating schema ${schema.$id}`,
-			validate.errors,
+			errors,
 		);
 	}
 }
@@ -36,28 +52,15 @@ export function parseJsonOfSchema<T>(
 	value: unknown,
 	schema: JSONSchemaTypeWithId<T>,
 ): T {
-	try {
-		if (typeof value === 'string') {
+	if (isString(value)) {
+		try {
 			value = JSON.parse(value);
-		}
-		assertSchema(value, schema);
-		return value;
-	} catch (error) {
-		if (error instanceof SchemaValidationError) {
-			throw error;
-		} else if (error instanceof Error) {
-			throw new SchemaValidationError(error.message, [error]);
-		} else {
-			throw new SchemaValidationError('Unknown error');
+		} catch (e) {
+			throw new SchemaValidationError('Invalid JSON.');
 		}
 	}
+	assertSchema(value, schema);
+	return value;
 }
 
-export class SchemaValidationError extends Error {
-	errors?: ErrorObject[] | Error[] | null;
-
-	constructor(message: string, errors?: ErrorObject[] | Error[] | null) {
-		super(message);
-		this.errors = errors;
-	}
-}
+export class SchemaValidationError extends CauseAwareError {}
