@@ -393,6 +393,13 @@ describe('/figma', () => {
 			});
 		});
 
+		it('should return a 400 if invalid request is received', async () => {
+			await request(app)
+				.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+				.send({ webhook_id: 1 })
+				.expect(HttpStatusCode.BadRequest);
+		});
+
 		describe('unsupported event type', () => {
 			it.each([
 				'PING',

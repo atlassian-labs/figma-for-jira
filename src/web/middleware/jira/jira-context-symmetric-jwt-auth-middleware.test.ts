@@ -6,7 +6,7 @@ import { jiraContextSymmetricJwtAuthMiddleware } from './jira-context-symmetric-
 import { flushPromises } from '../../../common/testing/utils';
 import { generateConnectInstallation } from '../../../domain/entities/testing';
 import { jiraContextSymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
-import { UnauthorizedResultError } from '../../../usecases';
+import { UnauthorizedResponseStatusError } from '../../errors';
 
 describe('jiraContextSymmetricJwtAuthMiddleware', () => {
 	it('should authenticate request with valid token ', async () => {
@@ -55,7 +55,7 @@ describe('jiraContextSymmetricJwtAuthMiddleware', () => {
 		await flushPromises();
 
 		expect(next).toHaveBeenCalledWith(
-			new UnauthorizedResultError('Unauthorized.', error),
+			new UnauthorizedResponseStatusError('Unauthorized.', undefined, error),
 		);
 	});
 
@@ -69,7 +69,7 @@ describe('jiraContextSymmetricJwtAuthMiddleware', () => {
 		await flushPromises();
 
 		expect(next).toHaveBeenCalledWith(
-			new UnauthorizedResultError('Missing JWT token.'),
+			new UnauthorizedResponseStatusError('Missing JWT token.'),
 		);
 	});
 });

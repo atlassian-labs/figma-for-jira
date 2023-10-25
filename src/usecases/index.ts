@@ -3,7 +3,6 @@ export * from './associate-entity-use-case';
 export * from './connect-figma-team-use-case';
 export * from './disassociate-entity-use-case';
 export * from './disconnect-figma-team-use-case';
-export * from './errors';
 export * from './handle-figma-authorization-response-use-case';
 export * from './handle-figma-file-update-event-use-case';
 export * from './installed-use-case';

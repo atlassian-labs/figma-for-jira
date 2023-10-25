@@ -6,7 +6,7 @@ import { jiraAsymmetricJwtAuthMiddleware } from './jira-asymmetric-jwt-auth-midd
 
 import { flushPromises } from '../../../common/testing/utils';
 import { jiraAsymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
-import { UnauthorizedResultError } from '../../../usecases';
+import { UnauthorizedResponseStatusError } from '../../errors';
 
 describe('jiraAsymmetricJwtAuthMiddleware', () => {
 	it('should authenticate request with valid token ', async () => {
@@ -46,7 +46,7 @@ describe('jiraAsymmetricJwtAuthMiddleware', () => {
 		await flushPromises();
 
 		expect(next).toHaveBeenCalledWith(
-			new UnauthorizedResultError('Unauthorized.', error),
+			new UnauthorizedResponseStatusError('Unauthorized.', undefined, error),
 		);
 	});
 
@@ -60,7 +60,7 @@ describe('jiraAsymmetricJwtAuthMiddleware', () => {
 		await flushPromises();
 
 		expect(next).toHaveBeenCalledWith(
-			new UnauthorizedResultError('Missing token.'),
+			new UnauthorizedResponseStatusError('Missing JWT token.'),
 		);
 	});
 });

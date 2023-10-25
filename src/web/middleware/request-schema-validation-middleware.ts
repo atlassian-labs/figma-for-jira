@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from 'express';
 
 import type { JSONSchemaTypeWithId } from '../../common/schema-validation';
 import { validateSchema } from '../../common/schema-validation';
-import { BadRequestResultError } from '../../usecases';
+import { BadRequestResponseStatusError } from '../errors';
 
 export const requestSchemaValidationMiddleware = <T>(
 	schema: JSONSchemaTypeWithId<T>,
@@ -13,10 +13,10 @@ export const requestSchemaValidationMiddleware = <T>(
 		if (!bodyValidationResult.valid) {
 			const errorMessages =
 				bodyValidationResult.errors
-					?.map((e) => `${e.instancePath} - ${e.message}`)
+					?.map((e) => `${e.instancePath} ${e.message}`)
 					.join('\n') ?? 'Unknown';
 
-			return next(new BadRequestResultError(`Bad request:\n${errorMessages}`));
+			next(new BadRequestResponseStatusError(`Invalid request`, errorMessages));
 		}
 
 		next();
