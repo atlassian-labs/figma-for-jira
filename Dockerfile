@@ -4,6 +4,7 @@ FROM node:18-bookworm-slim as build
 WORKDIR /app
 COPY package.json package-lock.json tsconfig.json tsconfig.build.json ./
 COPY admin ./admin
+COPY static ./static
 RUN npm ci
 COPY prisma ./prisma
 RUN npm run db:generate
