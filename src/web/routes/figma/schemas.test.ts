@@ -1,45 +1,48 @@
-import { FIGMA_WEBHOOK_PAYLOAD_SCHEMA } from './schemas';
+import { FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA } from './schemas';
 import { generateFigmaWebhookEventPayload } from './testing';
 
+import {
+	assertSchema,
+	SchemaValidationError,
+} from '../../../common/schema-validation';
 import {
 	generateFigmaFileKey,
 	generateFigmaFileName,
 } from '../../../domain/entities/testing';
-import { assertSchema, SchemaValidationError } from '../../../infrastructure';
 
 describe('FIGMA_WEBHOOK_PAYLOAD_SCHEMA', () => {
 	it('should validate a PING event payload with no file_key or file_name', () => {
-		const payload = generateFigmaWebhookEventPayload({ event_type: 'PING' });
+		const body = generateFigmaWebhookEventPayload({ event_type: 'PING' });
 
 		expect(() =>
-			assertSchema(payload, FIGMA_WEBHOOK_PAYLOAD_SCHEMA),
+			assertSchema({ body }, FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA),
 		).not.toThrow();
 	});
 
 	it('should throw an error for a FILE_UPDATE event payload with no file_key', () => {
-		const payload = generateFigmaWebhookEventPayload({
+		const body = generateFigmaWebhookEventPayload({
 			event_type: 'FILE_UPDATE',
 			file_name: generateFigmaFileName(),
 		});
 
-		expect(() => assertSchema(payload, FIGMA_WEBHOOK_PAYLOAD_SCHEMA)).toThrow(
-			SchemaValidationError,
-		);
+		expect(() =>
+			assertSchema({ body }, FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA),
+		).toThrow(SchemaValidationError);
 	});
 
 	it('should throw an error for a FILE_UPDATE event payload with no file_name', () => {
-		const payload = generateFigmaWebhookEventPayload({
+		const body = generateFigmaWebhookEventPayload({
 			event_type: 'FILE_UPDATE',
 			file_key: generateFigmaFileKey(),
 		});
 
-		expect(() => assertSchema(payload, FIGMA_WEBHOOK_PAYLOAD_SCHEMA)).toThrow(
-			SchemaValidationError,
-		);
+		expect(() =>
+			assertSchema({ body }, FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA),
+		).toThrow(SchemaValidationError);
 	});
 
 	it('should throw an error for a FILE_UPDATE event payload with a null file_key', () => {
-		const payload = {
+		const body = {
 			...generateFigmaWebhookEventPayload({
 				event_type: 'FILE_UPDATE',
 				file_name: generateFigmaFileName(),
@@ -47,13 +50,13 @@ describe('FIGMA_WEBHOOK_PAYLOAD_SCHEMA', () => {
 			file_key: null,
 		};
 
-		expect(() => assertSchema(payload, FIGMA_WEBHOOK_PAYLOAD_SCHEMA)).toThrow(
-			SchemaValidationError,
-		);
+		expect(() =>
+			assertSchema({ body }, FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA),
+		).toThrow(SchemaValidationError);
 	});
 
 	it('should throw an error for a FILE_UPDATE event payload with a null file_name', () => {
-		const payload = {
+		const body = {
 			...generateFigmaWebhookEventPayload({
 				event_type: 'FILE_UPDATE',
 				file_key: generateFigmaFileName(),
@@ -61,8 +64,8 @@ describe('FIGMA_WEBHOOK_PAYLOAD_SCHEMA', () => {
 			file_name: null,
 		};
 
-		expect(() => assertSchema(payload, FIGMA_WEBHOOK_PAYLOAD_SCHEMA)).toThrow(
-			SchemaValidationError,
-		);
+		expect(() =>
+			assertSchema({ body }, FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA),
+		).toThrow(SchemaValidationError);
 	});
 });

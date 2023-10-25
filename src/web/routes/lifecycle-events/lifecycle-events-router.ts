@@ -3,8 +3,8 @@ import type { NextFunction } from 'express';
 import { Router } from 'express';
 
 import {
-	INSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_BODY_SCHEMA,
-	UNINSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_BODY_SCHEMA,
+	INSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_SCHEMA,
+	UNINSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_SCHEMA,
 } from './schemas';
 import type {
 	ConnectLifecycleEventResponse,
@@ -14,7 +14,7 @@ import type {
 
 import type { ConnectInstallationCreateParams } from '../../../domain/entities';
 import { installedUseCase, uninstalledUseCase } from '../../../usecases';
-import { requestBodySchemaValidationMiddleware } from '../../middleware';
+import { requestSchemaValidationMiddleware } from '../../middleware';
 import { jiraAsymmetricJwtAuthMiddleware } from '../../middleware/jira';
 
 export const lifecycleEventsRouter = Router();
@@ -28,8 +28,8 @@ lifecycleEventsRouter.use(jiraAsymmetricJwtAuthMiddleware);
  */
 lifecycleEventsRouter.post(
 	'/installed',
-	requestBodySchemaValidationMiddleware(
-		INSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_BODY_SCHEMA,
+	requestSchemaValidationMiddleware(
+		INSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_SCHEMA,
 	),
 	(
 		req: InstalledConnectLifecycleEventRequest,
@@ -77,8 +77,8 @@ lifecycleEventsRouter.post(
  */
 lifecycleEventsRouter.post(
 	'/uninstalled',
-	requestBodySchemaValidationMiddleware(
-		UNINSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_BODY_SCHEMA,
+	requestSchemaValidationMiddleware(
+		UNINSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_SCHEMA,
 	),
 	(
 		req: UninstalledConnectLifecycleEventRequest,

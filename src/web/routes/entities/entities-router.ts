@@ -3,8 +3,8 @@ import type { NextFunction } from 'express';
 import { Router } from 'express';
 
 import {
-	ASSOCIATE_ENTITY_REQUEST_BODY_SCHEMA,
-	DISASSOCIATE_ENTITY_REQUEST_BODY_SCHEMA,
+	ASSOCIATE_ENTITY_REQUEST_SCHEMA,
+	DISASSOCIATE_ENTITY_REQUEST_SCHEMA,
 } from './schemas';
 import type {
 	AssociateEntityRequest,
@@ -17,7 +17,7 @@ import {
 	associateEntityUseCase,
 	disassociateEntityUseCase,
 } from '../../../usecases';
-import { requestBodySchemaValidationMiddleware } from '../../middleware';
+import { requestSchemaValidationMiddleware } from '../../middleware';
 import {
 	extractUserIdFromHeadersMiddleware,
 	jiraServerSymmetricJwtAuthMiddleware,
@@ -32,7 +32,7 @@ entitiesRouter.use(
 
 entitiesRouter.post(
 	'/associateEntity',
-	requestBodySchemaValidationMiddleware(ASSOCIATE_ENTITY_REQUEST_BODY_SCHEMA),
+	requestSchemaValidationMiddleware(ASSOCIATE_ENTITY_REQUEST_SCHEMA),
 	(
 		req: AssociateEntityRequest,
 		res: AssociateEntityResponse,
@@ -52,9 +52,7 @@ entitiesRouter.post(
 
 entitiesRouter.post(
 	'/disassociateEntity',
-	requestBodySchemaValidationMiddleware(
-		DISASSOCIATE_ENTITY_REQUEST_BODY_SCHEMA,
-	),
+	requestSchemaValidationMiddleware(DISASSOCIATE_ENTITY_REQUEST_SCHEMA),
 	(
 		req: DisassociateEntityRequest,
 		res: DisassociateEntityResponse,

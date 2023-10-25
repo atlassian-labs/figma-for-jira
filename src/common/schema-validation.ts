@@ -1,10 +1,10 @@
 import type { ErrorObject, JSONSchemaType, ValidateFunction } from 'ajv';
 import Ajv from 'ajv';
 
-import { CauseAwareError } from '../common/errors';
-import { isString } from '../common/string-utils';
+import { CauseAwareError } from './errors';
+import { isString } from './string-utils';
 
-const ajv = new Ajv({ allowUnionTypes: true });
+const schemaValidation = new Ajv({ allowUnionTypes: true });
 
 /**
  * Returns the schema defined with Ajv.
@@ -16,7 +16,9 @@ const ajv = new Ajv({ allowUnionTypes: true });
 const getAjvSchema = <T>(
 	schema: JSONSchemaTypeWithId<T>,
 ): ValidateFunction<T> => {
-	return ajv.getSchema(schema.$id) ?? ajv.compile(schema);
+	return (
+		schemaValidation.getSchema(schema.$id) ?? schemaValidation.compile(schema)
+	);
 };
 
 export type JSONSchemaTypeWithId<T> = JSONSchemaType<T> & { $id: string };

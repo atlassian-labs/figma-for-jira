@@ -13,7 +13,7 @@ import type {
 	SubmitDesignsResponse,
 } from './types';
 
-import type { JSONSchemaTypeWithId } from '../../ajv';
+import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
 
 const DESIGN_KEY_SCHEMA: JSONSchemaType<DesignKey> = {
 	type: 'object',

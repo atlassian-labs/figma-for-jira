@@ -7,9 +7,9 @@ import {
 import { verifyExpClaim } from './jira-jwt-utils';
 
 import { isEnumValueOf } from '../../../common/enumUtils';
+import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
+import { assertSchema } from '../../../common/schema-validation';
 import type { ConnectInstallation } from '../../../domain/entities';
-import type { JSONSchemaTypeWithId } from '../../index';
-import { assertSchema } from '../../index';
 import { connectInstallationRepository } from '../../repositories';
 
 type JiraContextSymmetricJwtClaims = {

@@ -3,40 +3,54 @@ import type {
 	DisassociateEntityRequestBody,
 } from './types';
 
-import type { JSONSchemaTypeWithId } from '../../../infrastructure/ajv';
+import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
 import { ATLASSIAN_ENTITY_SCHEMA } from '../../../usecases/schemas';
 
-export const ASSOCIATE_ENTITY_REQUEST_BODY_SCHEMA: JSONSchemaTypeWithId<AssociateEntityRequestBody> =
-	{
-		$id: 'figma-for-jira:associate-entity-request-body',
-		type: 'object',
-		properties: {
-			entity: {
-				type: 'object',
-				properties: {
-					url: { type: 'string' },
+export const ASSOCIATE_ENTITY_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
+	body: AssociateEntityRequestBody;
+}> = {
+	$id: 'figma-for-jira:associate-entity-request-body',
+	type: 'object',
+	properties: {
+		body: {
+			type: 'object',
+			properties: {
+				entity: {
+					type: 'object',
+					properties: {
+						url: { type: 'string' },
+					},
+					required: ['url'],
 				},
-				required: ['url'],
+				associateWith: ATLASSIAN_ENTITY_SCHEMA,
 			},
-			associateWith: ATLASSIAN_ENTITY_SCHEMA,
+			required: ['entity', 'associateWith'],
 		},
-		required: ['entity', 'associateWith'],
-	};
+	},
+	required: ['body'],
+};
 
-export const DISASSOCIATE_ENTITY_REQUEST_BODY_SCHEMA: JSONSchemaTypeWithId<DisassociateEntityRequestBody> =
-	{
-		$id: 'figma-for-jira:disassociate-entity-request-body',
-		type: 'object',
-		properties: {
-			entity: {
-				type: 'object',
-				properties: {
-					ari: { type: 'string' },
-					id: { type: 'string' },
+export const DISASSOCIATE_ENTITY_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
+	body: DisassociateEntityRequestBody;
+}> = {
+	$id: 'figma-for-jira:disassociate-entity-request-body',
+	type: 'object',
+	properties: {
+		body: {
+			type: 'object',
+			properties: {
+				entity: {
+					type: 'object',
+					properties: {
+						ari: { type: 'string' },
+						id: { type: 'string' },
+					},
+					required: ['ari', 'id'],
 				},
-				required: ['ari', 'id'],
+				disassociateFrom: ATLASSIAN_ENTITY_SCHEMA,
 			},
-			disassociateFrom: ATLASSIAN_ENTITY_SCHEMA,
+			required: ['entity', 'disassociateFrom'],
 		},
-		required: ['entity', 'disassociateFrom'],
-	};
+	},
+	required: ['body'],
+};

@@ -3,31 +3,45 @@ import type {
 	UninstalledConnectLifecycleEventRequestBody,
 } from './types';
 
-import type { JSONSchemaTypeWithId } from '../../../infrastructure';
+import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
 
-export const INSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_BODY_SCHEMA: JSONSchemaTypeWithId<InstalledConnectLifecycleEventRequestBody> =
-	{
-		$id: 'jira-software-connect:installed-lifecycle-event-request-body',
-		type: 'object',
-		properties: {
-			key: { type: 'string' },
-			clientKey: { type: 'string' },
-			sharedSecret: { type: 'string' },
-			baseUrl: { type: 'string' },
-			displayUrl: { type: 'string', nullable: true },
+export const INSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
+	body: InstalledConnectLifecycleEventRequestBody;
+}> = {
+	$id: 'jira-software-connect:installed-lifecycle-event-request',
+	type: 'object',
+	properties: {
+		body: {
+			type: 'object',
+			properties: {
+				key: { type: 'string' },
+				clientKey: { type: 'string' },
+				sharedSecret: { type: 'string' },
+				baseUrl: { type: 'string' },
+				displayUrl: { type: 'string', nullable: true },
+			},
+			required: ['key', 'clientKey', 'sharedSecret', 'baseUrl'],
 		},
-		required: ['key', 'clientKey', 'sharedSecret', 'baseUrl'],
-	};
+	},
+	required: ['body'],
+};
 
-export const UNINSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_BODY_SCHEMA: JSONSchemaTypeWithId<UninstalledConnectLifecycleEventRequestBody> =
-	{
-		$id: 'jira-software-connect:uninstalled-lifecycle-event-request-body',
-		type: 'object',
-		properties: {
-			key: { type: 'string' },
-			clientKey: { type: 'string' },
-			baseUrl: { type: 'string' },
-			displayUrl: { type: 'string', nullable: true },
+export const UNINSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
+	body: UninstalledConnectLifecycleEventRequestBody;
+}> = {
+	$id: 'jira-software-connect:uninstalled-lifecycle-event-request',
+	type: 'object',
+	properties: {
+		body: {
+			type: 'object',
+			properties: {
+				key: { type: 'string' },
+				clientKey: { type: 'string' },
+				baseUrl: { type: 'string' },
+				displayUrl: { type: 'string', nullable: true },
+			},
+			required: ['key', 'clientKey', 'baseUrl'],
 		},
-		required: ['key', 'clientKey', 'baseUrl'],
-	};
+	},
+	required: ['body'],
+};

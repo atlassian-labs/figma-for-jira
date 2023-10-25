@@ -11,6 +11,8 @@ import {
 	NotFoundOperationError,
 	UnauthorizedOperationError,
 } from '../../common/errors';
+import type { JSONSchemaTypeWithId } from '../../common/schema-validation';
+import { assertSchema } from '../../common/schema-validation';
 import { ensureString } from '../../common/string-utils';
 import { getConfig } from '../../config';
 import type {
@@ -18,8 +20,6 @@ import type {
 	ConnectUserInfo,
 	FigmaOAuth2UserCredentials,
 } from '../../domain/entities';
-import type { JSONSchemaTypeWithId } from '../ajv';
-import { assertSchema } from '../ajv';
 import { figmaOAuth2UserCredentialsRepository } from '../repositories';
 
 type FigmaOAuth2StateJwtClaims = {

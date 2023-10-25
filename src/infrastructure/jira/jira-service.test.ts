@@ -22,6 +22,7 @@ import {
 } from './jira-service';
 
 import { NotFoundOperationError } from '../../common/errors';
+import { SchemaValidationError } from '../../common/schema-validation';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
@@ -35,7 +36,6 @@ import {
 	generateJiraIssueAri,
 	generateJiraIssueKey,
 } from '../../domain/entities/testing';
-import { SchemaValidationError } from '../ajv';
 
 describe('JiraService', () => {
 	describe('submitDesigns', () => {

@@ -9,10 +9,10 @@ import {
 } from './jira-jwt-utils';
 
 import { isEnumValueOf } from '../../../common/enumUtils';
+import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
+import { assertSchema } from '../../../common/schema-validation';
 import { ensureString } from '../../../common/string-utils';
 import { getConfig } from '../../../config';
-import type { JSONSchemaTypeWithId } from '../../index';
-import { assertSchema } from '../../index';
 
 type JiraAsymmetricJwtClaims = {
 	readonly iss: string;

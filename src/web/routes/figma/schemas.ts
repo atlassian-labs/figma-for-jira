@@ -5,21 +5,20 @@ import type {
 	FigmaWebhookEventPayload,
 } from './types';
 
+import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
 import type { FigmaWebhookEventType } from '../../../domain/entities';
-import type { JSONSchemaTypeWithId } from '../../../infrastructure';
 
-export const FIGMA_WEBHOOK_EVENT_TYPE_SCHEMA: JSONSchemaType<FigmaWebhookEventType> =
-	{
-		type: 'string',
-		enum: [
-			'PING',
-			'FILE_UPDATE',
-			'FILE_VERSION_UPDATE',
-			'FILE_DELETE',
-			'LIBRARY_PUBLISH',
-			'FILE_COMMENT',
-		],
-	};
+const FIGMA_WEBHOOK_EVENT_TYPE_SCHEMA: JSONSchemaType<FigmaWebhookEventType> = {
+	type: 'string',
+	enum: [
+		'PING',
+		'FILE_UPDATE',
+		'FILE_VERSION_UPDATE',
+		'FILE_DELETE',
+		'LIBRARY_PUBLISH',
+		'FILE_COMMENT',
+	],
+};
 
 /**
  * While AJV supports optional fields in schemas, it requires these fields to
@@ -36,55 +35,69 @@ export const FIGMA_WEBHOOK_EVENT_TYPE_SCHEMA: JSONSchemaType<FigmaWebhookEventTy
 const optionalNonNullable = <T>(schema: T): T & { nullable: true } =>
 	schema as T & { nullable: true };
 
-export const FIGMA_WEBHOOK_PAYLOAD_SCHEMA: JSONSchemaTypeWithId<FigmaWebhookEventPayload> =
-	{
-		$id: 'figma-rest-api:webhook:event-payload',
-		type: 'object',
-		properties: {
-			event_type: FIGMA_WEBHOOK_EVENT_TYPE_SCHEMA,
-			file_key: optionalNonNullable({ type: 'string' }),
-			file_name: optionalNonNullable({ type: 'string' }),
-			passcode: { type: 'string' },
-			protocol_version: { type: 'string' },
-			retries: { type: 'integer' },
-			timestamp: { type: 'string' },
-			webhook_id: { type: 'string' },
-			triggered_by: {
-				type: 'object',
-				nullable: true,
-				properties: {
-					id: { type: 'string' },
-					handle: { type: 'string' },
+export const FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
+	body: FigmaWebhookEventPayload;
+}> = {
+	$id: 'figma-rest-api:webhook-event-request',
+	type: 'object',
+	properties: {
+		body: {
+			type: 'object',
+			properties: {
+				event_type: FIGMA_WEBHOOK_EVENT_TYPE_SCHEMA,
+				file_key: optionalNonNullable({ type: 'string' }),
+				file_name: optionalNonNullable({ type: 'string' }),
+				passcode: { type: 'string' },
+				protocol_version: { type: 'string' },
+				retries: { type: 'integer' },
+				timestamp: { type: 'string' },
+				webhook_id: { type: 'string' },
+				triggered_by: {
+					type: 'object',
+					nullable: true,
+					properties: {
+						id: { type: 'string' },
+						handle: { type: 'string' },
+					},
+					required: ['id', 'handle'],
 				},
-				required: ['id', 'handle'],
+			},
+			required: [
+				'event_type',
+				'passcode',
+				'protocol_version',
+				'retries',
+				'timestamp',
+				'webhook_id',
+			],
+			if: {
+				properties: { event_type: { const: 'PING' } },
+			},
+			then: {
+				required: [],
+			},
+			else: {
+				required: ['file_key', 'file_name'],
 			},
 		},
-		required: [
-			'event_type',
-			'passcode',
-			'protocol_version',
-			'retries',
-			'timestamp',
-			'webhook_id',
-		],
-		if: {
-			properties: { event_type: { const: 'PING' } },
-		},
-		then: {
-			required: [],
-		},
-		else: {
-			required: ['file_key', 'file_name'],
-		},
-	};
+	},
+	required: ['body'],
+};
 
-export const FIGMA_OAUTH2_CALLBACK_QUERY_PARAMETERS_SCHEMA: JSONSchemaTypeWithId<FigmaOAuth2CallbackQueryParameters> =
-	{
-		$id: 'figma-for-jira:oauth2-callback-query-parameters',
-		type: 'object',
-		properties: {
-			code: { type: 'string' },
-			state: { type: 'string' },
+export const FIGMA_OAUTH2_CALLBACK_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
+	query: FigmaOAuth2CallbackQueryParameters;
+}> = {
+	$id: 'figma-for-jira:oauth2-callback-request',
+	type: 'object',
+	properties: {
+		query: {
+			type: 'object',
+			properties: {
+				code: { type: 'string' },
+				state: { type: 'string' },
+			},
+			required: ['code', 'state'],
 		},
-		required: ['code', 'state'],
-	};
+	},
+	required: ['query'],
+};

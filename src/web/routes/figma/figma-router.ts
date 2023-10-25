@@ -3,8 +3,8 @@ import type { Response } from 'express';
 import { Router } from 'express';
 
 import {
-	FIGMA_OAUTH2_CALLBACK_QUERY_PARAMETERS_SCHEMA,
-	FIGMA_WEBHOOK_PAYLOAD_SCHEMA,
+	FIGMA_OAUTH2_CALLBACK_REQUEST_SCHEMA,
+	FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA,
 } from './schemas';
 import type { FigmaOAuth2CallbackRequest, FigmaWebhookRequest } from './types';
 
@@ -14,10 +14,7 @@ import {
 	handleFigmaAuthorizationResponseUseCase,
 	handleFigmaFileUpdateEventUseCase,
 } from '../../../usecases';
-import {
-	requestBodySchemaValidationMiddleware,
-	requestQuerySchemaValidationMiddleware,
-} from '../../middleware';
+import { requestSchemaValidationMiddleware } from '../../middleware';
 
 const AUTH_RESOURCE_BASE_PATH = '/static/auth-result';
 export const SUCCESS_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=true`;
@@ -31,7 +28,7 @@ export const figmaRouter = Router();
 // see https://www.figma.com/developers/api#webhooks-v2-intro
 figmaRouter.post(
 	'/webhook',
-	requestBodySchemaValidationMiddleware(FIGMA_WEBHOOK_PAYLOAD_SCHEMA),
+	requestSchemaValidationMiddleware(FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA),
 	(req: FigmaWebhookRequest, res, next) => {
 		const { event_type, file_key, webhook_id, passcode } = req.body;
 
@@ -58,9 +55,7 @@ figmaRouter.post(
  */
 figmaRouter.get(
 	'/oauth/callback',
-	requestQuerySchemaValidationMiddleware(
-		FIGMA_OAUTH2_CALLBACK_QUERY_PARAMETERS_SCHEMA,
-	),
+	requestSchemaValidationMiddleware(FIGMA_OAUTH2_CALLBACK_REQUEST_SCHEMA),
 	function (req: FigmaOAuth2CallbackRequest, res: Response) {
 		const { code, state } = req.query;
 
