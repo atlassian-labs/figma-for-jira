@@ -16,19 +16,19 @@ import type {
 	CreateWebhookRequest,
 	CreateWebhookResponse,
 	DeleteDevResourceRequest,
-	FileResponse,
 	GetDevResourcesRequest,
 	GetDevResourcesResponse,
 	GetFileParams,
+	GetFileResponse,
+	GetMeResponse,
 	GetOAuth2TokenResponse,
 	GetTeamProjectsResponse,
-	MeResponse,
 	RefreshOAuth2TokenResponse,
 } from './types';
 
 import { getConfig } from '../../../config';
 import { assertSchema } from '../../ajv';
-import { withOperationErrorTranslation } from '../../axios-utils';
+import { withAxiosErrorTranslation } from '../../axios-utils';
 
 /**
  * A generic Figma API client.
@@ -43,10 +43,10 @@ export class FigmaClient {
 	 * @see https://www.figma.com/developers/api#oauth2
 	 */
 	getOAuth2Token = async (code: string): Promise<GetOAuth2TokenResponse> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const params = new URLSearchParams();
-			params.append('client_id', getConfig().figma.clientId);
-			params.append('client_secret', getConfig().figma.clientSecret);
+			params.append('client_id', getConfig().figma.oauth2.clientId);
+			params.append('client_secret', getConfig().figma.oauth2.clientSecret);
 			params.append(
 				'redirect_uri',
 				`${getConfig().app.baseUrl}/figma/oauth/callback`,
@@ -55,7 +55,9 @@ export class FigmaClient {
 			params.append('grant_type', 'authorization_code');
 
 			const response = await axios.post<GetOAuth2TokenResponse>(
-				`${getConfig().figma.oauthApiBaseUrl}/api/oauth/token`,
+				`${
+					getConfig().figma.oauth2.authorizationServerBaseUrl
+				}/api/oauth/token`,
 				null,
 				{
 					params,
@@ -75,14 +77,16 @@ export class FigmaClient {
 	refreshOAuth2Token = async (
 		refreshToken: string,
 	): Promise<RefreshOAuth2TokenResponse> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const params = new URLSearchParams();
-			params.append('client_id', getConfig().figma.clientId);
-			params.append('client_secret', getConfig().figma.clientSecret);
+			params.append('client_id', getConfig().figma.oauth2.clientId);
+			params.append('client_secret', getConfig().figma.oauth2.clientSecret);
 			params.append('refresh_token', refreshToken);
 
 			const response = await axios.post<RefreshOAuth2TokenResponse>(
-				`${getConfig().figma.oauthApiBaseUrl}/api/oauth/refresh`,
+				`${
+					getConfig().figma.oauth2.authorizationServerBaseUrl
+				}/api/oauth/refresh`,
 				null,
 				{ params },
 			);
@@ -97,9 +101,9 @@ export class FigmaClient {
 	 *
 	 * @see https://www.figma.com/developers/api#get-me-endpoint
 	 */
-	me = async (accessToken: string): Promise<MeResponse> =>
-		withOperationErrorTranslation(async () => {
-			const response = await axios.get<MeResponse>(
+	me = async (accessToken: string): Promise<GetMeResponse> =>
+		withAxiosErrorTranslation(async () => {
+			const response = await axios.get<GetMeResponse>(
 				`${getConfig().figma.apiBaseUrl}/v1/me`,
 				{
 					headers: {
@@ -122,8 +126,8 @@ export class FigmaClient {
 		fileKey: string,
 		params: GetFileParams,
 		accessToken: string,
-	): Promise<FileResponse> =>
-		withOperationErrorTranslation(async () => {
+	): Promise<GetFileResponse> =>
+		withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`${getConfig().figma.apiBaseUrl}/v1/files/${fileKey}`,
 			);
@@ -141,7 +145,7 @@ export class FigmaClient {
 				);
 			}
 
-			const response = await axios.get<FileResponse>(url.toString(), {
+			const response = await axios.get<unknown>(url.toString(), {
 				headers: {
 					['Authorization']: `Bearer ${accessToken}`,
 				},
@@ -158,15 +162,13 @@ export class FigmaClient {
 	 * @see https://www.figma.com/developers/api#post-dev-resources-endpoint
 	 */
 	createDevResources = async (
-		devResources: CreateDevResourcesRequest[],
+		request: CreateDevResourcesRequest,
 		accessToken: string,
 	): Promise<CreateDevResourcesResponse> =>
-		withOperationErrorTranslation(async () => {
-			const response = await axios.post<CreateDevResourcesResponse>(
+		withAxiosErrorTranslation(async () => {
+			const response = await axios.post<unknown>(
 				`${getConfig().figma.apiBaseUrl}/v1/dev_resources`,
-				{
-					dev_resources: devResources,
-				},
+				request,
 				{
 					headers: {
 						['Authorization']: `Bearer ${accessToken}`,
@@ -189,8 +191,8 @@ export class FigmaClient {
 		nodeIds: node_ids,
 		accessToken,
 	}: GetDevResourcesRequest): Promise<GetDevResourcesResponse> =>
-		withOperationErrorTranslation(async () => {
-			const response = await axios.get<GetDevResourcesResponse>(
+		withAxiosErrorTranslation(async () => {
+			const response = await axios.get<unknown>(
 				`${getConfig().figma.apiBaseUrl}/v1/files/${fileKey}/dev_resources`,
 				{
 					params: {
@@ -217,7 +219,7 @@ export class FigmaClient {
 		devResourceId,
 		accessToken,
 	}: DeleteDevResourceRequest): Promise<void> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const response = await axios.delete<void>(
 				`${
 					getConfig().figma.apiBaseUrl
@@ -241,8 +243,8 @@ export class FigmaClient {
 		request: CreateWebhookRequest,
 		accessToken: string,
 	): Promise<CreateWebhookResponse> =>
-		withOperationErrorTranslation(async () => {
-			const response = await axios.post<CreateWebhookResponse>(
+		withAxiosErrorTranslation(async () => {
+			const response = await axios.post<unknown>(
 				`${getConfig().figma.apiBaseUrl}/v2/webhooks`,
 				request,
 				{
@@ -266,7 +268,7 @@ export class FigmaClient {
 		webhookId: string,
 		accessToken: string,
 	): Promise<void> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			await axios.delete<CreateWebhookResponse>(
 				`${getConfig().figma.apiBaseUrl}/v2/webhooks/${webhookId}`,
 				{
@@ -281,8 +283,8 @@ export class FigmaClient {
 		teamId: string,
 		accessToken: string,
 	): Promise<GetTeamProjectsResponse> =>
-		withOperationErrorTranslation(async () => {
-			const response = await axios.get<GetTeamProjectsResponse>(
+		withAxiosErrorTranslation(async () => {
+			const response = await axios.get<unknown>(
 				`${getConfig().figma.apiBaseUrl}/v1/teams/${teamId}/projects`,
 				{
 					headers: {

@@ -1,7 +1,7 @@
 import type { JSONSchemaType } from 'ajv';
 
 import type {
-	FigmaAuthCallbackQueryParameters,
+	FigmaOAuth2CallbackQueryParameters,
 	FigmaWebhookEventPayload,
 } from './types';
 
@@ -78,9 +78,9 @@ export const FIGMA_WEBHOOK_PAYLOAD_SCHEMA: JSONSchemaTypeWithId<FigmaWebhookEven
 		},
 	};
 
-export const FIGMA_OAUTH_CALLBACK_QUERY_PARAMETERS_SCHEMA: JSONSchemaTypeWithId<FigmaAuthCallbackQueryParameters> =
+export const FIGMA_OAUTH2_CALLBACK_QUERY_PARAMETERS_SCHEMA: JSONSchemaTypeWithId<FigmaOAuth2CallbackQueryParameters> =
 	{
-		$id: 'figma-for-jira:auth-callback-query-parameters',
+		$id: 'figma-for-jira:oauth2-callback-query-parameters',
 		type: 'object',
 		properties: {
 			code: { type: 'string' },

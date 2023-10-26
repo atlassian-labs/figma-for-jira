@@ -2,11 +2,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { figmaAuthService } from './figma-auth-service';
 import type {
-	CreateDevResourcesRequest,
 	CreateDevResourcesResponse,
 	CreateWebhookRequest,
 	CreateWebhookResponse,
-	MeResponse,
+	GetMeResponse,
 } from './figma-client';
 import { figmaClient } from './figma-client';
 import {
@@ -65,7 +64,7 @@ describe('FigmaService', () => {
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
-			jest.spyOn(figmaClient, 'me').mockResolvedValue({} as MeResponse);
+			jest.spyOn(figmaClient, 'me').mockResolvedValue({} as GetMeResponse);
 
 			const result = await figmaService.checkAuth(MOCK_CONNECT_USER_INFO);
 
@@ -301,7 +300,6 @@ describe('FigmaService', () => {
 			const issueTitle = uuidv4();
 			const designId = generateFigmaDesignIdentifier();
 			jest.spyOn(figmaClient, 'createDevResources').mockResolvedValue({
-				links_created: [],
 				errors: [],
 			} as CreateDevResourcesResponse);
 
@@ -315,14 +313,17 @@ describe('FigmaService', () => {
 				user: MOCK_CONNECT_USER_INFO,
 			});
 
-			const expectedDevResource: CreateDevResourcesRequest = {
-				name: `[${issueKey}] ${issueTitle}`,
-				url: issueUrl,
-				file_key: designId.fileKey,
-				node_id: '0:0',
-			};
 			expect(figmaClient.createDevResources).toHaveBeenCalledWith(
-				[expectedDevResource],
+				{
+					dev_resources: [
+						{
+							name: `[${issueKey}] ${issueTitle}`,
+							url: issueUrl,
+							file_key: designId.fileKey,
+							node_id: '0:0',
+						},
+					],
+				},
 				MOCK_CREDENTIALS.accessToken,
 			);
 		});
@@ -334,7 +335,6 @@ describe('FigmaService', () => {
 			const nodeId = generateFigmaNodeId();
 			const designId = generateFigmaDesignIdentifier({ nodeId });
 			jest.spyOn(figmaClient, 'createDevResources').mockResolvedValue({
-				links_created: [],
 				errors: [],
 			} as CreateDevResourcesResponse);
 
@@ -348,14 +348,17 @@ describe('FigmaService', () => {
 				user: MOCK_CONNECT_USER_INFO,
 			});
 
-			const expectedDevResource: CreateDevResourcesRequest = {
-				name: `[${issueKey}] ${issueTitle}`,
-				url: issueUrl,
-				file_key: designId.fileKey,
-				node_id: designId.nodeId!,
-			};
 			expect(figmaClient.createDevResources).toHaveBeenCalledWith(
-				[expectedDevResource],
+				{
+					dev_resources: [
+						{
+							name: `[${issueKey}] ${issueTitle}`,
+							url: issueUrl,
+							file_key: designId.fileKey,
+							node_id: designId.nodeId!,
+						},
+					],
+				},
 				MOCK_CREDENTIALS.accessToken,
 			);
 		});
@@ -402,7 +405,7 @@ describe('FigmaService', () => {
 				id: webhookId,
 				team_id: teamId,
 				event_type: 'FILE_UPDATE',
-				client_id: mockConfig.figma.clientId,
+				client_id: mockConfig.figma.oauth2.clientId,
 				endpoint,
 				passcode,
 				status: 'ACTIVE',

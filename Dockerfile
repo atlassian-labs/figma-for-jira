@@ -3,6 +3,7 @@ FROM node:18-bookworm-slim as build
 # Compile TS
 WORKDIR /app
 COPY package.json package-lock.json tsconfig.json tsconfig.build.json ./
+COPY admin ./admin
 RUN npm ci
 COPY prisma ./prisma
 RUN npm run db:generate
@@ -22,7 +23,9 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts
 # Copy the compiled JS from the build image
 COPY --from=build /app/build ./
+COPY --from=build /app/admin/dist ./admin/dist
 COPY prisma ./prisma
+COPY static ./static
 COPY entrypoint.sh .
 
 EXPOSE 8080

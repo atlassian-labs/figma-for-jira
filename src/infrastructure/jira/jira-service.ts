@@ -4,7 +4,10 @@ import type {
 	SubmitDesignsResponse,
 } from './jira-client';
 import { jiraClient } from './jira-client';
-import { ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA } from './schemas';
+import {
+	ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
+	INGESTED_DESIGN_URL_VALUE_SCHEMA,
+} from './schemas';
 
 import { NotFoundOperationError } from '../../common/errors';
 import { ensureString } from '../../common/string-utils';
@@ -15,6 +18,7 @@ import type {
 	JiraIssue,
 } from '../../domain/entities';
 import { AtlassianAssociation } from '../../domain/entities';
+import type { JSONSchemaTypeWithId } from '../ajv';
 import { assertSchema, parseJsonOfSchema, SchemaValidationError } from '../ajv';
 import { getLogger } from '../logger';
 
@@ -29,10 +33,24 @@ export type AttachedDesignUrlV2IssuePropertyValue = {
 	readonly name: string;
 };
 
-export const propertyKeys = {
+export type IngestedDesignUrlIssuePropertyValue = string;
+
+export const appPropertyKeys = {
+	CONFIGURATION_STATE: 'is-configured',
+};
+
+export const issuePropertyKeys = {
 	ATTACHED_DESIGN_URL: 'attached-design-url',
 	ATTACHED_DESIGN_URL_V2: 'attached-design-url-v2',
+	INGESTED_DESIGN_URLS: 'figma-for-jira:ingested-design-urls',
 };
+
+export enum ConfigurationState {
+	CONFIGURED = 'CONFIGURED',
+	UNCONFIGURED = 'UNCONFIGURED',
+}
+
+export const JIRA_ADMIN_GLOBAL_PERMISSION = 'ADMINISTER';
 
 class JiraService {
 	submitDesign = async (
@@ -95,6 +113,11 @@ class JiraService {
 				design,
 				connectInstallation,
 			),
+			this.updateIngestedDesignsIssueProperty(
+				issueIdOrKey,
+				design,
+				connectInstallation,
+			),
 		]);
 	};
 
@@ -110,14 +133,14 @@ class JiraService {
 		try {
 			await jiraClient.getIssueProperty(
 				issueIdOrKey,
-				propertyKeys.ATTACHED_DESIGN_URL,
+				issuePropertyKeys.ATTACHED_DESIGN_URL,
 				connectInstallation,
 			);
 		} catch (error) {
 			if (error instanceof NotFoundOperationError) {
 				await jiraClient.setIssueProperty(
 					issueIdOrKey,
-					propertyKeys.ATTACHED_DESIGN_URL,
+					issuePropertyKeys.ATTACHED_DESIGN_URL,
 					url,
 					connectInstallation,
 				);
@@ -140,42 +163,52 @@ class JiraService {
 			url,
 			name: displayName,
 		};
-		let newValue: AttachedDesignUrlV2IssuePropertyValue[];
 
-		try {
-			const response = await jiraClient.getIssueProperty(
+		const storedValue =
+			await this.getIssuePropertyJsonValue<AttachedDesignUrlV2IssuePropertyValue>(
 				issueIdOrKey,
-				propertyKeys.ATTACHED_DESIGN_URL_V2,
+				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				connectInstallation,
-			);
-
-			const storedValue = parseJsonOfSchema(
-				response.value,
 				ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 			);
-
-			if (storedValue.some((value) => value.url === url)) {
-				return;
-			}
-
-			newValue = [...storedValue, newValueItem];
-		} catch (error) {
-			if (
-				error instanceof NotFoundOperationError ||
-				error instanceof SchemaValidationError
-			) {
-				// If issue property does not exist, or if the value is in an
-				// unexpected format, overwrite it with the new value.
-				newValue = [newValueItem];
-			} else {
-				throw error;
-			}
+		if (storedValue?.some((value) => value.url === url)) {
+			return;
 		}
+
+		const newValue = storedValue
+			? [...storedValue, newValueItem]
+			: [newValueItem];
 
 		return jiraClient.setIssueProperty(
 			issueIdOrKey,
-			propertyKeys.ATTACHED_DESIGN_URL_V2,
+			issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 			this.superStringify(newValue),
+			connectInstallation,
+		);
+	};
+
+	updateIngestedDesignsIssueProperty = async (
+		issueIdOrKey: string,
+		{ url }: AtlassianDesign,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> => {
+		const storedValue =
+			await this.getIssuePropertyJsonValue<IngestedDesignUrlIssuePropertyValue>(
+				issueIdOrKey,
+				issuePropertyKeys.INGESTED_DESIGN_URLS,
+				connectInstallation,
+				INGESTED_DESIGN_URL_VALUE_SCHEMA,
+			);
+		if (storedValue?.some((value) => value === url)) {
+			return;
+		}
+
+		const newValue = storedValue ? [...storedValue, url] : [url];
+
+		return jiraClient.setIssueProperty(
+			issueIdOrKey,
+			issuePropertyKeys.INGESTED_DESIGN_URLS,
+			newValue,
 			connectInstallation,
 		);
 	};
@@ -211,7 +244,7 @@ class JiraService {
 		try {
 			const response = await jiraClient.getIssueProperty(
 				issueIdOrKey,
-				propertyKeys.ATTACHED_DESIGN_URL,
+				issuePropertyKeys.ATTACHED_DESIGN_URL,
 				connectInstallation,
 			);
 
@@ -220,7 +253,7 @@ class JiraService {
 			if (storedUrl === design.url) {
 				await jiraClient.deleteIssueProperty(
 					issueIdOrKey,
-					propertyKeys.ATTACHED_DESIGN_URL,
+					issuePropertyKeys.ATTACHED_DESIGN_URL,
 					connectInstallation,
 				);
 			}
@@ -245,7 +278,7 @@ class JiraService {
 		try {
 			response = await jiraClient.getIssueProperty(
 				issueIdOrKey,
-				propertyKeys.ATTACHED_DESIGN_URL_V2,
+				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				connectInstallation,
 			);
 		} catch (error) {
@@ -280,7 +313,7 @@ class JiraService {
 		) {
 			await jiraClient.setIssueProperty(
 				issueIdOrKey,
-				propertyKeys.ATTACHED_DESIGN_URL_V2,
+				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				this.superStringify(newAttachedDesignUrlIssuePropertyValue),
 				connectInstallation,
 			);
@@ -289,6 +322,57 @@ class JiraService {
 				`Design with url: ${url} that was requested to be deleted was not removed from the 'attached-design-v2' issue property array`,
 			);
 		}
+	};
+
+	setConfigurationStateInAppProperties = async (
+		configurationState: ConfigurationState,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> => {
+		return await jiraClient.setAppProperty(
+			appPropertyKeys.CONFIGURATION_STATE,
+			configurationState.valueOf(),
+			connectInstallation,
+		);
+	};
+
+	private async getIssuePropertyJsonValue<T>(
+		issueIdOrKey: string,
+		propertyKey: string,
+		connectInstallation: ConnectInstallation,
+		schema: JSONSchemaTypeWithId<T[]>,
+	): Promise<T[] | null> {
+		try {
+			const response = await jiraClient.getIssueProperty(
+				issueIdOrKey,
+				propertyKey,
+				connectInstallation,
+			);
+			return parseJsonOfSchema(response.value, schema);
+		} catch (error) {
+			if (
+				error instanceof NotFoundOperationError ||
+				error instanceof SchemaValidationError
+			) {
+				return null; // If property does not exist or value is in unexpected format, return null
+			} else {
+				throw error;
+			}
+		}
+	}
+
+	isAdmin = async (
+		atlassianUserId: string,
+		connectInstallation: ConnectInstallation,
+	): Promise<boolean> => {
+		const response = await jiraClient.checkPermissions(
+			{
+				accountId: atlassianUserId,
+				globalPermissions: [JIRA_ADMIN_GLOBAL_PERMISSION],
+			},
+			connectInstallation,
+		);
+
+		return response.globalPermissions.includes(JIRA_ADMIN_GLOBAL_PERMISSION);
 	};
 
 	/**

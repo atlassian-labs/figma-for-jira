@@ -3,11 +3,14 @@ import axios, { AxiosHeaders } from 'axios';
 
 import { createJwtToken } from './jwt-utils';
 import {
+	CHECK_PERMISSIONS_RESPONSE_SCHEMA,
 	GET_ISSUE_PROPERTY_RESPONSE_SCHEMA,
 	GET_ISSUE_RESPONSE_SCHEMA,
 	SUBMIT_DESIGNS_RESPONSE_SCHEMA,
 } from './schemas';
 import type {
+	CheckPermissionsRequest,
+	CheckPermissionsResponse,
 	GetIssuePropertyResponse,
 	GetIssueResponse,
 	SubmitDesignsRequest,
@@ -20,7 +23,7 @@ import type {
 	FigmaDesignIdentifier,
 } from '../../../domain/entities';
 import { assertSchema } from '../../ajv';
-import { withOperationErrorTranslation } from '../../axios-utils';
+import { withAxiosErrorTranslation } from '../../axios-utils';
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
 
@@ -46,21 +49,17 @@ class JiraClient {
 		payload: SubmitDesignsRequest,
 		connectInstallation: ConnectInstallation,
 	): Promise<SubmitDesignsResponse> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				'/rest/designs/1.0/bulk',
 				connectInstallation.baseUrl,
 			);
 
-			const response = await axios.post<SubmitDesignsResponse>(
-				url.toString(),
-				payload,
-				{
-					headers: new AxiosHeaders().setAuthorization(
-						this.buildAuthorizationHeader(url, 'POST', connectInstallation),
-					),
-				},
-			);
+			const response = await axios.post<unknown>(url.toString(), payload, {
+				headers: new AxiosHeaders().setAuthorization(
+					this.buildAuthorizationHeader(url, 'POST', connectInstallation),
+				),
+			});
 
 			assertSchema(response.data, SUBMIT_DESIGNS_RESPONSE_SCHEMA);
 
@@ -71,7 +70,7 @@ class JiraClient {
 		designId: FigmaDesignIdentifier,
 		connectInstallation: ConnectInstallation,
 	): Promise<FigmaDesignIdentifier> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`/rest/designs/1.0/design/${designId.toAtlassianDesignId()}`,
 				connectInstallation.baseUrl,
@@ -95,13 +94,13 @@ class JiraClient {
 		issueIdOrKey: string,
 		connectInstallation: ConnectInstallation,
 	): Promise<GetIssueResponse> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`/rest/agile/1.0/issue/${issueIdOrKey}`,
 				connectInstallation.baseUrl,
 			);
 
-			const response = await axios.get<GetIssueResponse>(url.toString(), {
+			const response = await axios.get<unknown>(url.toString(), {
 				headers: new AxiosHeaders().setAuthorization(
 					this.buildAuthorizationHeader(url, 'GET', connectInstallation),
 				),
@@ -122,24 +121,21 @@ class JiraClient {
 		propertyKey: string,
 		connectInstallation: ConnectInstallation,
 	): Promise<GetIssuePropertyResponse> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
 				connectInstallation.baseUrl,
 			);
 
-			const response = await axios.get<GetIssuePropertyResponse>(
-				url.toString(),
-				{
-					headers: new AxiosHeaders()
-						.setAuthorization(
-							this.buildAuthorizationHeader(url, 'GET', connectInstallation),
-						)
-						.setAccept('application/json'),
-				},
-			);
+			const response = await axios.get<unknown>(url.toString(), {
+				headers: new AxiosHeaders()
+					.setAuthorization(
+						this.buildAuthorizationHeader(url, 'GET', connectInstallation),
+					)
+					.setAccept('application/json'),
+			});
 
-			assertSchema<Omit<GetIssuePropertyResponse, 'value'>>(
+			assertSchema<GetIssuePropertyResponse>(
 				response.data,
 				GET_ISSUE_PROPERTY_RESPONSE_SCHEMA,
 			);
@@ -158,7 +154,7 @@ class JiraClient {
 		value: unknown,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
 				connectInstallation.baseUrl,
@@ -184,7 +180,7 @@ class JiraClient {
 		propertyKey: string,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> =>
-		withOperationErrorTranslation(async () => {
+		withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
 				connectInstallation.baseUrl,
@@ -195,6 +191,58 @@ class JiraClient {
 					this.buildAuthorizationHeader(url, 'DELETE', connectInstallation),
 				),
 			});
+		});
+
+	/**
+	 * Sets a connect app property
+	 *
+	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-app-properties/#api-rest-atlassian-connect-1-addons-addonkey-properties-propertykey-put
+	 */
+	setAppProperty = async (
+		propertyKey: string,
+		value: unknown,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> =>
+		withAxiosErrorTranslation(async () => {
+			const url = new URL(
+				`/rest/atlassian-connect/1/addons/${connectInstallation.key}/properties/${propertyKey}`,
+				connectInstallation.baseUrl,
+			);
+
+			await axios.put(url.toString(), value, {
+				headers: new AxiosHeaders()
+					.setAuthorization(
+						this.buildAuthorizationHeader(url, 'PUT', connectInstallation),
+					)
+					.setAccept('application/json')
+					.setContentType('text/plain'),
+			});
+		});
+
+	/**
+	 * Returns a list of requested global and project permissions.
+	 *
+	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-permissions/#api-rest-api-3-permissions-check-post
+	 */
+	checkPermissions = async (
+		payload: CheckPermissionsRequest,
+		connectInstallation: ConnectInstallation,
+	): Promise<CheckPermissionsResponse> =>
+		withAxiosErrorTranslation(async () => {
+			const url = new URL(
+				`/rest/api/3/permissions/check`,
+				connectInstallation.baseUrl,
+			);
+
+			const response = await axios.post<unknown>(url.toString(), payload, {
+				headers: new AxiosHeaders().setAuthorization(
+					this.buildAuthorizationHeader(url, 'POST', connectInstallation),
+				),
+			});
+
+			assertSchema(response.data, CHECK_PERMISSIONS_RESPONSE_SCHEMA);
+
+			return response.data;
 		});
 
 	private buildAuthorizationHeader(

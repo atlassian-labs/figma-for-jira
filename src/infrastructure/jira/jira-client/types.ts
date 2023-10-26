@@ -50,3 +50,12 @@ export type SubmitDesignsResponse = {
 	readonly unknownIssueKeys?: string[];
 	readonly unknownAssociations?: Association[];
 };
+
+export type CheckPermissionsRequest = {
+	readonly accountId: string;
+	readonly globalPermissions?: string[];
+};
+
+export type CheckPermissionsResponse = {
+	readonly globalPermissions: string[];
+};

@@ -4,7 +4,6 @@ import { Router } from 'express';
 import { CHECK_AUTH_QUERY_PARAMETERS_SCHEMA } from './schemas';
 import type { CheckAuthRequest, CheckAuthResponse } from './types';
 
-import { getConfig } from '../../../config';
 import { assertSchema } from '../../../infrastructure';
 import { figmaAuthService } from '../../../infrastructure/figma';
 import { checkUserFigmaAuthUseCase } from '../../../usecases';
@@ -35,13 +34,11 @@ authRouter.get(
 				}
 
 				const authorizationEndpoint =
-					figmaAuthService.buildAuthorizationEndpoint(
-						{
-							connectInstallationId: connectInstallation.id,
-							atlassianUserId,
-						},
-						`${getConfig().app.baseUrl}/figma/oauth/callback`,
-					);
+					figmaAuthService.createOAuth2AuthorizationRequest({
+						atlassianUserId,
+						connectInstallation,
+						redirectEndpoint: `figma/oauth/callback`,
+					});
 
 				return res.send({
 					type: '3LO',

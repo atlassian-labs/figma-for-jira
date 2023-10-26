@@ -1,8 +1,5 @@
 import { figmaAuthService } from './figma-auth-service';
-import type {
-	CreateDevResourcesRequest,
-	CreateWebhookRequest,
-} from './figma-client';
+import type { CreateWebhookRequest } from './figma-client';
 import { figmaClient } from './figma-client';
 import {
 	transformFileToAtlassianDesign,
@@ -141,15 +138,17 @@ export class FigmaService {
 	}): Promise<void> => {
 		const { accessToken } = await figmaAuthService.getCredentials(user);
 
-		const devResource: CreateDevResourcesRequest = {
-			name: buildDevResourceNameFromJiraIssue(issue.key, issue.title),
-			url: issue.url,
-			file_key: designId.fileKey,
-			node_id: designId.nodeIdOrDefaultDocumentId,
-		};
-
 		const response = await figmaClient.createDevResources(
-			[devResource],
+			{
+				dev_resources: [
+					{
+						name: buildDevResourceNameFromJiraIssue(issue.key, issue.title),
+						url: issue.url,
+						file_key: designId.fileKey,
+						node_id: designId.nodeIdOrDefaultDocumentId,
+					},
+				],
+			},
 			accessToken,
 		);
 

@@ -1,5 +1,6 @@
 import type { ConnectInstallation } from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
+import { ConfigurationState, jiraService } from '../infrastructure/jira';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
 export const disconnectFigmaTeamUseCase = {
@@ -16,5 +17,17 @@ export const disconnectFigmaTeamUseCase = {
 		);
 
 		await figmaTeamRepository.delete(figmaTeam.id);
+
+		const configuredTeams =
+			await figmaTeamRepository.findManyByConnectInstallationId(
+				connectInstallation.id,
+			);
+
+		if (configuredTeams.length === 0) {
+			await jiraService.setConfigurationStateInAppProperties(
+				ConfigurationState.UNCONFIGURED,
+				connectInstallation,
+			);
+		}
 	},
 };

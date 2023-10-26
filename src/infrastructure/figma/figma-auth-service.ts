@@ -1,15 +1,51 @@
+import {
+	decodeSymmetric,
+	encodeSymmetric,
+	SymmetricAlgorithm,
+} from 'atlassian-jwt';
+
 import { figmaClient } from './figma-client';
 
+import { Duration } from '../../common/duration';
 import {
 	NotFoundOperationError,
 	UnauthorizedOperationError,
 } from '../../common/errors';
+import { ensureString } from '../../common/string-utils';
 import { getConfig } from '../../config';
 import type {
+	ConnectInstallation,
 	ConnectUserInfo,
 	FigmaOAuth2UserCredentials,
 } from '../../domain/entities';
+import type { JSONSchemaTypeWithId } from '../ajv';
+import { assertSchema } from '../ajv';
 import { figmaOAuth2UserCredentialsRepository } from '../repositories';
+
+type FigmaOAuth2StateJwtClaims = {
+	readonly iss: string;
+	readonly iat: number;
+	readonly exp: number;
+	readonly sub: string;
+	readonly aud: string[];
+};
+
+const FIGMA_OAUTH2_STATE_JWT_CLAIMS_SCHEMA: JSONSchemaTypeWithId<FigmaOAuth2StateJwtClaims> =
+	{
+		$id: 'figma-for-jira:oauth2-state-jwt-token-claims',
+		type: 'object',
+		properties: {
+			iss: { type: 'string', minLength: 1 },
+			iat: { type: 'integer' },
+			exp: { type: 'integer' },
+			sub: { type: 'string', minLength: 1 },
+			aud: {
+				type: 'array',
+				items: { type: 'string' },
+			},
+		},
+		required: ['iss', 'iat', 'exp', 'sub', 'aud'],
+	};
 
 export class FigmaAuthService {
 	/**
@@ -71,24 +107,47 @@ export class FigmaAuthService {
 	};
 
 	/**
-	 * Returns an OAuth 2.0 authorization endpoint for the given user.
+	 * Returns an authorization endpoint URL for the given user.
+	 *
+	 * @remarks
+	 * As a countermeasure against Cross-Site Request Forgery (CSRF) attacks, the URL includes the `state`
+	 * query parameter, which represents a user-bound signed JWT token.
 	 *
 	 * @see https://www.figma.com/developers/api#oauth2
 	 */
-	buildAuthorizationEndpoint = (
-		user: ConnectUserInfo,
-		redirectUri: string,
-	): string => {
+	createOAuth2AuthorizationRequest = ({
+		atlassianUserId,
+		connectInstallation,
+		redirectEndpoint,
+	}: {
+		atlassianUserId: string;
+		connectInstallation: ConnectInstallation;
+		redirectEndpoint: string;
+	}): string => {
 		const authorizationEndpoint = new URL(
 			'/oauth',
-			getConfig().figma.oauthApiBaseUrl,
+			getConfig().figma.oauth2.authorizationServerBaseUrl,
+		);
+
+		const nowInSeconds = Math.floor(Date.now() / 1000);
+
+		const state = encodeSymmetric(
+			{
+				iss: connectInstallation.clientKey,
+				iat: nowInSeconds,
+				exp: nowInSeconds + Duration.ofMinutes(5).asSeconds,
+				sub: atlassianUserId,
+				aud: [getConfig().app.baseUrl],
+			},
+			getConfig().figma.oauth2.stateSecretKey,
+			SymmetricAlgorithm.HS256,
 		);
 
 		authorizationEndpoint.search = new URLSearchParams({
-			client_id: getConfig().figma.clientId,
-			redirect_uri: redirectUri,
-			scope: getConfig().figma.scope,
-			state: `${user.connectInstallationId}/${user.atlassianUserId}`, // TODO: MDTZ-1014: Use an anti-forgery state token to prevent Cross-Site Request Forgery (CSRF) attacks.
+			client_id: getConfig().figma.oauth2.clientId,
+			redirect_uri: `${getConfig().app.baseUrl}/${redirectEndpoint}`,
+			scope: getConfig().figma.oauth2.scope,
+			state,
 			response_type: 'code',
 		}).toString();
 
@@ -96,20 +155,39 @@ export class FigmaAuthService {
 	};
 
 	/**
-	 * Returns {@link ConnectUserInfo} extracted from the given `state`.
+	 * Verifies and returns the OAuth 2.0 authorization response state.
 	 *
-	 * @param state A value of the `state` query parameter bypassed by the authorization server through OAuth 2.0 flow.
-	 * 	 This is the same value, which was created by {@link buildAuthorizationEndpoint}.
+	 * It verifies the state represents an authentic non-expired JWT token.
 	 *
 	 * @see https://www.figma.com/developers/api#oauth2
 	 */
-	getUserFromAuthorizationCallbackState = (state: string): ConnectUserInfo => {
-		const [connectInstallationId, atlassianUserId] = state.split('/');
+	verifyOAuth2AuthorizationResponseState = (
+		state: unknown,
+	): { atlassianUserId: string; connectClientKey: string } => {
+		const encodedState = ensureString(state);
 
-		if (!connectInstallationId || !atlassianUserId)
-			throw new Error('Unexpected state.');
+		const claims = decodeSymmetric(
+			encodedState,
+			getConfig().figma.oauth2.stateSecretKey,
+			SymmetricAlgorithm.HS256,
+		) as unknown;
 
-		return { atlassianUserId, connectInstallationId };
+		assertSchema(claims, FIGMA_OAUTH2_STATE_JWT_CLAIMS_SCHEMA);
+
+		const nowInSeconds = Date.now() / 1000;
+
+		if (nowInSeconds > claims.exp) {
+			throw new Error('The token is expired.');
+		}
+
+		if (claims.aud[0] !== getConfig().app.baseUrl) {
+			throw new Error('The token contains an invalid `aud` claim.');
+		}
+
+		return {
+			atlassianUserId: claims.sub,
+			connectClientKey: claims.iss,
+		};
 	};
 
 	private refreshCredentials = async (

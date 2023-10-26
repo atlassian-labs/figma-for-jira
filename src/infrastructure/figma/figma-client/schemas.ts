@@ -4,55 +4,17 @@ import type {
 	CreateDevResourcesResponse,
 	CreateWebhookResponse,
 	DevResource,
-	FileResponse,
 	GetDevResourcesResponse,
+	GetFileResponse,
+	GetMeResponse,
 	GetOAuth2TokenResponse,
 	GetTeamProjectsResponse,
-	MeResponse,
 	Node,
 	NodeDevStatus,
 	RefreshOAuth2TokenResponse,
 } from './types';
 
 import type { JSONSchemaTypeWithId } from '../../ajv';
-
-const NODE_DEV_STATUS_SCHEMA: JSONSchemaType<NodeDevStatus> = {
-	type: 'object',
-	properties: {
-		type: { type: 'string' },
-	},
-	required: ['type'],
-};
-
-const NODE_SCHEMA = Object.freeze({
-	type: 'object',
-	properties: {
-		id: { type: 'string' },
-		name: { type: 'string' },
-		type: { type: 'string' },
-		devStatus: { ...NODE_DEV_STATUS_SCHEMA, nullable: true },
-		lastModified: { type: 'string', nullable: true },
-		children: {
-			type: 'array',
-			items: { $ref: '#' },
-		},
-	},
-	required: ['id', 'name', 'type'],
-	// Since TypeScript cannot infer recursive types, use a type assertion as a workaround.
-}) as JSONSchemaType<Omit<Node, 'children'>> as JSONSchemaType<Node>;
-
-export const GET_FILE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<FileResponse> = {
-	$id: 'figma-api:get:file:response',
-	type: 'object',
-	properties: {
-		name: { type: 'string' },
-		role: { type: 'string' },
-		lastModified: { type: 'string' },
-		editorType: { type: 'string' },
-		document: NODE_SCHEMA,
-	},
-	required: ['name', 'role', 'editorType', 'lastModified', 'document'],
-};
 
 export const GET_OAUTH2_TOKEN_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetOAuth2TokenResponse> =
 	{
@@ -77,16 +39,53 @@ export const REFRESH_OAUTH2_TOKEN_RESPONSE_SCHEMA: JSONSchemaTypeWithId<RefreshO
 		required: ['access_token', 'expires_in'],
 	};
 
-export const GET_ME_RESPONSE_SCHEMA: JSONSchemaTypeWithId<MeResponse> = {
+const NODE_DEV_STATUS_SCHEMA: JSONSchemaType<NodeDevStatus> = {
+	type: 'object',
+	properties: {
+		type: { type: 'string' },
+	},
+	required: ['type'],
+};
+
+const NODE_SCHEMA = {
+	$id: 'figma-api:get:v1/files/$fileKey:response:node',
+	type: 'object',
+	properties: {
+		id: { type: 'string' },
+		name: { type: 'string' },
+		type: { type: 'string' },
+		devStatus: { ...NODE_DEV_STATUS_SCHEMA, nullable: true },
+		lastModified: { type: 'string', nullable: true },
+		children: {
+			type: 'array',
+			items: { $ref: '#' },
+		},
+	},
+	required: ['id', 'name', 'type'],
+	// Since TypeScript cannot infer recursive types, use a type assertion as a workaround.
+} as JSONSchemaType<Omit<Node, 'children'>> as JSONSchemaType<Node>;
+
+export const GET_FILE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetFileResponse> = {
+	$id: 'figma-api:get:v1/files/$fileKey:response',
+	type: 'object',
+	properties: {
+		name: { type: 'string' },
+		role: { type: 'string' },
+		lastModified: { type: 'string' },
+		editorType: { type: 'string' },
+		document: NODE_SCHEMA,
+	},
+	required: ['name', 'role', 'editorType', 'lastModified', 'document'],
+};
+
+export const GET_ME_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetMeResponse> = {
 	$id: 'figma-api:get:v1/me:response',
 	type: 'object',
 	properties: {
 		id: { type: 'string' },
 		email: { type: 'string' },
-		handle: { type: 'string' },
-		img_url: { type: 'string' },
 	},
-	required: ['id', 'email', 'handle', 'img_url'],
+	required: ['id', 'email'],
 };
 
 const DEV_RESOURCE_SCHEMA: JSONSchemaType<DevResource> = {
@@ -106,10 +105,6 @@ export const CREATE_DEV_RESOURCE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<CreateDev
 		$id: 'figma-api:post:v1/dev_resources:response',
 		type: 'object',
 		properties: {
-			links_created: {
-				type: 'array',
-				items: DEV_RESOURCE_SCHEMA,
-			},
 			errors: {
 				type: 'array',
 				items: {
@@ -123,7 +118,7 @@ export const CREATE_DEV_RESOURCE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<CreateDev
 				},
 			},
 		},
-		required: ['links_created', 'errors'],
+		required: ['errors'],
 	};
 
 export const GET_DEV_RESOURCE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetDevResourcesResponse> =

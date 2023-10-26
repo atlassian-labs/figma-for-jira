@@ -6,6 +6,7 @@ import type { JSONSchemaType } from 'ajv';
 
 import type {
 	Association,
+	CheckPermissionsResponse,
 	DesignKey,
 	GetIssuePropertyResponse,
 	GetIssueResponse,
@@ -96,13 +97,26 @@ export const GET_ISSUE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetIssueResponse> =
 		required: ['id', 'key', 'self'],
 	};
 
-export const GET_ISSUE_PROPERTY_RESPONSE_SCHEMA: JSONSchemaTypeWithId<
-	Omit<GetIssuePropertyResponse, 'value'>
-> = {
+export const GET_ISSUE_PROPERTY_RESPONSE_SCHEMA = {
 	$id: 'jira-software-cloud-api:get:rest/api/2/issue/$issueIdOrKey/properties/$propertyKey:response',
 	type: 'object',
 	properties: {
 		key: { type: 'string' },
 	},
 	required: ['key'],
-};
+} as JSONSchemaTypeWithId<
+	Omit<GetIssuePropertyResponse, 'value'>
+> as JSONSchemaTypeWithId<GetIssuePropertyResponse>;
+
+export const CHECK_PERMISSIONS_RESPONSE_SCHEMA: JSONSchemaTypeWithId<CheckPermissionsResponse> =
+	{
+		$id: 'jira-software-cloud-api:post:/rest/api/3/permissions/check:response',
+		type: 'object',
+		properties: {
+			globalPermissions: {
+				type: 'array',
+				items: { type: 'string' },
+			},
+		},
+		required: ['globalPermissions'],
+	};
