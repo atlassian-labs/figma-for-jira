@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { connectInstallationRepository } from './connect-installation-repository';
 import { figmaTeamRepository } from './figma-team-repository';
 
@@ -11,6 +13,58 @@ const figmaTeamComparer = (first: FigmaTeam, second: FigmaTeam) =>
 	first.id.localeCompare(second.id);
 
 describe('FigmaTeamRepository', () => {
+	describe('findByWebhookIdAndPasscode', () => {
+		it('should return team with given webhook ID and passcode', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const webhookId = uuidv4();
+			const webhookPasscode = uuidv4();
+			const figmaTeam = await figmaTeamRepository.upsert(
+				generateFigmaTeamCreateParams({
+					connectInstallationId: connectInstallation.id,
+					webhookId,
+					webhookPasscode,
+				}),
+			);
+
+			const result = await figmaTeamRepository.findByWebhookIdAndPasscode(
+				webhookId,
+				webhookPasscode,
+			);
+
+			expect(result).toEqual(figmaTeam);
+		});
+
+		it('should return null when there is no team with given webhook ID and passcode', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const webhookId = uuidv4();
+			const webhookPasscode = uuidv4();
+			await Promise.all([
+				figmaTeamRepository.upsert(
+					generateFigmaTeamCreateParams({
+						connectInstallationId: connectInstallation.id,
+						webhookId,
+					}),
+				),
+				figmaTeamRepository.upsert(
+					generateFigmaTeamCreateParams({
+						connectInstallationId: connectInstallation.id,
+					}),
+				),
+			]);
+
+			const result = await figmaTeamRepository.findByWebhookIdAndPasscode(
+				webhookId,
+				webhookPasscode,
+			);
+
+			expect(result).toBeNull();
+		});
+	});
+
 	describe('findManyByConnectInstallationId', () => {
 		it('should return teams with given connect installation ID', async () => {
 			const [targetConnectInstallation, anotherConnectInstallation] =

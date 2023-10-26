@@ -1,28 +1,42 @@
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 
-import type { FigmaWebhookEventType } from '../../../domain/entities';
+import type { FigmaTeam } from '../../../domain/entities';
 
-export type FigmaWebhookEventPayload = {
-	readonly event_type: FigmaWebhookEventType;
-	readonly file_key?: string;
-	readonly file_name?: string;
-	readonly passcode: string;
-	readonly protocol_version: string;
-	readonly retries: number;
-	readonly timestamp: string;
+export type FigmaPingWebhookEventRequestBody = {
+	readonly event_type: 'PING';
 	readonly webhook_id: string;
-	readonly triggered_by?: {
-		readonly id: string;
-		readonly handle: string;
-	};
+	readonly passcode: string;
+	readonly timestamp: string;
 };
 
-export type FigmaWebhookRequest = Request<
+export type FigmaFileUpdateWebhookEventRequestBody = {
+	readonly event_type: 'FILE_UPDATE';
+	readonly webhook_id: string;
+	readonly file_key: string;
+	readonly file_name: string;
+	readonly passcode: string;
+	readonly timestamp: string;
+};
+
+export type FigmaWebhookEventRequestBody =
+	| FigmaPingWebhookEventRequestBody
+	| FigmaFileUpdateWebhookEventRequestBody;
+
+export type FigmaWebhookEventLocals = {
+	readonly figmaTeam: FigmaTeam;
+};
+
+export type FigmaWebhookEventRequest = Request<
 	Record<string, never>,
 	never,
-	FigmaWebhookEventPayload,
+	FigmaWebhookEventRequestBody,
 	Record<string, never>,
-	never
+	FigmaWebhookEventLocals
+>;
+
+export type FigmaWebhookEventResponse = Response<
+	never,
+	FigmaWebhookEventLocals
 >;
 
 export type FigmaOAuth2CallbackQueryParameters = {

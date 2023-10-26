@@ -243,11 +243,11 @@ describe('/admin/teams', () => {
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok);
 
-			const figmaTeam = await figmaTeamRepository.getByWebhookId(webhookId);
-			expect(figmaTeam).toEqual({
+			const figmaTeam = await figmaTeamRepository.getAll();
+			expect(figmaTeam[0]).toEqual({
 				id: expect.anything(),
 				webhookId,
-				webhookPasscode: figmaTeam.webhookPasscode,
+				webhookPasscode: expect.anything(),
 				teamId,
 				teamName,
 				figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
@@ -291,9 +291,9 @@ describe('/admin/teams', () => {
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.InternalServerError);
 
-			await expect(
-				figmaTeamRepository.getByWebhookId(webhookId),
-			).rejects.toBeInstanceOf(NotFoundOperationError);
+			await expect(figmaTeamRepository.get(webhookId)).rejects.toBeInstanceOf(
+				NotFoundOperationError,
+			);
 		});
 
 		it('should return unauthorized error if a user is not Jira admin', async () => {
@@ -382,7 +382,7 @@ describe('/admin/teams', () => {
 				.expect(HttpStatusCode.Ok);
 
 			await expect(
-				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
+				figmaTeamRepository.get(figmaTeam.id),
 			).rejects.toBeInstanceOf(NotFoundOperationError);
 			expect(figmaClient.deleteWebhook).toBeCalledWith(
 				figmaTeam.webhookId,
@@ -433,7 +433,7 @@ describe('/admin/teams', () => {
 				.expect(HttpStatusCode.Ok);
 
 			await expect(
-				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
+				figmaTeamRepository.get(figmaTeam.id),
 			).rejects.toBeInstanceOf(NotFoundOperationError);
 		});
 
@@ -473,9 +473,9 @@ describe('/admin/teams', () => {
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.InternalServerError);
 
-			await expect(
-				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
-			).resolves.toEqual(figmaTeam);
+			await expect(figmaTeamRepository.get(figmaTeam.id)).resolves.toEqual(
+				figmaTeam,
+			);
 		});
 
 		it('should return unauthorized error if a user is not Jira admin', async () => {

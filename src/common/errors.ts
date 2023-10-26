@@ -14,5 +14,3 @@ export class NotFoundOperationError extends OperationError {}
 export class UnauthorizedOperationError extends OperationError {}
 
 export class ForbiddenOperationError extends OperationError {}
-
-export class ValidationError extends CauseAwareError {}
