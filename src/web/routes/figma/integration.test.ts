@@ -276,8 +276,10 @@ describe('/figma', () => {
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				const updatedFigmaTeam = await figmaTeamRepository.get(figmaTeam.id);
-				expect(updatedFigmaTeam.authStatus).toStrictEqual(
+				const updatedFigmaTeam = await figmaTeamRepository.findByWebhookId(
+					figmaTeam.webhookId,
+				);
+				expect(updatedFigmaTeam?.authStatus).toStrictEqual(
 					FigmaTeamAuthStatus.ERROR,
 				);
 			});
@@ -341,8 +343,10 @@ describe('/figma', () => {
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				const updatedFigmaTeam = await figmaTeamRepository.get(figmaTeam.id);
-				expect(updatedFigmaTeam.authStatus).toStrictEqual(
+				const updatedFigmaTeam = await figmaTeamRepository.findByWebhookId(
+					figmaTeam.webhookId,
+				);
+				expect(updatedFigmaTeam?.authStatus).toStrictEqual(
 					FigmaTeamAuthStatus.ERROR,
 				);
 			});

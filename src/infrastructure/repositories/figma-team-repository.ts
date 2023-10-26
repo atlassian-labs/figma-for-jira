@@ -44,22 +44,6 @@ export class FigmaTeamRepository {
 		return dbModels.map((dbModel) => this.mapToFigmaTeam(dbModel));
 	};
 
-	/**
-	 * @internal
-	 * Required for tests only.
-	 */
-	get = async (id: string): Promise<FigmaTeam> => {
-		const dbModel = await prismaClient.get().figmaTeam.findFirst({
-			where: { id: BigInt(id) },
-		});
-
-		if (dbModel === null) {
-			throw new NotFoundOperationError(`Figma team with ${id} does not exist`);
-		}
-
-		return this.mapToFigmaTeam(dbModel);
-	};
-
 	getByTeamIdAndConnectInstallationId = async (
 		teamId: string,
 		connectInstallationId: string,

@@ -3,7 +3,6 @@ import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
 import app from '../../../../app';
-import { NotFoundOperationError } from '../../../../common/errors';
 import { getConfig } from '../../../../config';
 import type {
 	ConnectInstallation,
@@ -378,9 +377,9 @@ describe('/admin/teams', () => {
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok);
 
-			await expect(
-				figmaTeamRepository.get(figmaTeam.id),
-			).rejects.toBeInstanceOf(NotFoundOperationError);
+			expect(
+				await figmaTeamRepository.findByWebhookId(figmaTeam.webhookId),
+			).toBeNull();
 			expect(figmaClient.deleteWebhook).toBeCalledWith(
 				figmaTeam.webhookId,
 				figmaOAuth2UserCredentials.accessToken,
@@ -429,9 +428,9 @@ describe('/admin/teams', () => {
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok);
 
-			await expect(
-				figmaTeamRepository.get(figmaTeam.id),
-			).rejects.toBeInstanceOf(NotFoundOperationError);
+			expect(
+				await figmaTeamRepository.findByWebhookId(figmaTeam.webhookId),
+			).toBeNull();
 		});
 
 		it('should return a 200 and delete the FigmaTeam when deleting the webhook fails', async () => {
@@ -470,9 +469,9 @@ describe('/admin/teams', () => {
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.InternalServerError);
 
-			await expect(figmaTeamRepository.get(figmaTeam.id)).resolves.toEqual(
-				figmaTeam,
-			);
+			expect(
+				await figmaTeamRepository.findByWebhookId(figmaTeam.webhookId),
+			).toStrictEqual(figmaTeam);
 		});
 
 		it('should return unauthorized error if a user is not Jira admin', async () => {
