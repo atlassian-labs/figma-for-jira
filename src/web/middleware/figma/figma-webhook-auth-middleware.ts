@@ -48,12 +48,11 @@ export const figmaWebhookAuthMiddleware = (
 	const { webhook_id, passcode } = req.body;
 
 	void figmaTeamRepository
-		.findByWebhookIdAndPasscode(webhook_id, passcode)
+		.findByWebhookId(webhook_id)
 		.then((figmaTeam) => {
-			if (figmaTeam === null)
-				return next(
-					new BadRequestResponseStatusError('Unexpected webhook event.'),
-				);
+			if (figmaTeam === null || figmaTeam.webhookPasscode !== passcode) {
+				return next(new BadRequestResponseStatusError('Unknown webhook.'));
+			}
 
 			res.locals.figmaTeam = figmaTeam;
 			next();

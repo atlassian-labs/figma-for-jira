@@ -15,7 +15,7 @@ describe('figmaWebhookAuthMiddleware', () => {
 		const webhookPasscode = uuidv4();
 		const figmaTeam = generateFigmaTeam({ webhookId, webhookPasscode });
 		jest
-			.spyOn(figmaTeamRepository, 'findByWebhookIdAndPasscode')
+			.spyOn(figmaTeamRepository, 'findByWebhookId')
 			.mockResolvedValue(figmaTeam);
 
 		const request = {
@@ -34,18 +34,10 @@ describe('figmaWebhookAuthMiddleware', () => {
 
 		expect(next).toHaveBeenCalledWith();
 		expect(response.locals.figmaTeam).toBe(figmaTeam);
-		expect(figmaTeamRepository.findByWebhookIdAndPasscode).toHaveBeenCalledWith(
-			webhookId,
-			webhookPasscode,
-		);
+		expect(figmaTeamRepository.findByWebhookId).toHaveBeenCalledWith(webhookId);
 	});
 
 	it('should not authenticate request if request does not contain webhook credentials', async () => {
-		const figmaTeam = generateFigmaTeam();
-		jest
-			.spyOn(figmaTeamRepository, 'findByWebhookIdAndPasscode')
-			.mockResolvedValue(figmaTeam);
-
 		const request = {} as Request;
 		const next = jest.fn();
 
@@ -57,15 +49,36 @@ describe('figmaWebhookAuthMiddleware', () => {
 		);
 	});
 
-	it('should not authenticate request if webhook is not authentic', async () => {
-		jest
-			.spyOn(figmaTeamRepository, 'findByWebhookIdAndPasscode')
-			.mockResolvedValue(null);
+	it('should not authenticate request if webhook is unknown', async () => {
+		jest.spyOn(figmaTeamRepository, 'findByWebhookId').mockResolvedValue(null);
 
 		const request = {
 			body: generatePingWebhookEventRequestBody({
 				webhook_id: uuidv4(),
 				passcode: uuidv4(),
+			}),
+		} as Request;
+		const next = jest.fn();
+
+		figmaWebhookAuthMiddleware(request, {} as Response, next);
+		await flushPromises();
+
+		expect(next).toHaveBeenCalledWith(
+			expect.any(BadRequestResponseStatusError),
+		);
+	});
+
+	it('should not authenticate request if request contains invalid passcode', async () => {
+		const webhookId = uuidv4();
+		const figmaTeam = generateFigmaTeam({ webhookId });
+		jest
+			.spyOn(figmaTeamRepository, 'findByWebhookId')
+			.mockResolvedValue(figmaTeam);
+
+		const request = {
+			body: generatePingWebhookEventRequestBody({
+				webhook_id: figmaTeam.webhookId,
+				passcode: 'invalid',
 			}),
 		} as Request;
 		const next = jest.fn();

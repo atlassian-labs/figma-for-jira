@@ -77,21 +77,14 @@ export class FigmaTeamRepository {
 		return this.mapToFigmaTeam(dbModel);
 	};
 
-	findByWebhookIdAndPasscode = async (
-		webhookId: string,
-		webhookPasscode: string,
-	): Promise<FigmaTeam | null> => {
+	findByWebhookId = async (webhookId: string): Promise<FigmaTeam | null> => {
 		const dbModel = await prismaClient
 			.get()
 			.figmaTeam.findFirst({ where: { webhookId } });
 
 		if (dbModel === null) return null;
 
-		const figmaTeam = this.mapToFigmaTeam(dbModel);
-
-		if (figmaTeam.webhookPasscode !== webhookPasscode) return null;
-
-		return figmaTeam;
+		return this.mapToFigmaTeam(dbModel);
 	};
 
 	findManyByConnectInstallationId = async (
