@@ -1,9 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import {
-	type ConnectInstallation,
-	FigmaTeamAuthStatus,
-} from '../domain/entities';
+import { FigmaTeamAuthStatus } from '../domain/entities';
+import type { ConnectInstallation, FigmaTeamSummary } from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
 import { ConfigurationState, jiraService } from '../infrastructure/jira';
 import { figmaTeamRepository } from '../infrastructure/repositories';
@@ -13,7 +11,7 @@ export const connectFigmaTeamUseCase = {
 		teamId: string,
 		atlassianUserId: string,
 		connectInstallation: ConnectInstallation,
-	): Promise<void> => {
+	): Promise<FigmaTeamSummary> => {
 		const webhookPasscode = uuidv4();
 
 		const teamName = await figmaService.getTeamName(teamId, {
@@ -27,7 +25,7 @@ export const connectFigmaTeamUseCase = {
 				connectInstallationId: connectInstallation.id,
 			});
 
-		await figmaTeamRepository.upsert({
+		const teamSummary = await figmaTeamRepository.upsert({
 			webhookId,
 			webhookPasscode,
 			teamId: figmaTeamId,
@@ -41,5 +39,7 @@ export const connectFigmaTeamUseCase = {
 			ConfigurationState.CONFIGURED,
 			connectInstallation,
 		);
+
+		return teamSummary;
 	},
 };

@@ -5,3 +5,16 @@ export function getAtlassianAccountId(): Promise<string> {
 		});
 	});
 }
+
+export function getCurrentAtlassianSite(): Promise<string> {
+	return new Promise((resolve, reject) => {
+		return AP.getLocation((location) => {
+			try {
+				const url = new URL(location);
+				resolve(url.host);
+			} catch (e) {
+				reject(e);
+			}
+		});
+	});
+}

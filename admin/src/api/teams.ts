@@ -18,3 +18,9 @@ export async function getTeams(): Promise<
 > {
 	return await axiosRest.get('/admin/teams');
 }
+
+export async function connectTeam(
+	teamId: string,
+): Promise<AxiosResponse<Readonly<FigmaTeamSummary>>> {
+	return await axiosRest.post(`/admin/teams/${teamId}/connect`);
+}

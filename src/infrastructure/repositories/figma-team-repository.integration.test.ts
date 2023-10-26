@@ -23,21 +23,42 @@ describe('FigmaTeamRepository', () => {
 					),
 				]);
 			const [targetFigmaTeam1, targetFigmaTeam2] = await Promise.all([
-				figmaTeamRepository.upsert(
-					generateFigmaTeamCreateParams({
-						connectInstallationId: targetConnectInstallation.id,
-					}),
-				),
-				figmaTeamRepository.upsert(
-					generateFigmaTeamCreateParams({
-						connectInstallationId: targetConnectInstallation.id,
-					}),
-				),
-				figmaTeamRepository.upsert(
-					generateFigmaTeamCreateParams({
-						connectInstallationId: anotherConnectInstallation.id,
-					}),
-				),
+				figmaTeamRepository
+					.upsert(
+						generateFigmaTeamCreateParams({
+							connectInstallationId: targetConnectInstallation.id,
+						}),
+					)
+					.then((team) =>
+						figmaTeamRepository.getByTeamIdAndConnectInstallationId(
+							team.teamId,
+							targetConnectInstallation.id,
+						),
+					),
+				figmaTeamRepository
+					.upsert(
+						generateFigmaTeamCreateParams({
+							connectInstallationId: targetConnectInstallation.id,
+						}),
+					)
+					.then((team) =>
+						figmaTeamRepository.getByTeamIdAndConnectInstallationId(
+							team.teamId,
+							targetConnectInstallation.id,
+						),
+					),
+				figmaTeamRepository
+					.upsert(
+						generateFigmaTeamCreateParams({
+							connectInstallationId: anotherConnectInstallation.id,
+						}),
+					)
+					.then((team) =>
+						figmaTeamRepository.getByTeamIdAndConnectInstallationId(
+							team.teamId,
+							anotherConnectInstallation.id,
+						),
+					),
 			]);
 
 			const result = await figmaTeamRepository.findManyByConnectInstallationId(
@@ -60,11 +81,18 @@ describe('FigmaTeamRepository', () => {
 					),
 				]);
 			await Promise.all([
-				figmaTeamRepository.upsert(
-					generateFigmaTeamCreateParams({
-						connectInstallationId: anotherConnectInstallation.id,
-					}),
-				),
+				figmaTeamRepository
+					.upsert(
+						generateFigmaTeamCreateParams({
+							connectInstallationId: anotherConnectInstallation.id,
+						}),
+					)
+					.then((team) =>
+						figmaTeamRepository.getByTeamIdAndConnectInstallationId(
+							team.teamId,
+							anotherConnectInstallation.id,
+						),
+					),
 			]);
 
 			const result = await figmaTeamRepository.findManyByConnectInstallationId(
