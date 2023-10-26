@@ -25,7 +25,7 @@ export const disconnectFigmaTeamUseCase = {
 
 		if (configuredTeams.length === 0) {
 			await jiraService.setConfigurationStateInAppProperties(
-				ConfigurationState.UNCONFIGURED,
+				ConfigurationState.NOT_CONFIGURED,
 				connectInstallation,
 			);
 		}

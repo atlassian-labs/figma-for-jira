@@ -160,7 +160,7 @@ class JiraClient {
 				connectInstallation.baseUrl,
 			);
 
-			await axios.put(url.toString(), value, {
+			await axios.put(url.toString(), JSON.stringify(value), {
 				headers: new AxiosHeaders()
 					.setAuthorization(
 						this.buildAuthorizationHeader(url, 'PUT', connectInstallation),
@@ -194,7 +194,7 @@ class JiraClient {
 		});
 
 	/**
-	 * Sets a connect app property
+	 * Sets a connect app property.
 	 *
 	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-app-properties/#api-rest-atlassian-connect-1-addons-addonkey-properties-propertykey-put
 	 */
@@ -209,13 +209,13 @@ class JiraClient {
 				connectInstallation.baseUrl,
 			);
 
-			await axios.put(url.toString(), value, {
+			await axios.put(url.toString(), JSON.stringify(value), {
 				headers: new AxiosHeaders()
 					.setAuthorization(
 						this.buildAuthorizationHeader(url, 'PUT', connectInstallation),
 					)
 					.setAccept('application/json')
-					.setContentType('text/plain'),
+					.setContentType('application/json'),
 			});
 		});
 
