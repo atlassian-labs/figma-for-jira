@@ -11,11 +11,9 @@ export type RefreshOAuth2TokenResponse = Omit<
 	'refresh_token'
 >;
 
-export type MeResponse = {
+export type GetMeResponse = {
 	readonly id: string;
 	readonly email: string;
-	readonly handle: string;
-	readonly img_url: string;
 };
 
 export type GetFileParams = {
@@ -24,7 +22,7 @@ export type GetFileParams = {
 	readonly node_last_modified?: boolean;
 };
 
-export type FileResponse = {
+export type GetFileResponse = {
 	readonly name: string;
 	readonly role: string;
 	readonly lastModified: string;
@@ -59,16 +57,17 @@ export type DevResource = {
 	readonly node_id: string;
 };
 
-export type CreateDevResourcesRequest = Omit<DevResource, 'id'>;
+export type CreateDevResourcesRequest = {
+	readonly dev_resources: Omit<DevResource, 'id'>[];
+};
 
-type CreateDevResourceError = {
+export type CreateDevResourceError = {
 	readonly file_key: string | null;
 	readonly node_id: string | null;
 	readonly error: string;
 };
 
 export type CreateDevResourcesResponse = {
-	readonly links_created: DevResource[];
 	readonly errors: CreateDevResourceError[];
 };
 
@@ -109,12 +108,10 @@ export type CreateWebhookResponse = {
 	readonly protocol_version: string;
 };
 
-export type Project = {
-	readonly id: string;
-	readonly name: string;
-};
-
 export type GetTeamProjectsResponse = {
 	readonly name: string;
-	readonly projects: Project[];
+	readonly projects: {
+		readonly id: string;
+		readonly name: string;
+	}[];
 };

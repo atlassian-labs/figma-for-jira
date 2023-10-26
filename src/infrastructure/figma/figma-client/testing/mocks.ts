@@ -1,11 +1,14 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import type {
+	CreateDevResourceError,
 	CreateDevResourcesRequest,
+	CreateDevResourcesResponse,
 	CreateWebhookRequest,
 	CreateWebhookResponse,
-	FileResponse,
 	GetDevResourcesResponse,
+	GetFileResponse,
+	GetMeResponse,
 	GetOAuth2TokenResponse,
 	GetTeamProjectsResponse,
 	Node,
@@ -92,11 +95,19 @@ export const generateRefreshOAuth2TokenQueryParams = ({
 	refresh_token,
 });
 
+export const generateGetMeResponse = ({
+	id = uuidv4(),
+	email = `uuidv4@figma.com`,
+} = {}): GetMeResponse => ({
+	id,
+	email,
+});
+
 export const generateGetFileResponse = ({
 	name = generateFigmaFileName(),
 	lastModified = new Date(),
 	document = MOCK_DOCUMENT,
-} = {}): FileResponse => ({
+} = {}): GetFileResponse => ({
 	name,
 	lastModified: lastModified.toISOString(),
 	role: 'editor',
@@ -108,7 +119,7 @@ export const generateGetFileResponseWithNode = ({
 	name = generateFigmaFileName(),
 	lastModified = new Date(),
 	node = generateChildNode(),
-} = {}): FileResponse => ({
+} = {}): GetFileResponse => ({
 	name,
 	lastModified: lastModified.toISOString(),
 	role: 'editor',
@@ -123,7 +134,7 @@ export const generateGetFileResponseWithNodes = ({
 	name = generateFigmaFileName(),
 	lastModified = new Date(),
 	nodes = [generateChildNode()],
-} = {}): FileResponse => ({
+} = {}): GetFileResponse => ({
 	name,
 	lastModified: lastModified.toISOString(),
 	role: 'editor',
@@ -145,10 +156,22 @@ export const generateCreateDevResourcesRequest = ({
 	fileKey?: string;
 	nodeId?: string;
 } = {}): CreateDevResourcesRequest => ({
-	name,
-	url,
-	file_key: fileKey,
-	node_id: nodeId,
+	dev_resources: [
+		{
+			name,
+			url,
+			file_key: fileKey,
+			node_id: nodeId,
+		},
+	],
+});
+
+export const generateCreateDevResourcesResponse = ({
+	errors = [],
+}: {
+	errors?: CreateDevResourceError[];
+} = {}): CreateDevResourcesResponse => ({
+	errors,
 });
 
 export const generateGetDevResourcesResponse = ({

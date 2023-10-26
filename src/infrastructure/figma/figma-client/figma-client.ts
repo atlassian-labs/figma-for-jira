@@ -1,22 +1,33 @@
 import axios from 'axios';
 
+import {
+	CREATE_DEV_RESOURCE_RESPONSE_SCHEMA,
+	CREATE_WEBHOOK_RESPONSE,
+	GET_DEV_RESOURCE_RESPONSE_SCHEMA,
+	GET_FILE_RESPONSE_SCHEMA,
+	GET_ME_RESPONSE_SCHEMA,
+	GET_OAUTH2_TOKEN_RESPONSE_SCHEMA,
+	GET_TEAM_PROJECTS_RESPONSE_SCHEMA,
+	REFRESH_OAUTH2_TOKEN_RESPONSE_SCHEMA,
+} from './schemas';
 import type {
 	CreateDevResourcesRequest,
 	CreateDevResourcesResponse,
 	CreateWebhookRequest,
 	CreateWebhookResponse,
 	DeleteDevResourceRequest,
-	FileResponse,
 	GetDevResourcesRequest,
 	GetDevResourcesResponse,
 	GetFileParams,
+	GetFileResponse,
+	GetMeResponse,
 	GetOAuth2TokenResponse,
 	GetTeamProjectsResponse,
-	MeResponse,
 	RefreshOAuth2TokenResponse,
 } from './types';
 
 import { getConfig } from '../../../config';
+import { assertSchema } from '../../ajv';
 import { withAxiosErrorTranslation } from '../../axios-utils';
 
 /**
@@ -53,6 +64,8 @@ export class FigmaClient {
 				},
 			);
 
+			assertSchema(response.data, GET_OAUTH2_TOKEN_RESPONSE_SCHEMA);
+
 			return response.data;
 		});
 
@@ -78,6 +91,8 @@ export class FigmaClient {
 				{ params },
 			);
 
+			assertSchema(response.data, REFRESH_OAUTH2_TOKEN_RESPONSE_SCHEMA);
+
 			return response.data;
 		});
 
@@ -86,9 +101,9 @@ export class FigmaClient {
 	 *
 	 * @see https://www.figma.com/developers/api#get-me-endpoint
 	 */
-	me = async (accessToken: string): Promise<MeResponse> =>
+	me = async (accessToken: string): Promise<GetMeResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const response = await axios.get<MeResponse>(
+			const response = await axios.get<GetMeResponse>(
 				`${getConfig().figma.apiBaseUrl}/v1/me`,
 				{
 					headers: {
@@ -96,6 +111,8 @@ export class FigmaClient {
 					},
 				},
 			);
+
+			assertSchema(response.data, GET_ME_RESPONSE_SCHEMA);
 
 			return response.data;
 		});
@@ -109,7 +126,7 @@ export class FigmaClient {
 		fileKey: string,
 		params: GetFileParams,
 		accessToken: string,
-	): Promise<FileResponse> =>
+	): Promise<GetFileResponse> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`${getConfig().figma.apiBaseUrl}/v1/files/${fileKey}`,
@@ -128,11 +145,13 @@ export class FigmaClient {
 				);
 			}
 
-			const response = await axios.get<FileResponse>(url.toString(), {
+			const response = await axios.get<unknown>(url.toString(), {
 				headers: {
 					['Authorization']: `Bearer ${accessToken}`,
 				},
 			});
+
+			assertSchema(response.data, GET_FILE_RESPONSE_SCHEMA);
 
 			return response.data;
 		});
@@ -143,21 +162,21 @@ export class FigmaClient {
 	 * @see https://www.figma.com/developers/api#post-dev-resources-endpoint
 	 */
 	createDevResources = async (
-		devResources: CreateDevResourcesRequest[],
+		request: CreateDevResourcesRequest,
 		accessToken: string,
 	): Promise<CreateDevResourcesResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const response = await axios.post<CreateDevResourcesResponse>(
+			const response = await axios.post<unknown>(
 				`${getConfig().figma.apiBaseUrl}/v1/dev_resources`,
-				{
-					dev_resources: devResources,
-				},
+				request,
 				{
 					headers: {
 						['Authorization']: `Bearer ${accessToken}`,
 					},
 				},
 			);
+
+			assertSchema(response.data, CREATE_DEV_RESOURCE_RESPONSE_SCHEMA);
 
 			return response.data;
 		});
@@ -173,7 +192,7 @@ export class FigmaClient {
 		accessToken,
 	}: GetDevResourcesRequest): Promise<GetDevResourcesResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const response = await axios.get<GetDevResourcesResponse>(
+			const response = await axios.get<unknown>(
 				`${getConfig().figma.apiBaseUrl}/v1/files/${fileKey}/dev_resources`,
 				{
 					params: {
@@ -184,6 +203,8 @@ export class FigmaClient {
 					},
 				},
 			);
+
+			assertSchema(response.data, GET_DEV_RESOURCE_RESPONSE_SCHEMA);
 
 			return response.data;
 		});
@@ -223,7 +244,7 @@ export class FigmaClient {
 		accessToken: string,
 	): Promise<CreateWebhookResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const response = await axios.post<CreateWebhookResponse>(
+			const response = await axios.post<unknown>(
 				`${getConfig().figma.apiBaseUrl}/v2/webhooks`,
 				request,
 				{
@@ -232,6 +253,8 @@ export class FigmaClient {
 					},
 				},
 			);
+
+			assertSchema(response.data, CREATE_WEBHOOK_RESPONSE);
 
 			return response.data;
 		});
@@ -261,7 +284,7 @@ export class FigmaClient {
 		accessToken: string,
 	): Promise<GetTeamProjectsResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const response = await axios.get<GetTeamProjectsResponse>(
+			const response = await axios.get<unknown>(
 				`${getConfig().figma.apiBaseUrl}/v1/teams/${teamId}/projects`,
 				{
 					headers: {
@@ -269,6 +292,8 @@ export class FigmaClient {
 					},
 				},
 			);
+
+			assertSchema(response.data, GET_TEAM_PROJECTS_RESPONSE_SCHEMA);
 
 			return response.data;
 		});
