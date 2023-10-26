@@ -922,7 +922,7 @@ describe('JiraService', () => {
 
 			expect(jiraClient.setAppProperty).toHaveBeenCalledWith(
 				'is-configured',
-				configurationState.valueOf(),
+				{ isConfigured: configurationState.valueOf() },
 				connectInstallation,
 			);
 		});

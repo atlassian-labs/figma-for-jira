@@ -43,7 +43,7 @@ describe('disconnectFigmaTeamUseCase', () => {
 			connectInstallation.id,
 		);
 		expect(jiraService.setConfigurationStateInAppProperties).toBeCalledWith(
-			ConfigurationState.UNCONFIGURED,
+			ConfigurationState.NOT_CONFIGURED,
 			connectInstallation,
 		);
 	});

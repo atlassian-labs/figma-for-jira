@@ -43,16 +43,16 @@ export const appPropertyKeys = {
 	CONFIGURATION_STATE: 'is-configured',
 };
 
+export enum ConfigurationState {
+	CONFIGURED = 'CONFIGURED',
+	NOT_CONFIGURED = 'NOT_CONFIGURED',
+}
+
 export const issuePropertyKeys = {
 	ATTACHED_DESIGN_URL: 'attached-design-url',
 	ATTACHED_DESIGN_URL_V2: 'attached-design-url-v2',
 	INGESTED_DESIGN_URLS: 'figma-for-jira:ingested-design-urls',
 };
-
-export enum ConfigurationState {
-	CONFIGURED = 'CONFIGURED',
-	UNCONFIGURED = 'UNCONFIGURED',
-}
 
 export const JIRA_ADMIN_GLOBAL_PERMISSION = 'ADMINISTER';
 
@@ -336,7 +336,7 @@ class JiraService {
 	): Promise<void> => {
 		return await jiraClient.setAppProperty(
 			appPropertyKeys.CONFIGURATION_STATE,
-			configurationState.valueOf(),
+			{ isConfigured: configurationState.valueOf() },
 			connectInstallation,
 		);
 	};
