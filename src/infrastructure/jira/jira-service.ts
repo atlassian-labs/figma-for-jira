@@ -43,16 +43,16 @@ export const appPropertyKeys = {
 	CONFIGURATION_STATE: 'is-configured',
 };
 
+export enum ConfigurationState {
+	CONFIGURED = 'CONFIGURED',
+	NOT_CONFIGURED = 'NOT_CONFIGURED',
+}
+
 export const issuePropertyKeys = {
 	ATTACHED_DESIGN_URL: 'attached-design-url',
 	ATTACHED_DESIGN_URL_V2: 'attached-design-url-v2',
 	INGESTED_DESIGN_URLS: 'figma-for-jira:ingested-design-urls',
 };
-
-export enum ConfigurationState {
-	CONFIGURED = 'CONFIGURED',
-	UNCONFIGURED = 'UNCONFIGURED',
-}
 
 export const JIRA_ADMIN_GLOBAL_PERMISSION = 'ADMINISTER';
 
@@ -186,7 +186,8 @@ class JiraService {
 		return jiraClient.setIssueProperty(
 			issueIdOrKey,
 			issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-			this.superStringify(newValue),
+			// Stringify the value twice for backwards compatibility (once here and once by `JiraClient.setIssueProperty`)
+			JSON.stringify(newValue),
 			connectInstallation,
 		);
 	};
@@ -318,7 +319,8 @@ class JiraService {
 			await jiraClient.setIssueProperty(
 				issueIdOrKey,
 				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				this.superStringify(newAttachedDesignUrlIssuePropertyValue),
+				// Stringify the value twice for backwards compatibility (once here and once by `JiraClient.setIssueProperty`)
+				JSON.stringify(newAttachedDesignUrlIssuePropertyValue),
 				connectInstallation,
 			);
 		} else {
@@ -334,7 +336,7 @@ class JiraService {
 	): Promise<void> => {
 		return await jiraClient.setAppProperty(
 			appPropertyKeys.CONFIGURATION_STATE,
-			configurationState.valueOf(),
+			{ isConfigured: configurationState.valueOf() },
 			connectInstallation,
 		);
 	};
@@ -378,16 +380,6 @@ class JiraService {
 
 		return response.globalPermissions.includes(JIRA_ADMIN_GLOBAL_PERMISSION);
 	};
-
-	/**
-	 * This isn't ideal but must be done as it's how the current implementation works
-	 * Need to keep this way so current implementation doesn't break
-	 */
-	private superStringify(
-		issuePropertyValue: AttachedDesignUrlV2IssuePropertyValue[],
-	) {
-		return JSON.stringify(JSON.stringify(issuePropertyValue));
-	}
 
 	private throwIfSubmitDesignResponseHasErrors = (
 		response: SubmitDesignsResponse,

@@ -208,7 +208,7 @@ describe('JiraClient', () => {
 
 			expect(axios.put).toHaveBeenCalledWith(
 				`${connectInstallation.baseUrl}/rest/api/2/issue/${issueId}/properties/${propertyKey}`,
-				'some value',
+				JSON.stringify('some value'),
 				{ headers },
 			);
 		});
@@ -272,11 +272,11 @@ describe('JiraClient', () => {
 
 			const headers = defaultExpectedRequestHeaders()
 				.headers.setAccept('application/json')
-				.setContentType('text/plain');
+				.setContentType('application/json');
 
 			expect(axios.put).toHaveBeenCalledWith(
 				`${connectInstallation.baseUrl}/rest/atlassian-connect/1/addons/${connectInstallation.key}/properties/${propertyKey}`,
-				'some value',
+				JSON.stringify('some value'),
 				{ headers },
 			);
 		});
