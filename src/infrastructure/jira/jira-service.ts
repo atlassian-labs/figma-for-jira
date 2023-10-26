@@ -186,7 +186,8 @@ class JiraService {
 		return jiraClient.setIssueProperty(
 			issueIdOrKey,
 			issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-			this.superStringify(newValue),
+			// Stringify the value twice for backwards compatibility (once here and once by `JiraClient.setIssueProperty`)
+			JSON.stringify(newValue),
 			connectInstallation,
 		);
 	};
@@ -318,7 +319,8 @@ class JiraService {
 			await jiraClient.setIssueProperty(
 				issueIdOrKey,
 				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				this.superStringify(newAttachedDesignUrlIssuePropertyValue),
+				// Stringify the value twice for backwards compatibility (once here and once by `JiraClient.setIssueProperty`)
+				JSON.stringify(newAttachedDesignUrlIssuePropertyValue),
 				connectInstallation,
 			);
 		} else {
@@ -378,16 +380,6 @@ class JiraService {
 
 		return response.globalPermissions.includes(JIRA_ADMIN_GLOBAL_PERMISSION);
 	};
-
-	/**
-	 * This isn't ideal but must be done as it's how the current implementation works
-	 * Need to keep this way so current implementation doesn't break
-	 */
-	private superStringify(
-		issuePropertyValue: AttachedDesignUrlV2IssuePropertyValue[],
-	) {
-		return JSON.stringify(JSON.stringify(issuePropertyValue));
-	}
 
 	private throwIfSubmitDesignResponseHasErrors = (
 		response: SubmitDesignsResponse,

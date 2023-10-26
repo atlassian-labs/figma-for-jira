@@ -358,19 +358,15 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			const expectedIssuePropertyValue = JSON.stringify(
+			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
+				issueId,
+				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				JSON.stringify([
 					{
 						url: design.url,
 						name: design.displayName,
 					},
 				]),
-			);
-
-			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
-				issueId,
-				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				expectedIssuePropertyValue,
 				connectInstallation,
 			);
 		});
@@ -397,7 +393,9 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			const expectedIssuePropertyValue = JSON.stringify(
+			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
+				issueId,
+				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				JSON.stringify([
 					...attachedDesignPropertyValues,
 					{
@@ -405,12 +403,6 @@ describe('JiraService', () => {
 						name: design.displayName,
 					},
 				]),
-			);
-
-			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
-				issueId,
-				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				expectedIssuePropertyValue,
 				connectInstallation,
 			);
 		});
@@ -444,15 +436,6 @@ describe('JiraService', () => {
 		])(
 			'should overwrite the existing value if the issue property value is not in the expected shape',
 			async (value) => {
-				const expectedIssuePropertyValue = JSON.stringify(
-					JSON.stringify([
-						{
-							url: design.url,
-							name: design.displayName,
-						},
-					]),
-				);
-
 				jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 					generateGetIssuePropertyResponse({
 						key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
@@ -470,22 +453,18 @@ describe('JiraService', () => {
 				expect(jiraClient.setIssueProperty).toBeCalledWith(
 					issueId,
 					issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-					expectedIssuePropertyValue,
+					JSON.stringify([
+						{
+							url: design.url,
+							name: design.displayName,
+						},
+					]),
 					connectInstallation,
 				);
 			},
 		);
 
 		it('should overwrite with the new value if the issue property value received from jira is not a string', async () => {
-			const expectedIssuePropertyValue = JSON.stringify(
-				JSON.stringify([
-					{
-						url: design.url,
-						name: design.displayName,
-					},
-				]),
-			);
-
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockResolvedValue(generateGetIssuePropertyResponse({ value: 1 }));
@@ -500,7 +479,12 @@ describe('JiraService', () => {
 			expect(jiraClient.setIssueProperty).toBeCalledWith(
 				issueId,
 				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				expectedIssuePropertyValue,
+				JSON.stringify([
+					{
+						url: design.url,
+						name: design.displayName,
+					},
+				]),
 				connectInstallation,
 			);
 		});
@@ -551,12 +535,10 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			const expectedIssuePropertyValue = [design.url];
-
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
 				issuePropertyKeys.INGESTED_DESIGN_URLS,
-				expectedIssuePropertyValue,
+				[design.url],
 				connectInstallation,
 			);
 		});
@@ -578,15 +560,10 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			const expectedIssuePropertyValue = [
-				...ingestedDesignPropertyValues,
-				design.url,
-			];
-
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
 				issuePropertyKeys.INGESTED_DESIGN_URLS,
-				expectedIssuePropertyValue,
+				[...ingestedDesignPropertyValues, design.url],
 				connectInstallation,
 			);
 		});
@@ -612,8 +589,6 @@ describe('JiraService', () => {
 		it.each([1, [1], null, { url: 'url' }])(
 			'should overwrite the existing value if the issue property value is not in the expected shape',
 			async (value) => {
-				const expectedIssuePropertyValue = [design.url];
-
 				jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 					generateGetIssuePropertyResponse({
 						key: issuePropertyKeys.INGESTED_DESIGN_URLS,
@@ -631,15 +606,13 @@ describe('JiraService', () => {
 				expect(jiraClient.setIssueProperty).toBeCalledWith(
 					issueId,
 					issuePropertyKeys.INGESTED_DESIGN_URLS,
-					expectedIssuePropertyValue,
+					[design.url],
 					connectInstallation,
 				);
 			},
 		);
 
 		it('should overwrite with the new value if the issue property value received from jira is not a string', async () => {
-			const expectedIssuePropertyValue = [design.url];
-
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockResolvedValue(generateGetIssuePropertyResponse({ value: 1 }));
@@ -654,7 +627,7 @@ describe('JiraService', () => {
 			expect(jiraClient.setIssueProperty).toBeCalledWith(
 				issueId,
 				issuePropertyKeys.INGESTED_DESIGN_URLS,
-				expectedIssuePropertyValue,
+				[design.url],
 				connectInstallation,
 			);
 		});
@@ -816,14 +789,10 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			const expectedIssuePropertyValue = JSON.stringify(
-				JSON.stringify([designPropertyValue]),
-			);
-
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
 				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				expectedIssuePropertyValue,
+				JSON.stringify([designPropertyValue]),
 				connectInstallation,
 			);
 		});
