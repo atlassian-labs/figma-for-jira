@@ -29,7 +29,7 @@ import {
 	generateFigmaOAuth2UserCredentialCreateParams,
 	generateFigmaTeamCreateParams,
 } from '../../../domain/entities/testing';
-import type { FileResponse } from '../../../infrastructure/figma/figma-client';
+import type { GetFileResponse } from '../../../infrastructure/figma/figma-client';
 import {
 	generateChildNode,
 	generateGetFileResponseWithNodes,
@@ -67,7 +67,7 @@ const FIGMA_WEBHOOK_EVENT_ENDPOINT = '/figma/webhook';
 
 function generateAtlassianDesignFromDesignIdAndFileResponse(
 	designId: FigmaDesignIdentifier,
-	fileResponse: FileResponse,
+	fileResponse: GetFileResponse,
 ) {
 	let atlassianDesign: AtlassianDesign;
 	if (!designId.nodeId) {

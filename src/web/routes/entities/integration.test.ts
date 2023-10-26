@@ -204,7 +204,7 @@ describe('/entities', () => {
 			mockFigmaCreateDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				request: generateCreateDevResourcesRequest({
-					name: `[${issue.key}] ${issue.fields.summary}]`,
+					name: `[${issue.key}] ${issue.fields.summary}`,
 					url: buildJiraIssueUrl(connectInstallation.baseUrl, issue.key),
 					fileKey,
 					nodeId: '0:0',
@@ -349,7 +349,7 @@ describe('/entities', () => {
 			mockFigmaCreateDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				request: generateCreateDevResourcesRequest({
-					name: `[${issue.key}] ${issue.fields.summary}]`,
+					name: `[${issue.key}] ${issue.fields.summary}`,
 					url: buildJiraIssueUrl(connectInstallation.baseUrl, issue.key),
 					fileKey,
 					nodeId,

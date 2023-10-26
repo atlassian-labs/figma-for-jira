@@ -1,4 +1,4 @@
-import type { AxiosResponse, Method } from 'axios';
+import type { Method } from 'axios';
 import axios, { AxiosHeaders } from 'axios';
 
 import { createJwtToken } from './jwt-utils';
@@ -55,12 +55,11 @@ class JiraClient {
 				connectInstallation.baseUrl,
 			);
 
-			const response: AxiosResponse<unknown> =
-				await axios.post<SubmitDesignsResponse>(url.toString(), payload, {
-					headers: new AxiosHeaders().setAuthorization(
-						this.buildAuthorizationHeader(url, 'POST', connectInstallation),
-					),
-				});
+			const response = await axios.post<unknown>(url.toString(), payload, {
+				headers: new AxiosHeaders().setAuthorization(
+					this.buildAuthorizationHeader(url, 'POST', connectInstallation),
+				),
+			});
 
 			assertSchema(response.data, SUBMIT_DESIGNS_RESPONSE_SCHEMA);
 
@@ -101,12 +100,11 @@ class JiraClient {
 				connectInstallation.baseUrl,
 			);
 
-			const response: AxiosResponse<unknown> =
-				await axios.get<GetIssueResponse>(url.toString(), {
-					headers: new AxiosHeaders().setAuthorization(
-						this.buildAuthorizationHeader(url, 'GET', connectInstallation),
-					),
-				});
+			const response = await axios.get<unknown>(url.toString(), {
+				headers: new AxiosHeaders().setAuthorization(
+					this.buildAuthorizationHeader(url, 'GET', connectInstallation),
+				),
+			});
 
 			assertSchema(response.data, GET_ISSUE_RESPONSE_SCHEMA);
 
@@ -129,14 +127,13 @@ class JiraClient {
 				connectInstallation.baseUrl,
 			);
 
-			const response: AxiosResponse<unknown> =
-				await axios.get<GetIssuePropertyResponse>(url.toString(), {
-					headers: new AxiosHeaders()
-						.setAuthorization(
-							this.buildAuthorizationHeader(url, 'GET', connectInstallation),
-						)
-						.setAccept('application/json'),
-				});
+			const response = await axios.get<unknown>(url.toString(), {
+				headers: new AxiosHeaders()
+					.setAuthorization(
+						this.buildAuthorizationHeader(url, 'GET', connectInstallation),
+					)
+					.setAccept('application/json'),
+			});
 
 			assertSchema<GetIssuePropertyResponse>(
 				response.data,
@@ -237,15 +234,11 @@ class JiraClient {
 				connectInstallation.baseUrl,
 			);
 
-			const response: AxiosResponse<unknown> = await axios.post(
-				url.toString(),
-				payload,
-				{
-					headers: new AxiosHeaders().setAuthorization(
-						this.buildAuthorizationHeader(url, 'POST', connectInstallation),
-					),
-				},
-			);
+			const response = await axios.post<unknown>(url.toString(), payload, {
+				headers: new AxiosHeaders().setAuthorization(
+					this.buildAuthorizationHeader(url, 'POST', connectInstallation),
+				),
+			});
 
 			assertSchema(response.data, CHECK_PERMISSIONS_RESPONSE_SCHEMA);
 

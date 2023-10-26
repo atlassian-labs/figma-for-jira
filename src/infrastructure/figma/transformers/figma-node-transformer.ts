@@ -6,12 +6,12 @@ import {
 	AtlassianDesignType,
 	FigmaDesignIdentifier,
 } from '../../../domain/entities';
-import type { FileResponse, Node, NodeDevStatus } from '../figma-client';
+import type { GetFileResponse, Node, NodeDevStatus } from '../figma-client';
 
 type TransformNodeToAtlassianDesignParams = {
 	readonly fileKey: string;
 	readonly nodeId: string;
-	readonly fileResponse: FileResponse;
+	readonly fileResponse: GetFileResponse;
 };
 
 /**
@@ -52,14 +52,14 @@ export const transformNodeToAtlassianDesign = ({
  *
  * @remarks
  * The function uses depth-first search (DFS) for find a node in `fileResponse` (which contains a tree of nodes).
- * For better performance, fetch {@link FileResponse} with only required nodes -- avoid fetching and traversing the whole
+ * For better performance, fetch {@link GetFileResponse} with only required nodes -- avoid fetching and traversing the whole
  * file.
  *
  * @internal
  * Visible for testing only.
  */
 export const getNodeAndNodeLastModified = (
-	fileResponse: FileResponse,
+	fileResponse: GetFileResponse,
 	nodeId: string,
 ): { node: Node; nodeLastModified: Date } => {
 	const result = findNodeAndNodeLastModifiedUsingDfs(

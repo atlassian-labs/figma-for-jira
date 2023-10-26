@@ -2,8 +2,6 @@
  * Contains JSON schema definitions for Jira API responses. Used for validating the types of incoming data on the entry
  * points to the application.
  */
-import type { JSONSchemaType } from 'ajv';
-
 import type {
 	Association,
 	CheckPermissionsResponse,
@@ -13,7 +11,10 @@ import type {
 	SubmitDesignsResponse,
 } from './types';
 
-import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
+import type {
+	JSONSchemaType,
+	JSONSchemaTypeWithId,
+} from '../../../common/schema-validation';
 
 const DESIGN_KEY_SCHEMA: JSONSchemaType<DesignKey> = {
 	type: 'object',
@@ -37,7 +38,7 @@ const ASSOCIATION_SCHEMA: JSONSchemaType<Association> = {
 
 export const SUBMIT_DESIGNS_RESPONSE_SCHEMA: JSONSchemaTypeWithId<SubmitDesignsResponse> =
 	{
-		$id: 'jira-software-cloud-api:post:submit-design-data:response',
+		$id: 'jira-software-cloud-api:post:/rest/designs/1.0/bulk:response',
 		type: 'object',
 		properties: {
 			acceptedEntities: {
@@ -76,11 +77,11 @@ export const SUBMIT_DESIGNS_RESPONSE_SCHEMA: JSONSchemaTypeWithId<SubmitDesignsR
 			},
 		},
 		required: ['acceptedEntities', 'rejectedEntities'],
-	} as const;
+	};
 
 export const GET_ISSUE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetIssueResponse> =
 	{
-		$id: 'jira-software-cloud-api:get:issue:response',
+		$id: 'jira-software-cloud-api:get:/rest/agile/1.0/issue/$issueIdOrKey:response',
 		type: 'object',
 		properties: {
 			id: { type: 'string' },
@@ -95,10 +96,10 @@ export const GET_ISSUE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetIssueResponse> =
 			},
 		},
 		required: ['id', 'key', 'self'],
-	} as const;
+	};
 
 export const GET_ISSUE_PROPERTY_RESPONSE_SCHEMA = {
-	$id: 'jira-software-cloud-api:get:issue-property:response',
+	$id: 'jira-software-cloud-api:get:rest/api/2/issue/$issueIdOrKey/properties/$propertyKey:response',
 	type: 'object',
 	properties: {
 		key: { type: 'string' },
@@ -110,7 +111,7 @@ export const GET_ISSUE_PROPERTY_RESPONSE_SCHEMA = {
 
 export const CHECK_PERMISSIONS_RESPONSE_SCHEMA: JSONSchemaTypeWithId<CheckPermissionsResponse> =
 	{
-		$id: 'jira-software-cloud-api:post:check-permissions:response',
+		$id: 'jira-software-cloud-api:post:/rest/api/3/permissions/check:response',
 		type: 'object',
 		properties: {
 			globalPermissions: {
@@ -119,4 +120,4 @@ export const CHECK_PERMISSIONS_RESPONSE_SCHEMA: JSONSchemaTypeWithId<CheckPermis
 			},
 		},
 		required: ['globalPermissions'],
-	} as const;
+	};

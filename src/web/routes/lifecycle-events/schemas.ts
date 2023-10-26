@@ -8,7 +8,7 @@ import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
 export const INSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 	body: InstalledConnectLifecycleEventRequestBody;
 }> = {
-	$id: 'jira-software-connect:installed-lifecycle-event-request',
+	$id: 'figma-for-jira-api:post:lifecycleEvents/installed:request',
 	type: 'object',
 	properties: {
 		body: {
@@ -29,7 +29,7 @@ export const INSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_SCHEMA: JSONSchemaTypeWit
 export const UNINSTALLED_CONNECT_LIFECYCLE_EVENT_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 	body: UninstalledConnectLifecycleEventRequestBody;
 }> = {
-	$id: 'jira-software-connect:uninstalled-lifecycle-event-request',
+	$id: 'figma-for-jira-api:post:lifecycleEvents/uninstalled:request',
 	type: 'object',
 	properties: {
 		body: {

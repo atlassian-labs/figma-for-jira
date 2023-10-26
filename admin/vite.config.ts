@@ -5,6 +5,13 @@ import { defineConfig } from 'vite';
 export default () => {
 	return defineConfig({
 		base: '/static/admin',
-		plugins: [react()],
+		plugins: [
+			react({
+				jsxImportSource: '@emotion/react',
+				babel: {
+					plugins: ['@emotion/babel-plugin'],
+				},
+			}),
+		],
 	});
 };

@@ -6,11 +6,11 @@ import {
 	AtlassianDesignType,
 	FigmaDesignIdentifier,
 } from '../../../domain/entities';
-import type { FileResponse } from '../figma-client';
+import type { GetFileResponse } from '../figma-client';
 
 type TransformFileToAtlassianDesignParams = {
 	readonly fileKey: string;
-	readonly fileResponse: FileResponse;
+	readonly fileResponse: GetFileResponse;
 };
 
 /**

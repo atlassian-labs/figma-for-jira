@@ -1,11 +1,12 @@
-import type { JSONSchemaType } from 'ajv';
-
 import type {
 	FigmaOAuth2CallbackQueryParameters,
 	FigmaWebhookEventPayload,
 } from './types';
 
-import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
+import type {
+	JSONSchemaType,
+	JSONSchemaTypeWithId,
+} from '../../../common/schema-validation';
 import type { FigmaWebhookEventType } from '../../../domain/entities';
 
 const FIGMA_WEBHOOK_EVENT_TYPE_SCHEMA: JSONSchemaType<FigmaWebhookEventType> = {
@@ -38,7 +39,7 @@ const optionalNonNullable = <T>(schema: T): T & { nullable: true } =>
 export const FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 	body: FigmaWebhookEventPayload;
 }> = {
-	$id: 'figma-rest-api:webhook-event-request',
+	$id: 'figma-for-jira-api:post:figma/webhook:request',
 	type: 'object',
 	properties: {
 		body: {
@@ -87,7 +88,7 @@ export const FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 export const FIGMA_OAUTH2_CALLBACK_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 	query: FigmaOAuth2CallbackQueryParameters;
 }> = {
-	$id: 'figma-for-jira:oauth2-callback-request',
+	$id: 'figma-for-jira-api:get:figma/oauth/callback:request',
 	type: 'object',
 	properties: {
 		query: {

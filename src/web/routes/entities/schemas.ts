@@ -9,7 +9,7 @@ import { ATLASSIAN_ENTITY_SCHEMA } from '../../../usecases/schemas';
 export const ASSOCIATE_ENTITY_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 	body: AssociateEntityRequestBody;
 }> = {
-	$id: 'figma-for-jira:associate-entity-request-body',
+	$id: 'figma-for-jira-api:post:entities/associateEntity:request',
 	type: 'object',
 	properties: {
 		body: {
@@ -33,7 +33,7 @@ export const ASSOCIATE_ENTITY_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 export const DISASSOCIATE_ENTITY_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 	body: DisassociateEntityRequestBody;
 }> = {
-	$id: 'figma-for-jira:disassociate-entity-request-body',
+	$id: 'figma-for-jira-api:post:entities/disassociateEntity:request',
 	type: 'object',
 	properties: {
 		body: {

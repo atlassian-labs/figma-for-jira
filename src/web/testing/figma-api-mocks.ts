@@ -5,28 +5,35 @@ import { v4 as uuidv4 } from 'uuid';
 
 import type {
 	CreateDevResourcesRequest,
+	CreateDevResourcesResponse,
 	CreateWebhookRequest,
 	CreateWebhookResponse,
-	FileResponse,
 	GetDevResourcesResponse,
+	GetFileResponse,
+	GetMeResponse,
 	GetTeamProjectsResponse,
 } from '../../infrastructure/figma/figma-client';
 import {
 	generateChildNode,
+	generateCreateDevResourcesResponse,
 	generateCreateWebhookResponse,
 	generateGetDevResourcesResponse,
+	generateGetFileResponse,
 	generateGetFileResponseWithNodes,
+	generateGetMeResponse,
 	generateGetTeamProjectsResponse,
 } from '../../infrastructure/figma/figma-client/testing';
 
 export const mockFigmaMeEndpoint = ({
 	baseUrl,
 	status = HttpStatusCode.Ok,
+	response = generateGetMeResponse(),
 }: {
 	baseUrl: string;
 	status?: HttpStatusCode;
+	response?: GetMeResponse;
 }) => {
-	nock(baseUrl).get('/v1/me').reply(status).persist();
+	nock(baseUrl).get('/v1/me').reply(status, response).persist();
 };
 
 export const mockFigmaGetFileEndpoint = ({
@@ -35,14 +42,14 @@ export const mockFigmaGetFileEndpoint = ({
 	accessToken,
 	query = {},
 	status = HttpStatusCode.Ok,
-	response,
+	response = generateGetFileResponse(),
 }: {
 	baseUrl: string;
 	fileKey: string;
 	accessToken: string;
 	query?: Record<string, string>;
 	status?: HttpStatusCode;
-	response?: Record<string, unknown>;
+	response?: GetFileResponse;
 }) => {
 	nock(baseUrl, {
 		reqheaders: {
@@ -51,7 +58,7 @@ export const mockFigmaGetFileEndpoint = ({
 	})
 		.get(`/v1/files/${fileKey}`)
 		.query(query)
-		.reply(status, response ?? {});
+		.reply(status, response);
 };
 
 export const mockFigmaGetFileWithNodesEndpoint = ({
@@ -67,7 +74,7 @@ export const mockFigmaGetFileWithNodesEndpoint = ({
 	fileKey?: string;
 	nodeIds: string[];
 	status?: HttpStatusCode;
-	response?: FileResponse;
+	response?: GetFileResponse;
 }) => {
 	nock(baseUrl)
 		.get(`/v1/files/${fileKey}`)
@@ -79,12 +86,14 @@ export const mockFigmaCreateDevResourcesEndpoint = ({
 	baseUrl,
 	request,
 	status = HttpStatusCode.Ok,
+	response = generateCreateDevResourcesResponse(),
 }: {
 	baseUrl: string;
 	request?: CreateDevResourcesRequest | RequestBodyMatcher;
 	status?: HttpStatusCode;
+	response?: CreateDevResourcesResponse;
 }) => {
-	nock(baseUrl).post('/v1/dev_resources').reply(status, request);
+	nock(baseUrl).post('/v1/dev_resources', request).reply(status, response);
 };
 
 export const mockFigmaGetDevResourcesEndpoint = ({
