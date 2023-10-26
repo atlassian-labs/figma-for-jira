@@ -70,41 +70,6 @@ describe('/auth', () => {
 				.expect({ type: '3LO', authorized: true });
 		});
 
-		it('should return a response indicating that user is not authorized if no credentials stored', async () => {
-			const connectInstallation = await connectInstallationRepository.upsert(
-				generateConnectInstallationCreateParams(),
-			);
-			const atlassianUserId = uuidv4();
-			const jwt = generateJiraServerSymmetricJwtToken({
-				request: {
-					method: 'GET',
-					pathname: '/auth/checkAuth',
-					query: { userId: atlassianUserId },
-				},
-				connectInstallation,
-			});
-
-			return request(app)
-				.get(CHECK_AUTH_ENDPOINT)
-				.query({
-					userId: atlassianUserId,
-				})
-				.set('Authorization', `JWT ${jwt}`)
-				.expect(HttpStatusCode.Ok)
-				.expect({
-					type: '3LO',
-					authorized: false,
-					grant: {
-						authorizationEndpoint:
-							figmaAuthService.createOAuth2AuthorizationRequest({
-								atlassianUserId,
-								connectInstallation,
-								redirectEndpoint: 'figma/oauth/callback',
-							}),
-					},
-				});
-		});
-
 		it('should return a response indicating that user is authorized if credentials were refreshed', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
@@ -152,6 +117,38 @@ describe('/auth', () => {
 			expect(credentials?.isExpired()).toBeFalsy();
 		});
 
+		it('should return a response indicating that user is not authorized if no credentials stored', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const atlassianUserId = uuidv4();
+			const jwt = generateJiraServerSymmetricJwtToken({
+				request: {
+					method: 'GET',
+					pathname: '/auth/checkAuth',
+					query: { userId: atlassianUserId },
+				},
+				connectInstallation,
+			});
+
+			return request(app)
+				.get(CHECK_AUTH_ENDPOINT)
+				.query({
+					userId: atlassianUserId,
+				})
+				.set('Authorization', `JWT ${jwt}`)
+				.expect(HttpStatusCode.Ok)
+				.then((response) => {
+					expect(response.body).toStrictEqual({
+						type: '3LO',
+						authorized: false,
+						grant: {
+							authorizationEndpoint: expect.any(String),
+						},
+					});
+				});
+		});
+
 		it('should return a response indicating that user is not authorized if credentials could not be refreshed', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
@@ -185,17 +182,14 @@ describe('/auth', () => {
 				})
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok)
-				.expect({
-					type: '3LO',
-					authorized: false,
-					grant: {
-						authorizationEndpoint:
-							figmaAuthService.createOAuth2AuthorizationRequest({
-								atlassianUserId,
-								connectInstallation,
-								redirectEndpoint: 'figma/oauth/callback',
-							}),
-					},
+				.then((response) => {
+					expect(response.body).toStrictEqual({
+						type: '3LO',
+						authorized: false,
+						grant: {
+							authorizationEndpoint: expect.any(String),
+						},
+					});
 				});
 		});
 
@@ -231,17 +225,65 @@ describe('/auth', () => {
 				})
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok)
-				.expect({
-					type: '3LO',
-					authorized: false,
-					grant: {
-						authorizationEndpoint:
-							figmaAuthService.createOAuth2AuthorizationRequest({
-								atlassianUserId,
-								connectInstallation,
-								redirectEndpoint: 'figma/oauth/callback',
-							}),
-					},
+				.then((response) => {
+					expect(response.body).toStrictEqual({
+						type: '3LO',
+						authorized: false,
+						grant: {
+							authorizationEndpoint: expect.any(String),
+						},
+					});
+				});
+		});
+
+		it('should return a response indicating that user is not authorized with correct grant URL', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const atlassianUserId = uuidv4();
+			const jwt = generateJiraServerSymmetricJwtToken({
+				request: {
+					method: 'GET',
+					pathname: '/auth/checkAuth',
+					query: { userId: atlassianUserId },
+				},
+				connectInstallation,
+			});
+
+			return request(app)
+				.get(CHECK_AUTH_ENDPOINT)
+				.query({
+					userId: atlassianUserId,
+				})
+				.set('Authorization', `JWT ${jwt}`)
+				.expect(HttpStatusCode.Ok)
+				.then((response) => {
+					const authorizationEndpoint = new URL(
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
+						response.body.grant.authorizationEndpoint,
+					);
+
+					expect(authorizationEndpoint.origin).toBe(
+						getConfig().figma.oauth2.authorizationServerBaseUrl,
+					);
+					expect(authorizationEndpoint.pathname).toBe('/oauth');
+					expect([
+						...authorizationEndpoint.searchParams.entries(),
+					]).toStrictEqual([
+						['client_id', getConfig().figma.oauth2.clientId],
+						['redirect_uri', `${getConfig().app.baseUrl}/figma/oauth/callback`],
+						['scope', getConfig().figma.oauth2.scope],
+						['state', expect.any(String)],
+						['response_type', 'code'],
+					]);
+					expect(
+						figmaAuthService.verifyOAuth2AuthorizationResponseState(
+							authorizationEndpoint.searchParams.get('state'),
+						),
+					).toStrictEqual({
+						atlassianUserId,
+						connectClientKey: connectInstallation.clientKey,
+					});
 				});
 		});
 	});

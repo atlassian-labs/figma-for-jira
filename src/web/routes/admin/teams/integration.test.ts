@@ -259,7 +259,6 @@ describe('/admin/teams', () => {
 		it('should return a 500 and not create a FigmaTeam when creating the webhook fails', async () => {
 			const teamId = uuidv4();
 			const teamName = uuidv4();
-			const webhookId = uuidv4();
 			const requestPath = connectTeamEndpoint(teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
@@ -291,9 +290,7 @@ describe('/admin/teams', () => {
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.InternalServerError);
 
-			await expect(figmaTeamRepository.get(webhookId)).rejects.toBeInstanceOf(
-				NotFoundOperationError,
-			);
+			expect(await figmaTeamRepository.getAll()).toStrictEqual([]);
 		});
 
 		it('should return unauthorized error if a user is not Jira admin', async () => {

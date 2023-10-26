@@ -404,7 +404,7 @@ describe('/figma', () => {
 					}),
 				);
 				const webhookEventRequestBody = generatePingWebhookEventRequestBody({
-					webhook_id: figmaTeam.id,
+					webhook_id: figmaTeam.webhookId,
 					passcode: figmaTeam.webhookPasscode,
 				});
 

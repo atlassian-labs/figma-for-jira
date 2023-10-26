@@ -7,6 +7,7 @@ import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
 
 export const FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA = {
 	$id: 'figma-for-jira-api:post:figma/webhook:request',
+	type: 'object',
 	properties: {
 		body: {
 			type: 'object',

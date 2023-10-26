@@ -1,10 +1,25 @@
-import type { NextFunction, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 
+import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
 import { assertSchema } from '../../../common/schema-validation';
 import { figmaTeamRepository } from '../../../infrastructure/repositories';
 import { BadRequestResponseStatusError } from '../../errors';
-import type { FigmaWebhookEventRequest } from '../../routes/figma';
-import { FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA } from '../../routes/figma';
+
+type FigmaWebhookCredentials = {
+	readonly webhook_id: string;
+	readonly passcode: string;
+};
+
+export const FIGMA_WEBHOOK_CREDENTIALS_SCHEMA: JSONSchemaTypeWithId<FigmaWebhookCredentials> =
+	{
+		$id: 'figma-api:webhook:v2:credentials',
+		type: 'object',
+		properties: {
+			webhook_id: { type: 'string' },
+			passcode: { type: 'string' },
+		},
+		required: ['webhook_id', 'passcode'],
+	};
 
 /**
  * Compares the given passcode with the passcode originally provided when creating the webhook
@@ -18,11 +33,17 @@ import { FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA } from '../../routes/figma';
  * @see https://www.figma.com/developers/api#webhooks-v2-security
  */
 export const figmaWebhookAuthMiddleware = (
-	req: FigmaWebhookEventRequest,
+	req: Request,
 	res: Response,
 	next: NextFunction,
 ) => {
-	assertSchema(req, FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA);
+	try {
+		assertSchema(req.body, FIGMA_WEBHOOK_CREDENTIALS_SCHEMA);
+	} catch (e) {
+		return next(
+			new BadRequestResponseStatusError('Cannot authenticate a webhook.'),
+		);
+	}
 
 	const { webhook_id, passcode } = req.body;
 
