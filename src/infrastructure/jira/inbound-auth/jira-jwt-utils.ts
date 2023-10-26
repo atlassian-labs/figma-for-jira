@@ -1,7 +1,6 @@
 import { createQueryStringHash } from 'atlassian-jwt';
 
 import { Duration } from '../../../common/duration';
-import { UnauthorizedError } from '../../../web/middleware/errors';
 
 const TOKEN_EXPIRATION_LEEWAY = Duration.ofSeconds(3);
 
@@ -18,7 +17,7 @@ export const verifyQshClaimBoundToUrl = (
 	},
 ) => {
 	if (qsh !== createQueryStringHash(request, false)) {
-		throw new UnauthorizedError('The token contains an invalid `qsh` claim.');
+		throw new Error('The token contains an invalid `qsh` claim.');
 	}
 };
 
@@ -30,7 +29,7 @@ export const verifyExpClaim = ({ exp }: { exp: number }) => {
 	const nowInSeconds = Date.now() / 1000;
 
 	if (nowInSeconds > exp + TOKEN_EXPIRATION_LEEWAY.asSeconds) {
-		throw new UnauthorizedError('The token is expired.');
+		throw new Error('The token is expired.');
 	}
 };
 
@@ -39,6 +38,6 @@ export const verifyAudClaimIncludesBaseUrl = (
 	baseUrl: string,
 ) => {
 	if (!aud?.[0]?.includes(baseUrl)) {
-		throw new UnauthorizedError('The token contains an invalid `aud` claim.');
+		throw new Error('The token contains an invalid `aud` claim.');
 	}
 };

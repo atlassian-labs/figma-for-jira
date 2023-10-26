@@ -1,14 +1,12 @@
 import { HttpStatusCode } from 'axios';
 import type { NextFunction, Request, Response } from 'express';
 
-import { UnauthorizedError } from './errors';
-
 import {
 	ForbiddenOperationError,
-	NotFoundOperationError,
 	UnauthorizedOperationError,
 	ValidationError,
 } from '../../common/errors';
+import { ResponseStatusError } from '../errors';
 
 export const errorHandlerMiddleware = (
 	err: Error,
@@ -24,20 +22,31 @@ export const errorHandlerMiddleware = (
 	// Setting `err` on the response, so it can be picked up by the `pino-http` logger
 	res.err = err;
 
-	if (err instanceof UnauthorizedError) {
-		res.status(HttpStatusCode.Unauthorized).send(err.message);
-	} else if (err instanceof NotFoundOperationError) {
-		res.status(HttpStatusCode.NotFound).send(err.message);
-	} else if (
+	if (err instanceof ResponseStatusError) {
+		res.status(err.statusCode).send(err.getSafeResponse());
+		return next();
+	}
+
+	// TODO: Delete handling these errors once error handling is refactored in use cases.
+	// By default, consider all non-`ResponseStatusError` errors as internal server error.
+	if (
 		err instanceof UnauthorizedOperationError ||
 		err instanceof ForbiddenOperationError
 	) {
-		res.status(HttpStatusCode.Forbidden).send(err.message);
-	} else if (err instanceof ValidationError) {
-		res.sendStatus(HttpStatusCode.BadRequest);
-	} else {
-		res.sendStatus(HttpStatusCode.InternalServerError);
+		res.status(HttpStatusCode.Forbidden).send({ message: err.message });
+		return next();
 	}
+
+	// TODO: Delete handling this error once error handling is refactored in use cases.
+	// 	By default, consider all non-`ResponseStatusError` errors as internal server error.
+	if (err instanceof ValidationError) {
+		res.status(HttpStatusCode.BadRequest).send({ message: err.message });
+		return next();
+	}
+
+	res
+		.status(HttpStatusCode.InternalServerError)
+		.send({ message: 'Internal server error' });
 
 	next();
 };

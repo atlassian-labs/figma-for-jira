@@ -18,12 +18,12 @@ import type {
 } from './types';
 
 import { NotFoundOperationError } from '../../../common/errors';
+import { SchemaValidationError } from '../../../common/schema-validation';
 import type { ConnectInstallation } from '../../../domain/entities';
 import {
 	generateConnectInstallation,
 	generateFigmaDesignIdentifier,
 } from '../../../domain/entities/testing';
-import { SchemaValidationError } from '../../ajv';
 
 jest.mock('./jwt-utils');
 

@@ -1,5 +1,7 @@
-import type { JSONSchemaType } from 'ajv';
-
+/**
+ * Contains JSON schema definitions for Figma API responses. Used for validating the types of incoming data on the entry
+ * points to the application.
+ */
 import type {
 	CreateDevResourcesResponse,
 	CreateWebhookResponse,
@@ -14,7 +16,10 @@ import type {
 	RefreshOAuth2TokenResponse,
 } from './types';
 
-import type { JSONSchemaTypeWithId } from '../../ajv';
+import type {
+	JSONSchemaType,
+	JSONSchemaTypeWithId,
+} from '../../../common/schema-validation';
 
 export const GET_OAUTH2_TOKEN_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetOAuth2TokenResponse> =
 	{

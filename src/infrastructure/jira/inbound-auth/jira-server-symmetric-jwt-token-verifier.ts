@@ -7,10 +7,9 @@ import {
 import { verifyExpClaim, verifyQshClaimBoundToUrl } from './jira-jwt-utils';
 
 import { isEnumValueOf } from '../../../common/enumUtils';
+import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
+import { assertSchema } from '../../../common/schema-validation';
 import type { ConnectInstallation } from '../../../domain/entities';
-import { UnauthorizedError } from '../../../web/middleware/errors';
-import type { JSONSchemaTypeWithId } from '../../index';
-import { assertSchema, getLogger } from '../../index';
 import { connectInstallationRepository } from '../../repositories';
 
 type JiraContextSymmetricJwtClaims = {
@@ -56,48 +55,38 @@ export class JiraServerSymmetricJwtTokenVerifier {
 	): Promise<{
 		connectInstallation: ConnectInstallation;
 	}> => {
-		try {
-			const tokenSigningAlgorithm = getAlgorithm(token) as unknown;
+		const tokenSigningAlgorithm = getAlgorithm(token) as unknown;
 
-			if (!isEnumValueOf(SymmetricAlgorithm, tokenSigningAlgorithm)) {
-				throw new UnauthorizedError('Unsupported JWT signing algorithm.');
-			}
-
-			// Decode a JWT token without verification.
-			const unverifiedClaims = decodeSymmetric(
-				token,
-				'',
-				tokenSigningAlgorithm,
-				true,
-			) as unknown;
-
-			assertSchema(unverifiedClaims, JIRA_SERVER_SYMMETRIC_JWT_CLAIMS_SCHEMA);
-
-			const connectInstallation =
-				await connectInstallationRepository.getByClientKey(
-					unverifiedClaims.iss,
-				);
-
-			const verifiedClaims = decodeSymmetric(
-				token,
-				connectInstallation.sharedSecret,
-				tokenSigningAlgorithm,
-			) as unknown;
-
-			assertSchema(verifiedClaims, JIRA_SERVER_SYMMETRIC_JWT_CLAIMS_SCHEMA);
-			verifyQshClaimBoundToUrl(verifiedClaims, request);
-			verifyExpClaim(verifiedClaims);
-
-			return {
-				connectInstallation,
-			};
-		} catch (e) {
-			getLogger().warn(e, 'Failed to verify the server symmetric JWT token.');
-
-			if (e instanceof UnauthorizedError) throw e;
-
-			throw new UnauthorizedError('Invalid token.', e);
+		if (!isEnumValueOf(SymmetricAlgorithm, tokenSigningAlgorithm)) {
+			throw new Error('Unsupported JWT signing algorithm.');
 		}
+
+		// Decode a JWT token without verification.
+		const unverifiedClaims = decodeSymmetric(
+			token,
+			'',
+			tokenSigningAlgorithm,
+			true,
+		) as unknown;
+
+		assertSchema(unverifiedClaims, JIRA_SERVER_SYMMETRIC_JWT_CLAIMS_SCHEMA);
+
+		const connectInstallation =
+			await connectInstallationRepository.getByClientKey(unverifiedClaims.iss);
+
+		const verifiedClaims = decodeSymmetric(
+			token,
+			connectInstallation.sharedSecret,
+			tokenSigningAlgorithm,
+		) as unknown;
+
+		assertSchema(verifiedClaims, JIRA_SERVER_SYMMETRIC_JWT_CLAIMS_SCHEMA);
+		verifyQshClaimBoundToUrl(verifiedClaims, request);
+		verifyExpClaim(verifiedClaims);
+
+		return {
+			connectInstallation,
+		};
 	};
 }
 

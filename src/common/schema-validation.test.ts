@@ -3,10 +3,11 @@ import {
 	type JSONSchemaTypeWithId,
 	parseJsonOfSchema,
 	SchemaValidationError,
-} from './ajv';
+	validateSchema,
+} from './schema-validation';
 
 type TestObject = {
-	value: string;
+	readonly value: string;
 };
 
 const TEST_SCHEMA: JSONSchemaTypeWithId<TestObject> = {
@@ -20,7 +21,28 @@ const TEST_SCHEMA: JSONSchemaTypeWithId<TestObject> = {
 	required: ['value'],
 };
 
-describe('ajv utils', () => {
+describe('schema-validation', () => {
+	describe('assertSchema', () => {
+		it('should return result indicating input is valid when validating a valid object', () => {
+			const validObject: unknown = { value: 'test' };
+
+			const result = validateSchema(validObject, TEST_SCHEMA);
+
+			expect(result).toStrictEqual({ valid: true });
+		});
+
+		it('should return result indicating input is invalid when validating a non-conforming object', () => {
+			const validObject: unknown = { value: 123 };
+
+			const result = validateSchema(validObject, TEST_SCHEMA);
+
+			expect(result).toStrictEqual({
+				valid: false,
+				errors: expect.any(Array),
+			});
+		});
+	});
+
 	describe('assertSchema', () => {
 		it('should not throw when validating a valid object', () => {
 			const validObject: unknown = { value: 'test' };

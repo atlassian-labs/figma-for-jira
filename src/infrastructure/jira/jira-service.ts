@@ -10,6 +10,12 @@ import {
 } from './schemas';
 
 import { NotFoundOperationError } from '../../common/errors';
+import type { JSONSchemaTypeWithId } from '../../common/schema-validation';
+import {
+	assertSchema,
+	parseJsonOfSchema,
+	SchemaValidationError,
+} from '../../common/schema-validation';
 import { ensureString } from '../../common/string-utils';
 import type {
 	AtlassianDesign,
@@ -18,8 +24,6 @@ import type {
 	JiraIssue,
 } from '../../domain/entities';
 import { AtlassianAssociation } from '../../domain/entities';
-import type { JSONSchemaTypeWithId } from '../ajv';
-import { assertSchema, parseJsonOfSchema, SchemaValidationError } from '../ajv';
 import { getLogger } from '../logger';
 
 type SubmitDesignParams = {

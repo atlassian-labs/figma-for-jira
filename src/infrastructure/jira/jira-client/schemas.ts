@@ -2,8 +2,6 @@
  * Contains JSON schema definitions for Jira API responses. Used for validating the types of incoming data on the entry
  * points to the application.
  */
-import type { JSONSchemaType } from 'ajv';
-
 import type {
 	Association,
 	CheckPermissionsResponse,
@@ -13,7 +11,10 @@ import type {
 	SubmitDesignsResponse,
 } from './types';
 
-import type { JSONSchemaTypeWithId } from '../../ajv';
+import type {
+	JSONSchemaType,
+	JSONSchemaTypeWithId,
+} from '../../../common/schema-validation';
 
 const DESIGN_KEY_SCHEMA: JSONSchemaType<DesignKey> = {
 	type: 'object',

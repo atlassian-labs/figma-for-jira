@@ -1,12 +1,12 @@
 import type { NextFunction } from 'express';
 import { Router } from 'express';
 
-import { CHECK_AUTH_QUERY_PARAMETERS_SCHEMA } from './schemas';
+import { CHECK_AUTH_REQUEST_SCHEMA } from './schemas';
 import type { CheckAuthRequest, CheckAuthResponse } from './types';
 
-import { assertSchema } from '../../../infrastructure';
 import { figmaAuthService } from '../../../infrastructure/figma';
 import { checkUserFigmaAuthUseCase } from '../../../usecases';
+import { requestSchemaValidationMiddleware } from '../../middleware';
 import { jiraServerSymmetricJwtAuthMiddleware } from '../../middleware/jira';
 
 export const authRouter = Router();
@@ -21,8 +21,8 @@ authRouter.use(jiraServerSymmetricJwtAuthMiddleware);
  */
 authRouter.get(
 	['/checkAuth'],
+	requestSchemaValidationMiddleware(CHECK_AUTH_REQUEST_SCHEMA),
 	function (req: CheckAuthRequest, res: CheckAuthResponse, next: NextFunction) {
-		assertSchema(req.query, CHECK_AUTH_QUERY_PARAMETERS_SCHEMA);
 		const { connectInstallation } = res.locals;
 		const atlassianUserId = req.query.userId;
 

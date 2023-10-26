@@ -18,11 +18,11 @@ import type {
 } from './types';
 
 import { Duration } from '../../../common/duration';
+import { assertSchema } from '../../../common/schema-validation';
 import type {
 	ConnectInstallation,
 	FigmaDesignIdentifier,
 } from '../../../domain/entities';
-import { assertSchema } from '../../ajv';
 import { withAxiosErrorTranslation } from '../../axios-utils';
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);

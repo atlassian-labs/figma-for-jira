@@ -6,7 +6,6 @@ import { jiraServerSymmetricJwtTokenVerifier } from './jira-server-symmetric-jwt
 import { Duration } from '../../../common/duration';
 import { NotFoundOperationError } from '../../../common/errors';
 import { generateConnectInstallation } from '../../../domain/entities/testing';
-import { UnauthorizedError } from '../../../web/middleware/errors';
 import { connectInstallationRepository } from '../../repositories';
 
 const NOW = Date.now();
@@ -72,7 +71,7 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 
 			await expect(
 				jiraServerSymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
-			).rejects.toThrowError(UnauthorizedError);
+			).rejects.toThrowError();
 		});
 
 		it('should throw token is not a JWT token', async () => {
@@ -80,7 +79,7 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 
 			await expect(
 				jiraServerSymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
-			).rejects.toThrowError(UnauthorizedError);
+			).rejects.toThrowError();
 		});
 
 		it('should throw when token is signed with unexpected key', async () => {
@@ -100,7 +99,7 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 
 			await expect(
 				jiraServerSymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
-			).rejects.toThrowError(UnauthorizedError);
+			).rejects.toThrowError();
 		});
 
 		it('should throw when `iss` claim is incorrect', async () => {
@@ -120,7 +119,7 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 
 			await expect(
 				jiraServerSymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
-			).rejects.toThrowError(UnauthorizedError);
+			).rejects.toThrowError();
 		});
 
 		it('should throw when `qsh` claim is incorrect', async () => {
@@ -146,9 +145,7 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 					...REQUEST,
 					method: 'GET',
 				}),
-			).rejects.toThrowError(
-				new UnauthorizedError('The token contains an invalid `qsh` claim.'),
-			);
+			).rejects.toThrowError('The token contains an invalid `qsh` claim.');
 		});
 
 		it('should throw when token is expired', async () => {
@@ -168,7 +165,7 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 
 			await expect(
 				jiraServerSymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
-			).rejects.toThrowError(new UnauthorizedError('The token is expired.'));
+			).rejects.toThrowError('The token is expired.');
 		});
 	});
 });

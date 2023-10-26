@@ -6,7 +6,7 @@ import { jiraContextSymmetricJwtAuthMiddleware } from './jira-context-symmetric-
 import { flushPromises } from '../../../common/testing/utils';
 import { generateConnectInstallation } from '../../../domain/entities/testing';
 import { jiraContextSymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
-import { UnauthorizedError } from '../errors';
+import { UnauthorizedResponseStatusError } from '../../errors';
 
 describe('jiraContextSymmetricJwtAuthMiddleware', () => {
 	it('should authenticate request with valid token ', async () => {
@@ -46,7 +46,7 @@ describe('jiraContextSymmetricJwtAuthMiddleware', () => {
 			},
 		} as Request;
 		const next = jest.fn();
-		const error = new UnauthorizedError();
+		const error = new Error();
 		jest
 			.spyOn(jiraContextSymmetricJwtTokenVerifier, 'verify')
 			.mockRejectedValue(error);
@@ -54,7 +54,9 @@ describe('jiraContextSymmetricJwtAuthMiddleware', () => {
 		jiraContextSymmetricJwtAuthMiddleware(request, {} as Response, next);
 		await flushPromises();
 
-		expect(next).toHaveBeenCalledWith(error);
+		expect(next).toHaveBeenCalledWith(
+			new UnauthorizedResponseStatusError('Unauthorized.', undefined, error),
+		);
 	});
 
 	it('should not authenticate request with no token', async () => {
@@ -67,7 +69,7 @@ describe('jiraContextSymmetricJwtAuthMiddleware', () => {
 		await flushPromises();
 
 		expect(next).toHaveBeenCalledWith(
-			new UnauthorizedError('Missing JWT token.'),
+			new UnauthorizedResponseStatusError('Missing JWT token.'),
 		);
 	});
 });

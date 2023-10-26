@@ -3,8 +3,8 @@ import type { NextFunction } from 'express';
 import { Router } from 'express';
 
 import {
-	ASSOCIATE_ENTITY_REQUEST_BODY_SCHEMA,
-	DISASSOCIATE_ENTITY_REQUEST_BODY_SCHEMA,
+	ASSOCIATE_ENTITY_REQUEST_SCHEMA,
+	DISASSOCIATE_ENTITY_REQUEST_SCHEMA,
 } from './schemas';
 import type {
 	AssociateEntityRequest,
@@ -13,11 +13,11 @@ import type {
 	DisassociateEntityResponse,
 } from './types';
 
-import { assertSchema } from '../../../infrastructure';
 import {
 	associateEntityUseCase,
 	disassociateEntityUseCase,
 } from '../../../usecases';
+import { requestSchemaValidationMiddleware } from '../../middleware';
 import {
 	extractUserIdFromHeadersMiddleware,
 	jiraServerSymmetricJwtAuthMiddleware,
@@ -32,12 +32,12 @@ entitiesRouter.use(
 
 entitiesRouter.post(
 	'/associateEntity',
+	requestSchemaValidationMiddleware(ASSOCIATE_ENTITY_REQUEST_SCHEMA),
 	(
 		req: AssociateEntityRequest,
 		res: AssociateEntityResponse,
 		next: NextFunction,
 	) => {
-		assertSchema(req.body, ASSOCIATE_ENTITY_REQUEST_BODY_SCHEMA);
 		const { connectInstallation, atlassianUserId } = res.locals;
 		associateEntityUseCase
 			.execute({
@@ -52,12 +52,12 @@ entitiesRouter.post(
 
 entitiesRouter.post(
 	'/disassociateEntity',
+	requestSchemaValidationMiddleware(DISASSOCIATE_ENTITY_REQUEST_SCHEMA),
 	(
 		req: DisassociateEntityRequest,
 		res: DisassociateEntityResponse,
 		next: NextFunction,
 	) => {
-		assertSchema(req.body, DISASSOCIATE_ENTITY_REQUEST_BODY_SCHEMA);
 		const { connectInstallation, atlassianUserId } = res.locals;
 		disassociateEntityUseCase
 			.execute({

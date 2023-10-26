@@ -1,7 +1,7 @@
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
 import { jiraContextSymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
-import { UnauthorizedError } from '../errors';
+import { UnauthorizedResponseStatusError } from '../../errors';
 
 /**
  * Authenticates requests using a context symmetric JWT token.
@@ -22,7 +22,7 @@ export const jiraContextSymmetricJwtAuthMiddleware: RequestHandler = (
 	const token = req.headers.authorization?.replace('JWT ', '');
 
 	if (!token) {
-		return next(new UnauthorizedError('Missing JWT token.'));
+		return next(new UnauthorizedResponseStatusError('Missing JWT token.'));
 	}
 
 	void jiraContextSymmetricJwtTokenVerifier
@@ -32,5 +32,7 @@ export const jiraContextSymmetricJwtAuthMiddleware: RequestHandler = (
 			res.locals.atlassianUserId = atlassianUserId;
 			next();
 		})
-		.catch(next);
+		.catch((e) =>
+			next(new UnauthorizedResponseStatusError('Unauthorized.', undefined, e)),
+		);
 };

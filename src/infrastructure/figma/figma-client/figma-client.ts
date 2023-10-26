@@ -26,8 +26,8 @@ import type {
 	RefreshOAuth2TokenResponse,
 } from './types';
 
+import { assertSchema } from '../../../common/schema-validation';
 import { getConfig } from '../../../config';
-import { assertSchema } from '../../ajv';
 import { withAxiosErrorTranslation } from '../../axios-utils';
 
 /**

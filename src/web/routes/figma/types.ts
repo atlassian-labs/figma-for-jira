@@ -17,6 +17,14 @@ export type FigmaWebhookEventPayload = {
 	};
 };
 
+export type FigmaWebhookRequest = Request<
+	Record<string, never>,
+	never,
+	FigmaWebhookEventPayload,
+	Record<string, never>,
+	never
+>;
+
 export type FigmaOAuth2CallbackQueryParameters = {
 	readonly code: string;
 	readonly state: string;
