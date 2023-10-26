@@ -6,7 +6,7 @@ import type {
 } from '../types';
 
 export const generatePingWebhookEventRequestBody = ({
-	passcode = 'passcode',
+	passcode = uuidv4(),
 	timestamp = new Date().toISOString(),
 	webhook_id = uuidv4(),
 }: Partial<FigmaPingWebhookEventRequestBody> = {}): FigmaPingWebhookEventRequestBody => ({
@@ -19,7 +19,7 @@ export const generatePingWebhookEventRequestBody = ({
 export const generateFileUpdateWebhookEventRequestBody = ({
 	file_key = uuidv4(),
 	file_name = uuidv4(),
-	passcode = 'passcode',
+	passcode = uuidv4(),
 	timestamp = new Date().toISOString(),
 	webhook_id = uuidv4(),
 }: Partial<FigmaFileUpdateWebhookEventRequestBody> = {}): FigmaFileUpdateWebhookEventRequestBody => ({
