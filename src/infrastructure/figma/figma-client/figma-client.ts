@@ -3,11 +3,11 @@ import axios from 'axios';
 import {
 	CREATE_DEV_RESOURCE_RESPONSE_SCHEMA,
 	CREATE_WEBHOOK_RESPONSE,
-	FILE_RESPONSE_SCHEMA,
 	GET_DEV_RESOURCE_RESPONSE_SCHEMA,
+	GET_FILE_RESPONSE_SCHEMA,
+	GET_ME_RESPONSE_SCHEMA,
 	GET_OAUTH2_TOKEN_RESPONSE_SCHEMA,
 	GET_TEAM_PROJECTS_RESPONSE_SCHEMA,
-	ME_RESPONSE_SCHEMA,
 	REFRESH_OAUTH2_TOKEN_RESPONSE_SCHEMA,
 } from './schemas';
 import type {
@@ -108,7 +108,7 @@ export class FigmaClient {
 				},
 			);
 
-			assertSchema(response.data, ME_RESPONSE_SCHEMA);
+			assertSchema(response.data, GET_ME_RESPONSE_SCHEMA);
 
 			return response.data;
 		});
@@ -147,7 +147,7 @@ export class FigmaClient {
 				},
 			});
 
-			assertSchema(response.data, FILE_RESPONSE_SCHEMA);
+			assertSchema(response.data, GET_FILE_RESPONSE_SCHEMA);
 
 			return response.data;
 		});

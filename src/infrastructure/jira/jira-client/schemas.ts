@@ -36,7 +36,7 @@ const ASSOCIATION_SCHEMA: JSONSchemaType<Association> = {
 
 export const SUBMIT_DESIGNS_RESPONSE_SCHEMA: JSONSchemaTypeWithId<SubmitDesignsResponse> =
 	{
-		$id: 'jira-software-cloud-api:submit-design-data:response',
+		$id: 'jira-software-cloud-api:post:/rest/designs/1.0/bulk:response',
 		type: 'object',
 		properties: {
 			acceptedEntities: {
@@ -75,11 +75,11 @@ export const SUBMIT_DESIGNS_RESPONSE_SCHEMA: JSONSchemaTypeWithId<SubmitDesignsR
 			},
 		},
 		required: ['acceptedEntities', 'rejectedEntities'],
-	} as const;
+	};
 
 export const GET_ISSUE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetIssueResponse> =
 	{
-		$id: 'jira-software-cloud-api:get-issue:response',
+		$id: 'jira-software-cloud-api:get:/rest/agile/1.0/issue/$issueIdOrKey:response',
 		type: 'object',
 		properties: {
 			id: { type: 'string' },
@@ -94,15 +94,15 @@ export const GET_ISSUE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetIssueResponse> =
 			},
 		},
 		required: ['id', 'key', 'self'],
-	} as const;
+	};
 
 export const GET_ISSUE_PROPERTY_RESPONSE_SCHEMA: JSONSchemaTypeWithId<
 	Omit<GetIssuePropertyResponse, 'value'>
 > = {
-	$id: 'jira-software-cloud-api:get-issue-property:response',
+	$id: 'jira-software-cloud-api:get:rest/api/2/issue/$issueIdOrKey/properties/$propertyKey:response',
 	type: 'object',
 	properties: {
 		key: { type: 'string' },
 	},
 	required: ['key'],
-} as const;
+};

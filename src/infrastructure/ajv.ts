@@ -5,7 +5,9 @@ import { ensureString } from '../common/string-utils';
 
 export const ajv = new Ajv({ allowUnionTypes: true });
 
-export type JSONSchemaTypeWithId<T> = JSONSchemaType<T> & { $id: string };
+export type JSONSchemaTypeWithId<T> = JSONSchemaType<T> & {
+	readonly $id: string;
+};
 
 /**
  * Returns the schema defined with Ajv.

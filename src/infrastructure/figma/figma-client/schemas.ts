@@ -1,7 +1,6 @@
 import type { JSONSchemaType } from 'ajv';
 
 import type {
-	CreateDevResourceError,
 	CreateDevResourcesResponse,
 	CreateWebhookResponse,
 	DevResource,
@@ -12,7 +11,6 @@ import type {
 	MeResponse,
 	Node,
 	NodeDevStatus,
-	Project,
 	RefreshOAuth2TokenResponse,
 } from './types';
 
@@ -26,7 +24,7 @@ const NODE_DEV_STATUS_SCHEMA: JSONSchemaType<NodeDevStatus> = {
 	required: ['type'],
 };
 
-const NODE_SCHEMA = {
+const NODE_SCHEMA = Object.freeze({
 	type: 'object',
 	properties: {
 		id: { type: 'string' },
@@ -40,10 +38,11 @@ const NODE_SCHEMA = {
 		},
 	},
 	required: ['id', 'name', 'type'],
-} as JSONSchemaType<Omit<Node, 'children'>> as JSONSchemaType<Node>;
+	// Since TypeScript cannot infer recursive types, use a type assertion as a workaround.
+}) as JSONSchemaType<Omit<Node, 'children'>> as JSONSchemaType<Node>;
 
-export const FILE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<FileResponse> = {
-	$id: 'figma-api:file-response:value',
+export const GET_FILE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<FileResponse> = {
+	$id: 'figma-api:get:file:response',
 	type: 'object',
 	properties: {
 		name: { type: 'string' },
@@ -55,8 +54,31 @@ export const FILE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<FileResponse> = {
 	required: ['name', 'role', 'editorType', 'lastModified', 'document'],
 };
 
-export const ME_RESPONSE_SCHEMA: JSONSchemaTypeWithId<MeResponse> = {
-	$id: 'figma-api:me-response:value',
+export const GET_OAUTH2_TOKEN_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetOAuth2TokenResponse> =
+	{
+		$id: 'figma-api:get:api/oauth/token:response',
+		type: 'object',
+		properties: {
+			access_token: { type: 'string' },
+			expires_in: { type: 'number' },
+			refresh_token: { type: 'string' },
+		},
+		required: ['access_token', 'expires_in', 'refresh_token'],
+	};
+
+export const REFRESH_OAUTH2_TOKEN_RESPONSE_SCHEMA: JSONSchemaTypeWithId<RefreshOAuth2TokenResponse> =
+	{
+		$id: 'figma-api:api/oauth/refresh:response',
+		type: 'object',
+		properties: {
+			access_token: { type: 'string' },
+			expires_in: { type: 'number' },
+		},
+		required: ['access_token', 'expires_in'],
+	};
+
+export const GET_ME_RESPONSE_SCHEMA: JSONSchemaTypeWithId<MeResponse> = {
+	$id: 'figma-api:get:v1/me:response',
 	type: 'object',
 	properties: {
 		id: { type: 'string' },
@@ -67,28 +89,6 @@ export const ME_RESPONSE_SCHEMA: JSONSchemaTypeWithId<MeResponse> = {
 	required: ['id', 'email', 'handle', 'img_url'],
 };
 
-export const REFRESH_OAUTH2_TOKEN_RESPONSE_SCHEMA: JSONSchemaTypeWithId<RefreshOAuth2TokenResponse> =
-	{
-		$id: 'figma-api:refresh-oauth2-token-response:value',
-		type: 'object',
-		properties: {
-			access_token: { type: 'string' },
-			expires_in: { type: 'number' },
-		},
-		required: ['access_token', 'expires_in'],
-	};
-
-export const GET_OAUTH2_TOKEN_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetOAuth2TokenResponse> =
-	{
-		$id: 'figma-api:get-oauth2-token-response:value',
-		type: 'object',
-		properties: {
-			access_token: { type: 'string' },
-			expires_in: { type: 'number' },
-			refresh_token: { type: 'string' },
-		},
-		required: ['access_token', 'expires_in', 'refresh_token'],
-	};
 const DEV_RESOURCE_SCHEMA: JSONSchemaType<DevResource> = {
 	type: 'object',
 	properties: {
@@ -101,20 +101,9 @@ const DEV_RESOURCE_SCHEMA: JSONSchemaType<DevResource> = {
 	required: ['id', 'name', 'url', 'file_key', 'node_id'],
 };
 
-const CREATED_DEV_RESOURCE_ERROR_SCHEMA: JSONSchemaType<CreateDevResourceError> =
-	{
-		type: 'object',
-		properties: {
-			file_key: { type: 'string' },
-			node_id: { type: 'string' },
-			error: { type: 'string' },
-		},
-		required: ['error'],
-	};
-
 export const CREATE_DEV_RESOURCE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<CreateDevResourcesResponse> =
 	{
-		$id: 'figma-api:create-dev-resource-response:value',
+		$id: 'figma-api:post:v1/dev_resources:response',
 		type: 'object',
 		properties: {
 			links_created: {
@@ -123,7 +112,15 @@ export const CREATE_DEV_RESOURCE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<CreateDev
 			},
 			errors: {
 				type: 'array',
-				items: CREATED_DEV_RESOURCE_ERROR_SCHEMA,
+				items: {
+					type: 'object',
+					properties: {
+						file_key: { type: 'string' },
+						node_id: { type: 'string' },
+						error: { type: 'string' },
+					},
+					required: ['error'],
+				},
 			},
 		},
 		required: ['links_created', 'errors'],
@@ -131,7 +128,7 @@ export const CREATE_DEV_RESOURCE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<CreateDev
 
 export const GET_DEV_RESOURCE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetDevResourcesResponse> =
 	{
-		$id: 'figma-api:get-dev-resource-response:value',
+		$id: 'figma-api:get:v1/files/$fileKey/dev_resources:response',
 		type: 'object',
 		properties: {
 			dev_resources: {
@@ -142,32 +139,9 @@ export const GET_DEV_RESOURCE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetDevResour
 		required: ['dev_resources'],
 	};
 
-const PROJECT_SCHEMA: JSONSchemaType<Project> = {
-	type: 'object',
-	properties: {
-		id: { type: 'string' },
-		name: { type: 'string' },
-	},
-	required: ['id', 'name'],
-};
-
-export const GET_TEAM_PROJECTS_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetTeamProjectsResponse> =
-	{
-		$id: 'figma-api:get-team-projects-response:value',
-		type: 'object',
-		properties: {
-			name: { type: 'string' },
-			projects: {
-				type: 'array',
-				items: PROJECT_SCHEMA,
-			},
-		},
-		required: ['name', 'projects'],
-	};
-
 export const CREATE_WEBHOOK_RESPONSE: JSONSchemaTypeWithId<CreateWebhookResponse> =
 	{
-		$id: 'figma-api:create-webhook-response:value',
+		$id: 'figma-api:post:v2/webhooks:response',
 		type: 'object',
 		properties: {
 			id: { type: 'string' },
@@ -190,4 +164,25 @@ export const CREATE_WEBHOOK_RESPONSE: JSONSchemaTypeWithId<CreateWebhookResponse
 			'status',
 			'protocol_version',
 		],
+	};
+
+export const GET_TEAM_PROJECTS_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetTeamProjectsResponse> =
+	{
+		$id: 'figma-api:get:/v1/teams/$teamId/projects:response',
+		type: 'object',
+		properties: {
+			name: { type: 'string' },
+			projects: {
+				type: 'array',
+				items: {
+					type: 'object',
+					properties: {
+						id: { type: 'string' },
+						name: { type: 'string' },
+					},
+					required: ['id', 'name'],
+				},
+			},
+		},
+		required: ['name', 'projects'],
 	};
