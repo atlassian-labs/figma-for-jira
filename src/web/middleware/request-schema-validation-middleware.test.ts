@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { requestSchemaValidationMiddleware } from './request-schema-validation-middleware';
 
 import type { JSONSchemaTypeWithId } from '../../common/schema-validation';
-import { ResponseStatusError } from '../errors';
+import { BadRequestResponseStatusError } from '../errors';
 
 type TestRequest = {
 	readonly query: {
@@ -79,6 +79,8 @@ describe('requestSchemaValidationMiddleware', () => {
 			next,
 		);
 
-		expect(next).toHaveBeenCalledWith(expect.any(ResponseStatusError));
+		expect(next).toHaveBeenCalledWith(
+			expect.any(BadRequestResponseStatusError),
+		);
 	});
 });
