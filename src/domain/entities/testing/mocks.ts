@@ -259,8 +259,12 @@ export const generateFigmaTeamSummary = ({
 	teamId = uuidv4(),
 	teamName = uuidv4(),
 	authStatus: status = FigmaTeamAuthStatus.OK,
+	webhookId = uuidv4(),
+	webhookPasscode = uuidv4(),
 }: Partial<FigmaTeamSummary> = {}): FigmaTeamSummary => ({
 	teamId,
 	teamName,
 	authStatus: status,
+	webhookId,
+	webhookPasscode,
 });

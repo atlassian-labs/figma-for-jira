@@ -14,7 +14,7 @@ import { FigmaTeam, FigmaTeamAuthStatus } from '../../domain/entities';
 type PrismaFigmaTeamCreateParams = Omit<PrismaFigmaTeam, 'id'>;
 type PrismaFigmaTeamSummary = Pick<
 	PrismaFigmaTeam,
-	'teamId' | 'teamName' | 'authStatus'
+	'teamId' | 'teamName' | 'authStatus' | 'webhookId' | 'webhookPasscode'
 >;
 
 export class FigmaTeamRepository {
@@ -88,7 +88,13 @@ export class FigmaTeamRepository {
 	): Promise<FigmaTeamSummary[]> => {
 		const dbModel = await prismaClient.get().figmaTeam.findMany({
 			where: { connectInstallationId: BigInt(connectInstallationId) },
-			select: { teamId: true, teamName: true, authStatus: true },
+			select: {
+				teamId: true,
+				teamName: true,
+				authStatus: true,
+				webhookId: true,
+				webhookPasscode: true,
+			},
 		});
 
 		return dbModel.map((record) => this.mapToFigmaTeamSummary(record));
@@ -189,10 +195,14 @@ export class FigmaTeamRepository {
 		teamId,
 		teamName,
 		authStatus,
+		webhookId,
+		webhookPasscode,
 	}: PrismaFigmaTeamSummary): FigmaTeamSummary => ({
 		teamId,
 		teamName,
 		authStatus: FigmaTeamAuthStatus[authStatus],
+		webhookId,
+		webhookPasscode,
 	});
 }
 

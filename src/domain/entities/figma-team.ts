@@ -58,5 +58,5 @@ export type FigmaTeamCreateParams = {
 
 export type FigmaTeamSummary = Pick<
 	FigmaTeam,
-	'teamId' | 'teamName' | 'authStatus'
+	'teamId' | 'teamName' | 'authStatus' | 'webhookId' | 'webhookPasscode'
 >;
