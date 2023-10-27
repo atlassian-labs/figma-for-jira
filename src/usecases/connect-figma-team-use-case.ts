@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { FigmaTeamAuthStatus } from '../domain/entities';
 import type { ConnectInstallation, FigmaTeamSummary } from '../domain/entities';
+import { FigmaTeamAuthStatus } from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
-import { ConfigurationState, jiraService } from '../infrastructure/jira';
+import { ConfigurationStatus, jiraService } from '../infrastructure/jira';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
 export const connectFigmaTeamUseCase = {
@@ -35,8 +35,8 @@ export const connectFigmaTeamUseCase = {
 			connectInstallationId: connectInstallation.id,
 		});
 
-		await jiraService.setConfigurationStateInAppProperties(
-			ConfigurationState.CONFIGURED,
+		await jiraService.setAppConfigurationStatus(
+			ConfigurationStatus.CONFIGURED,
 			connectInstallation,
 		);
 

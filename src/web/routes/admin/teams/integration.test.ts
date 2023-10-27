@@ -235,7 +235,7 @@ describe('/admin/teams', () => {
 				baseUrl: connectInstallation.baseUrl,
 				appKey: connectInstallation.key,
 				propertyKey: 'is-configured',
-				request: { isConfigured: `CONFIGURED` },
+				request: { status: `CONFIGURED` },
 			});
 
 			await request(app)
@@ -381,7 +381,7 @@ describe('/admin/teams', () => {
 				baseUrl: connectInstallation.baseUrl,
 				appKey: connectInstallation.key,
 				propertyKey: 'is-configured',
-				request: { isConfigured: `NOT_CONFIGURED` },
+				request: { status: `NOT_CONFIGURED` },
 			});
 
 			await request(app)
@@ -440,7 +440,7 @@ describe('/admin/teams', () => {
 				baseUrl: connectInstallation.baseUrl,
 				appKey: connectInstallation.key,
 				propertyKey: 'is-configured',
-				request: { isConfigured: `NOT_CONFIGURED` },
+				request: { status: `NOT_CONFIGURED` },
 			});
 
 			await request(app)

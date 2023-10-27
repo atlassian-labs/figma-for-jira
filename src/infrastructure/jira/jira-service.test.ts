@@ -16,7 +16,7 @@ import type {
 	IngestedDesignUrlIssuePropertyValue,
 } from './jira-service';
 import {
-	ConfigurationState,
+	ConfigurationStatus,
 	issuePropertyKeys,
 	jiraService,
 } from './jira-service';
@@ -909,20 +909,20 @@ describe('JiraService', () => {
 		});
 	});
 
-	describe('setConfigurationStateInAppProperties', () => {
-		it('should set configuration state in app properties', async () => {
-			const configurationState = ConfigurationState.CONFIGURED;
+	describe('setAppConfigurationStatus', () => {
+		it('should set configuration status in app properties', async () => {
+			const configurationState = ConfigurationStatus.CONFIGURED;
 			const connectInstallation = generateConnectInstallation();
 			jest.spyOn(jiraClient, 'setAppProperty').mockResolvedValue(undefined);
 
-			await jiraService.setConfigurationStateInAppProperties(
+			await jiraService.setAppConfigurationStatus(
 				configurationState,
 				connectInstallation,
 			);
 
 			expect(jiraClient.setAppProperty).toHaveBeenCalledWith(
 				'is-configured',
-				{ isConfigured: configurationState.valueOf() },
+				{ status: configurationState },
 				connectInstallation,
 			);
 		});

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { type FigmaTeam, FigmaTeamAuthStatus } from '../domain/entities';
 import { generateConnectInstallation } from '../domain/entities/testing';
 import { figmaService } from '../infrastructure/figma';
-import { ConfigurationState, jiraService } from '../infrastructure/jira';
+import { ConfigurationStatus, jiraService } from '../infrastructure/jira';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
 import { connectFigmaTeamUseCase } from '.';
@@ -24,7 +24,7 @@ describe('connectFigmaTeamUseCase', () => {
 			.spyOn(figmaTeamRepository, 'upsert')
 			.mockResolvedValue({} as FigmaTeam);
 		jest
-			.spyOn(jiraService, 'setConfigurationStateInAppProperties')
+			.spyOn(jiraService, 'setAppConfigurationStatus')
 			.mockResolvedValue(undefined);
 
 		await connectFigmaTeamUseCase.execute(
@@ -54,8 +54,8 @@ describe('connectFigmaTeamUseCase', () => {
 			connectInstallationId: connectInstallation.id,
 		});
 
-		expect(jiraService.setConfigurationStateInAppProperties).toBeCalledWith(
-			ConfigurationState.CONFIGURED,
+		expect(jiraService.setAppConfigurationStatus).toBeCalledWith(
+			ConfigurationStatus.CONFIGURED,
 			connectInstallation,
 		);
 	});
