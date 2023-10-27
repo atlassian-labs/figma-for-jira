@@ -28,17 +28,18 @@ export const errorHandlerMiddleware = (
 		return next();
 	}
 
+	// Handle business error from use cases.
 	if (err instanceof UseCaseError) {
-		switch (err.constructor) {
-			case InvalidInputUseCaseError: {
-				res.status(HttpStatusCode.BadRequest).send({ message: err.message });
-				return next();
-			}
+		if (err instanceof InvalidInputUseCaseError) {
+			res
+				.status(HttpStatusCode.BadRequest)
+				.send({ message: err.message, detail: err.detail });
+			return next();
+		}
 
-			case ForbiddenByFigmaUseCaseError: {
-				res.status(HttpStatusCode.Forbidden).send({ message: err.message });
-				return next();
-			}
+		if (err instanceof ForbiddenByFigmaUseCaseError) {
+			res.status(HttpStatusCode.Forbidden).send({ message: err.message });
+			return next();
 		}
 	}
 
