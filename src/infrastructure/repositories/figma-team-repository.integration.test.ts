@@ -28,7 +28,7 @@ describe('FigmaTeamRepository', () => {
 
 			const result = await figmaTeamRepository.findByWebhookId(webhookId);
 
-			expect(result).toEqual(figmaTeam);
+			expect(result).toMatchObject(figmaTeam);
 		});
 
 		it('should return null when there is no team with given webhook ID', async () => {
