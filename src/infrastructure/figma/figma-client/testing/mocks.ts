@@ -15,7 +15,6 @@ import type {
 	RefreshOAuth2TokenResponse,
 } from '..';
 import { Duration } from '../../../../common/duration';
-import type { FigmaWebhookEventType } from '../../../../domain/entities';
 import {
 	generateFigmaFileKey,
 	generateFigmaFileName,
@@ -197,7 +196,7 @@ export const generateEmptyDevResourcesResponse =
 
 export const generateCreateWebhookRequest = ({
 	teamId = uuidv4(),
-	eventType = 'FILE_UPDATE' as FigmaWebhookEventType,
+	eventType = 'FILE_UPDATE',
 	endpoint = `https://figma-for-jira.atlassian.com/figma/webhooks`,
 	passcode = uuidv4(),
 	description = 'Figma for Jira',

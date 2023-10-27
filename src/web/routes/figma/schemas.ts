@@ -1,89 +1,50 @@
 import type {
 	FigmaOAuth2CallbackQueryParameters,
-	FigmaWebhookEventPayload,
+	FigmaWebhookEventRequest,
 } from './types';
 
-import type {
-	JSONSchemaType,
-	JSONSchemaTypeWithId,
-} from '../../../common/schema-validation';
-import type { FigmaWebhookEventType } from '../../../domain/entities';
+import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
 
-const FIGMA_WEBHOOK_EVENT_TYPE_SCHEMA: JSONSchemaType<FigmaWebhookEventType> = {
-	type: 'string',
-	enum: [
-		'PING',
-		'FILE_UPDATE',
-		'FILE_VERSION_UPDATE',
-		'FILE_DELETE',
-		'LIBRARY_PUBLISH',
-		'FILE_COMMENT',
-	],
-};
-
-/**
- * While AJV supports optional fields in schemas, it requires these fields to
- * also be marked as nullable. If you mark an optional field as non-nullable,
- * the schema validation works correctly but the typechecking complains that
- * the field is not marked nullable.
- *
- * This function works around the typechecking by casting the field schema to
- * the appropriate type. This is supposed to be fixed in the next major version
- * of AJV.
- *
- * @see https://github.com/ajv-validator/ajv/issues/1664#issuecomment-873613644
- */
-const optionalNonNullable = <T>(schema: T): T & { nullable: true } =>
-	schema as T & { nullable: true };
-
-export const FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
-	body: FigmaWebhookEventPayload;
-}> = {
+export const FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA = {
 	$id: 'figma-for-jira-api:post:figma/webhook:request',
 	type: 'object',
 	properties: {
 		body: {
 			type: 'object',
-			properties: {
-				event_type: FIGMA_WEBHOOK_EVENT_TYPE_SCHEMA,
-				file_key: optionalNonNullable({ type: 'string' }),
-				file_name: optionalNonNullable({ type: 'string' }),
-				passcode: { type: 'string' },
-				protocol_version: { type: 'string' },
-				retries: { type: 'integer' },
-				timestamp: { type: 'string' },
-				webhook_id: { type: 'string' },
-				triggered_by: {
-					type: 'object',
-					nullable: true,
+			discriminator: { propertyName: 'event_type' },
+			oneOf: [
+				{
 					properties: {
-						id: { type: 'string' },
-						handle: { type: 'string' },
+						event_type: { const: 'PING' },
+						webhook_id: { type: 'string' },
+						passcode: { type: 'string' },
+						timestamp: { type: 'string' },
 					},
-					required: ['id', 'handle'],
+					required: ['event_type', 'webhook_id', 'passcode', 'timestamp'],
 				},
-			},
-			required: [
-				'event_type',
-				'passcode',
-				'protocol_version',
-				'retries',
-				'timestamp',
-				'webhook_id',
+				{
+					properties: {
+						event_type: { const: 'FILE_UPDATE' },
+						webhook_id: { type: 'string' },
+						file_key: { type: 'string' },
+						file_name: { type: 'string' },
+						passcode: { type: 'string' },
+						timestamp: { type: 'string' },
+					},
+					required: [
+						'event_type',
+						'webhook_id',
+						'file_key',
+						'file_name',
+						'passcode',
+						'timestamp',
+					],
+				},
 			],
-			if: {
-				properties: { event_type: { const: 'PING' } },
-			},
-			then: {
-				required: [],
-			},
-			else: {
-				required: ['file_key', 'file_name'],
-			},
 		},
 	},
 	required: ['body'],
-};
+} as unknown as JSONSchemaTypeWithId<{ body: FigmaWebhookEventRequest }>;
 
 export const FIGMA_OAUTH2_CALLBACK_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 	query: FigmaOAuth2CallbackQueryParameters;

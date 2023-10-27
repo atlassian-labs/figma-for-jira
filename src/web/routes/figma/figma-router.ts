@@ -6,15 +6,19 @@ import {
 	FIGMA_OAUTH2_CALLBACK_REQUEST_SCHEMA,
 	FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA,
 } from './schemas';
-import type { FigmaOAuth2CallbackRequest, FigmaWebhookRequest } from './types';
+import type {
+	FigmaOAuth2CallbackRequest,
+	FigmaWebhookEventRequest,
+	FigmaWebhookEventResponse,
+} from './types';
 
 import { getLogger } from '../../../infrastructure';
-import { figmaWebhookService } from '../../../infrastructure/figma/figma-webhook-service';
 import {
 	handleFigmaAuthorizationResponseUseCase,
 	handleFigmaFileUpdateEventUseCase,
 } from '../../../usecases';
 import { requestSchemaValidationMiddleware } from '../../middleware';
+import { figmaWebhookAuthMiddleware } from '../../middleware/figma/figma-webhook-auth-middleware';
 
 const AUTH_RESOURCE_BASE_PATH = '/static/auth-result';
 export const SUCCESS_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=true`;
@@ -29,19 +33,20 @@ export const figmaRouter = Router();
 figmaRouter.post(
 	'/webhook',
 	requestSchemaValidationMiddleware(FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA),
-	(req: FigmaWebhookRequest, res, next) => {
-		const { event_type, file_key, webhook_id, passcode } = req.body;
+	figmaWebhookAuthMiddleware,
+	(req: FigmaWebhookEventRequest, res: FigmaWebhookEventResponse, next) => {
+		const { figmaTeam } = res.locals;
 
-		switch (event_type) {
-			case 'FILE_UPDATE':
-				figmaWebhookService
-					.validateWebhookEvent(webhook_id, passcode)
-					.then((figmaTeam) =>
-						handleFigmaFileUpdateEventUseCase.execute(figmaTeam, file_key!),
-					)
+		switch (req.body.event_type) {
+			case 'FILE_UPDATE': {
+				const { file_key } = req.body;
+
+				handleFigmaFileUpdateEventUseCase
+					.execute(figmaTeam, file_key)
 					.then(() => res.sendStatus(HttpStatusCode.Ok))
 					.catch(next);
 				return;
+			}
 			default:
 				return res.sendStatus(HttpStatusCode.Ok);
 		}

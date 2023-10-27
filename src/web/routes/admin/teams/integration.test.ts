@@ -3,7 +3,6 @@ import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
 import app from '../../../../app';
-import { NotFoundOperationError } from '../../../../common/errors';
 import { getConfig } from '../../../../config';
 import type {
 	ConnectInstallation,
@@ -235,7 +234,7 @@ describe('/admin/teams', () => {
 				baseUrl: connectInstallation.baseUrl,
 				appKey: connectInstallation.key,
 				propertyKey: 'is-configured',
-				request: { isConfigured: `CONFIGURED` },
+				request: { status: `CONFIGURED` },
 			});
 
 			await request(app)
@@ -243,11 +242,11 @@ describe('/admin/teams', () => {
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok);
 
-			const figmaTeam = await figmaTeamRepository.getByWebhookId(webhookId);
-			expect(figmaTeam).toEqual({
+			const figmaTeam = await figmaTeamRepository.getAll();
+			expect(figmaTeam[0]).toEqual({
 				id: expect.anything(),
 				webhookId,
-				webhookPasscode: figmaTeam.webhookPasscode,
+				webhookPasscode: expect.anything(),
 				teamId,
 				teamName,
 				figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
@@ -259,7 +258,6 @@ describe('/admin/teams', () => {
 		it('should return a 500 and not create a FigmaTeam when creating the webhook fails', async () => {
 			const teamId = uuidv4();
 			const teamName = uuidv4();
-			const webhookId = uuidv4();
 			const requestPath = connectTeamEndpoint(teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
@@ -291,9 +289,7 @@ describe('/admin/teams', () => {
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.InternalServerError);
 
-			await expect(
-				figmaTeamRepository.getByWebhookId(webhookId),
-			).rejects.toBeInstanceOf(NotFoundOperationError);
+			expect(await figmaTeamRepository.getAll()).toStrictEqual([]);
 		});
 
 		it('should return unauthorized error if a user is not Jira admin', async () => {
@@ -341,12 +337,20 @@ describe('/admin/teams', () => {
 		it('should delete the webhook and FigmaTeam record', async () => {
 			jest.spyOn(figmaClient, 'deleteWebhook');
 			const nonFigmaTeamAdminAtlassianUserId = uuidv4();
-			const figmaTeam = await figmaTeamRepository.upsert(
-				generateFigmaTeamCreateParams({
-					connectInstallationId: connectInstallation.id,
-					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
-				}),
-			);
+			const figmaTeam = await figmaTeamRepository
+				.upsert(
+					generateFigmaTeamCreateParams({
+						connectInstallationId: connectInstallation.id,
+						figmaAdminAtlassianUserId:
+							figmaOAuth2UserCredentials.atlassianUserId,
+					}),
+				)
+				.then((team) =>
+					figmaTeamRepository.getByTeamIdAndConnectInstallationId(
+						team.teamId,
+						connectInstallation.id,
+					),
+				);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: nonFigmaTeamAdminAtlassianUserId,
@@ -373,7 +377,7 @@ describe('/admin/teams', () => {
 				baseUrl: connectInstallation.baseUrl,
 				appKey: connectInstallation.key,
 				propertyKey: 'is-configured',
-				request: { isConfigured: `NOT_CONFIGURED` },
+				request: { status: `NOT_CONFIGURED` },
 			});
 
 			await request(app)
@@ -381,9 +385,9 @@ describe('/admin/teams', () => {
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok);
 
-			await expect(
-				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
-			).rejects.toBeInstanceOf(NotFoundOperationError);
+			expect(
+				await figmaTeamRepository.findByWebhookId(figmaTeam.webhookId),
+			).toBeNull();
 			expect(figmaClient.deleteWebhook).toBeCalledWith(
 				figmaTeam.webhookId,
 				figmaOAuth2UserCredentials.accessToken,
@@ -392,12 +396,20 @@ describe('/admin/teams', () => {
 
 		it('should return a 200 and delete the FigmaTeam when webhook is not found', async () => {
 			const nonFigmaTeamAdminAtlassianUserId = uuidv4();
-			const figmaTeam = await figmaTeamRepository.upsert(
-				generateFigmaTeamCreateParams({
-					connectInstallationId: connectInstallation.id,
-					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
-				}),
-			);
+			const figmaTeam = await figmaTeamRepository
+				.upsert(
+					generateFigmaTeamCreateParams({
+						connectInstallationId: connectInstallation.id,
+						figmaAdminAtlassianUserId:
+							figmaOAuth2UserCredentials.atlassianUserId,
+					}),
+				)
+				.then((team) =>
+					figmaTeamRepository.getByTeamIdAndConnectInstallationId(
+						team.teamId,
+						connectInstallation.id,
+					),
+				);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: nonFigmaTeamAdminAtlassianUserId,
@@ -424,7 +436,7 @@ describe('/admin/teams', () => {
 				baseUrl: connectInstallation.baseUrl,
 				appKey: connectInstallation.key,
 				propertyKey: 'is-configured',
-				request: { isConfigured: `NOT_CONFIGURED` },
+				request: { status: `NOT_CONFIGURED` },
 			});
 
 			await request(app)
@@ -432,19 +444,27 @@ describe('/admin/teams', () => {
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok);
 
-			await expect(
-				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
-			).rejects.toBeInstanceOf(NotFoundOperationError);
+			expect(
+				await figmaTeamRepository.findByWebhookId(figmaTeam.webhookId),
+			).toBeNull();
 		});
 
 		it('should return a 200 and delete the FigmaTeam when deleting the webhook fails', async () => {
 			const nonFigmaTeamAdminAtlassianUserId = uuidv4();
-			const figmaTeam = await figmaTeamRepository.upsert(
-				generateFigmaTeamCreateParams({
-					connectInstallationId: connectInstallation.id,
-					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
-				}),
-			);
+			const figmaTeam = await figmaTeamRepository
+				.upsert(
+					generateFigmaTeamCreateParams({
+						connectInstallationId: connectInstallation.id,
+						figmaAdminAtlassianUserId:
+							figmaOAuth2UserCredentials.atlassianUserId,
+					}),
+				)
+				.then((team) =>
+					figmaTeamRepository.getByTeamIdAndConnectInstallationId(
+						team.teamId,
+						connectInstallation.id,
+					),
+				);
 			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: nonFigmaTeamAdminAtlassianUserId,
@@ -473,9 +493,9 @@ describe('/admin/teams', () => {
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.InternalServerError);
 
-			await expect(
-				figmaTeamRepository.getByWebhookId(figmaTeam.webhookId),
-			).resolves.toEqual(figmaTeam);
+			expect(
+				await figmaTeamRepository.findByWebhookId(figmaTeam.webhookId),
+			).toStrictEqual(figmaTeam);
 		});
 
 		it('should return unauthorized error if a user is not Jira admin', async () => {

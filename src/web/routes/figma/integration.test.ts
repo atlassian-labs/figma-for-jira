@@ -4,8 +4,11 @@ import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
 import { FAILURE_PAGE_URL, SUCCESS_PAGE_URL } from './figma-router';
-import { generateFigmaWebhookEventPayload } from './testing';
-import type { FigmaWebhookEventPayload } from './types';
+import {
+	generateFileUpdateWebhookEventRequestBody,
+	generatePingWebhookEventRequestBody,
+} from './testing';
+import type { FigmaWebhookEventRequestBody } from './types';
 
 import app from '../../../app';
 import { isString } from '../../../common/string-utils';
@@ -15,7 +18,6 @@ import type {
 	ConnectInstallation,
 	FigmaDesignIdentifier,
 	FigmaTeam,
-	FigmaWebhookEventType,
 } from '../../../domain/entities';
 import { FigmaTeamAuthStatus } from '../../../domain/entities';
 import {
@@ -93,17 +95,24 @@ describe('/figma', () => {
 			let connectInstallation: ConnectInstallation;
 			let figmaTeam: FigmaTeam;
 			let fileKey: string;
-			let webhookEventPayload: FigmaWebhookEventPayload;
+			let webhookEventRequestBody: FigmaWebhookEventRequestBody;
 
 			beforeEach(async () => {
 				connectInstallation = await connectInstallationRepository.upsert(
 					generateConnectInstallationCreateParams(),
 				);
-				figmaTeam = await figmaTeamRepository.upsert(
-					generateFigmaTeamCreateParams({
-						connectInstallationId: connectInstallation.id,
-					}),
-				);
+				figmaTeam = await figmaTeamRepository
+					.upsert(
+						generateFigmaTeamCreateParams({
+							connectInstallationId: connectInstallation.id,
+						}),
+					)
+					.then((team) =>
+						figmaTeamRepository.getByTeamIdAndConnectInstallationId(
+							team.teamId,
+							connectInstallation.id,
+						),
+					);
 				await figmaOAuth2UserCredentialsRepository.upsert(
 					generateFigmaOAuth2UserCredentialCreateParams({
 						atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,
@@ -127,7 +136,7 @@ describe('/figma', () => {
 					);
 				}
 
-				webhookEventPayload = generateFigmaWebhookEventPayload({
+				webhookEventRequestBody = generateFileUpdateWebhookEventRequestBody({
 					webhook_id: figmaTeam.webhookId,
 					file_key: fileKey,
 					file_name: generateFigmaFileName(),
@@ -188,18 +197,19 @@ describe('/figma', () => {
 
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
-					.send(webhookEventPayload)
+					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 			});
 
 			it('should return a 200 if no associated designs are found for the file key', async () => {
 				const otherFileKey = generateFigmaFileKey();
-				const otherFileWebhookEventPayload = generateFigmaWebhookEventPayload({
-					webhook_id: figmaTeam.webhookId,
-					file_key: otherFileKey,
-					file_name: generateFigmaFileName(),
-					passcode: figmaTeam.webhookPasscode,
-				});
+				const otherFilewebhookEventRequestBody =
+					generateFileUpdateWebhookEventRequestBody({
+						webhook_id: figmaTeam.webhookId,
+						file_key: otherFileKey,
+						file_name: generateFigmaFileName(),
+						passcode: figmaTeam.webhookPasscode,
+					});
 
 				mockFigmaGetTeamProjectsEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
@@ -211,7 +221,7 @@ describe('/figma', () => {
 
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
-					.send(otherFileWebhookEventPayload)
+					.send(otherFilewebhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 			});
 
@@ -257,7 +267,7 @@ describe('/figma', () => {
 
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
-					.send(webhookEventPayload)
+					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 			});
 
@@ -270,13 +280,13 @@ describe('/figma', () => {
 
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
-					.send(webhookEventPayload)
+					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				const updatedFigmaTeam = await figmaTeamRepository.getByWebhookId(
+				const updatedFigmaTeam = await figmaTeamRepository.findByWebhookId(
 					figmaTeam.webhookId,
 				);
-				expect(updatedFigmaTeam.authStatus).toStrictEqual(
+				expect(updatedFigmaTeam?.authStatus).toStrictEqual(
 					FigmaTeamAuthStatus.ERROR,
 				);
 			});
@@ -307,7 +317,7 @@ describe('/figma', () => {
 
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
-					.send(webhookEventPayload)
+					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.InternalServerError);
 			});
 
@@ -337,28 +347,29 @@ describe('/figma', () => {
 
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
-					.send(webhookEventPayload)
+					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				const updatedFigmaTeam = await figmaTeamRepository.getByWebhookId(
+				const updatedFigmaTeam = await figmaTeamRepository.findByWebhookId(
 					figmaTeam.webhookId,
 				);
-				expect(updatedFigmaTeam.authStatus).toStrictEqual(
+				expect(updatedFigmaTeam?.authStatus).toStrictEqual(
 					FigmaTeamAuthStatus.ERROR,
 				);
 			});
 
 			it('should return a 400 if the passcode is invalid', async () => {
-				const invalidPasscodePayload = generateFigmaWebhookEventPayload({
-					webhook_id: figmaTeam.webhookId,
-					file_key: fileKey,
-					file_name: generateFigmaFileName(),
-					passcode: 'invalid',
-				});
+				const webhookEventRequestBody =
+					generateFileUpdateWebhookEventRequestBody({
+						webhook_id: figmaTeam.webhookId,
+						file_key: fileKey,
+						file_name: generateFigmaFileName(),
+						passcode: 'invalid',
+					});
 
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
-					.send(invalidPasscodePayload)
+					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.BadRequest);
 			});
 
@@ -388,40 +399,58 @@ describe('/figma', () => {
 
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
-					.send(webhookEventPayload)
+					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.InternalServerError);
+			});
+		});
+
+		describe('PING event', () => {
+			it('should return a 200 when valid webhook', async () => {
+				const connectInstallation = await connectInstallationRepository.upsert(
+					generateConnectInstallationCreateParams(),
+				);
+				const figmaTeam = await figmaTeamRepository.upsert(
+					generateFigmaTeamCreateParams({
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
+				const webhookEventRequestBody = generatePingWebhookEventRequestBody({
+					webhook_id: figmaTeam.webhookId,
+					passcode: figmaTeam.webhookPasscode,
+				});
+
+				await request(app)
+					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.send(webhookEventRequestBody)
+					.expect(HttpStatusCode.Ok);
+			});
+
+			it('should return a 400 if the passcode is invalid', async () => {
+				const connectInstallation = await connectInstallationRepository.upsert(
+					generateConnectInstallationCreateParams(),
+				);
+				const figmaTeam = await figmaTeamRepository.upsert(
+					generateFigmaTeamCreateParams({
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
+				const webhookEventRequestBody = generatePingWebhookEventRequestBody({
+					webhook_id: figmaTeam.webhookId,
+					passcode: 'invalid',
+				});
+
+				await request(app)
+					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.send(webhookEventRequestBody)
+					.expect(HttpStatusCode.BadRequest);
 			});
 		});
 
 		it('should return a 400 if invalid request is received', async () => {
 			await request(app)
 				.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
-				.send({ webhook_id: 1 })
+				.send({ event_type: 'FILE_COMMENT', webhook_id: 1 })
 				.expect(HttpStatusCode.BadRequest);
-		});
-
-		describe('unsupported event type', () => {
-			it.each([
-				'PING',
-				'FILE_VERSION_UPDATE',
-				'FILE_DELETE',
-				'LIBRARY_PUBLISH',
-				'FILE_COMMENT',
-			] as FigmaWebhookEventType[])(
-				'should return a 200 response immediately',
-				async (unsupportedEventType: FigmaWebhookEventType) => {
-					const webhookEventPayload = generateFigmaWebhookEventPayload({
-						event_type: unsupportedEventType,
-						file_key: generateFigmaFileKey(),
-						file_name: generateFigmaFileName(),
-					});
-
-					await request(app)
-						.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
-						.send(webhookEventPayload)
-						.expect(HttpStatusCode.Ok);
-				},
-			);
 		});
 	});
 

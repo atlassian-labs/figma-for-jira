@@ -43,7 +43,7 @@ export const appPropertyKeys = {
 	CONFIGURATION_STATE: 'is-configured',
 };
 
-export enum ConfigurationState {
+export enum ConfigurationStatus {
 	CONFIGURED = 'CONFIGURED',
 	NOT_CONFIGURED = 'NOT_CONFIGURED',
 }
@@ -330,13 +330,13 @@ class JiraService {
 		}
 	};
 
-	setConfigurationStateInAppProperties = async (
-		configurationState: ConfigurationState,
+	setAppConfigurationStatus = async (
+		configurationStatus: ConfigurationStatus,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		return await jiraClient.setAppProperty(
 			appPropertyKeys.CONFIGURATION_STATE,
-			{ isConfigured: configurationState.valueOf() },
+			{ status: configurationStatus },
 			connectInstallation,
 		);
 	};

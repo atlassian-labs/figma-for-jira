@@ -142,25 +142,46 @@ describe('/lifecycleEvents', () => {
 			]);
 			const [targetFigmaTeam1, targetFigmaTeam2, otherFigmaTeam] =
 				await Promise.all([
-					figmaTeamRepository.upsert(
-						generateFigmaTeam({
-							figmaAdminAtlassianUserId:
-								targetFigmaOAuth2UserCredentials1.atlassianUserId,
-							connectInstallationId: targetConnectInstallation.id,
-						}),
-					),
-					figmaTeamRepository.upsert(
-						generateFigmaTeam({
-							figmaAdminAtlassianUserId:
-								targetFigmaOAuth2UserCredentials2.atlassianUserId,
-							connectInstallationId: targetConnectInstallation.id,
-						}),
-					),
-					figmaTeamRepository.upsert(
-						generateFigmaTeam({
-							connectInstallationId: otherConnectInstallation.id,
-						}),
-					),
+					figmaTeamRepository
+						.upsert(
+							generateFigmaTeam({
+								figmaAdminAtlassianUserId:
+									targetFigmaOAuth2UserCredentials1.atlassianUserId,
+								connectInstallationId: targetConnectInstallation.id,
+							}),
+						)
+						.then((team) =>
+							figmaTeamRepository.getByTeamIdAndConnectInstallationId(
+								team.teamId,
+								targetConnectInstallation.id,
+							),
+						),
+					figmaTeamRepository
+						.upsert(
+							generateFigmaTeam({
+								figmaAdminAtlassianUserId:
+									targetFigmaOAuth2UserCredentials2.atlassianUserId,
+								connectInstallationId: targetConnectInstallation.id,
+							}),
+						)
+						.then((team) =>
+							figmaTeamRepository.getByTeamIdAndConnectInstallationId(
+								team.teamId,
+								targetConnectInstallation.id,
+							),
+						),
+					figmaTeamRepository
+						.upsert(
+							generateFigmaTeam({
+								connectInstallationId: otherConnectInstallation.id,
+							}),
+						)
+						.then((team) =>
+							figmaTeamRepository.getByTeamIdAndConnectInstallationId(
+								team.teamId,
+								otherConnectInstallation.id,
+							),
+						),
 				]);
 			const [, otherAssociatedFigmaDesign] = await Promise.all([
 				associatedFigmaDesignRepository.upsert(
