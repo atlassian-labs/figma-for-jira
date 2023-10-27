@@ -8,7 +8,7 @@ import Ajv from 'ajv';
 import { CauseAwareError } from './errors';
 import { isString } from './string-utils';
 
-const ajv = new Ajv({ allowUnionTypes: true });
+const ajv = new Ajv({ allowUnionTypes: true, discriminator: true });
 
 /**
  * Returns the schema defined with Ajv.

@@ -46,20 +46,6 @@ export class FigmaTeamRepository {
 		return dbModels.map((dbModel) => this.mapToFigmaTeam(dbModel));
 	};
 
-	getByWebhookId = async (webhookId: string): Promise<FigmaTeam> => {
-		const dbModel = await prismaClient
-			.get()
-			.figmaTeam.findFirst({ where: { webhookId } });
-
-		if (dbModel === null) {
-			throw new NotFoundOperationError(
-				`Failed to find FigmaTeam for webhookId ${webhookId}`,
-			);
-		}
-
-		return this.mapToFigmaTeam(dbModel);
-	};
-
 	getByTeamIdAndConnectInstallationId = async (
 		teamId: string,
 		connectInstallationId: string,
@@ -73,6 +59,16 @@ export class FigmaTeamRepository {
 				`Failed to find FigmaTeam for teamId ${teamId} and connectInstallationId ${connectInstallationId}`,
 			);
 		}
+
+		return this.mapToFigmaTeam(dbModel);
+	};
+
+	findByWebhookId = async (webhookId: string): Promise<FigmaTeam | null> => {
+		const dbModel = await prismaClient
+			.get()
+			.figmaTeam.findFirst({ where: { webhookId } });
+
+		if (dbModel === null) return null;
 
 		return this.mapToFigmaTeam(dbModel);
 	};

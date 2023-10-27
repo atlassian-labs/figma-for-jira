@@ -4,7 +4,6 @@ import type { NextFunction, Request, Response } from 'express';
 import {
 	ForbiddenOperationError,
 	UnauthorizedOperationError,
-	ValidationError,
 } from '../../common/errors';
 import { ResponseStatusError } from '../errors';
 
@@ -34,13 +33,6 @@ export const errorHandlerMiddleware = (
 		err instanceof ForbiddenOperationError
 	) {
 		res.status(HttpStatusCode.Forbidden).send({ message: err.message });
-		return next();
-	}
-
-	// TODO: Delete handling this error once error handling is refactored in use cases.
-	// 	By default, consider all non-`ResponseStatusError` errors as internal server error.
-	if (err instanceof ValidationError) {
-		res.status(HttpStatusCode.BadRequest).send({ message: err.message });
 		return next();
 	}
 

@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { connectInstallationRepository } from './connect-installation-repository';
 import { figmaTeamRepository } from './figma-team-repository';
 
@@ -11,6 +13,41 @@ const figmaTeamComparer = (first: FigmaTeam, second: FigmaTeam) =>
 	first.id.localeCompare(second.id);
 
 describe('FigmaTeamRepository', () => {
+	describe('findByWebhookId', () => {
+		it('should return team with given webhook ID', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const webhookId = uuidv4();
+			const figmaTeam = await figmaTeamRepository.upsert(
+				generateFigmaTeamCreateParams({
+					connectInstallationId: connectInstallation.id,
+					webhookId,
+				}),
+			);
+
+			const result = await figmaTeamRepository.findByWebhookId(webhookId);
+
+			expect(result).toEqual(figmaTeam);
+		});
+
+		it('should return null when there is no team with given webhook ID', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			await figmaTeamRepository.upsert(
+				generateFigmaTeamCreateParams({
+					connectInstallationId: connectInstallation.id,
+				}),
+			);
+			const webhookId = uuidv4();
+
+			const result = await figmaTeamRepository.findByWebhookId(webhookId);
+
+			expect(result).toBeNull();
+		});
+	});
+
 	describe('findManyByConnectInstallationId', () => {
 		it('should return teams with given connect installation ID', async () => {
 			const [targetConnectInstallation, anotherConnectInstallation] =
