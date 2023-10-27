@@ -6,11 +6,3 @@ export class CauseAwareError extends Error {
 		super(message);
 	}
 }
-
-export class OperationError extends CauseAwareError {}
-
-export class NotFoundOperationError extends OperationError {}
-
-export class UnauthorizedOperationError extends OperationError {}
-
-export class ForbiddenOperationError extends OperationError {}

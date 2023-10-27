@@ -7,6 +7,8 @@ const TOKEN_EXPIRATION_LEEWAY = Duration.ofSeconds(3);
 /**
  * Verifies the `qsh` claim to ensure that the query has not been tampered by creating a query hash and comparing
  * 	it against the `qsh` claim.
+ *
+ * @throws {Error} The token contains an invalid `qsh` claim.
  */
 export const verifyQshClaimBoundToUrl = (
 	{ qsh }: { qsh: string },
@@ -24,6 +26,8 @@ export const verifyQshClaimBoundToUrl = (
 /**
  * Verifies the `exp` claim to ensure that the token is still within expiration.
  * It gives a several second leeway in case of time drift.
+ *
+ * @throws {Error} The token is expired.
  */
 export const verifyExpClaim = ({ exp }: { exp: number }) => {
 	const nowInSeconds = Date.now() / 1000;
@@ -33,6 +37,9 @@ export const verifyExpClaim = ({ exp }: { exp: number }) => {
 	}
 };
 
+/**
+ * @throws {Error} The token contains an invalid `aud` claim.
+ */
 export const verifyAudClaimIncludesBaseUrl = (
 	{ aud }: { aud: string | string[] },
 	baseUrl: string,

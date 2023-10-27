@@ -1,11 +1,10 @@
-import {
-	ForbiddenOperationError,
-	UnauthorizedOperationError,
-} from '../common/errors';
 import type { AtlassianDesign, FigmaTeam } from '../domain/entities';
 import { FigmaTeamAuthStatus } from '../domain/entities';
 import { getLogger } from '../infrastructure';
-import { figmaService } from '../infrastructure/figma';
+import {
+	figmaService,
+	UnauthorizedFigmaServiceError,
+} from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
 import {
 	associatedFigmaDesignRepository,
@@ -22,12 +21,11 @@ export const handleFigmaFileUpdateEventUseCase = {
 			);
 			await figmaTeamRepository.updateTeamName(figmaTeam.id, teamName);
 		} catch (e: unknown) {
-			if (isAuthRelatedError(e)) {
-				await figmaTeamRepository.updateAuthStatus(
+			if (e instanceof UnauthorizedFigmaServiceError) {
+				return figmaTeamRepository.updateAuthStatus(
 					figmaTeam.id,
 					FigmaTeamAuthStatus.ERROR,
 				);
-				return;
 			}
 
 			getLogger().warn(e, `Failed to sync team name for ${figmaTeam.id}`);
@@ -51,7 +49,7 @@ export const handleFigmaFileUpdateEventUseCase = {
 				figmaTeam.adminInfo,
 			);
 		} catch (e: unknown) {
-			if (isAuthRelatedError(e)) {
+			if (e instanceof UnauthorizedFigmaServiceError) {
 				return figmaTeamRepository.updateAuthStatus(
 					figmaTeam.id,
 					FigmaTeamAuthStatus.ERROR,
@@ -65,11 +63,4 @@ export const handleFigmaFileUpdateEventUseCase = {
 			connectInstallation,
 		);
 	},
-};
-
-const isAuthRelatedError = (e: unknown): boolean => {
-	return (
-		e instanceof UnauthorizedOperationError ||
-		e instanceof ForbiddenOperationError
-	);
 };

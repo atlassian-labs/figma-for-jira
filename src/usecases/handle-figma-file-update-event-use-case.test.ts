@@ -2,7 +2,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { handleFigmaFileUpdateEventUseCase } from './handle-figma-file-update-event-use-case';
 
-import { ForbiddenOperationError } from '../common/errors';
 import { FigmaTeamAuthStatus } from '../domain/entities';
 import {
 	generateAssociatedFigmaDesign,
@@ -11,7 +10,10 @@ import {
 	generateFigmaDesignIdentifier,
 	generateFigmaTeam,
 } from '../domain/entities/testing';
-import { figmaService } from '../infrastructure/figma';
+import {
+	figmaService,
+	UnauthorizedFigmaServiceError,
+} from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
 import {
 	associatedFigmaDesignRepository,
@@ -39,7 +41,7 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 		it('should set team status to ERROR and return if fetching Figma team name fails with auth error', async () => {
 			jest
 				.spyOn(figmaService, 'getTeamName')
-				.mockRejectedValue(new ForbiddenOperationError());
+				.mockRejectedValue(new UnauthorizedFigmaServiceError());
 			jest.spyOn(figmaTeamRepository, 'updateAuthStatus').mockResolvedValue();
 
 			await handleFigmaFileUpdateEventUseCase.execute(figmaTeam, fileKey);
@@ -138,7 +140,7 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				.mockResolvedValue(associatedFigmaDesigns);
 			jest
 				.spyOn(figmaService, 'fetchDesignsByIds')
-				.mockRejectedValue(new ForbiddenOperationError());
+				.mockRejectedValue(new UnauthorizedFigmaServiceError());
 			jest.spyOn(figmaTeamRepository, 'updateAuthStatus').mockResolvedValue();
 
 			await handleFigmaFileUpdateEventUseCase.execute(figmaTeam, fileKey);

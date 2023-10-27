@@ -61,6 +61,8 @@ const JIRA_ASYMMETRIC_JWT_CLAIMS_SCHEMA = {
  * Asymmetric JWT tokens are sent with lifecycle callback events by Jira server.
  *
  * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#types-of-jwt-token
+ *
+ * @throws {Error} The token is invalid or cannot be verified.
  */
 export class JiraAsymmetricJwtTokenVerifier {
 	verify = async (

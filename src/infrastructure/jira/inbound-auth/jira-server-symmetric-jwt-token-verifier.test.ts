@@ -4,8 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { jiraServerSymmetricJwtTokenVerifier } from './jira-server-symmetric-jwt-token-verifier';
 
 import { Duration } from '../../../common/duration';
-import { NotFoundOperationError } from '../../../common/errors';
 import { generateConnectInstallation } from '../../../domain/entities/testing';
+import { NotFoundHttpClientError } from '../../http-client-errors';
 import { connectInstallationRepository } from '../../repositories';
 
 const NOW = Date.now();
@@ -58,7 +58,7 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 		it('should throw when there is no Connect Installation', async () => {
 			jest
 				.spyOn(connectInstallationRepository, 'getByClientKey')
-				.mockRejectedValue(new NotFoundOperationError());
+				.mockRejectedValue(new NotFoundHttpClientError());
 			const jwtToken = encodeSymmetric(
 				{
 					iss: uuidv4(),

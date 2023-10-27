@@ -1,7 +1,10 @@
 import { encodeSymmetric, SymmetricAlgorithm } from 'atlassian-jwt';
 import { v4 as uuidv4 } from 'uuid';
 
-import { figmaAuthService } from './figma-auth-service';
+import {
+	figmaAuthService,
+	MissingOrInvalidCredentialsFigmaAuthServiceError,
+} from './figma-auth-service';
 import { figmaClient } from './figma-client';
 import {
 	generateGetOAuth2TokenResponse,
@@ -9,10 +12,6 @@ import {
 } from './figma-client/testing';
 
 import { Duration } from '../../common/duration';
-import {
-	NotFoundOperationError,
-	UnauthorizedOperationError,
-} from '../../common/errors';
 import * as configModule from '../../config';
 import { getConfig } from '../../config';
 import { mockConfig } from '../../config/testing';
@@ -145,18 +144,22 @@ describe('FigmaAuthService', () => {
 			});
 		});
 
-		it('should throw UnauthorizedOperationError when no credentials', async () => {
+		it('should throw when no credentials', async () => {
 			const connectUserInfo = generateConnectUserInfo();
 			jest
 				.spyOn(figmaOAuth2UserCredentialsRepository, 'get')
-				.mockRejectedValue(new NotFoundOperationError('error'));
+				.mockRejectedValue(
+					new MissingOrInvalidCredentialsFigmaAuthServiceError('error'),
+				);
 
 			await expect(() =>
 				figmaAuthService.getCredentials(connectUserInfo),
-			).rejects.toBeInstanceOf(UnauthorizedOperationError);
+			).rejects.toBeInstanceOf(
+				MissingOrInvalidCredentialsFigmaAuthServiceError,
+			);
 		});
 
-		it('should throw UnauthorizedOperationError when refreshing expired credentials fails', async () => {
+		it('should throw when refreshing expired credentials fails', async () => {
 			const now = Date.now();
 			jest.setSystemTime(now);
 			const connectUserInfo = generateConnectUserInfo();
@@ -174,7 +177,7 @@ describe('FigmaAuthService', () => {
 
 			await expect(
 				figmaAuthService.getCredentials(connectUserInfo),
-			).rejects.toThrowError(UnauthorizedOperationError);
+			).rejects.toThrowError(MissingOrInvalidCredentialsFigmaAuthServiceError);
 		});
 	});
 

@@ -2,9 +2,9 @@ import { HttpStatusCode } from 'axios';
 import type { NextFunction, Request, Response } from 'express';
 
 import {
-	ForbiddenOperationError,
-	UnauthorizedOperationError,
-} from '../../common/errors';
+	ForbiddenHttpClientError,
+	NotFoundHttpClientError,
+} from '../../infrastructure/http-client-errors';
 import { ResponseStatusError } from '../errors';
 
 export const errorHandlerMiddleware = (
@@ -29,8 +29,8 @@ export const errorHandlerMiddleware = (
 	// TODO: Delete handling these errors once error handling is refactored in use cases.
 	// By default, consider all non-`ResponseStatusError` errors as internal server error.
 	if (
-		err instanceof UnauthorizedOperationError ||
-		err instanceof ForbiddenOperationError
+		err instanceof NotFoundHttpClientError ||
+		err instanceof ForbiddenHttpClientError
 	) {
 		res.status(HttpStatusCode.Forbidden).send({ message: err.message });
 		return next();

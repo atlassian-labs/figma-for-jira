@@ -44,6 +44,9 @@ class JiraClient {
 	 *
 	 * // TODO: Verify that link is correct when the documentation is published.
 	 * @see https://developer.atlassian.com/cloud/jira/software/rest/api-group-design/#api-group-design
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
+	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	submitDesigns = async (
 		payload: SubmitDesignsRequest,
@@ -66,6 +69,10 @@ class JiraClient {
 			return response.data;
 		});
 
+	/**
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
+	 * @throws {Error} Unknown error (e.g., no network connection).
+	 */
 	deleteDesign = async (
 		designId: FigmaDesignIdentifier,
 		connectInstallation: ConnectInstallation,
@@ -89,6 +96,9 @@ class JiraClient {
 	 * Returns a single issue, for a given issue ID or issue key.
 	 *
 	 * @see https://developer.atlassian.com/cloud/jira/software/rest/api-group-issue/#api-rest-agile-1-0-issue-issueidorkey-get
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
+	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	getIssue = async (
 		issueIdOrKey: string,
@@ -115,6 +125,9 @@ class JiraClient {
 	 * Returns the key and value of an issue's property
 	 *
 	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-properties/#api-rest-api-2-issue-issueidorkey-properties-propertykey-get
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
+	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	getIssueProperty = async (
 		issueIdOrKey: string,
@@ -147,6 +160,8 @@ class JiraClient {
 	 * Sets the value of an issue's property. Use this resource to store custom data against an issue.
 	 *
 	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-properties/#api-rest-api-2-issue-issueidorkey-properties-propertykey-put
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
 	 */
 	setIssueProperty = async (
 		issueIdOrKey: string,
@@ -174,6 +189,8 @@ class JiraClient {
 	 * Deletes an issue's property
 	 *
 	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-properties/#api-rest-api-2-issue-issueidorkey-properties-propertykey-delete
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
 	 */
 	deleteIssueProperty = async (
 		issueIdOrKey: string,
@@ -197,6 +214,8 @@ class JiraClient {
 	 * Sets a connect app property.
 	 *
 	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-app-properties/#api-rest-atlassian-connect-1-addons-addonkey-properties-propertykey-put
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
 	 */
 	setAppProperty = async (
 		propertyKey: string,
@@ -223,6 +242,8 @@ class JiraClient {
 	 * Returns a list of requested global and project permissions.
 	 *
 	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-permissions/#api-rest-api-3-permissions-check-post
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
 	 */
 	checkPermissions = async (
 		payload: CheckPermissionsRequest,

@@ -1,11 +1,11 @@
 import { HttpStatusCode, isAxiosError } from 'axios';
 
 import {
-	ForbiddenOperationError,
-	NotFoundOperationError,
-	OperationError,
-	UnauthorizedOperationError,
-} from '../common/errors';
+	ForbiddenHttpClientError,
+	HttpClientError,
+	NotFoundHttpClientError,
+	UnauthorizedHttpClientError,
+} from './http-client-errors';
 
 export const withAxiosErrorTranslation = async <T>(fn: () => Promise<T>) => {
 	try {
@@ -19,13 +19,13 @@ const translateAxiosError = (error: unknown): unknown => {
 	if (!isAxiosError(error)) return error;
 
 	switch (error.response?.status) {
-		case HttpStatusCode.NotFound:
-			return new NotFoundOperationError(error.message, error);
 		case HttpStatusCode.Unauthorized:
-			return new UnauthorizedOperationError(error.message, error);
+			return new UnauthorizedHttpClientError(error.message, error);
 		case HttpStatusCode.Forbidden:
-			return new ForbiddenOperationError(error.message, error);
+			return new ForbiddenHttpClientError(error.message, error);
+		case HttpStatusCode.NotFound:
+			return new NotFoundHttpClientError(error.message, error);
 		default:
-			return new OperationError(error.message, error);
+			return new HttpClientError(error.message, error);
 	}
 };

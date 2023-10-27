@@ -4,13 +4,11 @@ import {
 	SymmetricAlgorithm,
 } from 'atlassian-jwt';
 
+import type { RefreshOAuth2TokenResponse } from './figma-client';
 import { figmaClient } from './figma-client';
 
 import { Duration } from '../../common/duration';
-import {
-	NotFoundOperationError,
-	UnauthorizedOperationError,
-} from '../../common/errors';
+import { CauseAwareError } from '../../common/errors';
 import type { JSONSchemaTypeWithId } from '../../common/schema-validation';
 import { assertSchema } from '../../common/schema-validation';
 import { ensureString } from '../../common/string-utils';
@@ -21,6 +19,7 @@ import type {
 	FigmaOAuth2UserCredentials,
 } from '../../domain/entities';
 import { figmaOAuth2UserCredentialsRepository } from '../repositories';
+import { NotFoundRepositoryError } from '../repositories/errors';
 
 type FigmaOAuth2StateJwtClaims = {
 	readonly iss: string;
@@ -50,6 +49,8 @@ const FIGMA_OAUTH2_STATE_JWT_CLAIMS_SCHEMA: JSONSchemaTypeWithId<FigmaOAuth2Stat
 export class FigmaAuthService {
 	/**
 	 * Exchanges the given code on OAuth 2.0 token and stores the credentials for the future usage.
+	 *
+	 * @throws {Error} Unknown error.
 	 */
 	createCredentials = async (
 		code: string,
@@ -70,6 +71,9 @@ export class FigmaAuthService {
 	 * Returns OAuth 2.0 credentials for the given user if he/she completed OAuth 2.0 flow; otherwise -- `null`.
 	 *
 	 * The method refreshes access token when required, so the caller does not need to handle token expiration.
+	 *
+	 * @throws {MissingOrInvalidCredentialsFigmaAuthServiceError} Credentials are invalid or missing.
+	 * @throws {Error} Unknown error.
 	 */
 	getCredentials = async (
 		user: ConnectUserInfo,
@@ -82,28 +86,20 @@ export class FigmaAuthService {
 				user.connectInstallationId,
 			);
 		} catch (e: unknown) {
-			if (e instanceof NotFoundOperationError) {
-				throw new UnauthorizedOperationError(
-					'Cannot get Figma credentials.',
-					e,
+			if (e instanceof NotFoundRepositoryError) {
+				throw new MissingOrInvalidCredentialsFigmaAuthServiceError(
+					'No Figma credentials.',
 				);
 			}
 
 			throw e;
 		}
 
-		try {
-			if (credentials.isExpired()) {
-				credentials = await this.refreshCredentials(credentials);
-			}
-
-			return credentials;
-		} catch (e: unknown) {
-			throw new UnauthorizedOperationError(
-				'Cannot refresh Figma credentials.',
-				e,
-			);
+		if (credentials.isExpired()) {
+			credentials = await this.refreshCredentials(credentials);
 		}
+
+		return credentials;
 	};
 
 	/**
@@ -160,6 +156,8 @@ export class FigmaAuthService {
 	 * It verifies the state represents an authentic non-expired JWT token.
 	 *
 	 * @see https://www.figma.com/developers/api#oauth2
+	 *
+	 * @throws {Error} Invalid OAuth 2.0 state is given.
 	 */
 	verifyOAuth2AuthorizationResponseState = (
 		state: unknown,
@@ -190,12 +188,23 @@ export class FigmaAuthService {
 		};
 	};
 
+	/**
+	 * @throws {MissingOrInvalidCredentialsFigmaAuthServiceError} Cannot renew the credentials.
+	 * @throws {Error} Unknown error.
+	 */
 	private refreshCredentials = async (
 		credentials: FigmaOAuth2UserCredentials,
 	): Promise<FigmaOAuth2UserCredentials> => {
-		const response = await figmaClient.refreshOAuth2Token(
-			credentials.refreshToken,
-		);
+		let response: RefreshOAuth2TokenResponse;
+
+		try {
+			response = await figmaClient.refreshOAuth2Token(credentials.refreshToken);
+		} catch (e) {
+			throw new MissingOrInvalidCredentialsFigmaAuthServiceError(
+				'Failed to refresh Figma credentials.',
+				e,
+			);
+		}
 
 		return figmaOAuth2UserCredentialsRepository.upsert({
 			atlassianUserId: credentials.atlassianUserId,
@@ -212,3 +221,5 @@ export class FigmaAuthService {
 }
 
 export const figmaAuthService = new FigmaAuthService();
+
+export class MissingOrInvalidCredentialsFigmaAuthServiceError extends CauseAwareError {}

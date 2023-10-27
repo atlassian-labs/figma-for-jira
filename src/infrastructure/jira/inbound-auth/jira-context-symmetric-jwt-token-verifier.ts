@@ -45,6 +45,8 @@ const JIRA_CONTEXT_SYMMETRIC_JWT_CLAIMS_SCHEMA: JSONSchemaTypeWithId<JiraContext
  *
  * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#types-of-jwt-token
  * @see https://community.developer.atlassian.com/t/action-required-atlassian-connect-vulnerability-allows-bypass-of-app-qsh-verification-via-context-jwts/47072
+ *
+ * @throws {Error} The token is invalid or cannot be verified.
  */
 export class JiraContextSymmetricJwtTokenVerifier {
 	verify = async (
