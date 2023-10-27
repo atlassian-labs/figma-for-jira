@@ -2,9 +2,9 @@ import { HttpStatusCode } from 'axios';
 import type { NextFunction, Request, Response } from 'express';
 
 import {
-	ForbiddenByFigmaUseCaseError,
-	InvalidInputUseCaseError,
-	UseCaseError,
+	ForbiddenByFigmaUseCaseResultError,
+	InvalidInputUseCaseResultError,
+	UseCaseResultError,
 } from '../../usecases';
 import { ResponseStatusError } from '../errors';
 
@@ -29,20 +29,22 @@ export const errorHandlerMiddleware = (
 	}
 
 	// Handle business error from use cases.
-	if (err instanceof UseCaseError) {
-		if (err instanceof InvalidInputUseCaseError) {
+	if (err instanceof UseCaseResultError) {
+		if (err instanceof InvalidInputUseCaseResultError) {
 			res
 				.status(HttpStatusCode.BadRequest)
 				.send({ message: err.message, detail: err.detail });
 			return next();
 		}
 
-		if (err instanceof ForbiddenByFigmaUseCaseError) {
+		if (err instanceof ForbiddenByFigmaUseCaseResultError) {
 			res.status(HttpStatusCode.Forbidden).send({ message: err.message });
 			return next();
 		}
 	}
 
+	// Consider other errors as internal server error.
+	// Do not include additional information about the error to avoid exposing internal details.
 	res
 		.status(HttpStatusCode.InternalServerError)
 		.send({ message: 'Internal server error' });

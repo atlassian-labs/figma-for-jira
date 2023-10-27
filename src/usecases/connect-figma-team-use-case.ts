@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { ForbiddenByFigmaUseCaseError } from './errors';
+import { ForbiddenByFigmaUseCaseResultError } from './errors';
 
 import type { ConnectInstallation, FigmaTeamSummary } from '../domain/entities';
 import { FigmaTeamAuthStatus } from '../domain/entities';
@@ -13,7 +13,7 @@ import { figmaTeamRepository } from '../infrastructure/repositories';
 
 export const connectFigmaTeamUseCase = {
 	/**
-	 * @throws {ForbiddenByFigmaUseCaseError} Not authorized to access Figma.
+	 * @throws {ForbiddenByFigmaUseCaseResultError} Not authorized to access Figma.
 	 */
 	execute: async (
 		teamId: string,
@@ -52,7 +52,7 @@ export const connectFigmaTeamUseCase = {
 			return figmaTeam.toFigmaTeamSummary();
 		} catch (e) {
 			if (e instanceof UnauthorizedFigmaServiceError) {
-				throw new ForbiddenByFigmaUseCaseError({ cause: e });
+				throw new ForbiddenByFigmaUseCaseResultError({ cause: e });
 			}
 
 			throw e;

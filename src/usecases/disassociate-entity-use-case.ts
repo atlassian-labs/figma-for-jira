@@ -1,6 +1,6 @@
 import {
-	ForbiddenByFigmaUseCaseError,
-	InvalidInputUseCaseError,
+	ForbiddenByFigmaUseCaseResultError,
+	InvalidInputUseCaseResultError,
 } from './errors';
 import type { AtlassianEntity } from './types';
 
@@ -30,8 +30,8 @@ export type DisassociateEntityUseCaseParams = {
 
 export const disassociateEntityUseCase = {
 	/**
-	 * @throws {InvalidInputUseCaseError} An invalid use case input.
-	 * @throws {ForbiddenByFigmaUseCaseError} Not authorized to access Figma.
+	 * @throws {InvalidInputUseCaseResultError} An invalid use case input.
+	 * @throws {ForbiddenByFigmaUseCaseResultError} Not authorized to access Figma.
 	 */
 	execute: async ({
 		entity,
@@ -41,7 +41,7 @@ export const disassociateEntityUseCase = {
 	}: DisassociateEntityUseCaseParams): Promise<AtlassianDesign> => {
 		try {
 			if (disassociateFrom.ati !== JIRA_ISSUE_ATI) {
-				throw new InvalidInputUseCaseError('Unrecognised ATI');
+				throw new InvalidInputUseCaseResultError('Unrecognised ATI');
 			}
 
 			const figmaDesignId = FigmaDesignIdentifier.fromAtlassianDesignId(
@@ -96,7 +96,7 @@ export const disassociateEntityUseCase = {
 			return design;
 		} catch (e) {
 			if (e instanceof UnauthorizedFigmaServiceError) {
-				throw new ForbiddenByFigmaUseCaseError({ cause: e });
+				throw new ForbiddenByFigmaUseCaseResultError({ cause: e });
 			}
 
 			throw e;

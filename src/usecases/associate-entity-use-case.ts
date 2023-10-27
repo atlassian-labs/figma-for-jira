@@ -1,4 +1,4 @@
-import { ForbiddenByFigmaUseCaseError } from './errors';
+import { ForbiddenByFigmaUseCaseResultError } from './errors';
 import type { AtlassianEntity } from './types';
 
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
@@ -25,7 +25,7 @@ export type AssociateEntityUseCaseParams = {
 
 export const associateEntityUseCase = {
 	/**
-	 * @throws {ForbiddenByFigmaUseCaseError} Not authorized to access Figma.
+	 * @throws {ForbiddenByFigmaUseCaseResultError} Not authorized to access Figma.
 	 */
 	execute: async ({
 		entity,
@@ -85,7 +85,7 @@ export const associateEntityUseCase = {
 			return design;
 		} catch (e) {
 			if (e instanceof UnauthorizedFigmaServiceError) {
-				throw new ForbiddenByFigmaUseCaseError({ cause: e });
+				throw new ForbiddenByFigmaUseCaseResultError({ cause: e });
 			}
 
 			throw e;
