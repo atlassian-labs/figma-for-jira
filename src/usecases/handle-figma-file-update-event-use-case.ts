@@ -13,6 +13,9 @@ import {
 } from '../infrastructure/repositories';
 
 export const handleFigmaFileUpdateEventUseCase = {
+	/**
+	 * @throw {Error} Unknown error.
+	 */
 	execute: async (figmaTeam: FigmaTeam, fileKey: string): Promise<void> => {
 		try {
 			const teamName = await figmaService.getTeamName(

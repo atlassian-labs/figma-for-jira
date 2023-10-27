@@ -101,11 +101,18 @@ describe('/figma', () => {
 				connectInstallation = await connectInstallationRepository.upsert(
 					generateConnectInstallationCreateParams(),
 				);
-				figmaTeam = await figmaTeamRepository.upsert(
-					generateFigmaTeamCreateParams({
-						connectInstallationId: connectInstallation.id,
-					}),
-				);
+				figmaTeam = await figmaTeamRepository
+					.upsert(
+						generateFigmaTeamCreateParams({
+							connectInstallationId: connectInstallation.id,
+						}),
+					)
+					.then((team) =>
+						figmaTeamRepository.getByTeamIdAndConnectInstallationId(
+							team.teamId,
+							connectInstallation.id,
+						),
+					);
 				await figmaOAuth2UserCredentialsRepository.upsert(
 					generateFigmaOAuth2UserCredentialCreateParams({
 						atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,

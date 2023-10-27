@@ -1,9 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { type FigmaTeam, FigmaTeamAuthStatus } from '../domain/entities';
-import { generateConnectInstallation } from '../domain/entities/testing';
+import { FigmaTeamAuthStatus } from '../domain/entities';
+import {
+	generateConnectInstallation,
+	generateFigmaTeam,
+} from '../domain/entities/testing';
 import { figmaService } from '../infrastructure/figma';
-import { ConfigurationState, jiraService } from '../infrastructure/jira';
+import { ConfigurationStatus, jiraService } from '../infrastructure/jira';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
 import { connectFigmaTeamUseCase } from '.';
@@ -12,6 +15,7 @@ describe('connectFigmaTeamUseCase', () => {
 	it('should create a webhook and FigmaTeam record', async () => {
 		const teamId = uuidv4();
 		const teamName = uuidv4();
+		const figmaTeam = generateFigmaTeam({ teamId, teamName });
 		const atlassianUserId = uuidv4();
 		const connectInstallation = generateConnectInstallation();
 		const webhookId = uuidv4();
@@ -22,17 +26,22 @@ describe('connectFigmaTeamUseCase', () => {
 			.mockResolvedValue({ teamId, webhookId });
 		jest
 			.spyOn(figmaTeamRepository, 'upsert')
-			.mockResolvedValue({} as FigmaTeam);
+			.mockResolvedValue(generateFigmaTeam({ teamId, teamName }));
 		jest
-			.spyOn(jiraService, 'setConfigurationStateInAppProperties')
+			.spyOn(jiraService, 'setAppConfigurationStatus')
 			.mockResolvedValue(undefined);
 
-		await connectFigmaTeamUseCase.execute(
+		const result = await connectFigmaTeamUseCase.execute(
 			teamId,
 			atlassianUserId,
 			connectInstallation,
 		);
 
+		expect(result).toStrictEqual({
+			teamId: figmaTeam.teamId,
+			teamName: figmaTeam.teamName,
+			authStatus: figmaTeam.authStatus,
+		});
 		expect(figmaService.createFileUpdateWebhook).toBeCalledWith(
 			teamId,
 			expect.anything(),
@@ -53,9 +62,8 @@ describe('connectFigmaTeamUseCase', () => {
 			authStatus: FigmaTeamAuthStatus.OK,
 			connectInstallationId: connectInstallation.id,
 		});
-
-		expect(jiraService.setConfigurationStateInAppProperties).toBeCalledWith(
-			ConfigurationState.CONFIGURED,
+		expect(jiraService.setAppConfigurationStatus).toBeCalledWith(
+			ConfigurationStatus.CONFIGURED,
 			connectInstallation,
 		);
 	});

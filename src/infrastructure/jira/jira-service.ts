@@ -43,7 +43,7 @@ export const appPropertyKeys = {
 	CONFIGURATION_STATE: 'is-configured',
 };
 
-export enum ConfigurationState {
+export enum ConfigurationStatus {
 	CONFIGURED = 'CONFIGURED',
 	NOT_CONFIGURED = 'NOT_CONFIGURED',
 }
@@ -193,17 +193,23 @@ class JiraService {
 		]);
 	};
 
-	setConfigurationStateInAppProperties = async (
-		configurationState: ConfigurationState,
+	/**
+	 * @throws {Error} Unknown error.
+	 */
+	setAppConfigurationStatus = async (
+		configurationStatus: ConfigurationStatus,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		return await jiraClient.setAppProperty(
 			appPropertyKeys.CONFIGURATION_STATE,
-			{ isConfigured: configurationState.valueOf() },
+			{ status: configurationStatus },
 			connectInstallation,
 		);
 	};
 
+	/**
+	 * @throws {Error} Unknown error.
+	 */
 	isAdmin = async (
 		atlassianUserId: string,
 		connectInstallation: ConnectInstallation,
@@ -218,55 +224,6 @@ class JiraService {
 
 		return response.globalPermissions.includes(JIRA_ADMIN_GLOBAL_PERMISSION);
 	};
-
-	private throwIfSubmitDesignResponseHasErrors = (
-		response: SubmitDesignsResponse,
-	) => {
-		if (response.rejectedEntities.length) {
-			const { key, errors } = response.rejectedEntities[0];
-			throw SubmitDesignJiraServiceError.designRejected(key.designId, errors);
-		}
-
-		// TODO: Confirm whether we need to consider the use case below as a failure and throw or just leave a warning.
-		if (response.unknownIssueKeys?.length) {
-			throw SubmitDesignJiraServiceError.unknownIssueKeys(
-				response.unknownIssueKeys,
-			);
-		}
-
-		if (response.unknownAssociations?.length) {
-			throw SubmitDesignJiraServiceError.unknownAssociations(
-				response.unknownAssociations.map(
-					(x) => new AtlassianAssociation(x.associationType, x.values),
-				),
-			);
-		}
-	};
-
-	private async getIssuePropertyJsonValue<T>(
-		issueIdOrKey: string,
-		propertyKey: string,
-		connectInstallation: ConnectInstallation,
-		schema: JSONSchemaTypeWithId<T[]>,
-	): Promise<T[] | null> {
-		try {
-			const response = await jiraClient.getIssueProperty(
-				issueIdOrKey,
-				propertyKey,
-				connectInstallation,
-			);
-			return parseJsonOfSchema(response.value, schema);
-		} catch (error) {
-			if (
-				error instanceof NotFoundHttpClientError ||
-				error instanceof SchemaValidationError
-			) {
-				return null; // If property does not exist or value is in unexpected format, return null
-			} else {
-				throw error;
-			}
-		}
-	}
 
 	/**
 	 * @internal
@@ -430,6 +387,61 @@ class JiraService {
 		} else {
 			getLogger().warn(
 				`Design with url: ${url} that was requested to be deleted was not removed from the 'attached-design-v2' issue property array`,
+			);
+		}
+	};
+
+	/**
+	 * @throws {Error} Unknown error.
+	 */
+	private async getIssuePropertyJsonValue<T>(
+		issueIdOrKey: string,
+		propertyKey: string,
+		connectInstallation: ConnectInstallation,
+		schema: JSONSchemaTypeWithId<T[]>,
+	): Promise<T[] | null> {
+		try {
+			const response = await jiraClient.getIssueProperty(
+				issueIdOrKey,
+				propertyKey,
+				connectInstallation,
+			);
+			return parseJsonOfSchema(response.value, schema);
+		} catch (error) {
+			if (
+				error instanceof NotFoundHttpClientError ||
+				error instanceof SchemaValidationError
+			) {
+				return null; // If property does not exist or value is in unexpected format, return null
+			} else {
+				throw error;
+			}
+		}
+	}
+
+	/**
+	 * @throws {SubmitDesignJiraServiceError}
+	 */
+	private throwIfSubmitDesignResponseHasErrors = (
+		response: SubmitDesignsResponse,
+	) => {
+		if (response.rejectedEntities.length) {
+			const { key, errors } = response.rejectedEntities[0];
+			throw SubmitDesignJiraServiceError.designRejected(key.designId, errors);
+		}
+
+		// TODO: Confirm whether we need to consider the use case below as a failure and throw or just leave a warning.
+		if (response.unknownIssueKeys?.length) {
+			throw SubmitDesignJiraServiceError.unknownIssueKeys(
+				response.unknownIssueKeys,
+			);
+		}
+
+		if (response.unknownAssociations?.length) {
+			throw SubmitDesignJiraServiceError.unknownAssociations(
+				response.unknownAssociations.map(
+					(x) => new AtlassianAssociation(x.associationType, x.values),
+				),
 			);
 		}
 	};

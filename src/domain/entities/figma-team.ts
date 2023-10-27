@@ -44,6 +44,14 @@ export class FigmaTeam {
 	get adminInfo() {
 		return this.#adminInfo;
 	}
+
+	toFigmaTeamSummary(): FigmaTeamSummary {
+		return {
+			teamId: this.teamId,
+			teamName: this.teamName,
+			authStatus: this.authStatus,
+		};
+	}
 }
 
 export type FigmaTeamCreateParams = {

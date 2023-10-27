@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 
 import type {
 	ConnectInstallation,
+	FigmaTeamAuthStatus,
 	FigmaTeamSummary,
 } from '../../../../domain/entities';
 
@@ -23,8 +24,9 @@ export type ConnectFigmaTeamRequest = Request<
 >;
 
 export type ConnectTeamResponseBody = {
-	readonly success: string[];
-	readonly error: string[];
+	readonly teamId: string;
+	readonly teamName: string;
+	readonly authStatus: FigmaTeamAuthStatus;
 };
 
 export type ConnectFigmaTeamResponse = Response<

@@ -234,13 +234,18 @@ describe('/admin/teams', () => {
 				baseUrl: connectInstallation.baseUrl,
 				appKey: connectInstallation.key,
 				propertyKey: 'is-configured',
-				request: { isConfigured: `CONFIGURED` },
+				request: { status: `CONFIGURED` },
 			});
 
 			await request(app)
 				.post(requestPath)
 				.set('Authorization', `JWT ${jwt}`)
-				.expect(HttpStatusCode.Ok);
+				.expect(HttpStatusCode.Ok)
+				.expect({
+					teamId,
+					teamName,
+					authStatus: FigmaTeamAuthStatus.OK,
+				});
 
 			const figmaTeam = await figmaTeamRepository.getAll();
 			expect(figmaTeam[0]).toEqual({
@@ -369,7 +374,7 @@ describe('/admin/teams', () => {
 				baseUrl: connectInstallation.baseUrl,
 				appKey: connectInstallation.key,
 				propertyKey: 'is-configured',
-				request: { isConfigured: `NOT_CONFIGURED` },
+				request: { status: `NOT_CONFIGURED` },
 			});
 
 			await request(app)
@@ -420,7 +425,7 @@ describe('/admin/teams', () => {
 				baseUrl: connectInstallation.baseUrl,
 				appKey: connectInstallation.key,
 				propertyKey: 'is-configured',
-				request: { isConfigured: `NOT_CONFIGURED` },
+				request: { status: `NOT_CONFIGURED` },
 			});
 
 			await request(app)

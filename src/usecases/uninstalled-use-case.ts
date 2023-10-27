@@ -13,6 +13,9 @@ import {
  *  Consider making the implementation idempotent and retrying its execution in case of a failure (e.g., using a queue).
  */
 export const uninstalledUseCase = {
+	/**
+	 * @throw {Error} Unknown error.
+	 */
 	execute: async (clientKey: string) => {
 		const connectInstallation =
 			await connectInstallationRepository.getByClientKey(clientKey);

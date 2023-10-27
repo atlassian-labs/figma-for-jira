@@ -2,9 +2,10 @@ import { HttpStatusCode } from 'axios';
 import type { NextFunction, Request, Response } from 'express';
 
 import {
-	ForbiddenHttpClientError,
-	NotFoundHttpClientError,
-} from '../../infrastructure/http-client-errors';
+	ForbiddenByFigmaUseCaseError,
+	InvalidInputUseCaseError,
+	UseCaseError,
+} from '../../usecases';
 import { ResponseStatusError } from '../errors';
 
 export const errorHandlerMiddleware = (
@@ -21,19 +22,24 @@ export const errorHandlerMiddleware = (
 	// Setting `err` on the response, so it can be picked up by the `pino-http` logger
 	res.err = err;
 
+	// Handle errors from the web layer (e.g., from middlewares).
 	if (err instanceof ResponseStatusError) {
 		res.status(err.statusCode).send(err.getSafeResponse());
 		return next();
 	}
 
-	// TODO: Delete handling these errors once error handling is refactored in use cases.
-	// By default, consider all non-`ResponseStatusError` errors as internal server error.
-	if (
-		err instanceof NotFoundHttpClientError ||
-		err instanceof ForbiddenHttpClientError
-	) {
-		res.status(HttpStatusCode.Forbidden).send({ message: err.message });
-		return next();
+	if (err instanceof UseCaseError) {
+		switch (err.constructor) {
+			case InvalidInputUseCaseError: {
+				res.status(HttpStatusCode.BadRequest).send({ message: err.message });
+				return next();
+			}
+
+			case ForbiddenByFigmaUseCaseError: {
+				res.status(HttpStatusCode.Forbidden).send({ message: err.message });
+				return next();
+			}
+		}
 	}
 
 	res

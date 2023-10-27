@@ -1,45 +1,62 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import { ForbiddenByFigmaUseCaseError } from './errors';
+
+import type { ConnectInstallation, FigmaTeamSummary } from '../domain/entities';
+import { FigmaTeamAuthStatus } from '../domain/entities';
 import {
-	type ConnectInstallation,
-	FigmaTeamAuthStatus,
-} from '../domain/entities';
-import { figmaService } from '../infrastructure/figma';
-import { ConfigurationState, jiraService } from '../infrastructure/jira';
+	figmaService,
+	UnauthorizedFigmaServiceError,
+} from '../infrastructure/figma';
+import { ConfigurationStatus, jiraService } from '../infrastructure/jira';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
 export const connectFigmaTeamUseCase = {
+	/**
+	 * @throw {ForbiddenByFigmaUseCaseError} Not authorized to access Figma.
+	 * @throw {Error} Unknown error.
+	 */
 	execute: async (
 		teamId: string,
 		atlassianUserId: string,
 		connectInstallation: ConnectInstallation,
-	): Promise<void> => {
-		const webhookPasscode = uuidv4();
+	): Promise<FigmaTeamSummary> => {
+		try {
+			const webhookPasscode = uuidv4();
 
-		const teamName = await figmaService.getTeamName(teamId, {
-			atlassianUserId,
-			connectInstallationId: connectInstallation.id,
-		});
-
-		const { webhookId, teamId: figmaTeamId } =
-			await figmaService.createFileUpdateWebhook(teamId, webhookPasscode, {
+			const teamName = await figmaService.getTeamName(teamId, {
 				atlassianUserId,
 				connectInstallationId: connectInstallation.id,
 			});
 
-		await figmaTeamRepository.upsert({
-			webhookId,
-			webhookPasscode,
-			teamId: figmaTeamId,
-			teamName,
-			figmaAdminAtlassianUserId: atlassianUserId,
-			authStatus: FigmaTeamAuthStatus.OK,
-			connectInstallationId: connectInstallation.id,
-		});
+			const { webhookId, teamId: figmaTeamId } =
+				await figmaService.createFileUpdateWebhook(teamId, webhookPasscode, {
+					atlassianUserId,
+					connectInstallationId: connectInstallation.id,
+				});
 
-		await jiraService.setConfigurationStateInAppProperties(
-			ConfigurationState.CONFIGURED,
-			connectInstallation,
-		);
+			const figmaTeam = await figmaTeamRepository.upsert({
+				webhookId,
+				webhookPasscode,
+				teamId: figmaTeamId,
+				teamName,
+				figmaAdminAtlassianUserId: atlassianUserId,
+				authStatus: FigmaTeamAuthStatus.OK,
+				connectInstallationId: connectInstallation.id,
+			});
+
+			await jiraService.setAppConfigurationStatus(
+				ConfigurationStatus.CONFIGURED,
+				connectInstallation,
+			);
+
+			return figmaTeam.toFigmaTeamSummary();
+		} catch (e) {
+			if (e instanceof UnauthorizedFigmaServiceError) {
+				throw new ForbiddenByFigmaUseCaseError({ cause: e });
+			}
+
+			throw e;
+		}
 	},
 };
