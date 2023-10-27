@@ -17,8 +17,7 @@
 		"noImplicitThis": false,
 		"esModuleInterop": true,
 		"outDir": "build",
-		"baseUrl": ".",
-		"skipLibCheck": true
+		"baseUrl": "."
 	},
 	"include": ["src/**/*", "test/**/*"]
 }
