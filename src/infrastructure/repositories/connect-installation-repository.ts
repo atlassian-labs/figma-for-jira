@@ -11,6 +11,9 @@ import type {
 } from '../../domain/entities';
 
 export class ConnectInstallationRepository {
+	/**
+	 * @throws {NotFoundRepositoryError} An entity is not found.
+	 */
 	get = async (id: string): Promise<ConnectInstallation> => {
 		const dbModel = await prismaClient.get().connectInstallation.findFirst({
 			where: { id: BigInt(id) },
@@ -33,6 +36,9 @@ export class ConnectInstallationRepository {
 		return dbModels.map((dbModel) => this.mapToDomainModel(dbModel));
 	};
 
+	/**
+	 * @throws {NotFoundRepositoryError} An entity is not found.
+	 */
 	getByClientKey = async (clientKey: string): Promise<ConnectInstallation> => {
 		const dbModel = await prismaClient.get().connectInstallation.findFirst({
 			where: { clientKey },

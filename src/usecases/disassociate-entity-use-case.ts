@@ -30,9 +30,8 @@ export type DisassociateEntityUseCaseParams = {
 
 export const disassociateEntityUseCase = {
 	/**
-	 * @throw {ForbiddenByFigmaUseCaseError} Not authorized to access Figma.
-	 * @throw {InvalidInputUseCaseError} Invalid input.
-	 * @throw {Error} Unknown error.
+	 * @throws {InvalidInputUseCaseError} An invalid use case input.
+	 * @throws {ForbiddenByFigmaUseCaseError} Not authorized to access Figma.
 	 */
 	execute: async ({
 		entity,

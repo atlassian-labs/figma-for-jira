@@ -25,8 +25,7 @@ export type AssociateEntityUseCaseParams = {
 
 export const associateEntityUseCase = {
 	/**
-	 * @throw {ForbiddenByFigmaUseCaseError} Not authorized to access Figma.
-	 * @throw {Error} Unknown error.
+	 * @throws {ForbiddenByFigmaUseCaseError} Not authorized to access Figma.
 	 */
 	execute: async ({
 		entity,

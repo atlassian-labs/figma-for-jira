@@ -46,7 +46,6 @@ class JiraClient {
 	 * @see https://developer.atlassian.com/cloud/jira/software/rest/api-group-design/#api-group-design
 	 *
 	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	submitDesigns = async (
 		payload: SubmitDesignsRequest,
@@ -71,7 +70,6 @@ class JiraClient {
 
 	/**
 	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	deleteDesign = async (
 		designId: FigmaDesignIdentifier,
@@ -98,7 +96,6 @@ class JiraClient {
 	 * @see https://developer.atlassian.com/cloud/jira/software/rest/api-group-issue/#api-rest-agile-1-0-issue-issueidorkey-get
 	 *
 	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	getIssue = async (
 		issueIdOrKey: string,
@@ -127,7 +124,6 @@ class JiraClient {
 	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-properties/#api-rest-api-2-issue-issueidorkey-properties-propertykey-get
 	 *
 	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	getIssueProperty = async (
 		issueIdOrKey: string,

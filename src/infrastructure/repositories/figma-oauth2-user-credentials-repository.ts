@@ -30,6 +30,9 @@ export class FigmaOAuth2UserCredentialsRepository {
 		return this.mapToDomainModel(dbModel);
 	};
 
+	/**
+	 * @throws {NotFoundRepositoryError} An entity is not found.
+	 */
 	get = async (
 		atlassianUserId: string,
 		connectInstallationId: string,

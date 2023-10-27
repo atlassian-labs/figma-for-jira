@@ -49,8 +49,6 @@ const FIGMA_OAUTH2_STATE_JWT_CLAIMS_SCHEMA: JSONSchemaTypeWithId<FigmaOAuth2Stat
 export class FigmaAuthService {
 	/**
 	 * Exchanges the given code on OAuth 2.0 token and stores the credentials for the future usage.
-	 *
-	 * @throws {Error} Unknown error.
 	 */
 	createCredentials = async (
 		code: string,
@@ -73,7 +71,6 @@ export class FigmaAuthService {
 	 * The method refreshes access token when required, so the caller does not need to handle token expiration.
 	 *
 	 * @throws {MissingOrInvalidCredentialsFigmaAuthServiceError} Credentials are invalid or missing.
-	 * @throws {Error} Unknown error.
 	 */
 	getCredentials = async (
 		user: ConnectUserInfo,
@@ -190,7 +187,6 @@ export class FigmaAuthService {
 
 	/**
 	 * @throws {MissingOrInvalidCredentialsFigmaAuthServiceError} Cannot renew the credentials.
-	 * @throws {Error} Unknown error.
 	 */
 	private refreshCredentials = async (
 		credentials: FigmaOAuth2UserCredentials,

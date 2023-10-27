@@ -32,8 +32,6 @@ const buildDevResourceNameFromJiraIssue = (
 export class FigmaService {
 	/**
 	 * Checks whether the given user authorized the app to access Figma.
-	 *
-	 * @throws {Error} Unknown error (e.g., database IO error or network error).
 	 */
 	checkAuth = async (user: ConnectUserInfo): Promise<boolean> => {
 		try {
@@ -52,7 +50,6 @@ export class FigmaService {
 	 * Return Atlassian design representation for the given Figma design.
 	 *
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
-	 * @throws {Error} Unknown error (e.g., database IO error or network error).
 	 */
 	fetchDesignById = async (
 		designId: FigmaDesignIdentifier,
@@ -92,7 +89,6 @@ export class FigmaService {
 	 * Return Atlassian design representations for the given Figma designs.
 	 *
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
-	 * @throws {Error} Unknown error (e.g., database IO error or network error).
 	 */
 	fetchDesignsByIds = async (
 		designIds: FigmaDesignIdentifier[],
@@ -143,7 +139,6 @@ export class FigmaService {
 
 	/**
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
-	 * @throws {Error} Unknown error (e.g., database IO error or network error).
 	 */
 	createDevResourceForJiraIssue = async ({
 		designId,
@@ -185,7 +180,6 @@ export class FigmaService {
 
 	/**
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
-	 * @throws {Error} Unknown error (e.g., database IO error or network error).
 	 */
 	deleteDevResourceIfExists = async ({
 		designId,
@@ -224,7 +218,7 @@ export class FigmaService {
 		});
 
 	/**
-	 * @throws {Error} Unknown error (e.g., database IO error or network error).
+	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 */
 	createFileUpdateWebhook = async (
 		teamId: string,
@@ -260,7 +254,6 @@ export class FigmaService {
 	 * @see https://www.figma.com/developers/api#webhooks-v2-intro
 	 *
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
-	 * @throws {Error} Unknown error (e.g., database IO error or network error).
 	 */
 	tryDeleteWebhook = async (
 		webhookId: string,
@@ -288,7 +281,6 @@ export class FigmaService {
 
 	/**
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
-	 * @throws {Error} Unknown error (e.g., database IO error or network error).
 	 */
 	getTeamName = async (
 		teamId: string,
@@ -303,7 +295,6 @@ export class FigmaService {
 
 	/**
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
-	 * @throws {Error} Unknown error (e.g., database IO error or network error).
 	 */
 	private withErrorTranslation = async <T>(fn: () => Promise<T>) => {
 		try {

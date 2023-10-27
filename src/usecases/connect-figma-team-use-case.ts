@@ -13,8 +13,7 @@ import { figmaTeamRepository } from '../infrastructure/repositories';
 
 export const connectFigmaTeamUseCase = {
 	/**
-	 * @throw {ForbiddenByFigmaUseCaseError} Not authorized to access Figma.
-	 * @throw {Error} Unknown error.
+	 * @throws {ForbiddenByFigmaUseCaseError} Not authorized to access Figma.
 	 */
 	execute: async (
 		teamId: string,

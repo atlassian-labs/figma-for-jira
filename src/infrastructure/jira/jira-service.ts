@@ -59,7 +59,6 @@ export const JIRA_ADMIN_GLOBAL_PERMISSION = 'ADMINISTER';
 class JiraService {
 	/**
 	 * @throws {SubmitDesignJiraServiceError} Design submission fails.
-	 * @throws {Error} Unknown error.
 	 */
 	submitDesign = async (
 		params: SubmitDesignParams,
@@ -70,7 +69,6 @@ class JiraService {
 
 	/**
 	 * @throws {SubmitDesignJiraServiceError} Design submission fails.
-	 * @throws {Error} Unknown error.
 	 */
 	submitDesigns = async (
 		designs: SubmitDesignParams[],
@@ -95,9 +93,6 @@ class JiraService {
 		this.throwIfSubmitDesignResponseHasErrors(response);
 	};
 
-	/**
-	 * @throws {Error} Unknown error.
-	 */
 	deleteDesign = async (
 		designId: FigmaDesignIdentifier,
 		connectInstallation: ConnectInstallation,
@@ -105,9 +100,6 @@ class JiraService {
 		return await jiraClient.deleteDesign(designId, connectInstallation);
 	};
 
-	/**
-	 * @throws {Error} Unknown error.
-	 */
 	getIssue = async (
 		issueIdOrKey: string,
 		connectInstallation: ConnectInstallation,
@@ -115,9 +107,6 @@ class JiraService {
 		return await jiraClient.getIssue(issueIdOrKey, connectInstallation);
 	};
 
-	/**
-	 * @throws {Error} Unknown error.
-	 */
 	updateIngestedDesignsIssueProperty = async (
 		issueIdOrKey: string,
 		{ url }: AtlassianDesign,
@@ -144,9 +133,6 @@ class JiraService {
 		);
 	};
 
-	/**
-	 * @throws {Error} Unknown error.
-	 */
 	saveDesignUrlInIssueProperties = async (
 		issueIdOrKey: string,
 		design: AtlassianDesign,
@@ -171,9 +157,6 @@ class JiraService {
 		]);
 	};
 
-	/**
-	 * @throws {Error} Unknown error.
-	 */
 	deleteDesignUrlInIssueProperties = async (
 		issueIdOrKey: string,
 		design: AtlassianDesign,
@@ -193,9 +176,6 @@ class JiraService {
 		]);
 	};
 
-	/**
-	 * @throws {Error} Unknown error.
-	 */
 	setAppConfigurationStatus = async (
 		configurationStatus: ConfigurationStatus,
 		connectInstallation: ConnectInstallation,
@@ -207,9 +187,6 @@ class JiraService {
 		);
 	};
 
-	/**
-	 * @throws {Error} Unknown error.
-	 */
 	isAdmin = async (
 		atlassianUserId: string,
 		connectInstallation: ConnectInstallation,
@@ -257,8 +234,6 @@ class JiraService {
 	/**
 	 * @internal
 	 * Only visible for testing. Please use {@link saveDesignUrlInIssueProperties}
-	 *
-	 * @throws {Error} Unknown error.
 	 */
 	updateAttachedDesignUrlV2IssueProperty = async (
 		issueIdOrKey: string,
@@ -297,8 +272,6 @@ class JiraService {
 	/**
 	 * @internal
 	 * Only visible for testing. Please use {@link deleteDesignUrlInIssueProperties}
-	 *
-	 * @throws {Error} Unknown error.
 	 */
 	deleteAttachedDesignUrlInIssuePropertiesIfPresent = async (
 		issueIdOrKey: string,
@@ -332,8 +305,6 @@ class JiraService {
 	/**
 	 * @internal
 	 * Only visible for testing. Please use {@link saveDesignUrlInIssueProperties}
-	 *
-	 * @throws {Error} Unknown error.
 	 */
 	deleteFromAttachedDesignUrlV2IssueProperties = async (
 		issueIdOrKey: string,
@@ -391,9 +362,6 @@ class JiraService {
 		}
 	};
 
-	/**
-	 * @throws {Error} Unknown error.
-	 */
 	private async getIssuePropertyJsonValue<T>(
 		issueIdOrKey: string,
 		propertyKey: string,

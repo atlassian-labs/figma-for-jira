@@ -10,7 +10,6 @@ export class ConnectKeyServerClient {
 	 * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#verifying-a-asymmetric-jwt-token-for-install-callbacks
 	 *
 	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	getAtlassianConnectPublicKey = async (keyId: string): Promise<string> =>
 		withAxiosErrorTranslation(async () => {

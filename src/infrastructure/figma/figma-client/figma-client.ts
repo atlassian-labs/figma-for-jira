@@ -43,7 +43,6 @@ export class FigmaClient {
 	 * @see https://www.figma.com/developers/api#oauth2
 	 *
 	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	getOAuth2Token = async (code: string): Promise<GetOAuth2TokenResponse> =>
 		withAxiosErrorTranslation(async () => {
@@ -78,7 +77,6 @@ export class FigmaClient {
 	 * @see https://www.figma.com/developers/api#refresh-oauth2
 	 *
 	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	refreshOAuth2Token = async (
 		refreshToken: string,
@@ -108,7 +106,6 @@ export class FigmaClient {
 	 * @see https://www.figma.com/developers/api#get-me-endpoint
 	 *
 	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	me = async (accessToken: string): Promise<GetMeResponse> =>
 		withAxiosErrorTranslation(async () => {
@@ -132,7 +129,6 @@ export class FigmaClient {
 	 * @see https://www.figma.com/developers/api#get-files-endpoint
 	 *
 	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	getFile = async (
 		fileKey: string,
@@ -174,7 +170,6 @@ export class FigmaClient {
 	 * @see https://www.figma.com/developers/api#post-dev-resources-endpoint
 	 *
 	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	createDevResources = async (
 		request: CreateDevResourcesRequest,
@@ -202,7 +197,6 @@ export class FigmaClient {
 	 * @see https://www.figma.com/developers/api#get-dev-resources-endpoint
 	 *
 	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	getDevResources = async ({
 		fileKey,
@@ -233,7 +227,6 @@ export class FigmaClient {
 	 * @see https://www.figma.com/developers/api#delete-dev-resources-endpoint
 	 *
 	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	deleteDevResource = async ({
 		fileKey,
@@ -261,7 +254,6 @@ export class FigmaClient {
 	 * @see https://www.figma.com/developers/api#webhooks-v2-post-endpoint
 	 *
 	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	createWebhook = async (
 		request: CreateWebhookRequest,
@@ -289,7 +281,6 @@ export class FigmaClient {
 	 * @see https://www.figma.com/developers/api#webhooks-v2-delete-endpoint
 	 *
 	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	deleteWebhook = async (
 		webhookId: string,
@@ -312,7 +303,6 @@ export class FigmaClient {
 	 * @see https://www.figma.com/developers/api#projects-endpoints
 	 *
 	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 * @throws {Error} Unknown error (e.g., no network connection).
 	 */
 	getTeamProjects = async (
 		teamId: string,

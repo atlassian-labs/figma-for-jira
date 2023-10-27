@@ -44,6 +44,9 @@ export class FigmaTeamRepository {
 		return dbModels.map((dbModel) => this.mapToFigmaTeam(dbModel));
 	};
 
+	/**
+	 * @throws {NotFoundRepositoryError} An entity is not found.
+	 */
 	getByTeamIdAndConnectInstallationId = async (
 		teamId: string,
 		connectInstallationId: string,
