@@ -13,7 +13,6 @@
 		"jwt:generate": "dotenv -e .env -- ts-node ./scripts/create-jwt.ts",
 		"format": "prettier . --write",
 		"format:check": "prettier . --check",
-		"jira:installApp": "./scripts/app-install.sh",
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"precommit": "run-p format:check lint",
