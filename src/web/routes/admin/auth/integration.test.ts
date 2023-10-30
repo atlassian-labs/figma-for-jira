@@ -72,7 +72,15 @@ describe('/admin/auth', () => {
 				.get(CHECK_AUTH_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok)
-				.expect({ authorized: true });
+				.then((response) => {
+					expect(response.body).toStrictEqual({
+						authorized: true,
+						user: { email: expect.any(String) },
+						grant: {
+							authorizationEndpoint: expect.any(String),
+						},
+					});
+				});
 		});
 
 		it('should return a response indicating that user is authorized if credentials were refreshed', async () => {
@@ -113,7 +121,15 @@ describe('/admin/auth', () => {
 				.get(CHECK_AUTH_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok)
-				.expect({ authorized: true });
+				.then((response) => {
+					expect(response.body).toStrictEqual({
+						authorized: true,
+						user: { email: expect.any(String) },
+						grant: {
+							authorizationEndpoint: expect.any(String),
+						},
+					});
+				});
 
 			const credentials = await figmaOAuth2UserCredentialsRepository.get(
 				atlassianUserId,

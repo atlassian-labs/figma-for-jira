@@ -9,7 +9,6 @@ import type {
 	CreateWebhookRequest,
 	CreateWebhookResponse,
 	GetDevResourcesResponse,
-	GetMeResponse,
 } from './figma-client';
 import { figmaClient } from './figma-client';
 import {
@@ -62,36 +61,42 @@ describe('FigmaService', () => {
 		jest.restoreAllMocks();
 	});
 
-	describe('checkAuth', () => {
-		it('should return true if user is authorized', async () => {
+	describe('fetchCurrentUser', () => {
+		it('should return if the user is authorized', async () => {
 			const credentials = generateFigmaOAuth2UserCredentials();
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
-			jest.spyOn(figmaClient, 'me').mockResolvedValue({} as GetMeResponse);
+			jest
+				.spyOn(figmaClient, 'me')
+				.mockResolvedValue({ email: 'me@foo.com', id: '1234' });
 
-			const result = await figmaService.checkAuth(MOCK_CONNECT_USER_INFO);
+			const result = await figmaService.fetchCurrentUser(
+				MOCK_CONNECT_USER_INFO,
+			);
 
-			expect(result).toBe(true);
+			expect(result).toEqual({ email: 'me@foo.com' });
 			expect(figmaAuthService.getCredentials).toHaveBeenCalledWith(
 				MOCK_CONNECT_USER_INFO,
 			);
 			expect(figmaClient.me).toHaveBeenCalledWith(credentials.accessToken);
 		});
 
-		it('should return false if there is no valid credentials', async () => {
+		it('should return null if there are no valid credentials', async () => {
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockRejectedValue(
 					new MissingOrInvalidCredentialsFigmaAuthServiceError(),
 				);
 
-			const result = await figmaService.checkAuth(MOCK_CONNECT_USER_INFO);
+			const result = await figmaService.fetchCurrentUser(
+				MOCK_CONNECT_USER_INFO,
+			);
 
-			expect(result).toBe(false);
+			expect(result).toBe(null);
 		});
 
-		it('should return false if user is not authorized to call Figma API', async () => {
+		it('should return null if user is not authorized to call Figma API', async () => {
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(generateFigmaOAuth2UserCredentials());
@@ -99,12 +104,14 @@ describe('FigmaService', () => {
 				.spyOn(figmaClient, 'me')
 				.mockRejectedValue(new ForbiddenHttpClientError());
 
-			const result = await figmaService.checkAuth(MOCK_CONNECT_USER_INFO);
+			const result = await figmaService.fetchCurrentUser(
+				MOCK_CONNECT_USER_INFO,
+			);
 
-			expect(result).toBe(false);
+			expect(result).toBe(null);
 		});
 
-		it('should return false if request Figma API fails with no auth-related error', async () => {
+		it('should throw if request Figma API fails with no auth-related error', async () => {
 			const error = new Error();
 			const credentials = generateFigmaOAuth2UserCredentials();
 			jest
@@ -113,7 +120,7 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'me').mockRejectedValue(error);
 
 			await expect(
-				figmaService.checkAuth(MOCK_CONNECT_USER_INFO),
+				figmaService.fetchCurrentUser(MOCK_CONNECT_USER_INFO),
 			).rejects.toStrictEqual(error);
 		});
 	});

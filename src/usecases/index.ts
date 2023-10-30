@@ -1,4 +1,4 @@
-export * from './check-user-figma-auth-use-case';
+export * from './current-figma-user-use-case';
 export * from './associate-entity-use-case';
 export * from './connect-figma-team-use-case';
 export * from './disassociate-entity-use-case';

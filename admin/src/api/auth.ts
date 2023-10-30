@@ -2,10 +2,18 @@ import { type AxiosResponse } from 'axios';
 
 import { axiosRest } from './axiosInstance';
 
+export type FigmaUser = {
+	readonly email: string;
+};
+
 export type CheckAuthResponseBody =
 	| {
 			readonly type: '3LO';
 			readonly authorized: true;
+			readonly grant: {
+				readonly authorizationEndpoint: string;
+			};
+			readonly user: FigmaUser;
 	  }
 	| {
 			readonly type: '3LO';

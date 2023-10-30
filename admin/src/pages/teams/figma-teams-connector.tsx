@@ -9,16 +9,29 @@ import { useState } from 'react';
 
 import { ConnectTeamSuccessScreen } from './connect-teams-success-screen';
 
+import type { FigmaUser } from '../../api';
 import { connectTeam } from '../../api';
-import { ConnectBanner, FigmaPermissionsPopup, Page } from '../../components';
+import {
+	ConnectBanner,
+	FigmaPermissionsPopup,
+	Link,
+	Page,
+} from '../../components';
 import { parseTeamIdFromFigmaUrl } from '../../utils';
 
 type ConnectTeamProps = {
+	authorizationEndpoint: string;
+	currentUser: FigmaUser;
 	onClose?: () => void;
 	site: string;
 };
 
-export function FigmaTeamConnector({ onClose, site }: ConnectTeamProps) {
+export function FigmaTeamConnector({
+	authorizationEndpoint,
+	currentUser,
+	onClose,
+	site,
+}: ConnectTeamProps) {
 	const queryClient = useQueryClient();
 	const [validationError, setValidationError] = useState<string | null>(null);
 	const connectTeamMutation = useMutation({
@@ -150,7 +163,10 @@ export function FigmaTeamConnector({ onClose, site }: ConnectTeamProps) {
 						)}
 					</Form>
 				</div>
-				{/* {TODO: Render footer for changing the connected figma account} */}
+				<div>
+					Logged in as <strong>{currentUser.email}</strong>.{' '}
+					<Link href={authorizationEndpoint}>Change Figma account</Link>
+				</div>
 			</div>
 		);
 	}

@@ -49,5 +49,10 @@ export function App() {
 		);
 	}
 
-	return <TeamsPage />;
+	return (
+		<TeamsPage
+			authorizationEndpoint={checkAuthResponse.grant.authorizationEndpoint}
+			currentUser={checkAuthResponse.user}
+		/>
+	);
 }

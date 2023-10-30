@@ -6,8 +6,11 @@ export type CheckAuthQueryParameters = { readonly userId: string };
 
 export type CheckAuthResponseBody = {
 	readonly authorized: boolean;
-	readonly grant?: {
+	readonly grant: {
 		readonly authorizationEndpoint: string;
+	};
+	readonly user?: {
+		readonly email: string;
 	};
 };
 

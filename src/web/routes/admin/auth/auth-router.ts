@@ -4,7 +4,7 @@ import { Router } from 'express';
 import type { CheckAuthRequest, CheckAuthResponse } from './types';
 
 import { figmaAuthService } from '../../../../infrastructure/figma';
-import { checkUserFigmaAuthUseCase } from '../../../../usecases';
+import { currentFigmaUserUseCase } from '../../../../usecases';
 
 export const authRouter = Router();
 
@@ -16,13 +16,9 @@ authRouter.get(
 	function (req: CheckAuthRequest, res: CheckAuthResponse, next: NextFunction) {
 		const { connectInstallation, atlassianUserId } = res.locals;
 
-		checkUserFigmaAuthUseCase
+		currentFigmaUserUseCase
 			.execute(atlassianUserId, connectInstallation)
-			.then((authorized) => {
-				if (authorized) {
-					return res.send({ authorized });
-				}
-
+			.then((currentUser) => {
 				const authorizationEndpoint =
 					figmaAuthService.createOAuth2AuthorizationRequest({
 						atlassianUserId,
@@ -30,8 +26,16 @@ authRouter.get(
 						redirectEndpoint: `figma/oauth/callback`,
 					});
 
+				if (currentUser) {
+					return res.send({
+						authorized: true,
+						user: { email: currentUser.email },
+						grant: { authorizationEndpoint },
+					});
+				}
+
 				return res.send({
-					authorized,
+					authorized: false,
 					grant: { authorizationEndpoint },
 				});
 			})
