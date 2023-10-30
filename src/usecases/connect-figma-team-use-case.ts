@@ -1,45 +1,61 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import { ForbiddenByFigmaUseCaseResultError } from './errors';
+
 import type { ConnectInstallation, FigmaTeamSummary } from '../domain/entities';
 import { FigmaTeamAuthStatus } from '../domain/entities';
-import { figmaService } from '../infrastructure/figma';
+import {
+	figmaService,
+	UnauthorizedFigmaServiceError,
+} from '../infrastructure/figma';
 import { ConfigurationStatus, jiraService } from '../infrastructure/jira';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
 export const connectFigmaTeamUseCase = {
+	/**
+	 * @throws {ForbiddenByFigmaUseCaseResultError} Not authorized to access Figma.
+	 */
 	execute: async (
 		teamId: string,
 		atlassianUserId: string,
 		connectInstallation: ConnectInstallation,
 	): Promise<FigmaTeamSummary> => {
-		const webhookPasscode = uuidv4();
+		try {
+			const webhookPasscode = uuidv4();
 
-		const teamName = await figmaService.getTeamName(teamId, {
-			atlassianUserId,
-			connectInstallationId: connectInstallation.id,
-		});
-
-		const { webhookId, teamId: figmaTeamId } =
-			await figmaService.createFileUpdateWebhook(teamId, webhookPasscode, {
+			const teamName = await figmaService.getTeamName(teamId, {
 				atlassianUserId,
 				connectInstallationId: connectInstallation.id,
 			});
 
-		const teamSummary = await figmaTeamRepository.upsert({
-			webhookId,
-			webhookPasscode,
-			teamId: figmaTeamId,
-			teamName,
-			figmaAdminAtlassianUserId: atlassianUserId,
-			authStatus: FigmaTeamAuthStatus.OK,
-			connectInstallationId: connectInstallation.id,
-		});
+			const { webhookId, teamId: figmaTeamId } =
+				await figmaService.createFileUpdateWebhook(teamId, webhookPasscode, {
+					atlassianUserId,
+					connectInstallationId: connectInstallation.id,
+				});
 
-		await jiraService.setAppConfigurationStatus(
-			ConfigurationStatus.CONFIGURED,
-			connectInstallation,
-		);
+			const figmaTeam = await figmaTeamRepository.upsert({
+				webhookId,
+				webhookPasscode,
+				teamId: figmaTeamId,
+				teamName,
+				figmaAdminAtlassianUserId: atlassianUserId,
+				authStatus: FigmaTeamAuthStatus.OK,
+				connectInstallationId: connectInstallation.id,
+			});
 
-		return teamSummary;
+			await jiraService.setAppConfigurationStatus(
+				ConfigurationStatus.CONFIGURED,
+				connectInstallation,
+			);
+
+			return figmaTeam.toFigmaTeamSummary();
+		} catch (e) {
+			if (e instanceof UnauthorizedFigmaServiceError) {
+				throw new ForbiddenByFigmaUseCaseResultError({ cause: e });
+			}
+
+			throw e;
+		}
 	},
 };

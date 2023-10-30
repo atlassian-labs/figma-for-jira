@@ -2,7 +2,6 @@ import type { AxiosResponse } from 'axios';
 import { AxiosError, HttpStatusCode } from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 
-import { SubmitDesignJiraOperationError } from './errors';
 import { jiraClient } from './jira-client';
 import {
 	generateCheckPermissionsResponse,
@@ -19,9 +18,9 @@ import {
 	ConfigurationStatus,
 	issuePropertyKeys,
 	jiraService,
+	SubmitDesignJiraServiceError,
 } from './jira-service';
 
-import { NotFoundOperationError } from '../../common/errors';
 import { SchemaValidationError } from '../../common/schema-validation';
 import type {
 	AtlassianDesign,
@@ -36,6 +35,7 @@ import {
 	generateJiraIssueAri,
 	generateJiraIssueKey,
 } from '../../domain/entities/testing';
+import { NotFoundHttpClientError } from '../http-client-errors';
 
 describe('JiraService', () => {
 	describe('submitDesigns', () => {
@@ -133,7 +133,7 @@ describe('JiraService', () => {
 			const submitDesignsResponse = generateFailedSubmitDesignsResponse(
 				designs.map((design) => design.id),
 			);
-			const expectedError = SubmitDesignJiraOperationError.designRejected(
+			const expectedError = SubmitDesignJiraServiceError.designRejected(
 				submitDesignsResponse.rejectedEntities[0].key.designId,
 				submitDesignsResponse.rejectedEntities[0].errors,
 			);
@@ -158,7 +158,7 @@ describe('JiraService', () => {
 				generateSubmitDesignsResponseWithUnknownData({
 					unknownAssociations: [],
 				});
-			const expectedError = SubmitDesignJiraOperationError.unknownIssueKeys(
+			const expectedError = SubmitDesignJiraServiceError.unknownIssueKeys(
 				submitDesignsResponse.unknownIssueKeys!,
 			);
 			jest
@@ -182,7 +182,7 @@ describe('JiraService', () => {
 				generateSubmitDesignsResponseWithUnknownData({
 					unknownIssueKeys: [],
 				});
-			const expectedError = SubmitDesignJiraOperationError.unknownAssociations(
+			const expectedError = SubmitDesignJiraServiceError.unknownAssociations(
 				submitDesignsResponse.unknownAssociations!,
 			);
 			jest
@@ -278,7 +278,7 @@ describe('JiraService', () => {
 		it('should set the issue property if not present', async () => {
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
-				.mockRejectedValue(new NotFoundOperationError());
+				.mockRejectedValue(new NotFoundHttpClientError());
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
 			await jiraService.setAttachedDesignUrlInIssuePropertiesIfMissing(
@@ -349,7 +349,7 @@ describe('JiraService', () => {
 		it('should set the issue property if not present', async () => {
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
-				.mockRejectedValue(new NotFoundOperationError());
+				.mockRejectedValue(new NotFoundHttpClientError());
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
 			await jiraService.updateAttachedDesignUrlV2IssueProperty(
@@ -526,7 +526,7 @@ describe('JiraService', () => {
 		it('should set the issue property if not present', async () => {
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
-				.mockRejectedValue(new NotFoundOperationError());
+				.mockRejectedValue(new NotFoundHttpClientError());
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
 			await jiraService.updateIngestedDesignsIssueProperty(
@@ -733,8 +733,8 @@ describe('JiraService', () => {
 			).rejects.toThrowError(unexpectedError);
 		});
 
-		it('should not rethrow JiraClientNotFound errors', async () => {
-			const notFoundError = new NotFoundOperationError();
+		it('should not rethrow NotFoundHttpClientError errors', async () => {
+			const notFoundError = new NotFoundHttpClientError();
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockRejectedValue(notFoundError);
@@ -890,8 +890,8 @@ describe('JiraService', () => {
 			).rejects.toThrowError(unexpectedError);
 		});
 
-		it('should not rethrow JiraClientNotFound errors', async () => {
-			const notFoundError = new NotFoundOperationError();
+		it('should not rethrow NotFoundHttpClientError errors', async () => {
+			const notFoundError = new NotFoundHttpClientError();
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockRejectedValue(notFoundError);

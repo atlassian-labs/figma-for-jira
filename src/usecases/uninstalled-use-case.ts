@@ -10,7 +10,7 @@ import {
  * - Data not being deleted from the database (e.g., in case of a database failure).
  * - Some Figma webhooks not being deleted (e.g., in case of a database or Figma API failure).
  *
- *  Consider making the implementation idempotent and retrying its execution in case of a failure (e.g., using a queue).
+ * Consider making the implementation idempotent and retrying its execution in case of a failure (e.g., using a queue).
  */
 export const uninstalledUseCase = {
 	execute: async (clientKey: string) => {

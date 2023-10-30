@@ -2,9 +2,9 @@ import type { FigmaTeam as PrismaFigmaTeam } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 import { PrismaErrorCode } from './constants';
+import { NotFoundRepositoryError } from './errors';
 import { prismaClient } from './prisma-client';
 
-import { NotFoundOperationError } from '../../common/errors';
 import type {
 	FigmaTeamCreateParams,
 	FigmaTeamSummary,
@@ -18,9 +18,7 @@ type PrismaFigmaTeamSummary = Pick<
 >;
 
 export class FigmaTeamRepository {
-	upsert = async (
-		createParams: FigmaTeamCreateParams,
-	): Promise<FigmaTeamSummary> => {
+	upsert = async (createParams: FigmaTeamCreateParams): Promise<FigmaTeam> => {
 		const createParamsDbModel = this.mapCreateParamsToDbModel(createParams);
 
 		const dbModel = await prismaClient.get().figmaTeam.upsert({
@@ -33,7 +31,7 @@ export class FigmaTeamRepository {
 				},
 			},
 		});
-		return this.mapToFigmaTeamSummary(dbModel);
+		return this.mapToFigmaTeam(dbModel);
 	};
 
 	/**
@@ -46,6 +44,9 @@ export class FigmaTeamRepository {
 		return dbModels.map((dbModel) => this.mapToFigmaTeam(dbModel));
 	};
 
+	/**
+	 * @throws {NotFoundRepositoryError} An entity is not found.
+	 */
 	getByTeamIdAndConnectInstallationId = async (
 		teamId: string,
 		connectInstallationId: string,
@@ -55,7 +56,7 @@ export class FigmaTeamRepository {
 		});
 
 		if (dbModel === null) {
-			throw new NotFoundOperationError(
+			throw new NotFoundRepositoryError(
 				`Failed to find FigmaTeam for teamId ${teamId} and connectInstallationId ${connectInstallationId}`,
 			);
 		}
@@ -108,7 +109,7 @@ export class FigmaTeamRepository {
 				e instanceof PrismaClientKnownRequestError &&
 				e.code === PrismaErrorCode.RecordNotFound
 			) {
-				throw new NotFoundOperationError(e.message);
+				throw new NotFoundRepositoryError(e.message);
 			}
 		}
 	};
@@ -124,7 +125,7 @@ export class FigmaTeamRepository {
 				e instanceof PrismaClientKnownRequestError &&
 				e.code === PrismaErrorCode.RecordNotFound
 			) {
-				throw new NotFoundOperationError('Figma team is not found.', e);
+				throw new NotFoundRepositoryError('Figma team is not found.', e);
 			}
 		}
 	};
@@ -140,7 +141,7 @@ export class FigmaTeamRepository {
 				e instanceof PrismaClientKnownRequestError &&
 				e.code === PrismaErrorCode.RecordNotFound
 			) {
-				throw new NotFoundOperationError('Figma team is not found.', e);
+				throw new NotFoundRepositoryError('Figma team is not found.', e);
 			}
 			throw e;
 		}

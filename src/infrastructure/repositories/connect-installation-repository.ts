@@ -2,21 +2,24 @@ import type { ConnectInstallation as PrismaConnectInstallation } from '@prisma/c
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 import { PrismaErrorCode } from './constants';
+import { NotFoundRepositoryError } from './errors';
 import { prismaClient } from './prisma-client';
 
-import { NotFoundOperationError } from '../../common/errors';
 import type {
 	ConnectInstallation,
 	ConnectInstallationCreateParams,
 } from '../../domain/entities';
 
 export class ConnectInstallationRepository {
+	/**
+	 * @throws {NotFoundRepositoryError} An entity is not found.
+	 */
 	get = async (id: string): Promise<ConnectInstallation> => {
 		const dbModel = await prismaClient.get().connectInstallation.findFirst({
 			where: { id: BigInt(id) },
 		});
 		if (dbModel === null) {
-			throw new NotFoundOperationError(
+			throw new NotFoundRepositoryError(
 				`Failed to find ConnectInstallation for id ${id}`,
 			);
 		}
@@ -33,12 +36,15 @@ export class ConnectInstallationRepository {
 		return dbModels.map((dbModel) => this.mapToDomainModel(dbModel));
 	};
 
+	/**
+	 * @throws {NotFoundRepositoryError} An entity is not found.
+	 */
 	getByClientKey = async (clientKey: string): Promise<ConnectInstallation> => {
 		const dbModel = await prismaClient.get().connectInstallation.findFirst({
 			where: { clientKey },
 		});
 		if (dbModel === null) {
-			throw new NotFoundOperationError(
+			throw new NotFoundRepositoryError(
 				`Failed to find ConnectInstallation for clientKey ${clientKey}`,
 			);
 		}
@@ -72,7 +78,7 @@ export class ConnectInstallationRepository {
 				e instanceof PrismaClientKnownRequestError &&
 				e.code === PrismaErrorCode.RecordNotFound
 			) {
-				throw new NotFoundOperationError(
+				throw new NotFoundRepositoryError(
 					'Connect installation is not found.',
 					e,
 				);

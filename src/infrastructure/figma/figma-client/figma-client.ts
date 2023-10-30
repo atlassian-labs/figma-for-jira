@@ -41,6 +41,8 @@ export class FigmaClient {
 	 * Returns the user's access token.
 	 *
 	 * @see https://www.figma.com/developers/api#oauth2
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
 	 */
 	getOAuth2Token = async (code: string): Promise<GetOAuth2TokenResponse> =>
 		withAxiosErrorTranslation(async () => {
@@ -73,6 +75,8 @@ export class FigmaClient {
 	 * Request a new access token using a refresh token.
 	 *
 	 * @see https://www.figma.com/developers/api#refresh-oauth2
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
 	 */
 	refreshOAuth2Token = async (
 		refreshToken: string,
@@ -100,6 +104,8 @@ export class FigmaClient {
 	 * Returns user information for the authenticated user.
 	 *
 	 * @see https://www.figma.com/developers/api#get-me-endpoint
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
 	 */
 	me = async (accessToken: string): Promise<GetMeResponse> =>
 		withAxiosErrorTranslation(async () => {
@@ -121,6 +127,8 @@ export class FigmaClient {
 	 * Returns a Figma file/document including metadata about that file.
 	 *
 	 * @see https://www.figma.com/developers/api#get-files-endpoint
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
 	 */
 	getFile = async (
 		fileKey: string,
@@ -160,6 +168,8 @@ export class FigmaClient {
 	 * Creates Figma Dev Resources using the POST dev resources endpoint
 	 *
 	 * @see https://www.figma.com/developers/api#post-dev-resources-endpoint
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
 	 */
 	createDevResources = async (
 		request: CreateDevResourcesRequest,
@@ -185,6 +195,8 @@ export class FigmaClient {
 	 * Fetches Figma Dev Resources using the GET dev resources endpoint
 	 *
 	 * @see https://www.figma.com/developers/api#get-dev-resources-endpoint
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
 	 */
 	getDevResources = async ({
 		fileKey,
@@ -213,6 +225,8 @@ export class FigmaClient {
 	 * Deletes a Figma Dev Resource using the DELETE dev resources endpoint
 	 *
 	 * @see https://www.figma.com/developers/api#delete-dev-resources-endpoint
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
 	 */
 	deleteDevResource = async ({
 		fileKey,
@@ -238,6 +252,8 @@ export class FigmaClient {
 	 * Creates a new Figma webhook using the POST webhook endpoint
 	 *
 	 * @see https://www.figma.com/developers/api#webhooks-v2-post-endpoint
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
 	 */
 	createWebhook = async (
 		request: CreateWebhookRequest,
@@ -263,6 +279,8 @@ export class FigmaClient {
 	 * Deletes the specified webhook.
 	 *
 	 * @see https://www.figma.com/developers/api#webhooks-v2-delete-endpoint
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
 	 */
 	deleteWebhook = async (
 		webhookId: string,
@@ -279,6 +297,13 @@ export class FigmaClient {
 			);
 		});
 
+	/**
+	 * Returns a list of all the Projects within the specified team.
+	 *
+	 * @see https://www.figma.com/developers/api#projects-endpoints
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
+	 */
 	getTeamProjects = async (
 		teamId: string,
 		accessToken: string,

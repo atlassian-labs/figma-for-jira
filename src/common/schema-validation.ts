@@ -42,6 +42,9 @@ export function validateSchema<T>(
 	return { valid: true };
 }
 
+/**
+ * @throws {SchemaValidationError} The given value is not of the expected schema.
+ */
 export function assertSchema<T>(
 	value: unknown,
 	schema: JSONSchemaTypeWithId<T>,
@@ -56,6 +59,9 @@ export function assertSchema<T>(
 	}
 }
 
+/**
+ * @throws {SchemaValidationError} The given value is not of the expected schema.
+ */
 export function parseJsonOfSchema<T>(
 	value: unknown,
 	schema: JSONSchemaTypeWithId<T>,

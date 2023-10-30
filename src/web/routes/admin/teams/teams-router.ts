@@ -44,7 +44,9 @@ teamsRouter.post(
 
 		connectFigmaTeamUseCase
 			.execute(req.params.teamId, atlassianUserId, connectInstallation)
-			.then(() => res.sendStatus(HttpStatusCode.Ok))
+			.then((figmaTeamSummary) =>
+				res.status(HttpStatusCode.Ok).send(figmaTeamSummary),
+			)
 			.catch(next);
 	},
 );

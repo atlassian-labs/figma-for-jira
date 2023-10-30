@@ -1,6 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { figmaAuthService } from './figma-auth-service';
+import {
+	figmaAuthService,
+	MissingOrInvalidCredentialsFigmaAuthServiceError,
+} from './figma-auth-service';
 import type {
 	CreateDevResourcesResponse,
 	CreateWebhookRequest,
@@ -21,11 +24,6 @@ import {
 	transformNodeToAtlassianDesign,
 } from './transformers';
 
-import {
-	ForbiddenOperationError,
-	NotFoundOperationError,
-	UnauthorizedOperationError,
-} from '../../common/errors';
 import * as configModule from '../../config';
 import { mockConfig } from '../../config/testing';
 import {
@@ -36,6 +34,10 @@ import {
 	generateJiraIssueKey,
 	generateJiraIssueUrl,
 } from '../../domain/entities/testing';
+import {
+	ForbiddenHttpClientError,
+	NotFoundHttpClientError,
+} from '../http-client-errors';
 
 jest.mock('../../config', () => {
 	return {
@@ -78,7 +80,9 @@ describe('FigmaService', () => {
 		it('should return false if there is no valid credentials', async () => {
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
-				.mockRejectedValue(new UnauthorizedOperationError());
+				.mockRejectedValue(
+					new MissingOrInvalidCredentialsFigmaAuthServiceError(),
+				);
 
 			const result = await figmaService.checkAuth(MOCK_CONNECT_USER_INFO);
 
@@ -91,7 +95,7 @@ describe('FigmaService', () => {
 				.mockResolvedValue(generateFigmaOAuth2UserCredentials());
 			jest
 				.spyOn(figmaClient, 'me')
-				.mockRejectedValue(new ForbiddenOperationError());
+				.mockRejectedValue(new ForbiddenHttpClientError());
 
 			const result = await figmaService.checkAuth(MOCK_CONNECT_USER_INFO);
 
@@ -471,7 +475,7 @@ describe('FigmaService', () => {
 			const webhookId = uuidv4();
 			jest
 				.spyOn(figmaClient, 'deleteWebhook')
-				.mockRejectedValue(new NotFoundOperationError());
+				.mockRejectedValue(new NotFoundHttpClientError());
 
 			await expect(
 				figmaService.tryDeleteWebhook(webhookId, MOCK_CONNECT_USER_INFO),

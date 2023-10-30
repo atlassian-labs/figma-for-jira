@@ -17,13 +17,13 @@ import type {
 	CheckPermissionsResponse,
 } from './types';
 
-import { NotFoundOperationError } from '../../../common/errors';
 import { SchemaValidationError } from '../../../common/schema-validation';
 import type { ConnectInstallation } from '../../../domain/entities';
 import {
 	generateConnectInstallation,
 	generateFigmaDesignIdentifier,
 } from '../../../domain/entities/testing';
+import { NotFoundHttpClientError } from '../../http-client-errors';
 
 jest.mock('./jwt-utils');
 
@@ -168,7 +168,7 @@ describe('JiraClient', () => {
 			).rejects.toThrowError(SchemaValidationError);
 		});
 
-		it('should throw a JiraClientNotFound exception when response status is 404', async () => {
+		it('should throw a NotFoundHttpClientError exception when response status is 404', async () => {
 			jest
 				.spyOn(axios, 'get')
 				.mockRejectedValue(
@@ -183,7 +183,7 @@ describe('JiraClient', () => {
 
 			await expect(() =>
 				jiraClient.getIssueProperty(issueId, propertyKey, connectInstallation),
-			).rejects.toThrowError(NotFoundOperationError);
+			).rejects.toThrowError(NotFoundHttpClientError);
 		});
 	});
 
@@ -234,7 +234,7 @@ describe('JiraClient', () => {
 			);
 		});
 
-		it('should throw a JiraClientNotFound exception when response status is 404', async () => {
+		it('should throw a NotFoundHttpClientError exception when response status is 404', async () => {
 			jest
 				.spyOn(axios, 'delete')
 				.mockRejectedValue(
@@ -253,7 +253,7 @@ describe('JiraClient', () => {
 					propertyKey,
 					connectInstallation,
 				),
-			).rejects.toThrowError(NotFoundOperationError);
+			).rejects.toThrowError(NotFoundHttpClientError);
 		});
 	});
 

@@ -1,4 +1,3 @@
-import { SubmitDesignJiraOperationError } from './errors';
 import type {
 	GetIssuePropertyResponse,
 	SubmitDesignsResponse,
@@ -9,7 +8,7 @@ import {
 	INGESTED_DESIGN_URL_VALUE_SCHEMA,
 } from './schemas';
 
-import { NotFoundOperationError } from '../../common/errors';
+import { CauseAwareError } from '../../common/errors';
 import type { JSONSchemaTypeWithId } from '../../common/schema-validation';
 import {
 	assertSchema,
@@ -24,6 +23,7 @@ import type {
 	JiraIssue,
 } from '../../domain/entities';
 import { AtlassianAssociation } from '../../domain/entities';
+import { NotFoundHttpClientError } from '../http-client-errors';
 import { getLogger } from '../logger';
 
 type SubmitDesignParams = {
@@ -57,6 +57,9 @@ export const issuePropertyKeys = {
 export const JIRA_ADMIN_GLOBAL_PERMISSION = 'ADMINISTER';
 
 class JiraService {
+	/**
+	 * @throws {SubmitDesignJiraServiceError} Design submission fails.
+	 */
 	submitDesign = async (
 		params: SubmitDesignParams,
 		connectInstallation: ConnectInstallation,
@@ -64,6 +67,9 @@ class JiraService {
 		return this.submitDesigns([params], connectInstallation);
 	};
 
+	/**
+	 * @throws {SubmitDesignJiraServiceError} Design submission fails.
+	 */
 	submitDesigns = async (
 		designs: SubmitDesignParams[],
 		connectInstallation: ConnectInstallation,
@@ -101,6 +107,32 @@ class JiraService {
 		return await jiraClient.getIssue(issueIdOrKey, connectInstallation);
 	};
 
+	updateIngestedDesignsIssueProperty = async (
+		issueIdOrKey: string,
+		{ url }: AtlassianDesign,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> => {
+		const storedValue =
+			await this.getIssuePropertyJsonValue<IngestedDesignUrlIssuePropertyValue>(
+				issueIdOrKey,
+				issuePropertyKeys.INGESTED_DESIGN_URLS,
+				connectInstallation,
+				INGESTED_DESIGN_URL_VALUE_SCHEMA,
+			);
+		if (storedValue?.some((value) => value === url)) {
+			return;
+		}
+
+		const newValue = storedValue ? [...storedValue, url] : [url];
+
+		return jiraClient.setIssueProperty(
+			issueIdOrKey,
+			issuePropertyKeys.INGESTED_DESIGN_URLS,
+			newValue,
+			connectInstallation,
+		);
+	};
+
 	saveDesignUrlInIssueProperties = async (
 		issueIdOrKey: string,
 		design: AtlassianDesign,
@@ -125,6 +157,51 @@ class JiraService {
 		]);
 	};
 
+	deleteDesignUrlInIssueProperties = async (
+		issueIdOrKey: string,
+		design: AtlassianDesign,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> => {
+		await Promise.all([
+			await this.deleteAttachedDesignUrlInIssuePropertiesIfPresent(
+				issueIdOrKey,
+				design,
+				connectInstallation,
+			),
+			await this.deleteFromAttachedDesignUrlV2IssueProperties(
+				issueIdOrKey,
+				design,
+				connectInstallation,
+			),
+		]);
+	};
+
+	setAppConfigurationStatus = async (
+		configurationStatus: ConfigurationStatus,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> => {
+		return await jiraClient.setAppProperty(
+			appPropertyKeys.CONFIGURATION_STATE,
+			{ status: configurationStatus },
+			connectInstallation,
+		);
+	};
+
+	isAdmin = async (
+		atlassianUserId: string,
+		connectInstallation: ConnectInstallation,
+	): Promise<boolean> => {
+		const response = await jiraClient.checkPermissions(
+			{
+				accountId: atlassianUserId,
+				globalPermissions: [JIRA_ADMIN_GLOBAL_PERMISSION],
+			},
+			connectInstallation,
+		);
+
+		return response.globalPermissions.includes(JIRA_ADMIN_GLOBAL_PERMISSION);
+	};
+
 	/**
 	 * @internal
 	 * Only visible for testing. Please use {@link saveDesignUrlInIssueProperties}
@@ -141,7 +218,7 @@ class JiraService {
 				connectInstallation,
 			);
 		} catch (error) {
-			if (error instanceof NotFoundOperationError) {
+			if (error instanceof NotFoundHttpClientError) {
 				await jiraClient.setIssueProperty(
 					issueIdOrKey,
 					issuePropertyKeys.ATTACHED_DESIGN_URL,
@@ -192,51 +269,6 @@ class JiraService {
 		);
 	};
 
-	updateIngestedDesignsIssueProperty = async (
-		issueIdOrKey: string,
-		{ url }: AtlassianDesign,
-		connectInstallation: ConnectInstallation,
-	): Promise<void> => {
-		const storedValue =
-			await this.getIssuePropertyJsonValue<IngestedDesignUrlIssuePropertyValue>(
-				issueIdOrKey,
-				issuePropertyKeys.INGESTED_DESIGN_URLS,
-				connectInstallation,
-				INGESTED_DESIGN_URL_VALUE_SCHEMA,
-			);
-		if (storedValue?.some((value) => value === url)) {
-			return;
-		}
-
-		const newValue = storedValue ? [...storedValue, url] : [url];
-
-		return jiraClient.setIssueProperty(
-			issueIdOrKey,
-			issuePropertyKeys.INGESTED_DESIGN_URLS,
-			newValue,
-			connectInstallation,
-		);
-	};
-
-	deleteDesignUrlInIssueProperties = async (
-		issueIdOrKey: string,
-		design: AtlassianDesign,
-		connectInstallation: ConnectInstallation,
-	): Promise<void> => {
-		await Promise.all([
-			await this.deleteAttachedDesignUrlInIssuePropertiesIfPresent(
-				issueIdOrKey,
-				design,
-				connectInstallation,
-			),
-			await this.deleteFromAttachedDesignUrlV2IssueProperties(
-				issueIdOrKey,
-				design,
-				connectInstallation,
-			),
-		]);
-	};
-
 	/**
 	 * @internal
 	 * Only visible for testing. Please use {@link deleteDesignUrlInIssueProperties}
@@ -263,7 +295,7 @@ class JiraService {
 				);
 			}
 		} catch (error) {
-			if (error instanceof NotFoundOperationError) {
+			if (error instanceof NotFoundHttpClientError) {
 				return; // Swallow not found errors
 			}
 			throw error;
@@ -287,7 +319,7 @@ class JiraService {
 				connectInstallation,
 			);
 		} catch (error) {
-			if (error instanceof NotFoundOperationError) {
+			if (error instanceof NotFoundHttpClientError) {
 				return; // Swallow not found errors
 			}
 			throw error;
@@ -330,17 +362,6 @@ class JiraService {
 		}
 	};
 
-	setAppConfigurationStatus = async (
-		configurationStatus: ConfigurationStatus,
-		connectInstallation: ConnectInstallation,
-	): Promise<void> => {
-		return await jiraClient.setAppProperty(
-			appPropertyKeys.CONFIGURATION_STATE,
-			{ status: configurationStatus },
-			connectInstallation,
-		);
-	};
-
 	private async getIssuePropertyJsonValue<T>(
 		issueIdOrKey: string,
 		propertyKey: string,
@@ -356,7 +377,7 @@ class JiraService {
 			return parseJsonOfSchema(response.value, schema);
 		} catch (error) {
 			if (
-				error instanceof NotFoundOperationError ||
+				error instanceof NotFoundHttpClientError ||
 				error instanceof SchemaValidationError
 			) {
 				return null; // If property does not exist or value is in unexpected format, return null
@@ -366,38 +387,26 @@ class JiraService {
 		}
 	}
 
-	isAdmin = async (
-		atlassianUserId: string,
-		connectInstallation: ConnectInstallation,
-	): Promise<boolean> => {
-		const response = await jiraClient.checkPermissions(
-			{
-				accountId: atlassianUserId,
-				globalPermissions: [JIRA_ADMIN_GLOBAL_PERMISSION],
-			},
-			connectInstallation,
-		);
-
-		return response.globalPermissions.includes(JIRA_ADMIN_GLOBAL_PERMISSION);
-	};
-
+	/**
+	 * @throws {SubmitDesignJiraServiceError}
+	 */
 	private throwIfSubmitDesignResponseHasErrors = (
 		response: SubmitDesignsResponse,
 	) => {
 		if (response.rejectedEntities.length) {
 			const { key, errors } = response.rejectedEntities[0];
-			throw SubmitDesignJiraOperationError.designRejected(key.designId, errors);
+			throw SubmitDesignJiraServiceError.designRejected(key.designId, errors);
 		}
 
 		// TODO: Confirm whether we need to consider the use case below as a failure and throw or just leave a warning.
 		if (response.unknownIssueKeys?.length) {
-			throw SubmitDesignJiraOperationError.unknownIssueKeys(
+			throw SubmitDesignJiraServiceError.unknownIssueKeys(
 				response.unknownIssueKeys,
 			);
 		}
 
 		if (response.unknownAssociations?.length) {
-			throw SubmitDesignJiraOperationError.unknownAssociations(
+			throw SubmitDesignJiraServiceError.unknownAssociations(
 				response.unknownAssociations.map(
 					(x) => new AtlassianAssociation(x.associationType, x.values),
 				),
@@ -407,3 +416,55 @@ class JiraService {
 }
 
 export const jiraService = new JiraService();
+
+export class SubmitDesignJiraServiceError extends CauseAwareError {
+	designId?: string;
+	rejectionErrors?: { readonly message: string }[];
+	unknownIssueKeys?: string[];
+	unknownAssociations?: AtlassianAssociation[];
+
+	private constructor({
+		message,
+		designId,
+		rejectionErrors,
+		unknownIssueKeys,
+		unknownAssociations,
+	}: {
+		message: string;
+		designId?: string;
+		rejectionErrors?: { readonly message: string }[];
+		unknownIssueKeys?: string[];
+		unknownAssociations?: AtlassianAssociation[];
+	}) {
+		super(message);
+		this.designId = designId;
+		this.rejectionErrors = rejectionErrors;
+		this.unknownIssueKeys = unknownIssueKeys;
+		this.unknownAssociations = unknownAssociations;
+	}
+
+	static designRejected(
+		designId: string,
+		rejectionErrors: { readonly message: string }[],
+	): SubmitDesignJiraServiceError {
+		return new SubmitDesignJiraServiceError({
+			message: 'The design submission has been rejected',
+			designId,
+			rejectionErrors,
+		});
+	}
+
+	static unknownIssueKeys(unknownIssueKeys: string[]) {
+		return new SubmitDesignJiraServiceError({
+			message: 'The design has unknown issue keys',
+			unknownIssueKeys,
+		});
+	}
+
+	static unknownAssociations(unknownAssociations: AtlassianAssociation[]) {
+		return new SubmitDesignJiraServiceError({
+			message: 'The design has unknown associations',
+			unknownAssociations,
+		});
+	}
+}
