@@ -192,7 +192,7 @@ To run a database migration on your **development** environment:
    ```shell
    npm run db:migrate:dev
    ```
-   This will trigger the regeneration of `@prisma/client` automatically. If you need to regenerate it manually, run
+   This will trigger `@prisma/client` regeneration automatically. If you need to regenerate it manually, run
    `npm run db:generate`.
 
 See for more detail [Prisma Docs - Developing with Prisma Migrate](https://www.prisma.io/docs/guides/migrate/developing-with-prisma-migrate).
