@@ -3,8 +3,7 @@
 A [Connect app](https://developer.atlassian.com/cloud/jira/platform/getting-started-with-connect/) for integrating Figma
 designs into Jira.
 
-- Implements
-  the `Design` [Connect module](https://developer.atlassian.com/cloud/jira/platform/about-connect-modules-for-jira/) to
+- Implements the `Design` [Connect module](https://developer.atlassian.com/cloud/jira/platform/about-connect-modules-for-jira/) to
   enable linking/unlinking Figma designs to/from a Jira issue
 - Implements an ability to sync Figma design data to Jira for the configured Figma teams.
 - Provides backwards compatibility with the previous versions of the app.
@@ -59,16 +58,16 @@ on the [Atlassian Connect Node Example App](https://github.com/atlassian/atlassi
 Open the Connect Descriptor (`${APP_URL}/atlassian-connect.json`) in your browser to verify that the app is up and
 running.
 
+## Debugging
+
+### With IntelliJ
+
+1. Ensure that the app is running locally (see [Getting started](#getting-started)).
+2. Choose **Attach to Node.js** configuration and click **Debug**.
+
 ## Installing the app
 
-### Install the app via a script
-
-Run `npm run jira:installApp`. The app will be installed to the Jira instance specified by the `ATLASSIAN_URL`
-environment variable.
-
-### Install the app manually
-
-Ensure that the app is running locally.
+Ensure that the app is running locally (see [Getting started](#getting-started)).
 
 1. Go to http://go.atlassian.com/cloud-dev and sign up (if you don't have your Jira instance). It may take several
    minutes to provision your site.
@@ -85,43 +84,83 @@ Ensure that the app is running locally.
 
 ## Testing endpoints locally
 
-To test endpoints locally, you can use your preferred tool for making network requests. Our preferred tool
-is [Insomnia](https://insomnia.rest/download).
+### `/lifecycleEvents/` endpoints
 
-### Authorizing and calling endpoints as a user
+These endpoints handle Connect lifecycle events and are called by Jira backend.
 
-Endpoints that call out to Figma APIs require a users 3LO token to be stored in the app. To perform the 3LO flow and
-store Figma credentials in the app, follow the steps in [Testing the OAuth flow](#testing-the-oauth-flow).
+1. [Install](#installing-the-app) your locally running app on your Jira instance to receive lifecycle event requests.
 
-> The `atlassianUserId` stored in the `FigmaOAuth2UserCredentials` table will need to be passed as the `User-Id` header
-> for any of these requests.
+### `/admin/` endpoints
 
-### Generating JWTs for local testing
+These endpoints implement the functionality required by admin UI.
 
-Endpoints that are called by Jira use `authHeaderSymmetricJwtMiddleware` which expects a JWT Authorization header that
-will be verified against a `ConnectInstallation`. You will need to generate this JWT token to impersonate Jira when
-attempting to test these endpoints.
+1. [Install](#installing-the-app) your locally running app on your Jira instance.
+2. Go to **Figma for Jira** > **Configure** to open admin UI.
+3. Use admin UI to trigger requests to the endpoints.
 
-Because the JWT contains a query string hash `qsh`, you will require a unique JWT token **for each endpoint** you want
-to test.
+### `/entities` and `/auth` endpoints
 
-See [Understanding JWT for Connect apps](https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/)
-for more details.
+These endpoints represent the implementation of the `Design` [Connect module](https://developer.atlassian.com/cloud/jira/platform/about-connect-modules-for-jira/)
+module and called by Jira backend.
 
-**Steps to generate a JWT:**
+#### Testing via Jira
 
-1. Ensure you have the app and database running, and have installed the app on a Jira instance
-2. Enter values for `INSTALLATION_CLIENT_KEY` and `INSTALLATION_CLIENT_SECRET` in your `.env` file. You can find these
-   values by inspecting the `ConnectInstallation` table of your database.
-3. Run the `npm run jwt:generate <request_method> <url>` script for each endpoint you need to test
+1. [Install](#installing-the-app) your locally running app on your Jira instance (see above) to receive lifecycle event requests.
+2. Open a Jira issue
+3. Use the **Designs** panel to trigger requests to the endpoints.
 
-**Example:**
+#### Testing directly
 
-```
-npm run jwt:generate POST http://localhost:3000/entities/associateEntity
-```
+If needed, you could these APIs directly by mimicking Jira backend.
 
-You can then use this value as the `Authorization` header for your cURL / Postman / Insomnia requests.
+1. [Install](#installing-the-app) your locally running app on your Jira instance.
+2. Find information about your Atlassian site and user.
+   - To find your `ATLASSIAN_USER_ID`, open https://id.atlassian.com/gateway/api/me and see `account_id`.
+   - To find your `ATLASSIAN_CLOUD_ID`, open `https://${MY_SITE_NAME}.atlassian.net/_edge/tenant_info` and see `cloudId`.
+3. Generate a JWT token for a target endpoint (TBD).
+4. Use `cURL` or any other tool to call endpoints. Replace placeholders with real values in the commands below.
+   ```shell
+   curl --request GET \
+   --url '${APP_URL}/auth/checkAuth?userId=${ATLASSIAN_USER_ID}' \
+   --header 'Authorization: JWT ${TOKEN}'
+   ```
+   ```shell
+   curl --request POST \
+     --url '${APP_URL}/entities/associateEntity' \
+     --header 'Authorization: JWT ${TOKEN}' \
+     --header 'Content-Type: application/json' \
+     --header 'user-id: ${ATLASSIAN_USER_ID}' \
+     --data '{
+       "entity": {
+           "url": "https://www.figma.com/file/${FILE_KEY}"
+       },
+       "associateWith": {
+           "ati": "ati:cloud:jira:issue",
+           "ari": "ari:cloud:jira:${ATLASSIAN_CLOUD_ID}:issue/10002",
+           "cloudId": "${ATLASSIAN_CLOUD_ID}",
+           "id": "${JIRA_ISSUE_ID}"
+       }
+   }'
+   ```
+   ```shell
+    curl --request POST \
+      --url '${APP_URL}/entities/disassociateEntity' \
+      --header 'Authorization: JWT ${TOKEN}' \
+      --header 'Content-Type: application/json' \
+      --header 'user-id: ${ATLASSIAN_USER_ID}' \
+      --data '{
+        "entity": {
+            "id": "${FILE_KEY}",
+            "ari": "NOT_USED"
+        },
+        "disassociateFrom": {
+            "ati": "ati:cloud:jira:issue",
+            "ari": "ari:cloud:jira:${ATLASSIAN_CLOUD_ID}:issue/10002",
+            "cloudId": "${ATLASSIAN_CLOUD_ID}",
+            "id": "${JIRA_ISSUE_ID}"
+        }
+    }'
+   ```
 
 ## Database
 
@@ -142,7 +181,7 @@ The app uses [Prisma](https://www.prisma.io/) as an ORM for interacting with a P
 
 ### Creating migrations
 
-To run a database migration on your development environment:
+To run a database migration on your **development** environment:
 
 1. Ensure that the application sandbox is running.
    ```shell
