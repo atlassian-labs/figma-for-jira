@@ -9,6 +9,7 @@
 		"admin:start": "cd admin && npm start",
 		"build": "run-s build:app admin:build",
 		"build:app": "rimraf build && tsc --project ./tsconfig.build.json",
+		"db:generate": "prisma generate",
 		"db:migrate:dev": "prisma migrate dev",
 		"jwt:generate": "dotenv -e .env -- ts-node ./scripts/create-jwt.ts",
 		"format": "prettier . --write",
