@@ -128,7 +128,6 @@ export const connectAppDescriptor = {
 		],
 		/**
 		 * This module allows third-party providers to send design information to Jira and associate it with an issue.
-		 * https://developer.atlassian.com/cloud/jira/software/modules/design/
 		 */
 		jiraDesignInfoProvider: {
 			homeUrl: 'https://www.figma.com/',
