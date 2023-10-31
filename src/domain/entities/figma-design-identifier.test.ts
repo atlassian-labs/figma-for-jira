@@ -82,10 +82,32 @@ describe('FigmaDesignIdentifier', () => {
 			expect(result).toStrictEqual(new FigmaDesignIdentifier(fileKey, nodeId));
 		});
 
+		it('should return an identifier when URL is a prototype link', () => {
+			const fileKey = generateFigmaFileKey();
+			const nodeId = '42:1';
+			const designUrl = `https://www.figma.com/proto/${fileKey}?node-id=42%3A1`;
+
+			const result = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
+
+			expect(result).toStrictEqual(new FigmaDesignIdentifier(fileKey, nodeId));
+		});
+
+		it('should return an identifier when URL is a prototype link with additional query parameters', () => {
+			const fileKey = generateFigmaFileKey();
+			const nodeId = '42:1';
+			const designUrl = `https://www.figma.com/proto/${fileKey}?type=design&node-id=42%3A1&scaling=min-zoom&page-id=935%3A206682&starting-point-node-id=1197%3A290236`;
+
+			const result = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
+
+			expect(result).toStrictEqual(new FigmaDesignIdentifier(fileKey, nodeId));
+		});
+
 		it.each([
 			`https://www.figma.com`,
 			`https://www.figma.com/file`,
+			`https://www.figma.com/proto`,
 			`https://www.figma.com?param=file%2Fsome-id`,
+			`https://www.figma.com?param=proto%2Fsome-id`,
 			'',
 		])('should throw when URL has an unexpected format', (input: string) => {
 			expect(() => FigmaDesignIdentifier.fromFigmaDesignUrl(input)).toThrow();
