@@ -4,7 +4,7 @@ A [Connect app](https://developer.atlassian.com/cloud/jira/platform/getting-star
 designs into Jira.
 
 - Implements the `Design` [Connect module](https://developer.atlassian.com/cloud/jira/platform/about-connect-modules-for-jira/) to
-  enable linking/unlinking Figma designs to/from a Jira issue
+  enable linking/unlinking Figma designs to/from a Jira issue.
 - Implements an ability to sync Figma design data to Jira for the configured Figma teams.
 - Provides backwards compatibility with the previous versions of the app.
 
