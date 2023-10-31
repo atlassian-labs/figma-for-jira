@@ -18,7 +18,7 @@ model ConnectInstallation {
   FigmaTeam                  FigmaTeam[]
   AssociatedFigmaDesign      AssociatedFigmaDesign[]
 
-  @@map("connect_installation")
+  @@map("jira_connect_installation")
 }
 
 model AssociatedFigmaDesign {
@@ -31,7 +31,7 @@ model AssociatedFigmaDesign {
   connectInstallationId BigInt              @map("connect_installation_id")
 
   @@unique([fileKey, nodeId, associatedWithAri, connectInstallationId])
-  @@map("associated_figma_design")
+  @@map("jira_associated_figma_design")
 }
 
 model FigmaOAuth2UserCredentials {
@@ -45,14 +45,14 @@ model FigmaOAuth2UserCredentials {
   connectInstallationId BigInt              @map("connect_installation_id")
 
   @@unique([atlassianUserId, connectInstallationId])
-  @@map("figma_oauth2_user_credentials")
+  @@map("jira_figma_oauth2_user_credentials")
 }
 
 enum FigmaTeamAuthStatus {
   OK
   ERROR
 
-  @@map("figma_team_auth_status")
+  @@map("jira_figma_team_auth_status")
 }
 
 model FigmaTeam {
@@ -68,5 +68,5 @@ model FigmaTeam {
   connectInstallationId     BigInt              @map("connect_installation_id")
 
   @@unique([teamId, connectInstallationId])
-  @@map("figma_team")
+  @@map("jira_figma_team")
 }

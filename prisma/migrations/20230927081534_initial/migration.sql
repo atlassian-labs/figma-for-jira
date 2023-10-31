@@ -1,8 +1,8 @@
 -- CreateEnum
-CREATE TYPE "figma_team_auth_status" AS ENUM ('OK', 'ERROR');
+CREATE TYPE "jira_figma_team_auth_status" AS ENUM ('OK', 'ERROR');
 
 -- CreateTable
-CREATE TABLE "connect_installation" (
+CREATE TABLE "jira_connect_installation" (
     "id" BIGSERIAL NOT NULL,
     "key" TEXT NOT NULL,
     "client_key" TEXT NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE "connect_installation" (
 );
 
 -- CreateTable
-CREATE TABLE "associated_figma_design" (
+CREATE TABLE "jira_associated_figma_design" (
     "id" BIGSERIAL NOT NULL,
     "file_key" TEXT NOT NULL,
     "node_id" TEXT NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE "associated_figma_design" (
 );
 
 -- CreateTable
-CREATE TABLE "figma_oauth2_user_credentials" (
+CREATE TABLE "jira_figma_oauth2_user_credentials" (
     "id" BIGSERIAL NOT NULL,
     "atlassian_user_id" TEXT NOT NULL,
     "access_token" TEXT NOT NULL,
@@ -37,39 +37,39 @@ CREATE TABLE "figma_oauth2_user_credentials" (
 );
 
 -- CreateTable
-CREATE TABLE "figma_team" (
+CREATE TABLE "jira_figma_team" (
     "id" BIGSERIAL NOT NULL,
     "webhook_id" TEXT NOT NULL,
     "webhook_passcode" TEXT NOT NULL,
     "team_id" TEXT NOT NULL,
     "team_name" TEXT NOT NULL,
     "figma_admin_atlassian_user_id" TEXT NOT NULL,
-    "authStatus" "figma_team_auth_status" NOT NULL,
+    "authStatus" "jira_figma_team_auth_status" NOT NULL,
     "connect_installation_id" BIGINT NOT NULL,
 
     CONSTRAINT "figma_team_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "connect_installation_client_key_key" ON "connect_installation"("client_key");
+CREATE UNIQUE INDEX "connect_installation_client_key_key" ON "jira_connect_installation"("client_key");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "associated_figma_design_file_key_node_id_associated-with-ar_key" ON "associated_figma_design"("file_key", "node_id", "associated-with-ari", "connect_installation_id");
+CREATE UNIQUE INDEX "associated_figma_design_file_key_node_id_associated-with-ar_key" ON "jira_associated_figma_design"("file_key", "node_id", "associated-with-ari", "connect_installation_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "figma_oauth2_user_credentials_atlassian_user_id_connect_ins_key" ON "figma_oauth2_user_credentials"("atlassian_user_id", "connect_installation_id");
+CREATE UNIQUE INDEX "figma_oauth2_user_credentials_atlassian_user_id_connect_ins_key" ON "jira_figma_oauth2_user_credentials"("atlassian_user_id", "connect_installation_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "figma_team_webhook_id_key" ON "figma_team"("webhook_id");
+CREATE UNIQUE INDEX "figma_team_webhook_id_key" ON "jira_figma_team"("webhook_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "figma_team_team_id_connect_installation_id_key" ON "figma_team"("team_id", "connect_installation_id");
+CREATE UNIQUE INDEX "figma_team_team_id_connect_installation_id_key" ON "jira_figma_team"("team_id", "connect_installation_id");
 
 -- AddForeignKey
-ALTER TABLE "associated_figma_design" ADD CONSTRAINT "associated_figma_design_connect_installation_id_fkey" FOREIGN KEY ("connect_installation_id") REFERENCES "connect_installation"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+ALTER TABLE "jira_associated_figma_design" ADD CONSTRAINT "associated_figma_design_connect_installation_id_fkey" FOREIGN KEY ("connect_installation_id") REFERENCES "jira_connect_installation"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE "figma_oauth2_user_credentials" ADD CONSTRAINT "figma_oauth2_user_credentials_connect_installation_id_fkey" FOREIGN KEY ("connect_installation_id") REFERENCES "connect_installation"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+ALTER TABLE "jira_figma_oauth2_user_credentials" ADD CONSTRAINT "figma_oauth2_user_credentials_connect_installation_id_fkey" FOREIGN KEY ("connect_installation_id") REFERENCES "jira_connect_installation"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
 
 -- AddForeignKey
-ALTER TABLE "figma_team" ADD CONSTRAINT "figma_team_connect_installation_id_fkey" FOREIGN KEY ("connect_installation_id") REFERENCES "connect_installation"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
+ALTER TABLE "jira_figma_team" ADD CONSTRAINT "figma_team_connect_installation_id_fkey" FOREIGN KEY ("connect_installation_id") REFERENCES "jira_connect_installation"("id") ON DELETE CASCADE ON UPDATE NO ACTION;
