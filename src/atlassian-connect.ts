@@ -1,6 +1,6 @@
 import { getConfig } from './config';
 
-const APP_NAME = 'Figma for Jira';
+const APP_NAME = 'Figma for JIRA Cloud';
 
 /**
  * General schema can be seen here: https://bitbucket.org/atlassian/connect-schemas/raw/master/jira-global-schema.json
@@ -30,8 +30,8 @@ export const connectAppDescriptor = {
 	 * The vendor who is offering this Connect app.
 	 */
 	vendor: {
-		name: 'Atlassian',
-		url: 'https://atlassian.com',
+		name: 'Figma, Inc.',
+		url: 'https://www.figma.com',
 	},
 
 	/**
@@ -103,7 +103,7 @@ export const connectAppDescriptor = {
 			},
 		],
 		/**
-		 * This module renders the old Figma for Jira Connect app web panel.
+		 * This module renders the old "Figma for JIRA Cloud" Connect app web panel.
 		 * This will only be required temporarily while the feature is being
 		 * rolled out. Rollout will be managed the feature flag condition.
 		 */
