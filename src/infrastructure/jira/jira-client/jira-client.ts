@@ -42,9 +42,6 @@ class JiraClient {
 	 * Submissions are performed asynchronously. Submitted data will eventually be available in Jira; most updates are
 	 * available within a short period of time, but may take some time during peak load and/or maintenance times.
 	 *
-	 * // TODO: Verify that link is correct when the documentation is published.
-	 * @see https://developer.atlassian.com/cloud/jira/software/rest/api-group-design/#api-group-design
-	 *
 	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
 	 */
 	submitDesigns = async (

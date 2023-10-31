@@ -1,188 +1,253 @@
-# Atlassian Connect Node Example App
+# Figma for Jira
 
-## About
+A [Connect app](https://developer.atlassian.com/cloud/jira/platform/getting-started-with-connect/) for integrating Figma
+designs into Jira.
 
-This repository contains an example [Express](https://expressjs.com/en/4x/api.html) server for building an [Atlassian Connect app](https://developer.atlassian.com/cloud/jira/platform/getting-started-with-connect/).
-This app is aimed to help you to easily add your integration in Jira.
+- Implements the `Design` [Connect module](https://developer.atlassian.com/cloud/jira/platform/about-connect-modules-for-jira/) to
+  enable linking/unlinking Figma designs to/from a Jira issue.
+- Implements design metadata sync from Figma to Jira for the configured Figma teams.
+- Provides backwards compatibility with the previous versions of the app.
+
+The app has been created based
+on the [Atlassian Connect Node Example App](https://github.com/atlassian/atlassian-connect-example-app-node).
 
 ## Table of Contents
 
-- [Pre-requisites](#pre-requisites)
+- [Prerequisites](#prerequisites)
 - [Getting started](#getting-started)
-- [OAuth component](#oauth-component)
 - [Installing the app](#installing-the-app)
 - [Testing endpoints locally](#testing-endpoints-locally)
 - [Database](#database)
-- [Logging](#logging)
 - [Testing](#testing)
 - [Getting help](#getting-help)
 - [License](#license)
 
-## Pre-requisites
+## Prerequisites
 
-- [Node](https://nodejs.org) v18
-- [docker & docker-compose](https://docs.docker.com/engine/install/)
-- [ngrok account](https://ngrok.com/)
+- Install [Node Version Manager (nvm)](https://github.com/nvm-sh/nvm#install--update-script).
+- Install [Docker & Docker Compose](https://docs.docker.com/engine/install/).
+- Create an [ngrok](https://ngrok.com/) account.
 
 ## Getting started
 
-- **Installing dependencies**
+1. Install and use the target version of Node.js
+   ```shell
+   nvm install
+   ```
+2. Install the dependencies.
+   ```shell
+   npm ci
+   ```
+3. Create `.env` file based on `.env.example` and set unset env variables.
+4. Start the application sandbox.
+   ```shell
+   npm run start:sandbox
+   ```
+5. Start an ngrok tunnel (to make the app accessible by Jira).
+   ```shell
+   npm run start:tunnel
+   ```
+   > **ℹ️ NOTE:** If you are using a free version of ngrok, please open the tunneled URL in browser and click
+   > on the **Visit** button. This needs to be done to bypass the ngrok browser warning.
+6. Start the app.
+   ```shell
+   npm start
+   ```
 
-  - Run `npm ci` to install all the dependencies for this app.
+Open the Connect descriptor (`${APP_URL}/atlassian-connect.json`) in your browser to verify that the app is up and
+running.
 
-- **Configuration**
+## Debugging
 
-  - We are using [ngrok](https://ngrok.com/docs/getting-started) for tunnelling. You'll need to create an ngrok
-    account to get access to the auth token.
-  - Create an `.env` file (based on `.env.example`) and fill in _all the missing fields_
-  - Follow the steps for [Registering a Figma OAuth application](#registering-a-figma-oauth-application) to get the client id and secret
+### With IntelliJ
 
-- **Running the sandbox**
+1. Ensure that the app is running locally (see [Getting started](#getting-started)).
+2. Choose **Attach to Node.js** configuration and click **Debug**.
 
-  - Run `npm run start:sandbox` to bring up a Postgres for the app in Docker
+## Installing the app
 
-- **Starting the tunnel**
+Ensure that the app is running locally (see [Getting started](#getting-started)).
 
-  - Run `npm run start:tunnel` to create an ngrok tunnel
-
-> **Note:** _If you are using a free version of ngrok, please open the tunneled URL first. This needs to be done to bypass the ngrok browser warning. Just visit your ngrok tunnel URL in a browser and click on the Visit button._
-
-- **Generating Prisma client**
-
-  - Run `npm run db:generate` to generate Prisma client and database model. This is done automatically as part of `npm
-run start:sandbox`, but should be re-run whenever DB schema changes are made (either explicity or via `npm run db:migrate`).
-
-- **Running the app**
-
-  - Run `npm start` to begin running the app in development mode
-
-## OAuth Component
-
-In order to make authorized calls to Figma REST APIs, this application stores Figma user 3LO credentials in the `FigmaOAuth2UserCredentials` table.
-
-### Registering a Figma OAuth application
-
-Follow the steps [here](https://www.figma.com/developers/api#register-oauth2) to register a Figma OAuth app and callback url, and note down the Client ID and Secret.
-
-- Use `APP_URL` for the website URL
-- Use `${APP_URL}/figma/oauth/callback` for the callback URL
-
-### Testing the OAuth flow
-
-To test the OAuth 3LO flow and store a Figma users' credentials in the app, you first need to register a Figma application and fill out the `FIGMA_OAUTH_CLIENT_ID` and `FIGMA_OAUTH_CLIENT_SECRET` variables in `.env`.
-
-1. Start the app
-2. Replace the placeholders with actual value and visit the following URL to initiate the OAuth flow.
-
-```
-https://www.figma.com/oauth?
-  client_id=${CLIENT_ID}&
-  redirect_uri=${APP_URL}/figma/oauth/callback&
-  scope=files:read,file_dev_resources:read,file_dev_resources:write&
-  state=${ATLASSIAN_USER_ID}&
-  response_type=code
-```
-
-You should see a created record in `FigmaUserCredential` table and hitting `/auth/checkAuth?userId=${USER_ID}` should return a response indicating that you are authorized.
-
-## Installing the App
-
-Before installing, first ensure both the ngrok tunnel and the app are running, and you've filled out the required
-values in your `.env` file.
-
-### Installation script
-
-Run `npm run jira:installApp`. The app will be installed to the Jira instance specified by the `ATLASSIAN_URL` environment variable.
-
-### Manual installs
-
-If you want to install the app on multiple Jira instances, you can do this manually by performing the following steps:
-
-1. Visit the **Manage apps** page on your Jira instance (you'll need to be a Jira admin) by visiting this link `https://<your_jira_instance>.atlassian.net/plugins/servlet/upm` or from the header menu, select **Apps** -> **Manage your apps**.
-2. Verify the filter is set to User-installed, and select **Settings** beneath the User-installed apps table.
-3. **Enable development mode** then refresh the page.
-4. You should now see an **Upload app** button. Click it and enter the app URL `https://${APP_URL}/atlassian-connect.json`.
-5. Click upload.
-6. That's it! You're done. 🎉
+1. Go to http://go.atlassian.com/cloud-dev and sign up (if you don't have your Jira instance). It may take several
+   minutes to provision your site.
+2. Go to your Jira instance.
+3. Enable the installation of apps that are not listed on the Atlassian Marketplace.
+   1. Go to **Apps** > **Manage your apps**.
+   2. Click **User-installed apps** > **Settings**.
+   3. Check **Enable development mode** and click **Apply**.
+4. Reload the page.
+5. Install the app.
+   1. Go to **App** > **Manage your apps** > **Upload app**.
+   2. Paste the link to your Connect descriptor (`${APP_URL}/atlassian-connect.json`) and
+      click **Upload**.
 
 ## Testing endpoints locally
 
-To test endpoints locally, you can use your preferred tool for making network requests. Our preferred tool is [Insomnia](https://insomnia.rest/download).
+### `/lifecycleEvents/` endpoints
 
-### Authorizing and calling endpoints as a user
+These endpoints handle Connect lifecycle events and are called by Jira.
 
-Endpoints that call out to Figma APIs require a users 3LO token to be stored in the app. To perform the 3LO flow and store Figma credentials in the app, follow the steps in [Testing the OAuth flow](#testing-the-oauth-flow).
+1. [Install](#installing-the-app) a locally running app on your Jira instance to receive lifecycle event requests.
 
-> The `atlassianUserId` stored in the `FigmaOAuth2UserCredentials` table will need to be passed as the `User-Id` header for any of these requests.
+### `/admin/` endpoints
 
-### Generating JWTs for local testing
+These endpoints implement the functionality required by admin UI (which is a part of the app).
 
-Endpoints that are called by Jira use `authHeaderSymmetricJwtMiddleware` which expects a JWT Authorization header that will be verified against a `ConnectInstallation`. You will need to generate this JWT token to impersonate Jira when attempting to test these endpoints.
+1. [Install](#installing-the-app) a locally running app on your Jira instance.
+2. In Jira, go to **Apps** > **Manage your apps** > **Figma for Jira** > **Configure** to open admin UI.
+3. Use admin UI to trigger requests to the endpoints.
 
-Because the JWT contains a query string hash `qsh`, you will require a unique JWT token **for each endpoint** you want to test.
+### `/entities` and `/auth` endpoints
 
-See [Understanding JWT for Connect apps](https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/) for more details.
+These endpoints represent the implementation of the `Design` [Connect module](https://developer.atlassian.com/cloud/jira/platform/about-connect-modules-for-jira/)
+module and are called by Jira.
 
-**Steps to generate a JWT:**
+#### Testing via Jira
 
-1. Ensure you have the app and database running, and have installed the app on a Jira instance
-2. Enter values for `INSTALLATION_CLIENT_KEY` and `INSTALLATION_CLIENT_SECRET` in your `.env` file. You can find these values by inspecting the `ConnectInstallation` table of your database.
-3. Run the `npm run jwt:generate <request_method> <url>` script for each endpoint you need to test
+1. [Install](#installing-the-app) a locally running app on your Jira instance.
+2. Open a Jira issue.
+3. Use the **Designs** panel to trigger requests to the endpoints.
 
-**Example:**
+#### Testing directly
 
-```
-npm run jwt:generate POST http://localhost:3000/entities/associateEntity
-```
+If needed, you could test these APIs directly by mimicking Jira backend.
 
-You can then use this value as the `Authorization` header for your cURL / Postman / Insomnia requests.
+1. [Install](#installing-the-app) a locally running app on your Jira instance.
+2. Find information about your Atlassian site and user.
+   - To find your `CLIENT_KEY` and `SHARED_SECRET`, see the `jira_connect_installation` database table.
+   - To find your `ATLASSIAN_USER_ID`, open https://id.atlassian.com/gateway/api/me and see `account_id`.
+   - To find your `ATLASSIAN_CLOUD_ID`, open `https://${MY_SITE_NAME}.atlassian.net/_edge/tenant_info` and see `cloudId`.
+3. Generate a JWT token for a target endpoint, e.g.:
+
+   ```shell
+   npm run jira:jwt:symmetric:server:generate -- \
+    --clientKey "${CLIENT_KEY}" \
+    --sharedSecret "${SHARED_SECRET}" \
+    --method "GET" \
+    --endpoint "/auth/checkAuth?userId=${ATLASSIAN_USER_ID}"
+   ```
+
+   ```shell
+   npm run jira:jwt:symmetric:server:generate -- \
+    --clientKey "${CLIENT_KEY}" \
+    --sharedSecret "${SHARED_SECRET}" \
+    --method "POST" \
+    --endpoint "/entities/associateEntity"
+   ```
+
+4. Use `cURL` or any other tool to call endpoints. Replace placeholders with real values in the commands below, e.g.:
+
+   ```shell
+   curl --request GET \
+     --url '${APP_URL}/auth/checkAuth?userId=${ATLASSIAN_USER_ID}' \
+     --header 'Authorization: JWT ${TOKEN}'
+   ```
+
+   ```shell
+   curl --request POST \
+     --url '${APP_URL}/entities/associateEntity' \
+     --header 'Authorization: JWT ${TOKEN}' \
+     --header 'Content-Type: application/json' \
+     --header 'user-id: ${ATLASSIAN_USER_ID}' \
+     --data '{
+       "entity": {
+           "url": "https://www.figma.com/file/${FILE_KEY}"
+       },
+       "associateWith": {
+           "ati": "ati:cloud:jira:issue",
+           "ari": "ari:cloud:jira:${ATLASSIAN_CLOUD_ID}:issue/10002",
+           "cloudId": "${ATLASSIAN_CLOUD_ID}",
+           "id": "${JIRA_ISSUE_ID}"
+       }
+   }'
+   ```
+
+   ```shell
+    curl --request POST \
+      --url '${APP_URL}/entities/disassociateEntity' \
+      --header 'Authorization: JWT ${TOKEN}' \
+      --header 'Content-Type: application/json' \
+      --header 'user-id: ${ATLASSIAN_USER_ID}' \
+      --data '{
+        "entity": {
+            "id": "${FILE_KEY}",
+            "ari": "NOT_USED"
+        },
+        "disassociateFrom": {
+            "ati": "ati:cloud:jira:issue",
+            "ari": "ari:cloud:jira:${ATLASSIAN_CLOUD_ID}:issue/10002",
+            "cloudId": "${ATLASSIAN_CLOUD_ID}",
+            "id": "${JIRA_ISSUE_ID}"
+        }
+    }'
+   ```
 
 ## Database
 
-This repository uses [Prisma](https://www.prisma.io/) as an ORM for interacting with a Postgres database.
+The app uses [Prisma](https://www.prisma.io/) as an ORM for interacting with a Postgres database.
 
-### Running and inspecting the database locally
+### Connecting to the database
 
-1. Ensure `PG_*` variables in `.env` are filled in. Values from `.env.example` should work
-2. Spin up the database using `npm run start:sandbox`
-3. Using IntelliJ or whatever tool you use for inspecting databases, add a database using fields from from `.env`
+1. Ensure that you have `.env` with `PG_*` env variables set.
+2. Start the application sandbox:
+   ```shell
+   npm run start:sandbox
+   ```
+3. Use [IntelliJ Database tool](https://www.jetbrains.com/help/idea/database-tool-window.html#overview) or any other
+   tool to connect to the database using the Postgres settings from the `.env` file.
 
-> If you aren't seeing the tables in IntelliJ, you may have to select the right schemas from the 'Schemas' tab in the Data Sources window.
+   > **✅ TIP:** If you aren't seeing the tables in IntelliJ, you may have to select the right schemas from the **Schemas**
+   > tab in the **Data Sources** window.
 
-### Running migrations
+### Creating migrations
 
-To run a database migration do the following:
+To run a database migration on your **development** environment:
 
-1. Make any schema additions in `prisma/schema.prisma`
-2. Spin up dependencies using `npm run start:sandbox`. This will also run the `prisma migrate dev` command, applying all
-   existing migrations. See the [Prisma docs](https://www.prisma.io/docs/concepts/components/prisma-migrate/migrate-development-production#development-environments)
-   for more info
-3. To create a new migration after making schema changes, with the sandbox already running, run `npm run db:migrate --name <migration_name>` - this will create your migration in a new folder under `prisma/migrations`. If you o the `--name` option, you will be prompted to name the migration
-4. Running `prisma migrate dev` will trigger generation of artifacts automatically, but you can trigger these manually
-   by running `npm run db:generate` to rebuild the `@prisma/client`, which provides type safety and utility functions
-   for any newly added tables and fields
+1. Ensure that the application sandbox is running.
+   ```shell
+   npm run start:sandbox
+   ```
+2. Make schema changes in `prisma/schema.prisma`.
+3. Generate a new migration. You will be prompted to name the migration.
+   ```shell
+   npm run db:migrate:dev
+   ```
+   This will trigger `@prisma/client` regeneration. If you need to regenerate it manually, run `npm run db:generate`.
 
-## Logging
-
-The app uses [pino](https://github.com/pinojs/pino) and [pino-http](https://github.com/pinojs/pino-http) for logging. The logger is configured in `/src/infrastructure/logger.ts` and `pino-http` middleware logging is set up in `src/web/middleware/http-logger-middleware.ts`
+For more detail, see [Prisma Docs - Developing with Prisma Migrate](https://www.prisma.io/docs/guides/migrate/developing-with-prisma-migrate).
 
 ## Testing
 
 ### Unit tests
 
-Unit tests can be run with `npm run test:unit`.
+To run unit tests:
+
+```shell
+npm run test:unit
+```
 
 ### Integration tests
 
-Integration tests require a test database. There are two options for running integration tests:
+To run integration tests:
 
-1. Run `npm run test:it:ci`. This will spin up a test database Postgres container using configuration from `.env.test`, run the integration tests, then teardown the database.
-2. Alternatively, run `npm run start:sandbox:test`, then `npm run test:it`. This lets you forgo spinning up and tearing down the test database each run. `npm run test:it` will reset the database to its initial state before running integration tests, see the [prisma migrate docs](https://www.prisma.io/docs/concepts/components/prisma-migrate/migrate-development-production#reset-the-development-database) for more info.
+```shell
+# Spin up a sandbox for integration tests.
+npm run start:sandbox:test
+# Run integration tests.
+npm run test:it
+```
 
 ## Getting help
 
-If you have feedback, found a bug or need some help, please create a [new issue in this repo](https://github.com/atlassian/figma-for-jira/issues/new/choose).
+If you have feedback, found a bug, or need some help, please create
+a [new issue in this repo](https://github.com/atlassian/figma-for-jira/issues/new/choose).
 
 ## License
 
 The project is available as open source under the terms of the [Apache 2.0 License](./LICENSE).
+
+## References
+
+- [Atlassian Developer - Getting started with Connect](https://developer.atlassian.com/cloud/jira/platform/getting-started-with-connect/)
+- [Atlassian Developer - Jira Cloud platform - REST API](https://developer.atlassian.com/cloud/jira/platform/rest/)
+- [Figma Developers - REST API](https://www.figma.com/developers/api)

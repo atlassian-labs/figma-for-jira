@@ -15,8 +15,8 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Check type errors
-        run: npm run build:check
+      - name: Build the app
+        run: npm run build
 
       - name: Check lint errors
         run: npm run lint
@@ -24,10 +24,10 @@ jobs:
       - name: Check formatting errors
         run: npm run format:check
 
-      - name: Run Unit tests
+      - name: Run unit tests
         run: npm run test:unit
 
-      - name: Run Integration tests
+      - name: Run integration tests
         run: npm run test:it:ci
 
       - name: Build Docker image
