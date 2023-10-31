@@ -5,7 +5,7 @@ designs into Jira.
 
 - Implements the `Design` [Connect module](https://developer.atlassian.com/cloud/jira/platform/about-connect-modules-for-jira/) to
   enable linking/unlinking Figma designs to/from a Jira issue.
-- Implements an ability to sync Figma design data to Jira for the configured Figma teams.
+- Implements design metadata sync from Figma to Jira for the configured Figma teams.
 - Provides backwards compatibility with the previous versions of the app.
 
 The app has been created based
@@ -47,9 +47,8 @@ on the [Atlassian Connect Node Example App](https://github.com/atlassian/atlassi
    ```shell
    npm run start:tunnel
    ```
-   > **Note:** If you are using a free version of ngrok, please open the tunneled URL first.
-   > This needs to be done to bypass the ngrok browser warning. Just visit your ngrok tunnel URL in a browser and click
-   > on the **Visit** button.
+   > **ℹ️ NOTE:** If you are using a free version of ngrok, please open the tunneled URL in browser and click
+   > on the **Visit** button. This needs to be done to bypass the ngrok browser warning.
 6. Start the app.
    ```shell
    npm start
@@ -197,7 +196,7 @@ The app uses [Prisma](https://www.prisma.io/) as an ORM for interacting with a P
 3. Use [IntelliJ Database tool](https://www.jetbrains.com/help/idea/database-tool-window.html#overview) or any other
    tool to connect to the database using the Postgres settings from the `.env` file.
 
-   > **TIP:** If you aren't seeing the tables in IntelliJ, you may have to select the right schemas from the **Schemas**
+   > **✅ TIP:** If you aren't seeing the tables in IntelliJ, you may have to select the right schemas from the **Schemas**
    > tab in the **Data Sources** window.
 
 ### Creating migrations
