@@ -110,7 +110,7 @@ module and are called by Jira.
 
 #### Testing directly
 
-If needed, you could these APIs directly by mimicking Jira backend.
+If needed, you could test these APIs directly by mimicking Jira backend.
 
 1. [Install](#installing-the-app) a locally running app on your Jira instance.
 2. Find information about your Atlassian site and user.
