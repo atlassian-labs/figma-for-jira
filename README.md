@@ -239,7 +239,7 @@ npm run test:it
 
 ## Getting help
 
-If you have feedback, found a bug or need some help, please create
+If you have feedback, found a bug, or need some help, please create
 a [new issue in this repo](https://github.com/atlassian/figma-for-jira/issues/new/choose).
 
 ## License
