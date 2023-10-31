@@ -37,7 +37,9 @@ export class FigmaDesignIdentifier {
 		const parsedUrl = new URL(url);
 
 		const pathComponents = parsedUrl.pathname.split('/');
-		const filePathComponentId = pathComponents.findIndex((x) => x === 'file');
+		const filePathComponentId = pathComponents.findIndex(
+			(x) => x === 'file' || x === 'proto',
+		);
 
 		const fileKey = pathComponents[filePathComponentId + 1];
 		const nodeId = parsedUrl.searchParams.get('node-id')?.replace('-', ':');
