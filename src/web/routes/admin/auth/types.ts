@@ -2,32 +2,26 @@ import type { Request, Response } from 'express';
 
 import type { ConnectInstallation } from '../../../../domain/entities';
 
-export type CheckAuthQueryParameters = { readonly userId: string };
+export type MeQueryParameters = { readonly userId: string };
 
-export type CheckAuthResponseBody = {
-	readonly authorized: boolean;
-	readonly grant: {
-		readonly authorizationEndpoint: string;
-	};
+export type MeResponseBody = {
 	readonly user?: {
 		readonly email: string;
 	};
+	readonly authorizationEndpoint: string;
 };
 
-type CheckAuthRequestLocals = {
+type MeRequestLocals = {
 	readonly connectInstallation: ConnectInstallation;
 	readonly atlassianUserId: string;
 };
 
-export type CheckAuthRequest = Request<
+export type MeRequest = Request<
 	Record<string, never>,
-	CheckAuthResponseBody,
+	MeResponseBody,
 	never,
-	CheckAuthQueryParameters,
-	CheckAuthRequestLocals
+	MeQueryParameters,
+	MeRequestLocals
 >;
 
-export type CheckAuthResponse = Response<
-	CheckAuthResponseBody,
-	CheckAuthRequestLocals
->;
+export type MeResponse = Response<MeResponseBody, MeRequestLocals>;

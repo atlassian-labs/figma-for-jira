@@ -29,10 +29,10 @@ const FIGMA_OAUTH_API_BASE_URL =
 	getConfig().figma.oauth2.authorizationServerBaseUrl;
 
 const FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT = '/api/oauth/refresh';
-const CHECK_AUTH_ENDPOINT = '/admin/auth/checkAuth';
+const AUTH_ME_ENDPOINT = '/admin/auth/me';
 
 describe('/admin/auth', () => {
-	describe('/checkAuth', () => {
+	describe('/me', () => {
 		const REFRESH_TOKEN = uuidv4();
 		const REFRESH_TOKEN_QUERY_PARAMS = generateRefreshOAuth2TokenQueryParams({
 			client_id: getConfig().figma.oauth2.clientId,
@@ -69,16 +69,13 @@ describe('/admin/auth', () => {
 			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 
 			return request(app)
-				.get(CHECK_AUTH_ENDPOINT)
+				.get(AUTH_ME_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok)
 				.then((response) => {
 					expect(response.body).toStrictEqual({
-						authorized: true,
 						user: { email: expect.any(String) },
-						grant: {
-							authorizationEndpoint: expect.any(String),
-						},
+						authorizationEndpoint: expect.any(String),
 					});
 				});
 		});
@@ -118,16 +115,13 @@ describe('/admin/auth', () => {
 			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 
 			await request(app)
-				.get(CHECK_AUTH_ENDPOINT)
+				.get(AUTH_ME_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok)
 				.then((response) => {
 					expect(response.body).toStrictEqual({
-						authorized: true,
 						user: { email: expect.any(String) },
-						grant: {
-							authorizationEndpoint: expect.any(String),
-						},
+						authorizationEndpoint: expect.any(String),
 					});
 				});
 
@@ -163,15 +157,12 @@ describe('/admin/auth', () => {
 			});
 
 			return request(app)
-				.get(CHECK_AUTH_ENDPOINT)
+				.get(AUTH_ME_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok)
 				.then((response) => {
 					expect(response.body).toStrictEqual({
-						authorized: false,
-						grant: {
-							authorizationEndpoint: expect.any(String),
-						},
+						authorizationEndpoint: expect.any(String),
 					});
 				});
 		});
@@ -209,15 +200,12 @@ describe('/admin/auth', () => {
 				.reply(HttpStatusCode.InternalServerError);
 
 			return request(app)
-				.get(CHECK_AUTH_ENDPOINT)
+				.get(AUTH_ME_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok)
 				.then((response) => {
 					expect(response.body).toStrictEqual({
-						authorized: false,
-						grant: {
-							authorizationEndpoint: expect.any(String),
-						},
+						authorizationEndpoint: expect.any(String),
 					});
 				});
 		});
@@ -254,15 +242,12 @@ describe('/admin/auth', () => {
 			});
 
 			return request(app)
-				.get(CHECK_AUTH_ENDPOINT)
+				.get(AUTH_ME_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok)
 				.then((response) => {
 					expect(response.body).toStrictEqual({
-						authorized: false,
-						grant: {
-							authorizationEndpoint: expect.any(String),
-						},
+						authorizationEndpoint: expect.any(String),
 					});
 				});
 		});
@@ -289,7 +274,7 @@ describe('/admin/auth', () => {
 			});
 
 			return request(app)
-				.get(CHECK_AUTH_ENDPOINT)
+				.get(AUTH_ME_ENDPOINT)
 				.query({
 					userId: atlassianUserId,
 				})
@@ -298,7 +283,7 @@ describe('/admin/auth', () => {
 				.then((response) => {
 					const authorizationEndpoint = new URL(
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access
-						response.body.grant.authorizationEndpoint,
+						response.body.authorizationEndpoint,
 					);
 
 					expect(authorizationEndpoint.origin).toBe(
@@ -354,7 +339,7 @@ describe('/admin/auth', () => {
 			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 
 			return request(app)
-				.get(CHECK_AUTH_ENDPOINT)
+				.get(AUTH_ME_ENDPOINT)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Unauthorized);
 		});

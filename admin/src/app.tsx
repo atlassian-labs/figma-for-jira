@@ -1,7 +1,7 @@
 import Spinner from '@atlaskit/spinner';
 import { useQuery } from '@tanstack/react-query';
 
-import { checkAuth, getAtlassianAccountId } from './api';
+import { getAtlassianAccountId, getAuthMe } from './api';
 import { Page } from './components';
 import { AuthPage, TeamsPage } from './pages';
 
@@ -13,15 +13,15 @@ export function App() {
 
 	const atlassianAccountId = atlassianAccountIdQuery.data;
 
-	const checkAuthQuery = useQuery({
-		queryKey: ['checkAuth', atlassianAccountId],
+	const getAuthMeQuery = useQuery({
+		queryKey: ['authMe', atlassianAccountId],
 		queryFn: async () => {
-			return (await checkAuth(atlassianAccountId ?? '')).data;
+			return (await getAuthMe(atlassianAccountId ?? '')).data;
 		},
 		enabled: atlassianAccountId != null,
 	});
 
-	if (atlassianAccountIdQuery.isPending || checkAuthQuery.isPending) {
+	if (atlassianAccountIdQuery.isPending || getAuthMeQuery.isPending) {
 		return (
 			<Page>
 				<Spinner size="large" />
@@ -34,25 +34,21 @@ export function App() {
 		return null;
 	}
 
-	if (checkAuthQuery.isError) {
+	if (getAuthMeQuery.isError) {
 		// TODO: render an error screen when our service is down or unavailable
 		return null;
 	}
 
-	const checkAuthResponse = checkAuthQuery.data;
+	const { authorizationEndpoint, user } = getAuthMeQuery.data;
 
-	if (!checkAuthResponse.authorized) {
-		return (
-			<AuthPage
-				authorizationEndpoint={checkAuthResponse.grant.authorizationEndpoint}
-			/>
-		);
+	if (!user) {
+		return <AuthPage authorizationEndpoint={authorizationEndpoint} />;
 	}
 
 	return (
 		<TeamsPage
-			authorizationEndpoint={checkAuthResponse.grant.authorizationEndpoint}
-			currentUser={checkAuthResponse.user}
+			authorizationEndpoint={authorizationEndpoint}
+			currentUser={user}
 		/>
 	);
 }

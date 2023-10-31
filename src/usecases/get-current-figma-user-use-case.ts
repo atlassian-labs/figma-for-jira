@@ -1,7 +1,7 @@
 import type { ConnectInstallation, FigmaUser } from '../domain/entities';
 import { figmaService } from '../infrastructure/figma';
 
-export const currentFigmaUserUseCase = {
+export const getCurrentFigmaUserUseCase = {
 	execute: async (
 		atlassianUserId: string,
 		connectInstallation: ConnectInstallation,

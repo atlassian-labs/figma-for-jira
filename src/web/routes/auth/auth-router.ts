@@ -5,7 +5,7 @@ import { CHECK_AUTH_REQUEST_SCHEMA } from './schemas';
 import type { CheckAuthRequest, CheckAuthResponse } from './types';
 
 import { figmaAuthService } from '../../../infrastructure/figma';
-import { currentFigmaUserUseCase } from '../../../usecases';
+import { checkUserFigmaAuthUseCase } from '../../../usecases';
 import { requestSchemaValidationMiddleware } from '../../middleware';
 import { jiraServerSymmetricJwtAuthMiddleware } from '../../middleware/jira';
 
@@ -23,10 +23,9 @@ authRouter.get(
 		const { connectInstallation } = res.locals;
 		const atlassianUserId = req.query.userId;
 
-		currentFigmaUserUseCase
+		checkUserFigmaAuthUseCase
 			.execute(atlassianUserId, connectInstallation)
-			.then((currentUser) => {
-				const authorized = currentUser != null;
+			.then((authorized) => {
 				if (authorized) {
 					return res.send({ type: '3LO', authorized });
 				}
