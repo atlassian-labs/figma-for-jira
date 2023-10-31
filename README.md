@@ -43,7 +43,7 @@ on the [Atlassian Connect Node Example App](https://github.com/atlassian/atlassi
    ```shell
    npm run start:sandbox
    ```
-5. Start an ngrok tunnel (to make the app accessible from outside).
+5. Start an ngrok tunnel (to make the app accessible by Jira).
    ```shell
    npm run start:tunnel
    ```
@@ -54,7 +54,7 @@ on the [Atlassian Connect Node Example App](https://github.com/atlassian/atlassi
    npm start
    ```
 
-Open the Connect Descriptor (`${APP_URL}/atlassian-connect.json`) in your browser to verify that the app is up and
+Open the Connect descriptor (`${APP_URL}/atlassian-connect.json`) in your browser to verify that the app is up and
 running.
 
 ## Debugging
@@ -212,10 +212,9 @@ To run a database migration on your **development** environment:
    ```shell
    npm run db:migrate:dev
    ```
-   This command triggers `@prisma/client` regeneration automatically. If you need to regenerate it manually, run
-   `npm run db:generate`.
+   This will trigger `@prisma/client` regeneration. If you need to regenerate it manually, run `npm run db:generate`.
 
-See for more detail [Prisma Docs - Developing with Prisma Migrate](https://www.prisma.io/docs/guides/migrate/developing-with-prisma-migrate).
+For more detail, see [Prisma Docs - Developing with Prisma Migrate](https://www.prisma.io/docs/guides/migrate/developing-with-prisma-migrate).
 
 ## Testing
 
