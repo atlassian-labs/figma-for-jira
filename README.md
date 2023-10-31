@@ -106,7 +106,7 @@ module and called by Jira backend.
 #### Testing via Jira
 
 1. [Install](#installing-the-app) your locally running app on your Jira instance (see above) to receive lifecycle event requests.
-2. Open a Jira issue
+2. Open a Jira issue.
 3. Use the **Designs** panel to trigger requests to the endpoints.
 
 #### Testing directly
@@ -115,15 +115,35 @@ If needed, you could these APIs directly by mimicking Jira backend.
 
 1. [Install](#installing-the-app) your locally running app on your Jira instance.
 2. Find information about your Atlassian site and user.
+   - To find your `CLIENT_KEY` and `SHARED_SECRET`, see the `jira_connect_installation` database table..
    - To find your `ATLASSIAN_USER_ID`, open https://id.atlassian.com/gateway/api/me and see `account_id`.
    - To find your `ATLASSIAN_CLOUD_ID`, open `https://${MY_SITE_NAME}.atlassian.net/_edge/tenant_info` and see `cloudId`.
-3. Generate a JWT token for a target endpoint (TBD).
-4. Use `cURL` or any other tool to call endpoints. Replace placeholders with real values in the commands below.
+3. Generate a JWT token for a target endpoint, e.g.:
+
+   ```shell
+   npm run jira:jwt:symmetric:server:generate -- \
+    --clientKey "${CLIENT_KEY}" \
+    --sharedSecret "${SHARED_SECRET}" \
+    --method "GET" \
+    --endpoint "/auth/checkAuth?userId=${ATLASSIAN_USER_ID}"
+   ```
+
+   ```shell
+   npm run jira:jwt:symmetric:server:generate -- \
+    --clientKey "${CLIENT_KEY}" \
+    --sharedSecret "${SHARED_SECRET}" \
+    --method "POST" \
+    --endpoint "/entities/associateEntity"
+   ```
+
+4. Use `cURL` or any other tool to call endpoints. Replace placeholders with real values in the commands below, e.g.:
+
    ```shell
    curl --request GET \
-   --url '${APP_URL}/auth/checkAuth?userId=${ATLASSIAN_USER_ID}' \
-   --header 'Authorization: JWT ${TOKEN}'
+     --url '${APP_URL}/auth/checkAuth?userId=${ATLASSIAN_USER_ID}' \
+     --header 'Authorization: JWT ${TOKEN}'
    ```
+
    ```shell
    curl --request POST \
      --url '${APP_URL}/entities/associateEntity' \
@@ -142,6 +162,7 @@ If needed, you could these APIs directly by mimicking Jira backend.
        }
    }'
    ```
+
    ```shell
     curl --request POST \
       --url '${APP_URL}/entities/disassociateEntity' \
