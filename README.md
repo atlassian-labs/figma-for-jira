@@ -30,7 +30,7 @@ on the [Atlassian Connect Node Example App](https://github.com/atlassian/atlassi
 
 ## Getting started
 
-1. Install and use the traget version of Node.js
+1. Install and use the target version of Node.js
    ```shell
    nvm install
    ```
