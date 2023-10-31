@@ -72,7 +72,7 @@ Ensure that the app is running locally (see [Getting started](#getting-started))
    minutes to provision your site.
 2. Go to your Jira instance.
 3. Enable the installation of apps that are not listed on the Atlassian Marketplace.
-   1. Go to **App** > **Manage your apps**.
+   1. Go to **Apps** > **Manage your apps**.
    2. Click **User-installed apps** > **Settings**.
    3. Check **Enable development mode** and click **Apply**.
 4. Reload the page.
@@ -85,26 +85,26 @@ Ensure that the app is running locally (see [Getting started](#getting-started))
 
 ### `/lifecycleEvents/` endpoints
 
-These endpoints handle Connect lifecycle events and are called by Jira backend.
+These endpoints handle Connect lifecycle events and are called by Jira.
 
-1. [Install](#installing-the-app) your locally running app on your Jira instance to receive lifecycle event requests.
+1. [Install](#installing-the-app) a locally running app on your Jira instance to receive lifecycle event requests.
 
 ### `/admin/` endpoints
 
-These endpoints implement the functionality required by admin UI.
+These endpoints implement the functionality required by admin UI (which is a part of the app).
 
-1. [Install](#installing-the-app) your locally running app on your Jira instance.
-2. Go to **Figma for Jira** > **Configure** to open admin UI.
+1. [Install](#installing-the-app) a locally running app on your Jira instance.
+2. In Jira, go to **Apps** > **Manage your apps** > **Figma for Jira** > **Configure** to open admin UI.
 3. Use admin UI to trigger requests to the endpoints.
 
 ### `/entities` and `/auth` endpoints
 
 These endpoints represent the implementation of the `Design` [Connect module](https://developer.atlassian.com/cloud/jira/platform/about-connect-modules-for-jira/)
-module and called by Jira backend.
+module and are called by Jira.
 
 #### Testing via Jira
 
-1. [Install](#installing-the-app) your locally running app on your Jira instance (see above) to receive lifecycle event requests.
+1. [Install](#installing-the-app) a locally running app on your Jira instance.
 2. Open a Jira issue.
 3. Use the **Designs** panel to trigger requests to the endpoints.
 
@@ -112,9 +112,9 @@ module and called by Jira backend.
 
 If needed, you could these APIs directly by mimicking Jira backend.
 
-1. [Install](#installing-the-app) your locally running app on your Jira instance.
+1. [Install](#installing-the-app) a locally running app on your Jira instance.
 2. Find information about your Atlassian site and user.
-   - To find your `CLIENT_KEY` and `SHARED_SECRET`, see the `jira_connect_installation` database table..
+   - To find your `CLIENT_KEY` and `SHARED_SECRET`, see the `jira_connect_installation` database table.
    - To find your `ATLASSIAN_USER_ID`, open https://id.atlassian.com/gateway/api/me and see `account_id`.
    - To find your `ATLASSIAN_CLOUD_ID`, open `https://${MY_SITE_NAME}.atlassian.net/_edge/tenant_info` and see `cloudId`.
 3. Generate a JWT token for a target endpoint, e.g.:
