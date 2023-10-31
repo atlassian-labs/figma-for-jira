@@ -4,50 +4,70 @@ import type {
 	AtlassianDesign,
 	ConnectInstallation,
 } from '../../../domain/entities';
-import type {
-	AssociateEntityUseCaseParams,
-	DisassociateEntityUseCaseParams,
-} from '../../../usecases';
-
-export type EntitiesResponseBody = AtlassianDesign;
 
 export type EntitiesRequestLocals = {
 	readonly connectInstallation: ConnectInstallation;
-	readonly atlassianUserId: string;
 };
 
-export type AssociateEntityRequestBody = Omit<
-	AssociateEntityUseCaseParams,
-	'atlassianUserId' | 'connectInstallation'
->;
+// Types for /entities/associateEntity contract
+export type AssociateEntityRequestQueryParameters = { readonly userId: string };
+
+export type AssociateEntityRequestBody = {
+	readonly entity: {
+		readonly url: string;
+	};
+	readonly associateWith: {
+		readonly ati: string;
+		readonly ari: string;
+		readonly cloudId: string;
+		readonly id: string;
+	};
+};
+
+export type AssociateEntityRequestResponseBody = AtlassianDesign;
 
 export type AssociateEntityRequest = Request<
 	Record<string, never>,
-	EntitiesResponseBody,
+	AssociateEntityRequestResponseBody,
 	AssociateEntityRequestBody,
-	Record<string, never>,
+	AssociateEntityRequestQueryParameters,
 	EntitiesRequestLocals
 >;
 
 export type AssociateEntityResponse = Response<
-	EntitiesResponseBody,
+	AssociateEntityRequestResponseBody,
 	EntitiesRequestLocals
 >;
 
-export type DisassociateEntityRequestBody = Omit<
-	DisassociateEntityUseCaseParams,
-	'atlassianUserId' | 'connectInstallation'
->;
+// Types for /entities/disassociateEntity contract
+export type DisassociateEntityRequestQueryParameters = {
+	readonly userId: string;
+};
+
+export type DisassociateEntityRequestBody = {
+	readonly entity: {
+		readonly ari: string;
+		readonly id: string;
+	};
+	readonly disassociateFrom: {
+		readonly ati: string;
+		readonly ari: string;
+		readonly cloudId: string;
+		readonly id: string;
+	};
+};
+
+export type DisassociateEntityRequestResponseBody = AtlassianDesign;
 
 export type DisassociateEntityRequest = Request<
 	Record<string, never>,
-	EntitiesResponseBody,
+	DisassociateEntityRequestResponseBody,
 	DisassociateEntityRequestBody,
-	Record<string, never>,
+	DisassociateEntityRequestQueryParameters,
 	EntitiesRequestLocals
 >;
 
 export type DisassociateEntityResponse = Response<
-	EntitiesResponseBody,
+	DisassociateEntityRequestResponseBody,
 	EntitiesRequestLocals
 >;
