@@ -280,7 +280,7 @@ describe('FigmaService', () => {
 		});
 	});
 
-	describe('createDevResourceForJiraIssue', () => {
+	describe('tryCreateDevResourceForJiraIssue', () => {
 		const MOCK_CREDENTIALS = generateFigmaOAuth2UserCredentials();
 		beforeEach(() => {
 			jest
