@@ -21,8 +21,10 @@ import type {
 	ConnectInstallation,
 	JiraIssue,
 } from '../../domain/entities';
-import { FigmaDesignIdentifier } from '../../domain/entities';
-import { AtlassianAssociation } from '../../domain/entities';
+import {
+	AtlassianAssociation,
+	FigmaDesignIdentifier,
+} from '../../domain/entities';
 import { NotFoundHttpClientError } from '../http-client-errors';
 import { getLogger } from '../logger';
 
@@ -120,15 +122,9 @@ class JiraService {
 				INGESTED_DESIGN_URL_VALUE_SCHEMA,
 			);
 
-		const figmaDesignIds = storedValue?.map((value) =>
-			FigmaDesignIdentifier.fromFigmaDesignUrl(value),
-		);
 		if (
-			figmaDesignIds?.some((designId) =>
-				FigmaDesignIdentifier.equals(
-					designId,
-					FigmaDesignIdentifier.fromFigmaDesignUrl(url),
-				),
+			storedValue?.some((storedValue) =>
+				this.areDesignIdentifiersEqual(storedValue, url),
 			)
 		) {
 			return;
@@ -248,7 +244,7 @@ class JiraService {
 	 */
 	updateAttachedDesignUrlV2IssueProperty = async (
 		issueIdOrKey: string,
-		{ url, displayName, id }: AtlassianDesign,
+		{ url, displayName }: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		const newValueItem: AttachedDesignUrlV2IssuePropertyValue = {
@@ -264,16 +260,9 @@ class JiraService {
 				ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 			);
 
-		const storedDesignIds = storedValue?.map((value) =>
-			FigmaDesignIdentifier.fromFigmaDesignUrl(value.url),
-		);
-
 		if (
-			storedDesignIds?.some((designId) =>
-				FigmaDesignIdentifier.equals(
-					designId,
-					FigmaDesignIdentifier.fromFigmaDesignUrl(url),
-				),
+			storedValue?.some((storedValue) =>
+				this.areDesignIdentifiersEqual(storedValue.url, url),
 			)
 		) {
 			return;
@@ -331,7 +320,7 @@ class JiraService {
 	 */
 	deleteFromAttachedDesignUrlV2IssueProperties = async (
 		issueIdOrKey: string,
-		{ id, url }: AtlassianDesign,
+		{ url }: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		let response: GetIssuePropertyResponse;
@@ -357,13 +346,10 @@ class JiraService {
 			ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 		);
 
-		const figmaDesignIdToRemove = FigmaDesignIdentifier.fromFigmaDesignUrl(url);
-
 		const newAttachedDesignUrlIssuePropertyValue =
-			storedAttachedDesignUrlIssuePropertyValue.filter((item) => {
-				const designIdentifier = FigmaDesignIdentifier.fromFigmaDesignUrl(item.url);
-				return !FigmaDesignIdentifier.equals(designIdentifier, figmaDesignIdToRemove);
-			});
+			storedAttachedDesignUrlIssuePropertyValue.filter(
+				(storedValue) => !this.areDesignIdentifiersEqual(storedValue.url, url),
+			);
 
 		if (
 			newAttachedDesignUrlIssuePropertyValue.length <
@@ -407,6 +393,17 @@ class JiraService {
 			}
 		}
 	}
+
+	private areDesignIdentifiersEqual = (storedUrl: string, url: string) => {
+		try {
+			return FigmaDesignIdentifier.fromFigmaDesignUrl(url).equals(
+				FigmaDesignIdentifier.fromFigmaDesignUrl(storedUrl),
+			);
+		} catch (error) {
+			// For existing designs that were previously stored in the issue property, we may not be able to parse the URL.
+			return false;
+		}
+	};
 
 	/**
 	 * @throws {SubmitDesignJiraServiceError}
