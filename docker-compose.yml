@@ -5,14 +5,14 @@ services:
     container_name: figma-for-jira-db
     image: postgres:14.8
     ports:
-      - "${PG_FIGMA_FOR_JIRA_DB_PORT}:${PG_FIGMA_FOR_JIRA_DB_PORT}"
+      - "${PG_INTEGRATIONS_PORT}:${PG_INTEGRATIONS_PORT}"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -p $PG_FIGMA_FOR_JIRA_DB_PORT"]
+      test: ["CMD-SHELL", "pg_isready -p $PG_INTEGRATIONS_PORT"]
       interval: 1s
       timeout: 5s
       retries: 10
-    command: ["-p", $PG_FIGMA_FOR_JIRA_DB_PORT]
+    command: ["-p", $PG_INTEGRATIONS_PORT]
     environment:
-      POSTGRES_USER: ${PG_FIGMA_FOR_JIRA_DB_ROLE}
-      POSTGRES_PASSWORD: ${PG_FIGMA_FOR_JIRA_DB_PASSWORD}
-      POSTGRES_DB: ${PG_FIGMA_FOR_JIRA_DB_SCHEMA}
+      POSTGRES_USER: ${PG_INTEGRATIONS_JIRA_USER}
+      POSTGRES_PASSWORD: ${PG_INTEGRATIONS_JIRA_PASSWORD}
+      POSTGRES_DB: ${PG_INTEGRATIONS_DATABASE}
