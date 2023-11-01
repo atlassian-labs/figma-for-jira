@@ -42,7 +42,7 @@ describe('associateEntityUseCase', () => {
 			.spyOn(jiraService, 'saveDesignUrlInIssueProperties')
 			.mockResolvedValue();
 		jest
-			.spyOn(figmaService, 'createDevResourceForJiraIssue')
+			.spyOn(figmaService, 'tryCreateDevResourceForJiraIssue')
 			.mockResolvedValue();
 		jest
 			.spyOn(associatedFigmaDesignRepository, 'upsert')
@@ -70,7 +70,7 @@ describe('associateEntityUseCase', () => {
 			atlassianDesign,
 			connectInstallation,
 		);
-		expect(figmaService.createDevResourceForJiraIssue).toHaveBeenCalledWith({
+		expect(figmaService.tryCreateDevResourceForJiraIssue).toHaveBeenCalledWith({
 			designId,
 			issue: {
 				key: issue.key,
@@ -112,7 +112,7 @@ describe('associateEntityUseCase', () => {
 			.spyOn(jiraService, 'saveDesignUrlInIssueProperties')
 			.mockResolvedValue();
 		jest
-			.spyOn(figmaService, 'createDevResourceForJiraIssue')
+			.spyOn(figmaService, 'tryCreateDevResourceForJiraIssue')
 			.mockResolvedValue();
 		jest.spyOn(associatedFigmaDesignRepository, 'upsert');
 

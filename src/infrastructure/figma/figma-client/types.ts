@@ -71,7 +71,7 @@ export type CreateDevResourcesResponse = {
 
 export type GetDevResourcesRequest = {
 	readonly fileKey: string;
-	readonly nodeIds?: string;
+	readonly nodeIds?: string[];
 	readonly accessToken: string;
 };
 
