@@ -3,7 +3,7 @@ import type { Config } from '../config';
 export const mockConfig: Config = {
 	app: {
 		baseUrl: 'https://www.app.figma.com',
-		key: 'com.figma.jira-addon-dev',
+		key: 'com.figma.jira-add-on-dev',
 	},
 	server: {
 		port: 3000,
