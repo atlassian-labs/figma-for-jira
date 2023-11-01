@@ -28,9 +28,6 @@ export class AtlassianAssociation {
 
 /**
  * An Atlassian representation of a Design from a provider.
- *
- * TODO: Replace a link below with a link to public Jira Design documentation.
- * @see https://hello.atlassian.net/wiki/spaces/MDT/pages/2803802934/Proposed+Design+Schema
  */
 export type AtlassianDesign = {
 	readonly id: string;

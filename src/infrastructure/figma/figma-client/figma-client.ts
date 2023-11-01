@@ -200,7 +200,7 @@ export class FigmaClient {
 	 */
 	getDevResources = async ({
 		fileKey,
-		nodeIds: node_ids,
+		nodeIds,
 		accessToken,
 	}: GetDevResourcesRequest): Promise<GetDevResourcesResponse> =>
 		withAxiosErrorTranslation(async () => {
@@ -208,7 +208,7 @@ export class FigmaClient {
 				`${getConfig().figma.apiBaseUrl}/v1/files/${fileKey}/dev_resources`,
 				{
 					params: {
-						node_ids,
+						node_ids: nodeIds?.join(','),
 					},
 					headers: {
 						['Authorization']: `Bearer ${accessToken}`,

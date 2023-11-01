@@ -62,7 +62,7 @@ export const associateEntityUseCase = {
 					design,
 					connectInstallation,
 				),
-				figmaService.createDevResourceForJiraIssue({
+				figmaService.tryCreateDevResourceForJiraIssue({
 					designId: figmaDesignId,
 					issue: {
 						url: buildJiraIssueUrl(connectInstallation.baseUrl, issue.key),

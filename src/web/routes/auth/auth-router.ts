@@ -15,9 +15,6 @@ authRouter.use(jiraServerSymmetricJwtAuthMiddleware);
 
 /**
  * Checks whether the given Atlassian user is authorized to call Figma API.
- *
- * TODO: Replace with a link to public documentation.
- * @see https://hello.atlassian.net/wiki/spaces/MDT/pages/2796005496/RFC+-+Extending+generic+containers+specification+for+entity+associations#New-Provider-Actions
  */
 authRouter.get(
 	['/checkAuth'],

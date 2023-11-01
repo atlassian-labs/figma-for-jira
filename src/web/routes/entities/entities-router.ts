@@ -18,17 +18,11 @@ import {
 	disassociateEntityUseCase,
 } from '../../../usecases';
 import { requestSchemaValidationMiddleware } from '../../middleware';
-import {
-	extractUserIdFromHeadersMiddleware,
-	jiraServerSymmetricJwtAuthMiddleware,
-} from '../../middleware/jira';
+import { jiraServerSymmetricJwtAuthMiddleware } from '../../middleware/jira';
 
 export const entitiesRouter = Router();
 
-entitiesRouter.use(
-	extractUserIdFromHeadersMiddleware,
-	jiraServerSymmetricJwtAuthMiddleware,
-);
+entitiesRouter.use(jiraServerSymmetricJwtAuthMiddleware);
 
 entitiesRouter.post(
 	'/associateEntity',
@@ -38,7 +32,9 @@ entitiesRouter.post(
 		res: AssociateEntityResponse,
 		next: NextFunction,
 	) => {
-		const { connectInstallation, atlassianUserId } = res.locals;
+		const { connectInstallation } = res.locals;
+		const atlassianUserId = req.query.userId;
+
 		associateEntityUseCase
 			.execute({
 				...req.body,
@@ -58,7 +54,9 @@ entitiesRouter.post(
 		res: DisassociateEntityResponse,
 		next: NextFunction,
 	) => {
-		const { connectInstallation, atlassianUserId } = res.locals;
+		const { connectInstallation } = res.locals;
+		const atlassianUserId = req.query.userId;
+
 		disassociateEntityUseCase
 			.execute({
 				...req.body,
