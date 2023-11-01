@@ -149,12 +149,18 @@ export const generateConnectInstallation = ({
 export const generateAtlassianDesign = ({
 	id = `${generateFigmaFileKey()}/${generateFigmaNodeId()}`,
 	displayName = `Design ${uuidv4()}`,
-	url = `https://www.figma.com/file/${getFileKeyFromId(
-		id,
-	)}/${displayName}?type=design&node-id=${getNodeIdFromId(id)}&mode=design`,
-	liveEmbedUrl = `https://www.figma.com/file/${getFileKeyFromId(
-		id,
-	)}/${displayName}?type=design&node-id=${getNodeIdFromId(id)}&mode=design`,
+	url = generateFigmaDesignUrl({
+		fileKey: getFileKeyFromId(id),
+		nodeId: getNodeIdFromId(id),
+		fileName: displayName,
+		mode: 'design',
+	}),
+	liveEmbedUrl = generateFigmaDesignUrl({
+		fileKey: getFileKeyFromId(id),
+		nodeId: getNodeIdFromId(id),
+		fileName: displayName,
+		mode: 'design',
+	}),
 	status = AtlassianDesignStatus.UNKNOWN,
 	type = AtlassianDesignType.FILE,
 	lastUpdated = new Date().toISOString(),
@@ -169,16 +175,6 @@ export const generateAtlassianDesign = ({
 	lastUpdated,
 	updateSequenceNumber,
 });
-
-const getNodeIdFromId = (id: string) => {
-	const parts = id.split('/');
-	return parts.length > 1 ? parts[1] : undefined;
-};
-
-const getFileKeyFromId = (id: string) => {
-	const parts = id.split('/');
-	return parts[0];
-};
 
 export const generateJiraIssueId = () => generateNumericStringId();
 
@@ -278,3 +274,13 @@ export const generateFigmaTeamSummary = ({
 	teamName,
 	authStatus: status,
 });
+
+const getNodeIdFromId = (id: string) => {
+	const parts = id.split('/');
+	return parts.length > 1 ? parts[1] : undefined;
+};
+
+const getFileKeyFromId = (id: string) => {
+	const parts = id.split('/');
+	return parts[0];
+};

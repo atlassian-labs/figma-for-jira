@@ -124,7 +124,7 @@ class JiraService {
 
 		if (
 			storedValue?.some((storedValue) =>
-				this.areDesignIdentifiersEqual(storedValue, url),
+				this.areDesignUrlsEqual(storedValue, url),
 			)
 		) {
 			return;
@@ -262,7 +262,7 @@ class JiraService {
 
 		if (
 			storedValue?.some((storedValue) =>
-				this.areDesignIdentifiersEqual(storedValue.url, url),
+				this.areDesignUrlsEqual(storedValue.url, url),
 			)
 		) {
 			return;
@@ -348,7 +348,7 @@ class JiraService {
 
 		const newAttachedDesignUrlIssuePropertyValue =
 			storedAttachedDesignUrlIssuePropertyValue.filter(
-				(storedValue) => !this.areDesignIdentifiersEqual(storedValue.url, url),
+				(storedValue) => !this.areDesignUrlsEqual(storedValue.url, url),
 			);
 
 		if (
@@ -394,7 +394,7 @@ class JiraService {
 		}
 	}
 
-	private areDesignIdentifiersEqual = (storedUrl: string, url: string) => {
+	private areDesignUrlsEqual = (storedUrl: string, url: string) => {
 		try {
 			return FigmaDesignIdentifier.fromFigmaDesignUrl(url).equals(
 				FigmaDesignIdentifier.fromFigmaDesignUrl(storedUrl),
