@@ -74,7 +74,7 @@ export const disassociateEntityUseCase = {
 					design,
 					connectInstallation,
 				),
-				figmaService.deleteDevResourceIfExists({
+				figmaService.deleteDevResource({
 					designId: figmaDesignId,
 					devResourceUrl: buildJiraIssueUrl(
 						connectInstallation.baseUrl,
