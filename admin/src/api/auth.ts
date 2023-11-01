@@ -2,23 +2,19 @@ import { type AxiosResponse } from 'axios';
 
 import { axiosRest } from './axiosInstance';
 
-export type CheckAuthResponseBody =
-	| {
-			readonly type: '3LO';
-			readonly authorized: true;
-	  }
-	| {
-			readonly type: '3LO';
-			readonly authorized: false;
-			readonly grant: {
-				readonly authorizationEndpoint: string;
-			};
-	  };
+export type FigmaUser = {
+	readonly email: string;
+};
 
-export async function checkAuth(
+export type MeResponseBody = {
+	readonly authorizationEndpoint: string;
+	readonly user?: FigmaUser;
+};
+
+export async function getAuthMe(
 	atlassianUserId: string,
-): Promise<AxiosResponse<CheckAuthResponseBody>> {
-	return await axiosRest.get<CheckAuthResponseBody>('/admin/auth/checkAuth', {
+): Promise<AxiosResponse<MeResponseBody>> {
+	return await axiosRest.get<MeResponseBody>('/admin/auth/me', {
 		params: { userId: atlassianUserId },
 	});
 }

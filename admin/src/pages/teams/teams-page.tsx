@@ -5,10 +5,19 @@ import { useState } from 'react';
 import { ConnectedTeamsList } from './connected-teams-list';
 import { FigmaTeamConnector } from './figma-teams-connector';
 
+import type { FigmaUser } from '../../api';
 import { getCurrentAtlassianSite, getTeams } from '../../api';
 import { Page } from '../../components';
 
-export function TeamsPage() {
+type TeamsPageProps = {
+	authorizationEndpoint: string;
+	currentUser: FigmaUser;
+};
+
+export function TeamsPage({
+	authorizationEndpoint,
+	currentUser,
+}: TeamsPageProps) {
 	const [isConnectingTeam, setIsConnectingTeam] = useState(false);
 
 	const teamsQuery = useQuery({
@@ -48,6 +57,8 @@ export function TeamsPage() {
 	if (isConnectingTeam) {
 		return (
 			<FigmaTeamConnector
+				authorizationEndpoint={authorizationEndpoint}
+				currentUser={currentUser}
 				site={currentAtlassianSite}
 				onClose={
 					teams.length > 0 ? () => setIsConnectingTeam(false) : undefined
