@@ -141,10 +141,14 @@ export const connectAppDescriptor = {
 				'https://help.figma.com/hc/en-us/articles/360039827834-Jira-and-Figma',
 			actions: {
 				associateEntity: {
-					templateUrl: `${getConfig().app.baseUrl}/entities/associateEntity`,
+					templateUrl: `${
+						getConfig().app.baseUrl
+					}/entities/associateEntity?userId={userId}`,
 				},
 				disassociateEntity: {
-					templateUrl: `${getConfig().app.baseUrl}/entities/disassociateEntity`,
+					templateUrl: `${
+						getConfig().app.baseUrl
+					}/entities/disassociateEntity?userId={userId}`,
 				},
 				checkAuth: {
 					templateUrl: `${

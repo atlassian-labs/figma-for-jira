@@ -132,7 +132,7 @@ If needed, you could test these APIs directly by mimicking Jira backend.
     --clientKey "${CLIENT_KEY}" \
     --sharedSecret "${SHARED_SECRET}" \
     --method "POST" \
-    --endpoint "/entities/associateEntity"
+    --endpoint "/entities/associateEntity?userId=${ATLASSIAN_USER_ID}"
    ```
 
 4. Use `cURL` or any other tool to call endpoints. Replace placeholders with real values in the commands below, e.g.:
@@ -145,10 +145,9 @@ If needed, you could test these APIs directly by mimicking Jira backend.
 
    ```shell
    curl --request POST \
-     --url '${APP_URL}/entities/associateEntity' \
+     --url '${APP_URL}/entities/associateEntity?userId=${ATLASSIAN_USER_ID}' \
      --header 'Authorization: JWT ${TOKEN}' \
      --header 'Content-Type: application/json' \
-     --header 'user-id: ${ATLASSIAN_USER_ID}' \
      --data '{
        "entity": {
            "url": "https://www.figma.com/file/${FILE_KEY}"
@@ -164,10 +163,9 @@ If needed, you could test these APIs directly by mimicking Jira backend.
 
    ```shell
     curl --request POST \
-      --url '${APP_URL}/entities/disassociateEntity' \
+      --url '${APP_URL}/entities/disassociateEntity?userId=${ATLASSIAN_USER_ID}' \
       --header 'Authorization: JWT ${TOKEN}' \
       --header 'Content-Type: application/json' \
-      --header 'user-id: ${ATLASSIAN_USER_ID}' \
       --data '{
         "entity": {
             "id": "${FILE_KEY}",

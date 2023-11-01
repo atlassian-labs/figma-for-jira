@@ -9,6 +9,7 @@ import type {
 
 import app from '../../../app';
 import { getConfig } from '../../../config';
+import type { ConnectInstallation } from '../../../domain/entities';
 import {
 	AtlassianAssociation,
 	buildJiraIssueUrl,
@@ -63,28 +64,33 @@ import {
 	mockJiraSubmitDesignsEndpoint,
 } from '../../testing';
 
-const MOCK_CONNECT_INSTALLATION_CREATE_PARAMS =
-	generateConnectInstallationCreateParams({
-		key: 'com.figma.jira-addon-dev',
-		clientKey: uuidv4(),
-		sharedSecret: uuidv4(),
+const generateAssociateEntityJwt = (
+	connectInstallation: ConnectInstallation,
+	atlassianUserId: string,
+) => {
+	return generateJiraServerSymmetricJwtToken({
+		request: {
+			method: 'POST',
+			pathname: '/entities/associateEntity',
+			query: { userId: atlassianUserId },
+		},
+		connectInstallation,
 	});
+};
 
-const ASSOCIATE_JWT_TOKEN = `JWT ${generateJiraServerSymmetricJwtToken({
-	request: {
-		pathname: '/entities/associateEntity',
-		method: 'POST',
-	},
-	connectInstallation: MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
-})}`;
-
-const DISASSOCIATE_JWT_TOKEN = `JWT ${generateJiraServerSymmetricJwtToken({
-	request: {
-		pathname: '/entities/disassociateEntity',
-		method: 'POST',
-	},
-	connectInstallation: MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
-})}`;
+const generateDisassociateEntityJwt = (
+	connectInstallation: ConnectInstallation,
+	atlassianUserId: string,
+) => {
+	return generateJiraServerSymmetricJwtToken({
+		request: {
+			method: 'POST',
+			pathname: '/entities/disassociateEntity',
+			query: { userId: atlassianUserId },
+		},
+		connectInstallation,
+	});
+};
 
 const generateAssociateEntityRequest = ({
 	issueId = generateJiraIssueId(),
@@ -164,7 +170,7 @@ describe('/entities', () => {
 				fileResponse,
 			});
 			const connectInstallation = await connectInstallationRepository.upsert(
-				MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
+				generateConnectInstallationCreateParams(),
 			);
 			const figmaUserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
@@ -257,6 +263,7 @@ describe('/entities', () => {
 
 			await request(app)
 				.post('/entities/associateEntity')
+				.query({ userId: atlassianUserId })
 				.send(
 					generateAssociateEntityRequest({
 						issueId: issue.id,
@@ -264,7 +271,13 @@ describe('/entities', () => {
 						figmaDesignUrl: inputFigmaDesignUrl,
 					}),
 				)
-				.set('Authorization', ASSOCIATE_JWT_TOKEN)
+				.set(
+					'Authorization',
+					`JWT ${generateAssociateEntityJwt(
+						connectInstallation,
+						atlassianUserId,
+					)}`,
+				)
 				.set('Content-Type', 'application/json')
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
@@ -308,7 +321,7 @@ describe('/entities', () => {
 				fileResponse,
 			});
 			const connectInstallation = await connectInstallationRepository.upsert(
-				MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
+				generateConnectInstallationCreateParams(),
 			);
 			const figmaUserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
@@ -401,6 +414,7 @@ describe('/entities', () => {
 
 			await request(app)
 				.post('/entities/associateEntity')
+				.query({ userId: atlassianUserId })
 				.send(
 					generateAssociateEntityRequest({
 						issueId: issue.id,
@@ -408,7 +422,13 @@ describe('/entities', () => {
 						figmaDesignUrl: inputFigmaDesignUrl,
 					}),
 				)
-				.set('Authorization', ASSOCIATE_JWT_TOKEN)
+				.set(
+					'Authorization',
+					`JWT ${generateAssociateEntityJwt(
+						connectInstallation,
+						atlassianUserId,
+					)}`,
+				)
 				.set('Content-Type', 'application/json')
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
@@ -423,19 +443,31 @@ describe('/entities', () => {
 			]);
 		});
 
-		it('should respond with 401 "User-Id" header is not set', () => {
+		it('should respond with 400 "userId" query parameter is missing', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const jwt = generateJiraServerSymmetricJwtToken({
+				request: {
+					method: 'POST',
+					pathname: '/entities/associateEntity',
+				},
+				connectInstallation,
+			});
+
 			return request(app)
 				.post('/entities/associateEntity')
 				.send(generateAssociateEntityRequest())
-				.set('Authorization', ASSOCIATE_JWT_TOKEN)
+				.set('Authorization', `JWT ${jwt}`)
 				.set('Content-Type', 'application/json')
-				.expect(HttpStatusCode.Unauthorized);
+				.expect(HttpStatusCode.BadRequest);
 		});
 
 		it('should respond with 403 if credentials are not found', async () => {
+			const atlassianUserId = uuidv4();
 			const issueId = generateJiraIssueId();
 			const connectInstallation = await connectInstallationRepository.upsert(
-				MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
+				generateConnectInstallationCreateParams(),
 			);
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
@@ -444,8 +476,15 @@ describe('/entities', () => {
 
 			return request(app)
 				.post('/entities/associateEntity')
+				.query({ userId: atlassianUserId })
 				.send(generateAssociateEntityRequest({ issueId }))
-				.set('Authorization', ASSOCIATE_JWT_TOKEN)
+				.set(
+					'Authorization',
+					`JWT ${generateAssociateEntityJwt(
+						connectInstallation,
+						atlassianUserId,
+					)}`,
+				)
 				.set('Content-Type', 'application/json')
 				.set('User-Id', uuidv4())
 				.expect(HttpStatusCode.Forbidden);
@@ -463,7 +502,7 @@ describe('/entities', () => {
 			});
 
 			const connectInstallation = await connectInstallationRepository.upsert(
-				MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
+				generateConnectInstallationCreateParams(),
 			);
 			const figmaUserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
@@ -487,6 +526,7 @@ describe('/entities', () => {
 
 			await request(app)
 				.post('/entities/associateEntity')
+				.query({ userId: atlassianUserId })
 				.send(
 					generateAssociateEntityRequest({
 						issueId,
@@ -494,7 +534,13 @@ describe('/entities', () => {
 						figmaDesignUrl: inputFigmaDesignUrl,
 					}),
 				)
-				.set('Authorization', ASSOCIATE_JWT_TOKEN)
+				.set(
+					'Authorization',
+					`JWT ${generateAssociateEntityJwt(
+						connectInstallation,
+						atlassianUserId,
+					)}`,
+				)
 				.set('Content-Type', 'application/json')
 				.set('User-Id', atlassianUserId);
 		});
@@ -533,7 +579,7 @@ describe('/entities', () => {
 				fileResponse,
 			});
 			const connectInstallation = await connectInstallationRepository.upsert(
-				MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
+				generateConnectInstallationCreateParams(),
 			);
 			const figmaUserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
@@ -632,6 +678,7 @@ describe('/entities', () => {
 
 			await request(app)
 				.post('/entities/disassociateEntity')
+				.query({ userId: atlassianUserId })
 				.send(
 					generateDisassociateEntityRequest({
 						issueId: issue.id,
@@ -639,7 +686,13 @@ describe('/entities', () => {
 						entityId: fileKey,
 					}),
 				)
-				.set('Authorization', DISASSOCIATE_JWT_TOKEN)
+				.set(
+					'Authorization',
+					`JWT ${generateDisassociateEntityJwt(
+						connectInstallation,
+						atlassianUserId,
+					)}`,
+				)
 				.set('Content-Type', 'application/json')
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
@@ -672,7 +725,7 @@ describe('/entities', () => {
 				fileResponse,
 			});
 			const connectInstallation = await connectInstallationRepository.upsert(
-				MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
+				generateConnectInstallationCreateParams(),
 			);
 			const figmaUserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
@@ -771,6 +824,7 @@ describe('/entities', () => {
 
 			await request(app)
 				.post('/entities/disassociateEntity')
+				.query({ userId: atlassianUserId })
 				.send(
 					generateDisassociateEntityRequest({
 						issueId: issue.id,
@@ -778,7 +832,13 @@ describe('/entities', () => {
 						entityId: `${fileKey}/${nodeId}`,
 					}),
 				)
-				.set('Authorization', DISASSOCIATE_JWT_TOKEN)
+				.set(
+					'Authorization',
+					`JWT ${generateDisassociateEntityJwt(
+						connectInstallation,
+						atlassianUserId,
+					)}`,
+				)
 				.set('Content-Type', 'application/json')
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
@@ -793,7 +853,7 @@ describe('/entities', () => {
 			const issue = generateJiraIssue();
 			const fileResponse = generateGetFileResponse({ name: fileName });
 			const connectInstallation = await connectInstallationRepository.upsert(
-				MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
+				generateConnectInstallationCreateParams(),
 			);
 			const figmaUserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
@@ -839,31 +899,50 @@ describe('/entities', () => {
 
 			return request(app)
 				.post('/entities/disassociateEntity')
+				.query({ userId: atlassianUserId })
 				.send(
 					generateDisassociateEntityRequest({
 						issueId: issue.id,
 						entityId: fileKey,
 					}),
 				)
-				.set('Authorization', DISASSOCIATE_JWT_TOKEN)
+				.set(
+					'Authorization',
+					`JWT ${generateDisassociateEntityJwt(
+						connectInstallation,
+						atlassianUserId,
+					)}`,
+				)
 				.set('Content-Type', 'application/json')
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok);
 		});
 
-		it('should respond with 401 "User-Id" header is not set', () => {
+		it('should respond with 400 "userId" query parameter is missing', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const jwt = generateJiraServerSymmetricJwtToken({
+				request: {
+					method: 'POST',
+					pathname: '/entities/disassociateEntity',
+				},
+				connectInstallation,
+			});
+
 			return request(app)
 				.post('/entities/disassociateEntity')
 				.send(generateDisassociateEntityRequest())
-				.set('Authorization', DISASSOCIATE_JWT_TOKEN)
+				.set('Authorization', `JWT ${jwt}`)
 				.set('Content-Type', 'application/json')
-				.expect(HttpStatusCode.Unauthorized);
+				.expect(HttpStatusCode.BadRequest);
 		});
 
 		it('should respond with 403 if credentials are not found', async () => {
+			const atlassianUserId = uuidv4();
 			const issueId = generateJiraIssueId();
 			const connectInstallation = await connectInstallationRepository.upsert(
-				MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
+				generateConnectInstallationCreateParams(),
 			);
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
@@ -872,8 +951,15 @@ describe('/entities', () => {
 
 			return request(app)
 				.post('/entities/disassociateEntity')
+				.query({ userId: atlassianUserId })
 				.send(generateDisassociateEntityRequest({ issueId }))
-				.set('Authorization', DISASSOCIATE_JWT_TOKEN)
+				.set(
+					'Authorization',
+					`JWT ${generateDisassociateEntityJwt(
+						connectInstallation,
+						atlassianUserId,
+					)}`,
+				)
 				.set('Content-Type', 'application/json')
 				.set('User-Id', uuidv4())
 				.expect(HttpStatusCode.Forbidden);
@@ -885,7 +971,7 @@ describe('/entities', () => {
 			const issueId = generateJiraIssueId();
 
 			const connectInstallation = await connectInstallationRepository.upsert(
-				MOCK_CONNECT_INSTALLATION_CREATE_PARAMS,
+				generateConnectInstallationCreateParams(),
 			);
 			const figmaUserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
@@ -909,8 +995,15 @@ describe('/entities', () => {
 
 			return request(app)
 				.post('/entities/disassociateEntity')
+				.query({ userId: atlassianUserId })
 				.send(generateDisassociateEntityRequest({ entityId: fileKey, issueId }))
-				.set('Authorization', DISASSOCIATE_JWT_TOKEN)
+				.set(
+					'Authorization',
+					`JWT ${generateDisassociateEntityJwt(
+						connectInstallation,
+						atlassianUserId,
+					)}`,
+				)
 				.set('Content-Type', 'application/json')
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.InternalServerError);

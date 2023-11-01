@@ -26,6 +26,13 @@ export const ASSOCIATE_ENTITY_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 			},
 			required: ['entity', 'associateWith'],
 		},
+		query: {
+			type: 'object',
+			properties: {
+				userId: { type: 'string' },
+			},
+			required: ['userId'],
+		},
 	},
 	required: ['body'],
 };
@@ -50,6 +57,13 @@ export const DISASSOCIATE_ENTITY_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 				disassociateFrom: ATLASSIAN_ENTITY_SCHEMA,
 			},
 			required: ['entity', 'disassociateFrom'],
+		},
+		query: {
+			type: 'object',
+			properties: {
+				userId: { type: 'string' },
+			},
+			required: ['userId'],
 		},
 	},
 	required: ['body'],
