@@ -240,11 +240,6 @@ class JiraService {
 		{ url, displayName }: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
-		const newValueItem: AttachedDesignUrlV2IssuePropertyValue = {
-			url,
-			name: displayName,
-		};
-
 		const storedValue =
 			await this.getIssuePropertyJsonValue<AttachedDesignUrlV2IssuePropertyValue>(
 				issueIdOrKey,
@@ -252,12 +247,19 @@ class JiraService {
 				connectInstallation,
 				ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 			);
-		if (storedValue?.some((value) => value.url === url)) {
-			return;
-		}
 
+		const isTargetValueItemStored = storedValue?.some(
+			(item) => item.url === url && item.name === displayName,
+		);
+
+		if (isTargetValueItemStored) return;
+
+		const newValueItem: AttachedDesignUrlV2IssuePropertyValue = {
+			url,
+			name: displayName,
+		};
 		const newValue = storedValue
-			? [...storedValue, newValueItem]
+			? [...storedValue.filter((item) => item.url !== url), newValueItem]
 			: [newValueItem];
 
 		return jiraClient.setIssueProperty(
