@@ -394,7 +394,7 @@ describe('/entities', () => {
 					JSON.stringify([
 						{
 							url: normalizedFigmaDesignUrl,
-							name: node.name,
+							name: atlassianDesign.displayName,
 						},
 					]),
 				),

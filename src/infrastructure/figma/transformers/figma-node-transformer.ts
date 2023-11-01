@@ -30,7 +30,7 @@ export const transformNodeToAtlassianDesign = ({
 	const fileName = fileResponse.name;
 	return {
 		id: designId.toAtlassianDesignId(),
-		displayName: node.name,
+		displayName: `${fileName} - ${node.name}`,
 		url: buildDesignUrl({ fileKey, fileName, nodeId }),
 		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName, nodeId }),
 		inspectUrl: buildInspectUrl({ fileKey, fileName, nodeId }),

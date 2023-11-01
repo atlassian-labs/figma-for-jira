@@ -70,7 +70,7 @@ describe('transformNodeToAtlassianDesign', () => {
 
 		expect(result).toStrictEqual({
 			id: `${fileKey}/${node.id}`,
-			displayName: node.name,
+			displayName: `${fileResponse.name} - ${node.name}`,
 			url: buildDesignUrl({
 				fileKey,
 				fileName: fileResponse.name,
