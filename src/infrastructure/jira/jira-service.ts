@@ -126,20 +126,12 @@ class JiraService {
 			return;
 		}
 
-		let newValue: IngestedDesignUrlIssuePropertyValue[] = storedValue
-			? [...storedValue]
-			: [];
-		const urlExistsInStoredValue = newValue.some((storedUrl) =>
-			this.areDesignUrlsEqual(storedUrl, url),
-		);
+		const storedValueExcludingItemWithTargetUrl =
+			storedValue?.filter(
+				(storedUrl) => !this.areUrlsOfSameDesign(storedUrl, url),
+			) ?? [];
 
-		if (!urlExistsInStoredValue) {
-			newValue.push(url);
-		} else {
-			newValue = newValue.map((storedUrl) =>
-				this.areDesignUrlsEqual(storedUrl, url) ? url : storedUrl,
-			);
-		}
+		const newValue = [...storedValueExcludingItemWithTargetUrl, url];
 
 		return jiraClient.setIssueProperty(
 			issueIdOrKey,
@@ -256,11 +248,6 @@ class JiraService {
 		{ url, displayName }: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
-		const newValueItem: AttachedDesignUrlV2IssuePropertyValue = {
-			url,
-			name: displayName,
-		};
-
 		const storedValue =
 			await this.getIssuePropertyJsonValue<AttachedDesignUrlV2IssuePropertyValue>(
 				issueIdOrKey,
@@ -269,24 +256,20 @@ class JiraService {
 				ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 			);
 
-		if (storedValue?.some((item) => item.url === url)) {
-			return;
-		}
-
-		let newValue: AttachedDesignUrlV2IssuePropertyValue[] = storedValue
-			? [...storedValue]
-			: [];
-		const urlExistsInStoredValue = newValue.some((item) =>
-			this.areDesignUrlsEqual(item.url, url),
+		const isTargetValueItemStored = storedValue?.some(
+			(item) => item.url === url && item.name === displayName,
 		);
 
-		if (!urlExistsInStoredValue) {
-			newValue.push(newValueItem);
-		} else {
-			newValue = newValue.map((item) =>
-				this.areDesignUrlsEqual(item.url, url) ? newValueItem : item,
-			);
-		}
+		if (isTargetValueItemStored) return;
+
+		const storedValueExcludingItemWithTargetUrl =
+			storedValue?.filter((item) => !this.areUrlsOfSameDesign(item.url, url)) ??
+			[];
+
+		const newValue = [
+			...storedValueExcludingItemWithTargetUrl,
+			{ url, name: displayName },
+		];
 
 		return jiraClient.setIssueProperty(
 			issueIdOrKey,
@@ -364,7 +347,7 @@ class JiraService {
 
 		const newAttachedDesignUrlIssuePropertyValue =
 			storedAttachedDesignUrlIssuePropertyValue.filter(
-				(storedValue) => !this.areDesignUrlsEqual(storedValue.url, url),
+				(storedValue) => !this.areUrlsOfSameDesign(storedValue.url, url),
 			);
 
 		if (
@@ -410,7 +393,7 @@ class JiraService {
 		}
 	}
 
-	private areDesignUrlsEqual = (storedUrl: string, url: string) => {
+	private areUrlsOfSameDesign = (storedUrl: string, url: string) => {
 		try {
 			return FigmaDesignIdentifier.fromFigmaDesignUrl(url).equals(
 				FigmaDesignIdentifier.fromFigmaDesignUrl(storedUrl),
