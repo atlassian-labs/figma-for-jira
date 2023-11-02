@@ -26,11 +26,15 @@ import type {
 	AtlassianDesign,
 	ConnectInstallation,
 } from '../../domain/entities';
-import { AtlassianAssociation } from '../../domain/entities';
+import {
+	AtlassianAssociation,
+	FigmaDesignIdentifier,
+} from '../../domain/entities';
 import {
 	generateAtlassianDesign,
 	generateConnectInstallation,
 	generateFigmaDesignIdentifier,
+	generateFigmaDesignUrl,
 	generateJiraIssue,
 	generateJiraIssueAri,
 	generateJiraIssueKey,
@@ -426,7 +430,53 @@ describe('JiraService', () => {
 			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
 		});
 
-		it('should overwrite the issue property if it contains item with target URL but different name', async () => {
+		it('should overwrite the issue property if it contains item with URL in different format', async () => {
+			const designUrlInDifferentFormat = generateFigmaDesignUrl({
+				fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).fileKey,
+				nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).nodeId,
+				fileName: design.displayName,
+				mode: 'dev',
+			});
+			const otherDesignPropertyValue: AttachedDesignUrlV2IssuePropertyValue[] =
+				[
+					{
+						url: `https://www.figma.com/file/${uuidv4()}/test-file`,
+						name: `Design ${uuidv4()}`,
+					},
+				];
+
+			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+				generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify([
+						...otherDesignPropertyValue,
+						{ url: designUrlInDifferentFormat, name: design.displayName },
+					]),
+				}),
+			);
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await jiraService.updateAttachedDesignUrlV2IssueProperty(
+				issueId,
+				design,
+				connectInstallation,
+			);
+
+			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
+				issueId,
+				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				JSON.stringify([
+					...otherDesignPropertyValue,
+					{
+						url: design.url,
+						name: design.displayName,
+					},
+				]),
+				connectInstallation,
+			);
+		});
+
+		it('should overwrite the issue property if it contains item with same URL but different name', async () => {
 			const otherDesignPropertyValueItems: AttachedDesignUrlV2IssuePropertyValue[] =
 				[
 					{
@@ -629,10 +679,17 @@ describe('JiraService', () => {
 		});
 
 		it('should overwrite the ingested designs issue property if the same design with a different url format already exists', async () => {
+			const designUrlInDifferentFormat = generateFigmaDesignUrl({
+				fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).fileKey,
+				nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).nodeId,
+				fileName: design.displayName,
+				mode: 'dev',
+			});
+
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
 					key: issuePropertyKeys.INGESTED_DESIGN_URLS,
-					value: [`${design.url}&mode=dev`],
+					value: [designUrlInDifferentFormat],
 				}),
 			);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
