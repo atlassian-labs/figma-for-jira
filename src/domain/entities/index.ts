@@ -5,4 +5,5 @@ export * from './connect-user-info';
 export * from './figma-design-identifier';
 export * from './figma-oauth2-user-credentials';
 export * from './figma-team';
+export * from './figma-user';
 export * from './jira-issue';

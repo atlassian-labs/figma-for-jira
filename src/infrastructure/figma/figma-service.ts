@@ -16,6 +16,7 @@ import type {
 	AtlassianDesign,
 	ConnectUserInfo,
 	FigmaDesignIdentifier,
+	FigmaUser,
 } from '../../domain/entities';
 import {
 	ForbiddenHttpClientError,
@@ -31,17 +32,19 @@ const buildDevResourceNameFromJiraIssue = (
 
 export class FigmaService {
 	/**
-	 * Checks whether the given user authorized the app to access Figma.
+	 * Returns the user that authorized the app to access Figma and null if the user is not authorized.
 	 */
-	checkAuth = async (user: ConnectUserInfo): Promise<boolean> => {
+	fetchCurrentUser = async (
+		user: ConnectUserInfo,
+	): Promise<FigmaUser | null> => {
 		try {
-			await this.withErrorTranslation(async () => {
+			return await this.withErrorTranslation(async () => {
 				const credentials = await figmaAuthService.getCredentials(user);
-				await figmaClient.me(credentials.accessToken);
+				const meResponse = await figmaClient.me(credentials.accessToken);
+				return { email: meResponse.email };
 			});
-			return true;
 		} catch (e) {
-			if (e instanceof UnauthorizedFigmaServiceError) return false;
+			if (e instanceof UnauthorizedFigmaServiceError) return null;
 			throw e;
 		}
 	};

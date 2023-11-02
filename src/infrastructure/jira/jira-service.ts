@@ -19,10 +19,12 @@ import { ensureString } from '../../common/string-utils';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
-	FigmaDesignIdentifier,
 	JiraIssue,
 } from '../../domain/entities';
-import { AtlassianAssociation } from '../../domain/entities';
+import {
+	AtlassianAssociation,
+	FigmaDesignIdentifier,
+} from '../../domain/entities';
 import { NotFoundHttpClientError } from '../http-client-errors';
 import { getLogger } from '../logger';
 
@@ -119,11 +121,25 @@ class JiraService {
 				connectInstallation,
 				INGESTED_DESIGN_URL_VALUE_SCHEMA,
 			);
-		if (storedValue?.some((value) => value === url)) {
+
+		if (storedValue?.some((storedUrl) => storedUrl === url)) {
 			return;
 		}
 
-		const newValue = storedValue ? [...storedValue, url] : [url];
+		let newValue: IngestedDesignUrlIssuePropertyValue[] = storedValue
+			? [...storedValue]
+			: [];
+		const urlExistsInStoredValue = newValue.some((storedUrl) =>
+			this.areDesignUrlsEqual(storedUrl, url),
+		);
+
+		if (!urlExistsInStoredValue) {
+			newValue.push(url);
+		} else {
+			newValue = newValue.map((storedUrl) =>
+				this.areDesignUrlsEqual(storedUrl, url) ? url : storedUrl,
+			);
+		}
 
 		return jiraClient.setIssueProperty(
 			issueIdOrKey,
@@ -248,19 +264,29 @@ class JiraService {
 				ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 			);
 
-		const isTargetValueItemStored = storedValue?.some(
-			(item) => item.url === url && item.name === displayName,
-		);
+		if (storedValue?.some((item) => item.url === url)) {
+			return;
+		}
 
-		if (isTargetValueItemStored) return;
+		let newValue: AttachedDesignUrlV2IssuePropertyValue[] = storedValue
+			? [...storedValue]
+			: [];
+		const urlExistsInStoredValue = newValue.some((item) =>
+			this.areDesignUrlsEqual(item.url, url),
+		);
 
 		const newValueItem: AttachedDesignUrlV2IssuePropertyValue = {
 			url,
 			name: displayName,
 		};
-		const newValue = storedValue
-			? [...storedValue.filter((item) => item.url !== url), newValueItem]
-			: [newValueItem];
+
+		if (!urlExistsInStoredValue) {
+			newValue.push(newValueItem);
+		} else {
+			newValue = newValue.map((item) =>
+				this.areDesignUrlsEqual(item.url, url) ? newValueItem : item,
+			);
+		}
 
 		return jiraClient.setIssueProperty(
 			issueIdOrKey,
@@ -310,7 +336,7 @@ class JiraService {
 	 */
 	deleteFromAttachedDesignUrlV2IssueProperties = async (
 		issueIdOrKey: string,
-		{ url, displayName }: AtlassianDesign,
+		{ url }: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		let response: GetIssuePropertyResponse;
@@ -336,14 +362,9 @@ class JiraService {
 			ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 		);
 
-		const issuePropertyValueToRemove: AttachedDesignUrlV2IssuePropertyValue = {
-			url,
-			name: displayName,
-		};
-
 		const newAttachedDesignUrlIssuePropertyValue =
 			storedAttachedDesignUrlIssuePropertyValue.filter(
-				({ url }) => url !== issuePropertyValueToRemove.url,
+				(storedValue) => !this.areDesignUrlsEqual(storedValue.url, url),
 			);
 
 		if (
@@ -388,6 +409,17 @@ class JiraService {
 			}
 		}
 	}
+
+	private areDesignUrlsEqual = (storedUrl: string, url: string) => {
+		try {
+			return FigmaDesignIdentifier.fromFigmaDesignUrl(url).equals(
+				FigmaDesignIdentifier.fromFigmaDesignUrl(storedUrl),
+			);
+		} catch (error) {
+			// For existing designs that were previously stored in the issue property, we may not be able to parse the URL.
+			return false;
+		}
+	};
 
 	/**
 	 * @throws {SubmitDesignJiraServiceError}

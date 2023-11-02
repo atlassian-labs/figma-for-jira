@@ -149,8 +149,18 @@ export const generateConnectInstallation = ({
 export const generateAtlassianDesign = ({
 	id = `${generateFigmaFileKey()}/${generateFigmaNodeId()}`,
 	displayName = `Design ${uuidv4()}`,
-	url = `https://www.figma.com/file/UcmoEBi9SyNOX3SNhXqShY/${displayName}?type=design&node-id=0-1&mode=design`,
-	liveEmbedUrl = `https://www.figma.com/file/UcmoEBi9SyNOX3SNhXqShY/${displayName}?type=design&node-id=0-1&mode=design`,
+	url = generateFigmaDesignUrl({
+		fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(id).fileKey,
+		nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(id).nodeId,
+		fileName: displayName,
+		mode: 'design',
+	}),
+	liveEmbedUrl = generateFigmaDesignUrl({
+		fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(id).fileKey,
+		nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(id).nodeId,
+		fileName: displayName,
+		mode: 'design',
+	}),
 	status = AtlassianDesignStatus.UNKNOWN,
 	type = AtlassianDesignType.FILE,
 	lastUpdated = new Date().toISOString(),

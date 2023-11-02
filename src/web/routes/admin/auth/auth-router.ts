@@ -1,10 +1,10 @@
 import type { NextFunction } from 'express';
 import { Router } from 'express';
 
-import type { CheckAuthRequest, CheckAuthResponse } from './types';
+import type { MeRequest, MeResponse } from './types';
 
 import { figmaAuthService } from '../../../../infrastructure/figma';
-import { checkUserFigmaAuthUseCase } from '../../../../usecases';
+import { getCurrentFigmaUserUseCase } from '../../../../usecases';
 
 export const authRouter = Router();
 
@@ -12,17 +12,13 @@ export const authRouter = Router();
  * Checks whether the given Atlassian admin is authorized to call Figma API.
  */
 authRouter.get(
-	['/checkAuth'],
-	function (req: CheckAuthRequest, res: CheckAuthResponse, next: NextFunction) {
+	['/me'],
+	function (req: MeRequest, res: MeResponse, next: NextFunction) {
 		const { connectInstallation, atlassianUserId } = res.locals;
 
-		checkUserFigmaAuthUseCase
+		getCurrentFigmaUserUseCase
 			.execute(atlassianUserId, connectInstallation)
-			.then((authorized) => {
-				if (authorized) {
-					return res.send({ authorized });
-				}
-
+			.then((currentUser) => {
 				const authorizationEndpoint =
 					figmaAuthService.createOAuth2AuthorizationRequest({
 						atlassianUserId,
@@ -30,9 +26,15 @@ authRouter.get(
 						redirectEndpoint: `figma/oauth/callback`,
 					});
 
+				if (currentUser) {
+					return res.send({
+						user: { email: currentUser.email },
+						authorizationEndpoint,
+					});
+				}
+
 				return res.send({
-					authorized,
-					grant: { authorizationEndpoint },
+					authorizationEndpoint,
 				});
 			})
 			.catch((error) => next(error));
