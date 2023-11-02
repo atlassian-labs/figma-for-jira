@@ -17,6 +17,7 @@ import {
 	Link,
 	Page,
 } from '../../components';
+import { useAuthenticate } from '../../hooks';
 import { parseTeamIdFromFigmaUrl } from '../../utils';
 
 type ConnectTeamProps = {
@@ -33,6 +34,7 @@ export function FigmaTeamConnector({
 	site,
 }: ConnectTeamProps) {
 	const queryClient = useQueryClient();
+	const authenticate = useAuthenticate(authorizationEndpoint);
 	const [validationError, setValidationError] = useState<string | null>(null);
 	const connectTeamMutation = useMutation({
 		mutationFn: async (teamId: string) => {
@@ -165,7 +167,7 @@ export function FigmaTeamConnector({
 				</div>
 				<div>
 					Logged in as <strong>{currentUser.email}</strong>.{' '}
-					<Link href={authorizationEndpoint}>Change Figma account</Link>
+					<Link onClick={authenticate}>Change Figma account</Link>
 				</div>
 			</div>
 		);
