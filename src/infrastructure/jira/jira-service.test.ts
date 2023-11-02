@@ -427,7 +427,7 @@ describe('JiraService', () => {
 			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
 		});
 
-		it('should not update the issue property url array if the same design with a different url format has already been linked', async () => {
+		it('should overwrite the issue property url array if the same design with a different url format has already been linked', async () => {
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
 					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
@@ -444,7 +444,17 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
+			expect(jiraClient.setIssueProperty).toBeCalledWith(
+				issueId,
+				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				JSON.stringify([
+					{
+						url: design.url,
+						name: design.displayName,
+					},
+				]),
+				connectInstallation,
+			);
 		});
 
 		it.each([
@@ -606,7 +616,7 @@ describe('JiraService', () => {
 			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
 		});
 
-		it('should not update the ingested designs issue property if the same design with a different url format already exists', async () => {
+		it('should overwrite the ingested designs issue property if the same design with a different url format already exists', async () => {
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
 					key: issuePropertyKeys.INGESTED_DESIGN_URLS,
@@ -621,7 +631,12 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
+			expect(jiraClient.setIssueProperty).toBeCalledWith(
+				issueId,
+				issuePropertyKeys.INGESTED_DESIGN_URLS,
+				[design.url],
+				connectInstallation,
+			);
 		});
 
 		it.each([1, [1], null, { url: 'url' }])(

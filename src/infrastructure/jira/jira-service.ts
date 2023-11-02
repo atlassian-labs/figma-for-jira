@@ -122,15 +122,24 @@ class JiraService {
 				INGESTED_DESIGN_URL_VALUE_SCHEMA,
 			);
 
-		if (
-			storedValue?.some((storedValue) =>
-				this.areDesignUrlsEqual(storedValue, url),
-			)
-		) {
+		if (storedValue?.some((storedUrl) => storedUrl === url)) {
 			return;
 		}
 
-		const newValue = storedValue ? [...storedValue, url] : [url];
+		let newValue: IngestedDesignUrlIssuePropertyValue[] = storedValue
+			? [...storedValue]
+			: [];
+		const urlExistsInStoredValue = newValue.some((storedUrl) =>
+			this.areDesignUrlsEqual(storedUrl, url),
+		);
+
+		if (!urlExistsInStoredValue) {
+			newValue.push(url);
+		} else {
+			newValue = newValue.map((storedUrl) =>
+				this.areDesignUrlsEqual(storedUrl, url) ? url : storedUrl,
+			);
+		}
 
 		return jiraClient.setIssueProperty(
 			issueIdOrKey,
@@ -260,17 +269,24 @@ class JiraService {
 				ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 			);
 
-		if (
-			storedValue?.some((storedValue) =>
-				this.areDesignUrlsEqual(storedValue.url, url),
-			)
-		) {
+		if (storedValue?.some((item) => item.url === url)) {
 			return;
 		}
 
-		const newValue = storedValue
-			? [...storedValue, newValueItem]
-			: [newValueItem];
+		let newValue: AttachedDesignUrlV2IssuePropertyValue[] = storedValue
+			? [...storedValue]
+			: [];
+		const urlExistsInStoredValue = newValue.some((item) =>
+			this.areDesignUrlsEqual(item.url, url),
+		);
+
+		if (!urlExistsInStoredValue) {
+			newValue.push(newValueItem);
+		} else {
+			newValue = newValue.map((item) =>
+				this.areDesignUrlsEqual(item.url, url) ? newValueItem : item,
+			);
+		}
 
 		return jiraClient.setIssueProperty(
 			issueIdOrKey,

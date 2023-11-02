@@ -150,14 +150,14 @@ export const generateAtlassianDesign = ({
 	id = `${generateFigmaFileKey()}/${generateFigmaNodeId()}`,
 	displayName = `Design ${uuidv4()}`,
 	url = generateFigmaDesignUrl({
-		fileKey: getFileKeyFromId(id),
-		nodeId: getNodeIdFromId(id),
+		fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(id).fileKey,
+		nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(id).nodeId,
 		fileName: displayName,
 		mode: 'design',
 	}),
 	liveEmbedUrl = generateFigmaDesignUrl({
-		fileKey: getFileKeyFromId(id),
-		nodeId: getNodeIdFromId(id),
+		fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(id).fileKey,
+		nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(id).nodeId,
 		fileName: displayName,
 		mode: 'design',
 	}),
@@ -274,13 +274,3 @@ export const generateFigmaTeamSummary = ({
 	teamName,
 	authStatus: status,
 });
-
-const getNodeIdFromId = (id: string) => {
-	const parts = id.split('/');
-	return parts.length > 1 ? parts[1] : undefined;
-};
-
-const getFileKeyFromId = (id: string) => {
-	const parts = id.split('/');
-	return parts[0];
-};
