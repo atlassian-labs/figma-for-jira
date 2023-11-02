@@ -407,7 +407,7 @@ describe('JiraService', () => {
 			);
 		});
 
-		it('should not update the issue property url array if the design has already been linked', async () => {
+		it('should not update the issue property url array if the exact design url has already been linked', async () => {
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
 					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
@@ -425,6 +425,36 @@ describe('JiraService', () => {
 			);
 
 			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
+		});
+
+		it('should overwrite the issue property url array if the same design with a different url format has already been linked', async () => {
+			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+				generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify([
+						{ url: `${design.url}&mode=dev`, name: design.displayName },
+					]),
+				}),
+			);
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await jiraService.updateAttachedDesignUrlV2IssueProperty(
+				issueId,
+				design,
+				connectInstallation,
+			);
+
+			expect(jiraClient.setIssueProperty).toBeCalledWith(
+				issueId,
+				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				JSON.stringify([
+					{
+						url: design.url,
+						name: design.displayName,
+					},
+				]),
+				connectInstallation,
+			);
 		});
 
 		it.each([
@@ -568,7 +598,7 @@ describe('JiraService', () => {
 			);
 		});
 
-		it('should not update the ingested designs issue property if the design already exists', async () => {
+		it('should not update the ingested designs issue property if the exact design url already exists', async () => {
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
 					key: issuePropertyKeys.INGESTED_DESIGN_URLS,
@@ -584,6 +614,29 @@ describe('JiraService', () => {
 			);
 
 			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
+		});
+
+		it('should overwrite the ingested designs issue property if the same design with a different url format already exists', async () => {
+			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+				generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.INGESTED_DESIGN_URLS,
+					value: [`${design.url}&mode=dev`],
+				}),
+			);
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await jiraService.updateIngestedDesignsIssueProperty(
+				issueId,
+				design,
+				connectInstallation,
+			);
+
+			expect(jiraClient.setIssueProperty).toBeCalledWith(
+				issueId,
+				issuePropertyKeys.INGESTED_DESIGN_URLS,
+				[design.url],
+				connectInstallation,
+			);
 		});
 
 		it.each([1, [1], null, { url: 'url' }])(
@@ -770,6 +823,45 @@ describe('JiraService', () => {
 			};
 			const designToDeletePropertyValue: AttachedDesignUrlV2IssuePropertyValue =
 				{ url: designToDelete.url, name: designToDelete.displayName };
+			const attachedDesignPropertyValues = [
+				designPropertyValue,
+				designToDeletePropertyValue,
+			];
+
+			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+				generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify(attachedDesignPropertyValues),
+				}),
+			);
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await jiraService.deleteFromAttachedDesignUrlV2IssueProperties(
+				issueId,
+				designToDelete,
+				connectInstallation,
+			);
+
+			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
+				issueId,
+				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				JSON.stringify([designPropertyValue]),
+				connectInstallation,
+			);
+		});
+
+		it('should delete the URL from the array stored in issue properties if in a different format', async () => {
+			const designToDelete = generateAtlassianDesign();
+			const designPropertyValue: AttachedDesignUrlV2IssuePropertyValue = {
+				url: design.url,
+				name: design.displayName,
+			};
+			const designToDeletePropertyValue: AttachedDesignUrlV2IssuePropertyValue =
+				{
+					url: `${designToDelete.url}&mode=dev`,
+					name: designToDelete.displayName,
+				};
+
 			const attachedDesignPropertyValues = [
 				designPropertyValue,
 				designToDeletePropertyValue,

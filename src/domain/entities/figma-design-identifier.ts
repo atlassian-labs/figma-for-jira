@@ -66,4 +66,11 @@ export class FigmaDesignIdentifier {
 	toAtlassianDesignId(): string {
 		return [this.fileKey, this.nodeId].filter(Boolean).join('/');
 	}
+
+	equals(designIdentifier: FigmaDesignIdentifier): boolean {
+		return (
+			this.fileKey === designIdentifier.fileKey &&
+			this.nodeId === designIdentifier.nodeId
+		);
+	}
 }
