@@ -1,0 +1,49 @@
+container {
+  width: 280px;
+  height: 180px;
+  padding: 32px 64px;
+  background: white;
+  border-radius: 3px;
+  border: 2px rgba(9, 30, 66, 0.14) solid;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+content {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  display: inline-flex;
+}
+
+heading {
+  text-align: center;
+  color: #172b4d;
+  font-size: 24px;
+  font-family:
+    SF Pro Display,
+    sans-serif;
+  font-weight: 500;
+  line-height: 28px;
+  word-wrap: break-word;
+  padding-top: 20px;
+}
+
+text {
+  color: #44546f;
+  width: 80%;
+  text-align: center;
+  font-family:
+    SF Pro Text,
+    sans-serif;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px;
+  word-wrap: break-word;
+  padding-top: 28px;
+}
