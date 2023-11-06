@@ -44,7 +44,7 @@ export const handleFigmaFileUpdateEventUseCase = {
 		let designs: AtlassianDesign[];
 
 		try {
-			designs = await figmaService.fetchDesignsByIds(
+			designs = await figmaService.getDesignsFromSameFile(
 				associatedFigmaDesigns.map((design) => design.designId),
 				figmaTeam.adminInfo,
 			);

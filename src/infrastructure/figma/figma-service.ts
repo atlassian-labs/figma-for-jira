@@ -16,6 +16,7 @@ import type {
 	AtlassianDesign,
 	ConnectUserInfo,
 	FigmaDesignIdentifier,
+	FigmaOAuth2UserCredentials,
 	FigmaUser,
 } from '../../domain/entities';
 import {
@@ -25,18 +26,11 @@ import {
 } from '../http-client-errors';
 import { getLogger } from '../logger';
 
-const buildDevResourceNameFromJiraIssue = (
-	issueKey: string,
-	issueSummary: string,
-) => `[${issueKey}] ${issueSummary}`;
-
 export class FigmaService {
 	/**
 	 * Returns the user that authorized the app to access Figma and null if the user is not authorized.
 	 */
-	fetchCurrentUser = async (
-		user: ConnectUserInfo,
-	): Promise<FigmaUser | null> => {
+	getCurrentUser = async (user: ConnectUserInfo): Promise<FigmaUser | null> => {
 		try {
 			return await this.withErrorTranslation(async () => {
 				const credentials = await figmaAuthService.getCredentials(user);
@@ -54,66 +48,51 @@ export class FigmaService {
 	 *
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 */
-	fetchDesignById = async (
+	getDesign = async (
 		designId: FigmaDesignIdentifier,
 		user: ConnectUserInfo,
 	): Promise<AtlassianDesign> =>
 		this.withErrorTranslation(async () => {
-			const { accessToken } = await figmaAuthService.getCredentials(user);
+			const credentials = await figmaAuthService.getCredentials(user);
 
-			if (designId.nodeId) {
-				const fileResponse = await figmaClient.getFile(
-					designId.fileKey,
-					{
-						ids: [designId.nodeId],
-						node_last_modified: true,
-					},
-					accessToken,
-				);
-				return transformNodeToAtlassianDesign({
-					fileKey: designId.fileKey,
-					nodeId: designId.nodeId,
-					fileResponse,
-				});
+			const { fileKey, nodeId } = designId;
+
+			if (!nodeId) {
+				return this.getDesignForFile(fileKey, credentials);
 			} else {
-				const fileResponse = await figmaClient.getFile(
-					designId.fileKey,
-					{ depth: 1 },
-					accessToken,
-				);
-				return transformFileToAtlassianDesign({
-					fileKey: designId.fileKey,
-					fileResponse,
-				});
+				return this.getDesignForNode(fileKey, nodeId, credentials);
 			}
 		});
 
 	/**
 	 * Return Atlassian design representations for the given Figma designs.
 	 *
+	 * @remarks
+	 * Can be used to efficiently fetch multiple designs within the same file (e.g, a File-based design and multiple
+	 * Node-based designs). The method sends a single request to Figma API to retrieve minimal required data at once.
+	 *
+	 * @param designIds IDs of designs within the same Figma file.
+	 *
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 */
-	fetchDesignsByIds = async (
+	getDesignsFromSameFile = async (
 		designIds: FigmaDesignIdentifier[],
 		user: ConnectUserInfo,
 	): Promise<AtlassianDesign[]> =>
 		this.withErrorTranslation(async () => {
-			if (!designIds.length) {
-				return [];
-			}
+			if (!designIds.length) return [];
 
 			// Ensure all design identifiers have the same file key
 			const fileKey = designIds[0].fileKey;
 			const sameFileKey = designIds.every(
 				(designId) => designId.fileKey === fileKey,
 			);
+
 			if (!sameFileKey) {
 				throw new Error('designIds must all have the same fileKey');
 			}
 
-			const credentials = await figmaAuthService.getCredentials(user);
-
-			const { accessToken } = credentials;
+			const { accessToken } = await figmaAuthService.getCredentials(user);
 
 			const fileResponse = await figmaClient.getFile(
 				fileKey,
@@ -163,7 +142,7 @@ export class FigmaService {
 				{
 					dev_resources: [
 						{
-							name: buildDevResourceNameFromJiraIssue(issue.key, issue.title),
+							name: `[${issue.key}] ${issue.title}`,
 							url: issue.url,
 							file_key: designId.fileKey,
 							node_id: designId.nodeIdOrDefaultDocumentId,
@@ -300,6 +279,52 @@ export class FigmaService {
 			const response = await figmaClient.getTeamProjects(teamId, accessToken);
 			return response.name;
 		});
+
+	/**
+	 * Return Atlassian design representation for the given Figma File.
+	 *
+	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
+	 */
+	private getDesignForFile = async (
+		fileKey: string,
+		credentials: FigmaOAuth2UserCredentials,
+	): Promise<AtlassianDesign> => {
+		const fileResponse = await figmaClient.getFile(
+			fileKey,
+			{ depth: 1 },
+			credentials.accessToken,
+		);
+		return transformFileToAtlassianDesign({
+			fileKey,
+			fileResponse,
+		});
+	};
+
+	/**
+	 * Return Atlassian design representation for the given Figma Node.
+	 *
+	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
+	 */
+	private getDesignForNode = async (
+		fileKey: string,
+		nodeId: string,
+		credentials: FigmaOAuth2UserCredentials,
+	): Promise<AtlassianDesign> => {
+		const fileResponse = await figmaClient.getFile(
+			fileKey,
+			{
+				ids: [nodeId],
+				node_last_modified: true,
+			},
+			credentials.accessToken,
+		);
+
+		return transformNodeToAtlassianDesign({
+			fileKey,
+			nodeId,
+			fileResponse,
+		});
+	};
 
 	/**
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.

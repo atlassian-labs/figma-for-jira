@@ -61,7 +61,7 @@ describe('FigmaService', () => {
 		jest.restoreAllMocks();
 	});
 
-	describe('fetchCurrentUser', () => {
+	describe('getCurrentUser', () => {
 		it('should return if the user is authorized', async () => {
 			const credentials = generateFigmaOAuth2UserCredentials();
 			jest
@@ -71,9 +71,7 @@ describe('FigmaService', () => {
 				.spyOn(figmaClient, 'me')
 				.mockResolvedValue({ email: 'me@foo.com', id: '1234' });
 
-			const result = await figmaService.fetchCurrentUser(
-				MOCK_CONNECT_USER_INFO,
-			);
+			const result = await figmaService.getCurrentUser(MOCK_CONNECT_USER_INFO);
 
 			expect(result).toEqual({ email: 'me@foo.com' });
 			expect(figmaAuthService.getCredentials).toHaveBeenCalledWith(
@@ -89,9 +87,7 @@ describe('FigmaService', () => {
 					new MissingOrInvalidCredentialsFigmaAuthServiceError(),
 				);
 
-			const result = await figmaService.fetchCurrentUser(
-				MOCK_CONNECT_USER_INFO,
-			);
+			const result = await figmaService.getCurrentUser(MOCK_CONNECT_USER_INFO);
 
 			expect(result).toBe(null);
 		});
@@ -104,9 +100,7 @@ describe('FigmaService', () => {
 				.spyOn(figmaClient, 'me')
 				.mockRejectedValue(new ForbiddenHttpClientError());
 
-			const result = await figmaService.fetchCurrentUser(
-				MOCK_CONNECT_USER_INFO,
-			);
+			const result = await figmaService.getCurrentUser(MOCK_CONNECT_USER_INFO);
 
 			expect(result).toBe(null);
 		});
@@ -120,12 +114,12 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'me').mockRejectedValue(error);
 
 			await expect(
-				figmaService.fetchCurrentUser(MOCK_CONNECT_USER_INFO),
+				figmaService.getCurrentUser(MOCK_CONNECT_USER_INFO),
 			).rejects.toStrictEqual(error);
 		});
 	});
 
-	describe('fetchDesignById', () => {
+	describe('getDesign', () => {
 		it('should return a valid design entity if design id points out to node', async () => {
 			const nodeId = generateFigmaNodeId();
 			const node = generateChildNode({ id: nodeId });
@@ -138,7 +132,7 @@ describe('FigmaService', () => {
 				.mockResolvedValue(credentials);
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
 
-			const result = await figmaService.fetchDesignById(
+			const result = await figmaService.getDesign(
 				designId,
 				MOCK_CONNECT_USER_INFO,
 			);
@@ -164,7 +158,7 @@ describe('FigmaService', () => {
 				.mockResolvedValue(credentials);
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
 
-			const res = await figmaService.fetchDesignById(
+			const res = await figmaService.getDesign(
 				designId,
 				MOCK_CONNECT_USER_INFO,
 			);
@@ -190,12 +184,12 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'getFile').mockRejectedValue(mockError);
 
 			await expect(
-				figmaService.fetchDesignById(designId, MOCK_CONNECT_USER_INFO),
+				figmaService.getDesign(designId, MOCK_CONNECT_USER_INFO),
 			).rejects.toStrictEqual(mockError);
 		});
 	});
 
-	describe('fetchDesignsByIds', () => {
+	describe('getDesignsFromSameFile', () => {
 		it('should return valid design entities for design ids with and without node ids', async () => {
 			const nodeId1 = generateFigmaNodeId();
 			const node1 = generateFrameNode({ id: nodeId1 });
@@ -220,7 +214,7 @@ describe('FigmaService', () => {
 				.mockResolvedValue(credentials);
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
 
-			const result = await figmaService.fetchDesignsByIds(
+			const result = await figmaService.getDesignsFromSameFile(
 				[designIdWithoutNode, designIdWithNode1, designIdWithNode2],
 				MOCK_CONNECT_USER_INFO,
 			);
@@ -248,7 +242,7 @@ describe('FigmaService', () => {
 		it('should immediately return an empty array if passed an empty design ids array', async () => {
 			jest.spyOn(figmaAuthService, 'getCredentials');
 
-			const result = await figmaService.fetchDesignsByIds(
+			const result = await figmaService.getDesignsFromSameFile(
 				[],
 				MOCK_CONNECT_USER_INFO,
 			);
@@ -266,7 +260,7 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaAuthService, 'getCredentials');
 
 			await expect(
-				figmaService.fetchDesignsByIds(designIds, MOCK_CONNECT_USER_INFO),
+				figmaService.getDesignsFromSameFile(designIds, MOCK_CONNECT_USER_INFO),
 			).rejects.toThrow();
 			expect(figmaAuthService.getCredentials).not.toBeCalled();
 		});
@@ -282,7 +276,7 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'getFile').mockRejectedValue(mockError);
 
 			await expect(
-				figmaService.fetchDesignsByIds([designId], MOCK_CONNECT_USER_INFO),
+				figmaService.getDesignsFromSameFile([designId], MOCK_CONNECT_USER_INFO),
 			).rejects.toStrictEqual(mockError);
 		});
 	});

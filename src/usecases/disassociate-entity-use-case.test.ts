@@ -27,9 +27,7 @@ describe('disassociateEntityUseCase', () => {
 				issueId: issue.id,
 				connectInstallation,
 			});
-		jest
-			.spyOn(figmaService, 'fetchDesignById')
-			.mockResolvedValue(atlassianDesign);
+		jest.spyOn(figmaService, 'getDesign').mockResolvedValue(atlassianDesign);
 		jest.spyOn(jiraService, 'getIssue').mockResolvedValue(issue);
 		jest.spyOn(jiraService, 'submitDesign').mockResolvedValue();
 		jest
@@ -45,7 +43,7 @@ describe('disassociateEntityUseCase', () => {
 
 		await disassociateEntityUseCase.execute(params);
 
-		expect(figmaService.fetchDesignById).toHaveBeenCalledWith(designId, {
+		expect(figmaService.getDesign).toHaveBeenCalledWith(designId, {
 			atlassianUserId: params.atlassianUserId,
 			connectInstallationId: params.connectInstallation.id,
 		});
@@ -92,9 +90,7 @@ describe('disassociateEntityUseCase', () => {
 				issueId: issue.id,
 				connectInstallation,
 			});
-		jest
-			.spyOn(figmaService, 'fetchDesignById')
-			.mockResolvedValue(atlassianDesign);
+		jest.spyOn(figmaService, 'getDesign').mockResolvedValue(atlassianDesign);
 		jest.spyOn(jiraService, 'getIssue').mockResolvedValue(issue);
 		jest.spyOn(jiraService, 'submitDesign').mockRejectedValue(new Error());
 		jest
