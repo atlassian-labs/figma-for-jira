@@ -61,7 +61,7 @@ describe('FigmaService', () => {
 		jest.restoreAllMocks();
 	});
 
-	describe('fetchCurrentUser', () => {
+	describe('getCurrentUser', () => {
 		it('should return if the user is authorized', async () => {
 			const credentials = generateFigmaOAuth2UserCredentials();
 			jest
@@ -119,7 +119,7 @@ describe('FigmaService', () => {
 		});
 	});
 
-	describe('fetchDesignById', () => {
+	describe('getDesign', () => {
 		it('should return a valid design entity if design id points out to node', async () => {
 			const nodeId = generateFigmaNodeId();
 			const node = generateChildNode({ id: nodeId });
@@ -189,7 +189,7 @@ describe('FigmaService', () => {
 		});
 	});
 
-	describe('fetchDesignsByIds', () => {
+	describe('getDesignsFromSameFile', () => {
 		it('should return valid design entities for design ids with and without node ids', async () => {
 			const nodeId1 = generateFigmaNodeId();
 			const node1 = generateFrameNode({ id: nodeId1 });
