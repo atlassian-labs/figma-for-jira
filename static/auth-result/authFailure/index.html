@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="../styled.css" />
   </head>
   <body>
-    <container id="authFailure">
+    <container>
       <content>
         <img src="ErrorIcon.svg" alt="Error" />
         <heading>Something went wrong</heading>
@@ -17,21 +17,17 @@
     </container>
     <script>
       if (window.opener) {
-        const params = new URLSearchParams(window.location.search);
+        const errorMessage = params.get('errorMessage');
 
-        if (params.has('success')) {
-          const errorMessage = params.get('errorMessage');
-
-          // Send the authentication result to the opener window
-          window.opener.postMessage(
-            {
-              type: 'auth:failure',
-              message: errorMessage || 'Unable to connect the account.',
-              errorType,
-            },
-            '*',
-          );
-        }
+        // Send the authentication result to the opener window
+        window.opener.postMessage(
+          {
+            type: 'auth:failure',
+            message: errorMessage || 'Unable to connect the account.',
+            errorType,
+          },
+          '*',
+        );
       }
     </script>
   </body>

@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="../styled.css" />
   </head>
   <body>
-    <container id="authSuccess">
+    <container>
       <content>
         <img src="SuccessIcon.svg" alt="Success" />
         <heading>Access granted</heading>
@@ -18,16 +18,13 @@
     </container>
     <script>
       if (window.opener) {
-        const params = new URLSearchParams(window.location.search);
-        if (params.has('success')) {
-          // Send the authentication result to the opener window
-          window.opener.postMessage(
-            {
-              type: 'auth:success',
-            },
-            '*',
-          );
-        }
+        // Send the authentication result to the opener window
+        window.opener.postMessage(
+          {
+            type: 'auth:success',
+          },
+          '*',
+        );
       }
     </script>
   </body>
