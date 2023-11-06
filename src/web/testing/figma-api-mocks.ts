@@ -9,17 +9,17 @@ import type {
 	CreateWebhookRequest,
 	CreateWebhookResponse,
 	GetDevResourcesResponse,
+	GetFileMetaResponse,
 	GetFileResponse,
 	GetMeResponse,
 	GetTeamProjectsResponse,
 } from '../../infrastructure/figma/figma-client';
 import {
-	generateChildNode,
 	generateCreateDevResourcesResponse,
 	generateCreateWebhookResponse,
 	generateGetDevResourcesResponse,
+	generateGetFileMetaResponse,
 	generateGetFileResponse,
-	generateGetFileResponseWithNodes,
 	generateGetMeResponse,
 	generateGetTeamProjectsResponse,
 } from '../../infrastructure/figma/figma-client/testing';
@@ -34,6 +34,29 @@ export const mockFigmaMeEndpoint = ({
 	response?: GetMeResponse;
 }) => {
 	nock(baseUrl).get('/v1/me').reply(status, response).persist();
+};
+
+export const mockFigmaGetFileMetaEndpoint = ({
+	baseUrl,
+	fileKey,
+	accessToken,
+	status = HttpStatusCode.Ok,
+	response = generateGetFileMetaResponse(),
+}: {
+	baseUrl: string;
+	fileKey: string;
+	accessToken: string;
+	query?: Record<string, string>;
+	status?: HttpStatusCode;
+	response?: GetFileMetaResponse;
+}) => {
+	nock(baseUrl, {
+		reqheaders: {
+			Authorization: `Bearer ${accessToken}`,
+		},
+	})
+		.get(`/v1/files/${fileKey}/meta`)
+		.reply(status, response);
 };
 
 export const mockFigmaGetFileEndpoint = ({
@@ -58,27 +81,6 @@ export const mockFigmaGetFileEndpoint = ({
 	})
 		.get(`/v1/files/${fileKey}`)
 		.query(query)
-		.reply(status, response);
-};
-
-export const mockFigmaGetFileWithNodesEndpoint = ({
-	baseUrl,
-	fileKey = uuidv4(),
-	nodeIds,
-	status = HttpStatusCode.Ok,
-	response = generateGetFileResponseWithNodes({
-		nodes: nodeIds.map((nodeId) => generateChildNode({ id: nodeId })),
-	}),
-}: {
-	baseUrl: string;
-	fileKey?: string;
-	nodeIds: string[];
-	status?: HttpStatusCode;
-	response?: GetFileResponse;
-}) => {
-	nock(baseUrl)
-		.get(`/v1/files/${fileKey}`)
-		.query({ ids: nodeIds.join(','), node_last_modified: true })
 		.reply(status, response);
 };
 

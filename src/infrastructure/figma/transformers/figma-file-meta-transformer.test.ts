@@ -1,4 +1,4 @@
-import { transformFileToAtlassianDesign } from './figma-file-transformer';
+import { transformFileMetaToAtlassianDesign } from './figma-file-meta-transformer';
 import {
 	buildDesignUrl,
 	buildInspectUrl,
@@ -13,7 +13,7 @@ import {
 	AtlassianDesignType,
 } from '../../../domain/entities';
 import { generateFigmaFileKey } from '../../../domain/entities/testing';
-import { generateGetFileResponse } from '../figma-client/testing';
+import { generateGetFileMetaResponse } from '../figma-client/testing';
 
 jest.mock('../../../config', () => {
 	return {
@@ -22,7 +22,7 @@ jest.mock('../../../config', () => {
 	};
 });
 
-describe('transformFileToAtlassianDesign', () => {
+describe('transformFileMetaToAtlassianDesign', () => {
 	beforeEach(() => {
 		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
 	});
@@ -32,33 +32,33 @@ describe('transformFileToAtlassianDesign', () => {
 
 	it('should correctly map to atlassian design', () => {
 		const fileKey = generateFigmaFileKey();
-		const fileResponse = generateGetFileResponse();
+		const fileMetaResponse = generateGetFileMetaResponse();
 
-		const result = transformFileToAtlassianDesign({
+		const result = transformFileMetaToAtlassianDesign({
 			fileKey,
-			fileResponse,
+			fileMetaResponse,
 		});
 
 		expect(result).toStrictEqual({
 			id: fileKey,
-			displayName: fileResponse.name,
+			displayName: fileMetaResponse.file.name,
 			url: buildDesignUrl({
 				fileKey,
-				fileName: fileResponse.name,
+				fileName: fileMetaResponse.file.name,
 			}),
 			liveEmbedUrl: buildLiveEmbedUrl({
 				fileKey,
-				fileName: fileResponse.name,
+				fileName: fileMetaResponse.file.name,
 			}),
 			inspectUrl: buildInspectUrl({
 				fileKey,
-				fileName: fileResponse.name,
+				fileName: fileMetaResponse.file.name,
 			}),
 			status: AtlassianDesignStatus.NONE,
 			type: AtlassianDesignType.FILE,
-			lastUpdated: fileResponse.lastModified,
+			lastUpdated: fileMetaResponse.file.last_touched_at,
 			updateSequenceNumber: getUpdateSequenceNumberFrom(
-				fileResponse.lastModified,
+				fileMetaResponse.file.last_touched_at,
 			),
 		});
 	});

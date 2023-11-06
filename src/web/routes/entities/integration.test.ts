@@ -33,11 +33,11 @@ import {
 	generateCreateDevResourcesRequest,
 	generateEmptyDevResourcesResponse,
 	generateGetDevResourcesResponse,
-	generateGetFileResponse,
+	generateGetFileMetaResponse,
 	generateGetFileResponseWithNode,
 } from '../../../infrastructure/figma/figma-client/testing';
 import {
-	transformFileToAtlassianDesign,
+	transformFileMetaToAtlassianDesign,
 	transformNodeToAtlassianDesign,
 } from '../../../infrastructure/figma/transformers';
 import type { AttachedDesignUrlV2IssuePropertyValue } from '../../../infrastructure/jira';
@@ -57,6 +57,7 @@ import {
 	mockFigmaDeleteDevResourcesEndpoint,
 	mockFigmaGetDevResourcesEndpoint,
 	mockFigmaGetFileEndpoint,
+	mockFigmaGetFileMetaEndpoint,
 	mockJiraDeleteIssuePropertyEndpoint,
 	mockJiraGetIssueEndpoint,
 	mockJiraGetIssuePropertyEndpoint,
@@ -162,12 +163,12 @@ describe('/entities', () => {
 				fileKey,
 				fileName,
 			});
-			const fileResponse = generateGetFileResponse({
+			const fileMetaResponse = generateGetFileMetaResponse({
 				name: fileName,
 			});
-			const atlassianDesign = transformFileToAtlassianDesign({
+			const atlassianDesign = transformFileMetaToAtlassianDesign({
 				fileKey,
-				fileResponse,
+				fileMetaResponse,
 			});
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
@@ -180,12 +181,11 @@ describe('/entities', () => {
 					}),
 				);
 
-			mockFigmaGetFileEndpoint({
+			mockFigmaGetFileMetaEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				fileKey,
 				accessToken: figmaUserCredentials.accessToken,
-				query: { depth: '1' },
-				response: fileResponse,
+				response: fileMetaResponse,
 			});
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
@@ -516,11 +516,10 @@ describe('/entities', () => {
 				baseUrl: connectInstallation.baseUrl,
 				issueId,
 			});
-			mockFigmaGetFileEndpoint({
+			mockFigmaGetFileMetaEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				fileKey,
 				accessToken: figmaUserCredentials.accessToken,
-				query: { depth: '1' },
 				status: HttpStatusCode.InternalServerError,
 			});
 
@@ -571,12 +570,12 @@ describe('/entities', () => {
 				fileKey,
 				fileName,
 			});
-			const fileResponse = generateGetFileResponse({
+			const fileMetaResponse = generateGetFileMetaResponse({
 				name: fileName,
 			});
-			const atlassianDesign = transformFileToAtlassianDesign({
+			const atlassianDesign = transformFileMetaToAtlassianDesign({
 				fileKey,
-				fileResponse,
+				fileMetaResponse,
 			});
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
@@ -594,12 +593,11 @@ describe('/entities', () => {
 				connectInstallationId: connectInstallation.id,
 			});
 
-			mockFigmaGetFileEndpoint({
+			mockFigmaGetFileMetaEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				fileKey,
 				accessToken: figmaUserCredentials.accessToken,
-				query: { depth: '1' },
-				response: fileResponse,
+				response: fileMetaResponse,
 			});
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
@@ -657,7 +655,7 @@ describe('/entities', () => {
 			};
 			const attachedDesignUrlV2Values: AttachedDesignUrlV2IssuePropertyValue[] =
 				[
-					{ url: figmaDesignUrl, name: fileResponse.name },
+					{ url: figmaDesignUrl, name: atlassianDesign.displayName },
 					expectedDesignUrlV2Value,
 				];
 			mockJiraGetIssuePropertyEndpoint({
@@ -803,7 +801,7 @@ describe('/entities', () => {
 			};
 			const attachedDesignUrlV2Values: AttachedDesignUrlV2IssuePropertyValue[] =
 				[
-					{ url: figmaDesignUrl, name: fileResponse.name },
+					{ url: figmaDesignUrl, name: atlassianDesign.displayName },
 					expectedDesignUrlV2Value,
 				];
 			mockJiraGetIssuePropertyEndpoint({
@@ -851,7 +849,7 @@ describe('/entities', () => {
 			const fileName = generateFigmaFileName();
 			const fileKey = generateFigmaFileKey();
 			const issue = generateJiraIssue();
-			const fileResponse = generateGetFileResponse({ name: fileName });
+			const fileMetaResponse = generateGetFileMetaResponse({ name: fileName });
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
@@ -863,12 +861,12 @@ describe('/entities', () => {
 					}),
 				);
 
-			mockFigmaGetFileEndpoint({
+			mockFigmaGetFileMetaEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				fileKey,
 				accessToken: figmaUserCredentials.accessToken,
 				query: { depth: '1' },
-				response: fileResponse,
+				response: fileMetaResponse,
 			});
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
@@ -985,11 +983,10 @@ describe('/entities', () => {
 				baseUrl: connectInstallation.baseUrl,
 				issueId,
 			});
-			mockFigmaGetFileEndpoint({
+			mockFigmaGetFileMetaEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				fileKey,
 				accessToken: figmaUserCredentials.accessToken,
-				query: { depth: '1' },
 				status: HttpStatusCode.InternalServerError,
 			});
 

@@ -17,6 +17,7 @@ import type {
 	AtlassianDesign,
 	ConnectInstallation,
 	FigmaDesignIdentifier,
+	FigmaOAuth2UserCredentials,
 	FigmaTeam,
 } from '../../../domain/entities';
 import { FigmaTeamAuthStatus } from '../../../domain/entities';
@@ -54,7 +55,7 @@ import {
 	figmaTeamRepository,
 } from '../../../infrastructure/repositories';
 import {
-	mockFigmaGetFileWithNodesEndpoint,
+	mockFigmaGetFileEndpoint,
 	mockFigmaGetTeamProjectsEndpoint,
 	mockJiraSubmitDesignsEndpoint,
 } from '../../testing';
@@ -94,6 +95,7 @@ describe('/figma', () => {
 			const currentDate = new Date();
 			let connectInstallation: ConnectInstallation;
 			let figmaTeam: FigmaTeam;
+			let adminFigmaOAuth2UserCredentials: FigmaOAuth2UserCredentials;
 			let fileKey: string;
 			let webhookEventRequestBody: FigmaWebhookEventRequestBody;
 
@@ -101,24 +103,18 @@ describe('/figma', () => {
 				connectInstallation = await connectInstallationRepository.upsert(
 					generateConnectInstallationCreateParams(),
 				);
-				figmaTeam = await figmaTeamRepository
-					.upsert(
-						generateFigmaTeamCreateParams({
-							connectInstallationId: connectInstallation.id,
-						}),
-					)
-					.then((team) =>
-						figmaTeamRepository.getByTeamIdAndConnectInstallationId(
-							team.teamId,
-							connectInstallation.id,
-						),
-					);
-				await figmaOAuth2UserCredentialsRepository.upsert(
-					generateFigmaOAuth2UserCredentialCreateParams({
-						atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,
+				figmaTeam = await figmaTeamRepository.upsert(
+					generateFigmaTeamCreateParams({
 						connectInstallationId: connectInstallation.id,
 					}),
 				);
+				adminFigmaOAuth2UserCredentials =
+					await figmaOAuth2UserCredentialsRepository.upsert(
+						generateFigmaOAuth2UserCredentialCreateParams({
+							atlassianUserId: figmaTeam.figmaAdminAtlassianUserId,
+							connectInstallationId: connectInstallation.id,
+						}),
+					);
 
 				fileKey = generateFigmaFileKey();
 				for (let i = 1; i <= 5; i++) {
@@ -179,10 +175,14 @@ describe('/figma', () => {
 						name: figmaTeam.teamName,
 					}),
 				});
-				mockFigmaGetFileWithNodesEndpoint({
+				mockFigmaGetFileEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
 					fileKey: fileKey,
-					nodeIds,
+					query: {
+						ids: nodeIds.join(','),
+						node_last_modified: 'true',
+					},
 					response: fileResponse,
 				});
 				mockJiraSubmitDesignsEndpoint({
@@ -249,10 +249,14 @@ describe('/figma', () => {
 					teamId: figmaTeam.teamId,
 					status: HttpStatusCode.InternalServerError,
 				});
-				mockFigmaGetFileWithNodesEndpoint({
+				mockFigmaGetFileEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
 					fileKey: fileKey,
-					nodeIds,
+					query: {
+						ids: nodeIds.join(','),
+						node_last_modified: 'true',
+					},
 					response: fileResponse,
 				});
 				mockJiraSubmitDesignsEndpoint({
@@ -308,10 +312,14 @@ describe('/figma', () => {
 						name: figmaTeam.teamName,
 					}),
 				});
-				mockFigmaGetFileWithNodesEndpoint({
+				mockFigmaGetFileEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
 					fileKey: fileKey,
-					nodeIds,
+					query: {
+						ids: nodeIds.join(','),
+						node_last_modified: 'true',
+					},
 					status: HttpStatusCode.InternalServerError,
 				});
 
@@ -338,10 +346,14 @@ describe('/figma', () => {
 						name: figmaTeam.teamName,
 					}),
 				});
-				mockFigmaGetFileWithNodesEndpoint({
+				mockFigmaGetFileEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
 					fileKey: fileKey,
-					nodeIds,
+					query: {
+						ids: nodeIds.join(','),
+						node_last_modified: 'true',
+					},
 					status: HttpStatusCode.Unauthorized,
 				});
 
@@ -390,10 +402,14 @@ describe('/figma', () => {
 						name: figmaTeam.teamName,
 					}),
 				});
-				mockFigmaGetFileWithNodesEndpoint({
+				mockFigmaGetFileEndpoint({
 					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
 					fileKey: fileKey,
-					nodeIds,
+					query: {
+						ids: nodeIds.join(','),
+						node_last_modified: 'true',
+					},
 					status: HttpStatusCode.InternalServerError,
 				});
 

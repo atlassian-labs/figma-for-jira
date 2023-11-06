@@ -7,6 +7,7 @@ import type {
 	CreateWebhookResponse,
 	DevResource,
 	GetDevResourcesResponse,
+	GetFileMetaResponse,
 	GetFileResponse,
 	GetMeResponse,
 	GetOAuth2TokenResponse,
@@ -70,17 +71,34 @@ const NODE_SCHEMA = {
 	// Since TypeScript cannot infer recursive types, use a type assertion as a workaround.
 } as JSONSchemaType<Omit<Node, 'children'>> as JSONSchemaType<Node>;
 
+export const GET_FILE_META_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetFileMetaResponse> =
+	{
+		$id: 'figma-api:get:v1/files/$fileKey/meta:response',
+		type: 'object',
+		properties: {
+			file: {
+				type: 'object',
+				properties: {
+					name: { type: 'string' },
+					last_touched_at: { type: 'string' },
+					editorType: { type: 'string' },
+				},
+				required: ['name', 'editorType', 'last_touched_at'],
+			},
+		},
+		required: ['file'],
+	};
+
 export const GET_FILE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetFileResponse> = {
 	$id: 'figma-api:get:v1/files/$fileKey:response',
 	type: 'object',
 	properties: {
 		name: { type: 'string' },
-		role: { type: 'string' },
 		lastModified: { type: 'string' },
 		editorType: { type: 'string' },
 		document: NODE_SCHEMA,
 	},
-	required: ['name', 'role', 'editorType', 'lastModified', 'document'],
+	required: ['name', 'editorType', 'lastModified', 'document'],
 };
 
 export const GET_ME_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetMeResponse> = {
