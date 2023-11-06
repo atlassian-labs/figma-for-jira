@@ -10,6 +10,7 @@
 	"dependencies": {
 		"@atlaskit/button": "^16.11.0",
 		"@atlaskit/css-reset": "^6.6.1",
+		"@atlaskit/flag": "^15.2.20",
 		"@atlaskit/form": "^8.11.13",
 		"@atlaskit/icon": "^21.12.7",
 		"@atlaskit/image": "^1.1.6",

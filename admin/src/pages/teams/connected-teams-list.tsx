@@ -1,4 +1,5 @@
 import Button from '@atlaskit/button';
+import { FlagGroup } from '@atlaskit/flag';
 import AddIcon from '@atlaskit/icon/glyph/add';
 import { ModalTransition } from '@atlaskit/modal-dialog';
 import { token } from '@atlaskit/tokens';
@@ -9,6 +10,7 @@ import { useState } from 'react';
 import { ConnectedTeam } from './connected-team';
 import { DisconnectTeamUnauthorizedSectionMessage } from './disconnect-team-unauthorized-section-message';
 import { DisconnectTeamWarningModal } from './disconnect-team-warning-modal';
+import { DisconnectedTeamFlag } from './disconnected-team-flag';
 import { GenericErrorSectionMessage } from './generic-error-section-message';
 
 import { connectTeam, disconnectTeam, type FigmaTeamSummary } from '../../api';
@@ -29,12 +31,14 @@ export function ConnectedTeamsList({
 	const [disconnectingTeamId, setDisconnectingTeamId] = useState<string | null>(
 		null,
 	);
+	const [disconnectedTeamIds, setDisconnectedTeamIds] = useState<string[]>([]);
 	const queryClient = useQueryClient();
 	const disconnectMutation = useMutation({
 		mutationFn: (teamId: string) => {
 			return disconnectTeam(teamId);
 		},
-		onSuccess: () => {
+		onSuccess: (_, teamId) => {
+			setDisconnectedTeamIds((ids) => ids.concat([teamId]));
 			return queryClient.invalidateQueries({ queryKey: ['teams'] });
 		},
 		onSettled: () => {
@@ -46,7 +50,8 @@ export function ConnectedTeamsList({
 		mutationFn: (teamId: string) => {
 			return connectTeam(teamId);
 		},
-		onSuccess: () => {
+		onSuccess: (_, teamId) => {
+			removeDisconnectedTeam(teamId);
 			return queryClient.invalidateQueries({ queryKey: ['teams'] });
 		},
 	});
@@ -54,6 +59,18 @@ export function ConnectedTeamsList({
 	const disconnectingTeam = teams.find(
 		(team) => team.teamId === disconnectingTeamId,
 	);
+
+	const handleDismiss = () => {
+		setDisconnectedTeamIds((disconnectedTeamIds) =>
+			disconnectedTeamIds.slice(1),
+		);
+	};
+
+	const removeDisconnectedTeam = (teamId: string) => {
+		setDisconnectedTeamIds((disconnectedTeamIds) =>
+			disconnectedTeamIds.filter((id) => id !== teamId),
+		);
+	};
 
 	return (
 		<Page>
@@ -151,6 +168,18 @@ export function ConnectedTeamsList({
 					/>
 				)}
 			</ModalTransition>
+			<FlagGroup onDismissed={handleDismiss}>
+				{disconnectedTeamIds.map((disconnectedTeamId) => (
+					<DisconnectedTeamFlag
+						key={disconnectedTeamId}
+						teamId={disconnectedTeamId}
+						onClose={() => removeDisconnectedTeam(disconnectedTeamId)}
+						onUndo={() => {
+							reconnectMutation.mutate(disconnectedTeamId);
+						}}
+					/>
+				))}
+			</FlagGroup>
 		</Page>
 	);
 }
