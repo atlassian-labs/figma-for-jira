@@ -6,7 +6,7 @@ export const getCurrentFigmaUserUseCase = {
 		atlassianUserId: string,
 		connectInstallation: ConnectInstallation,
 	): Promise<FigmaUser | null> => {
-		return await figmaService.fetchCurrentUser({
+		return await figmaService.getCurrentUser({
 			atlassianUserId,
 			connectInstallationId: connectInstallation.id,
 		});

@@ -5,7 +5,7 @@ export const checkUserFigmaAuthUseCase = {
 		atlassianUserId: string,
 		connectInstallation: ConnectInstallation,
 	): Promise<boolean> => {
-		const currentUser = await figmaService.fetchCurrentUser({
+		const currentUser = await figmaService.getCurrentUser({
 			atlassianUserId,
 			connectInstallationId: connectInstallation.id,
 		});
