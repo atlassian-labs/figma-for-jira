@@ -6,13 +6,14 @@ import { token } from '@atlaskit/tokens';
 import { css } from '@emotion/react';
 
 import { ConnectBanner, FigmaPermissionsPopup, Page } from '../../components';
-import { openInBrowser } from '../../utils';
+import { useAuthenticate } from '../../hooks';
 
 type AuthPageProps = {
 	authorizationEndpoint: string;
 };
 
 export function AuthPage({ authorizationEndpoint }: AuthPageProps) {
+	const authenticate = useAuthenticate(authorizationEndpoint);
 	return (
 		<Page>
 			<div
@@ -77,7 +78,7 @@ export function AuthPage({ authorizationEndpoint }: AuthPageProps) {
 				</div>
 				<Button
 					appearance="primary"
-					onClick={() => openInBrowser(authorizationEndpoint)}
+					onClick={authenticate}
 					iconAfter={<ArrowRightIcon label="" size="medium" />}
 				>
 					Continue
