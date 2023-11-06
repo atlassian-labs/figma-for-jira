@@ -1,14 +1,18 @@
 import Button from '@atlaskit/button';
 import AddIcon from '@atlaskit/icon/glyph/add';
-import SectionMessage from '@atlaskit/section-message';
+import { ModalTransition } from '@atlaskit/modal-dialog';
 import { token } from '@atlaskit/tokens';
 import { css } from '@emotion/react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 
 import { ConnectedTeam } from './connected-team';
+import { DisconnectTeamUnauthorizedSectionMessage } from './disconnect-team-unauthorized-section-message';
+import { DisconnectTeamWarningModal } from './disconnect-team-warning-modal';
+import { GenericErrorSectionMessage } from './generic-error-section-message';
 
 import { connectTeam, disconnectTeam, type FigmaTeamSummary } from '../../api';
-import { FigmaPermissionsPopup, Page, SuccessBanner } from '../../components';
+import { Page, SuccessBanner } from '../../components';
 import { pluralize } from '../../utils';
 
 type ConnectedTeamsListProps = {
@@ -22,6 +26,9 @@ export function ConnectedTeamsList({
 	addTeam,
 	site,
 }: ConnectedTeamsListProps) {
+	const [disconnectingTeamId, setDisconnectingTeamId] = useState<string | null>(
+		null,
+	);
 	const queryClient = useQueryClient();
 	const disconnectMutation = useMutation({
 		mutationFn: (teamId: string) => {
@@ -29,6 +36,9 @@ export function ConnectedTeamsList({
 		},
 		onSuccess: () => {
 			return queryClient.invalidateQueries({ queryKey: ['teams'] });
+		},
+		onSettled: () => {
+			setDisconnectingTeamId(null);
 		},
 	});
 
@@ -40,6 +50,10 @@ export function ConnectedTeamsList({
 			return queryClient.invalidateQueries({ queryKey: ['teams'] });
 		},
 	});
+
+	const disconnectingTeam = teams.find(
+		(team) => team.teamId === disconnectingTeamId,
+	);
 
 	return (
 		<Page>
@@ -100,7 +114,7 @@ export function ConnectedTeamsList({
 						<ConnectedTeam
 							key={team.teamId}
 							team={team}
-							disconnectTeam={disconnectMutation.mutate}
+							disconnectTeam={setDisconnectingTeamId}
 							reconnectTeam={reconnectMutation.mutate}
 						/>
 					))}
@@ -127,30 +141,16 @@ export function ConnectedTeamsList({
 					</div>
 				</div>
 			</div>
+			<ModalTransition>
+				{disconnectingTeam != null && (
+					<DisconnectTeamWarningModal
+						team={disconnectingTeam}
+						onClose={() => setDisconnectingTeamId(null)}
+						disconnectTeam={disconnectMutation.mutate}
+						isDisconnectingTeam={disconnectMutation.isPending}
+					/>
+				)}
+			</ModalTransition>
 		</Page>
-	);
-}
-
-function DisconnectTeamUnauthorizedSectionMessage() {
-	return (
-		<SectionMessage css={css({ width: '100%' })} appearance="error">
-			You must be an admin of your Figma team to remove a connected team.{' '}
-			<FigmaPermissionsPopup>
-				Check your Figma permissions
-			</FigmaPermissionsPopup>{' '}
-			and try again.
-		</SectionMessage>
-	);
-}
-
-function GenericErrorSectionMessage() {
-	return (
-		<SectionMessage css={css({ width: '100%' })} appearance="error">
-			Something went wrong.{' '}
-			<FigmaPermissionsPopup>
-				Check your Figma permissions
-			</FigmaPermissionsPopup>{' '}
-			and try again.
-		</SectionMessage>
 	);
 }
