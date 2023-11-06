@@ -4,7 +4,12 @@ import {
 	mapNodeTypeToDesignType,
 	transformNodeToAtlassianDesign,
 } from './figma-node-transformer';
-import { buildDesignUrl, buildInspectUrl, buildLiveEmbedUrl } from './utils';
+import {
+	buildDesignUrl,
+	buildInspectUrl,
+	buildLiveEmbedUrl,
+	getUpdateSequenceNumberFrom,
+} from './utils';
 
 import * as configModule from '../../../config';
 import { mockConfig } from '../../../config/testing';
@@ -38,8 +43,8 @@ describe('transformNodeToAtlassianDesign', () => {
 	it('should correctly map to atlassian design', () => {
 		const fileKey = generateFigmaFileKey();
 		const node = generateChildNode({ id: '100:1' });
-		const nodeLastModified = new Date('2022-01-01T00:00:00Z');
-		const irrelevantLastModified = new Date('2023-06-15T00:00:00Z');
+		const nodeLastModified = new Date('2023-11-05T23:08:49.123Z');
+		const irrelevantLastModified = new Date('2023-11-05T23:10:00.123Z');
 		const fileResponse = generateGetFileResponse({
 			document: {
 				...MOCK_DOCUMENT,
@@ -89,7 +94,9 @@ describe('transformNodeToAtlassianDesign', () => {
 			status: AtlassianDesignStatus.NONE,
 			type: AtlassianDesignType.OTHER,
 			lastUpdated: nodeLastModified.toISOString(),
-			updateSequenceNumber: nodeLastModified.getTime(),
+			updateSequenceNumber: getUpdateSequenceNumberFrom(
+				nodeLastModified.toISOString(),
+			),
 		});
 	});
 });
@@ -115,7 +122,7 @@ describe('getNodeAndNodeLastModified', () => {
 
 		expect(result).toStrictEqual({
 			node: targetNode,
-			nodeLastModified: targetLastModified,
+			nodeLastModified: targetLastModified.toISOString(),
 		});
 	});
 
@@ -149,7 +156,7 @@ describe('getNodeAndNodeLastModified', () => {
 
 		expect(result).toStrictEqual({
 			node: targetFrame,
-			nodeLastModified: targetLastModified,
+			nodeLastModified: targetLastModified.toISOString(),
 		});
 	});
 
@@ -189,7 +196,7 @@ describe('getNodeAndNodeLastModified', () => {
 
 		expect(result).toStrictEqual({
 			node: targetNode,
-			nodeLastModified: targetLastModified,
+			nodeLastModified: targetLastModified.toISOString(),
 		});
 	});
 

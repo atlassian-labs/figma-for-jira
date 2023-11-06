@@ -22,10 +22,17 @@ export type GetFileParams = {
 
 export type GetFileResponse = {
 	readonly name: string;
-	readonly role: string;
 	readonly lastModified: string;
 	readonly editorType: string;
 	readonly document: Node;
+};
+
+export type GetFileMetaResponse = {
+	readonly file: {
+		readonly name: string;
+		readonly last_touched_at: string;
+		readonly editorType: string;
+	};
 };
 
 export type Node = {

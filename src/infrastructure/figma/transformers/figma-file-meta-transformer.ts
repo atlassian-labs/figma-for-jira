@@ -11,34 +11,34 @@ import {
 	AtlassianDesignType,
 	FigmaDesignIdentifier,
 } from '../../../domain/entities';
-import type { GetFileResponse } from '../figma-client';
+import type { GetFileMetaResponse } from '../figma-client';
 
-type TransformFileToAtlassianDesignParams = {
+type TransformFileMetaToAtlassianDesignParams = {
 	readonly fileKey: string;
-	readonly fileResponse: GetFileResponse;
+	readonly fileMetaResponse: GetFileMetaResponse;
 };
 
 /**
- * Transforms a Figma file to {@link AtlassianDesign}.
+ * Transforms a Figma file medata to {@link AtlassianDesign}.
  */
-export const transformFileToAtlassianDesign = ({
+export const transformFileMetaToAtlassianDesign = ({
 	fileKey,
-	fileResponse,
-}: TransformFileToAtlassianDesignParams): AtlassianDesign => {
+	fileMetaResponse,
+}: TransformFileMetaToAtlassianDesignParams): AtlassianDesign => {
 	const designId = new FigmaDesignIdentifier(fileKey);
-	const fileName = fileResponse.name;
+	const fileName = fileMetaResponse.file.name;
 
 	return {
 		id: designId.toAtlassianDesignId(),
-		displayName: fileResponse.name,
+		displayName: fileMetaResponse.file.name,
 		url: buildDesignUrl({ fileKey, fileName }),
 		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName }),
 		inspectUrl: buildInspectUrl({ fileKey, fileName }),
 		status: AtlassianDesignStatus.NONE,
 		type: AtlassianDesignType.FILE,
-		lastUpdated: fileResponse.lastModified,
+		lastUpdated: fileMetaResponse.file.last_touched_at,
 		updateSequenceNumber: getUpdateSequenceNumberFrom(
-			fileResponse.lastModified,
+			fileMetaResponse.file.last_touched_at,
 		),
 	};
 };

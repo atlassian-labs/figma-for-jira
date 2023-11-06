@@ -5,6 +5,7 @@ import {
 import type { CreateWebhookRequest } from './figma-client';
 import { figmaClient } from './figma-client';
 import {
+	transformFileMetaToAtlassianDesign,
 	transformFileToAtlassianDesign,
 	transformNodeToAtlassianDesign,
 } from './transformers';
@@ -289,14 +290,14 @@ export class FigmaService {
 		fileKey: string,
 		credentials: FigmaOAuth2UserCredentials,
 	): Promise<AtlassianDesign> => {
-		const fileResponse = await figmaClient.getFile(
+		// Use File Metadata API for better performance.
+		const fileMetaResponse = await figmaClient.getFileMeta(
 			fileKey,
-			{ depth: 1 },
 			credentials.accessToken,
 		);
-		return transformFileToAtlassianDesign({
+		return transformFileMetaToAtlassianDesign({
 			fileKey,
-			fileResponse,
+			fileMetaResponse,
 		});
 	};
 

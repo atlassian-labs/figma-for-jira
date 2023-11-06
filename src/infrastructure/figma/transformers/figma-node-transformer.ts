@@ -1,4 +1,9 @@
-import { buildDesignUrl, buildInspectUrl, buildLiveEmbedUrl } from './utils';
+import {
+	buildDesignUrl,
+	buildInspectUrl,
+	buildLiveEmbedUrl,
+	getUpdateSequenceNumberFrom,
+} from './utils';
 
 import type { AtlassianDesign } from '../../../domain/entities';
 import {
@@ -28,6 +33,7 @@ export const transformNodeToAtlassianDesign = ({
 		nodeId,
 	);
 	const fileName = fileResponse.name;
+
 	return {
 		id: designId.toAtlassianDesignId(),
 		displayName: `${fileName} - ${node.name}`,
@@ -38,8 +44,8 @@ export const transformNodeToAtlassianDesign = ({
 			? mapNodeStatusToDevStatus(node.devStatus)
 			: AtlassianDesignStatus.NONE,
 		type: mapNodeTypeToDesignType(node.type),
-		lastUpdated: nodeLastModified.toISOString(),
-		updateSequenceNumber: nodeLastModified.getTime(),
+		lastUpdated: nodeLastModified,
+		updateSequenceNumber: getUpdateSequenceNumberFrom(nodeLastModified),
 	};
 };
 
@@ -61,11 +67,11 @@ export const transformNodeToAtlassianDesign = ({
 export const getNodeAndNodeLastModified = (
 	fileResponse: GetFileResponse,
 	nodeId: string,
-): { node: Node; nodeLastModified: Date } => {
+): { node: Node; nodeLastModified: string } => {
 	const result = findNodeAndNodeLastModifiedUsingDfs(
 		fileResponse.document,
 		nodeId,
-		new Date(fileResponse.lastModified),
+		fileResponse.lastModified,
 	);
 
 	if (result == null) {
@@ -78,10 +84,10 @@ export const getNodeAndNodeLastModified = (
 const findNodeAndNodeLastModifiedUsingDfs = (
 	currentNode: Node,
 	targetNodeId: string,
-	targetNodeLastModified: Date,
-): { node: Node; nodeLastModified: Date } | null => {
+	targetNodeLastModified: string,
+): { node: Node; nodeLastModified: string } | null => {
 	if (currentNode.lastModified) {
-		targetNodeLastModified = new Date(currentNode.lastModified);
+		targetNodeLastModified = currentNode.lastModified;
 	}
 
 	if (currentNode.id === targetNodeId) {

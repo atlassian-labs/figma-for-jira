@@ -1,3 +1,4 @@
+import { truncateToMillis } from '../../../common/date-utils';
 import { getConfig } from '../../../config';
 
 /**
@@ -62,4 +63,24 @@ export const buildInspectUrl = ({
 	}
 	url.searchParams.set('mode', 'dev');
 	return url.toString();
+};
+
+/**
+ * Returns an Update Sequence Number from the given ISO 8601 date string.
+ *
+ * An Update Sequence Number represents a timestamps from a Date truncated to milliseconds.
+ *
+ * @remarks
+ * The truncation is required since different Figma API return dates with different precision, e.g.:
+ *
+ * - {@link FigmaClient.getFileMeta} returns `last_touched_at` with millisecond precision.
+ * - {@link FigmaClient.getFile} returns `lastModified` with second precision.
+ *
+ * Therefore, truncate the date to the common precision to avoid inconsistent ingestion behaviour among different
+ * use cases.
+ */
+export const getUpdateSequenceNumberFrom = (dateIsoString: string): number => {
+	const lastUpdated = truncateToMillis(new Date(dateIsoString));
+
+	return lastUpdated.getTime();
 };

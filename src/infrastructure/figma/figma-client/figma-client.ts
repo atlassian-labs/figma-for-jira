@@ -4,6 +4,7 @@ import {
 	CREATE_DEV_RESOURCE_RESPONSE_SCHEMA,
 	CREATE_WEBHOOK_RESPONSE,
 	GET_DEV_RESOURCE_RESPONSE_SCHEMA,
+	GET_FILE_META_RESPONSE_SCHEMA,
 	GET_FILE_RESPONSE_SCHEMA,
 	GET_ME_RESPONSE_SCHEMA,
 	GET_OAUTH2_TOKEN_RESPONSE_SCHEMA,
@@ -18,6 +19,7 @@ import type {
 	DeleteDevResourceRequest,
 	GetDevResourcesRequest,
 	GetDevResourcesResponse,
+	GetFileMetaResponse,
 	GetFileParams,
 	GetFileResponse,
 	GetMeResponse,
@@ -119,6 +121,35 @@ export class FigmaClient {
 			);
 
 			assertSchema(response.data, GET_ME_RESPONSE_SCHEMA);
+
+			return response.data;
+		});
+
+	/**
+	 * Returns a Figma file metadata.
+	 *
+	 * @remarks
+	 * The REST API endpoint is not documented but fully supported. It provides a significantly better
+	 * latency than `GET `/v1/files/:fileKey` endpoint.
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
+	 */
+	getFileMeta = async (
+		fileKey: string,
+		accessToken: string,
+	): Promise<GetFileMetaResponse> =>
+		withAxiosErrorTranslation(async () => {
+			const url = new URL(
+				`${getConfig().figma.apiBaseUrl}/v1/files/${fileKey}/meta`,
+			);
+
+			const response = await axios.get<unknown>(url.toString(), {
+				headers: {
+					['Authorization']: `Bearer ${accessToken}`,
+				},
+			});
+
+			assertSchema(response.data, GET_FILE_META_RESPONSE_SCHEMA);
 
 			return response.data;
 		});

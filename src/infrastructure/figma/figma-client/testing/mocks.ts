@@ -7,6 +7,7 @@ import type {
 	CreateWebhookRequest,
 	CreateWebhookResponse,
 	GetDevResourcesResponse,
+	GetFileMetaResponse,
 	GetFileResponse,
 	GetMeResponse,
 	GetOAuth2TokenResponse,
@@ -102,6 +103,17 @@ export const generateGetMeResponse = ({
 	email,
 });
 
+export const generateGetFileMetaResponse = ({
+	name = generateFigmaFileName(),
+	lastModified = new Date(),
+} = {}): GetFileMetaResponse => ({
+	file: {
+		name,
+		last_touched_at: lastModified.toISOString(),
+		editorType: 'figma',
+	},
+});
+
 export const generateGetFileResponse = ({
 	name = generateFigmaFileName(),
 	lastModified = new Date(),
@@ -109,7 +121,6 @@ export const generateGetFileResponse = ({
 } = {}): GetFileResponse => ({
 	name,
 	lastModified: lastModified.toISOString(),
-	role: 'editor',
 	editorType: 'figma',
 	document: document,
 });
@@ -121,7 +132,6 @@ export const generateGetFileResponseWithNode = ({
 } = {}): GetFileResponse => ({
 	name,
 	lastModified: lastModified.toISOString(),
-	role: 'editor',
 	editorType: 'figma',
 	document: {
 		...MOCK_DOCUMENT,
@@ -136,7 +146,6 @@ export const generateGetFileResponseWithNodes = ({
 } = {}): GetFileResponse => ({
 	name,
 	lastModified: lastModified.toISOString(),
-	role: 'editor',
 	editorType: 'figma',
 	document: {
 		...MOCK_DOCUMENT,
