@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title></title>
+    <link rel="stylesheet" href="../styled.css" />
+  </head>
+  <body>
+    <container>
+      <content>
+        <img src="SuccessIcon.svg" alt="Success" />
+        <heading>Access granted</heading>
+        <text
+          >You may close this tab and return to Jira to start using ‘Figma for
+          Jira’.</text
+        >
+      </content>
+    </container>
+    <script>
+      if (window.opener) {
+        // Send the authentication result to the opener window
+        window.opener.postMessage(
+          {
+            type: 'auth:success',
+          },
+          '*',
+        );
+      }
+    </script>
+  </body>
+</html>

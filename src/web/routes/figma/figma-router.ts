@@ -20,9 +20,8 @@ import {
 import { requestSchemaValidationMiddleware } from '../../middleware';
 import { figmaWebhookAuthMiddleware } from '../../middleware/figma/figma-webhook-auth-middleware';
 
-const AUTH_RESOURCE_BASE_PATH = '/static/auth-result';
-export const SUCCESS_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=true`;
-export const FAILURE_PAGE_URL = `${AUTH_RESOURCE_BASE_PATH}?success=false`;
+export const SUCCESS_PAGE_URL = `/static/auth-result/success`;
+export const FAILURE_PAGE_URL = `/static/auth-result/failure`;
 
 export const figmaRouter = Router();
 
