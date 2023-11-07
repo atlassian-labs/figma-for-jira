@@ -28,10 +28,7 @@ export const transformNodeToAtlassianDesign = ({
 	fileResponse,
 }: TransformNodeToAtlassianDesignParams): AtlassianDesign => {
 	const designId = new FigmaDesignIdentifier(fileKey, nodeId);
-	const { node, nodeLastModified } = getNodeAndNodeLastModified(
-		fileResponse,
-		nodeId,
-	);
+	const { node, extra } = getNodeDataFrom(fileResponse, nodeId);
 	const fileName = fileResponse.name;
 
 	return {
@@ -44,17 +41,29 @@ export const transformNodeToAtlassianDesign = ({
 			? mapNodeStatusToDevStatus(node.devStatus)
 			: AtlassianDesignStatus.NONE,
 		type: mapNodeTypeToDesignType(node.type),
-		lastUpdated: nodeLastModified,
-		updateSequenceNumber: getUpdateSequenceNumberFrom(nodeLastModified),
+		lastUpdated: extra.lastModified,
+		updateSequenceNumber: getUpdateSequenceNumberFrom(extra.lastModified),
+	};
+};
+
+type NodeData = {
+	readonly node: Node;
+	/**
+	 * Contains relevant data that can be not available in the target node
+	 * but can be resolved using other nodes in the tree (e.g., ancestor nodes).
+	 */
+	readonly extra: {
+		readonly lastModified: string;
+		// TODO: Add `devStatus` and update `findNodeDataUsingDfs` implementation to return it.
+		// readonly devStatus?: NodeDevStatus;
 	};
 };
 
 /**
- * Returns a node with the given ID and a date when it was modified.
+ * Returns a node with the given ID and related information extracted from ancestor nodes:
  *
- * Figma API does not provide `lastModified` for each node but only for top-level nodes.
- * Therefore, the function uses `lastModified` of the corresponding root node as the most accurate value
- * for the node.
+ * - `lastModified`. Currently, Figma provides this field only for File and top-level nodes. Therefore, use
+ * `lastModified` of the target node, its closest ancestor or a File respectively as the most accurate value for the node.
  *
  * @remarks
  * The function uses depth-first search (DFS) for find a node in `fileResponse` (which contains a tree of nodes).
@@ -64,15 +73,13 @@ export const transformNodeToAtlassianDesign = ({
  * @internal
  * Visible for testing only.
  */
-export const getNodeAndNodeLastModified = (
+export const getNodeDataFrom = (
 	fileResponse: GetFileResponse,
 	nodeId: string,
-): { node: Node; nodeLastModified: string } => {
-	const result = findNodeAndNodeLastModifiedUsingDfs(
-		fileResponse.document,
-		nodeId,
-		fileResponse.lastModified,
-	);
+): NodeData => {
+	const result = findNodeDataUsingDfs(nodeId, fileResponse.document, {
+		lastModified: fileResponse.lastModified,
+	});
 
 	if (result == null) {
 		throw new Error('Response does not contain the node with the given ID.');
@@ -81,25 +88,23 @@ export const getNodeAndNodeLastModified = (
 	return result;
 };
 
-const findNodeAndNodeLastModifiedUsingDfs = (
-	currentNode: Node,
+const findNodeDataUsingDfs = (
 	targetNodeId: string,
-	targetNodeLastModified: string,
-): { node: Node; nodeLastModified: string } | null => {
+	currentNode: Node,
+	extra: NodeData['extra'],
+): NodeData | null => {
 	if (currentNode.lastModified) {
-		targetNodeLastModified = currentNode.lastModified;
+		extra = { ...extra, lastModified: currentNode.lastModified };
 	}
 
 	if (currentNode.id === targetNodeId) {
-		return { node: currentNode, nodeLastModified: targetNodeLastModified };
+		return { node: currentNode, extra };
 	}
 
-	for (const childNode of currentNode.children ?? []) {
-		const result = findNodeAndNodeLastModifiedUsingDfs(
-			childNode,
-			targetNodeId,
-			targetNodeLastModified,
-		);
+	if (!currentNode.children?.length) return null;
+
+	for (const childNode of currentNode.children) {
+		const result = findNodeDataUsingDfs(targetNodeId, childNode, extra);
 
 		if (result) return result;
 	}

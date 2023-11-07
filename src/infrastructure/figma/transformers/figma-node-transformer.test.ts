@@ -1,5 +1,5 @@
 import {
-	getNodeAndNodeLastModified,
+	getNodeDataFrom,
 	mapNodeStatusToDevStatus,
 	mapNodeTypeToDesignType,
 	transformNodeToAtlassianDesign,
@@ -101,37 +101,12 @@ describe('transformNodeToAtlassianDesign', () => {
 	});
 });
 
-describe('getNodeAndNodeLastModified', () => {
-	it('should return node and file lastModified if nodes do not contain lastModified', () => {
-		const targetNode = generateChildNode({ id: '100:1' });
-		const targetLastModified = new Date();
-		const fileResponse = generateGetFileResponse({
-			document: {
-				...MOCK_DOCUMENT,
-				children: [
-					generateFrameNode({
-						id: '1:2',
-						children: [targetNode],
-					}),
-				],
-			},
-			lastModified: targetLastModified,
-		});
-
-		const result = getNodeAndNodeLastModified(fileResponse, targetNode.id);
-
-		expect(result).toStrictEqual({
-			node: targetNode,
-			nodeLastModified: targetLastModified.toISOString(),
-		});
-	});
-
-	it('should return node and node lastModified if node has lastModified', () => {
+describe('getNodeDataFrom', () => {
+	it('should return node with its lastModified if node has lastModified', () => {
 		const irrelevantLastModified = new Date('2023-06-15T00:00:00Z');
-		const targetLastModified = new Date('2022-01-01T00:00:00Z');
-		const targetFrame = generateFrameNode({
+		const targetNode = generateFrameNode({
 			id: '100:1',
-			lastModified: targetLastModified,
+			lastModified: new Date('2022-01-01T00:00:00Z'),
 			children: [generateChildNode({ id: '2:3' })],
 		});
 		const fileResponse = generateGetFileResponse({
@@ -146,21 +121,23 @@ describe('getNodeAndNodeLastModified', () => {
 							generateChildNode({ id: '2:2' }),
 						],
 					}),
-					targetFrame,
+					targetNode,
 				],
 			},
 			lastModified: irrelevantLastModified,
 		});
 
-		const result = getNodeAndNodeLastModified(fileResponse, targetFrame.id);
+		const result = getNodeDataFrom(fileResponse, targetNode.id);
 
 		expect(result).toStrictEqual({
-			node: targetFrame,
-			nodeLastModified: targetLastModified.toISOString(),
+			node: targetNode,
+			extra: {
+				lastModified: targetNode.lastModified,
+			},
 		});
 	});
 
-	it('should return node and lastModified of nearest parent with lastModified if node does not have lastModified', () => {
+	it('should return node with ancestor lastModified if node does not have lastModified', () => {
 		const targetNode = generateChildNode({ id: '100:1' });
 		const targetLastModified = new Date('2022-01-01T00:00:00Z');
 		const irrelevantLastModified = new Date('2023-06-15T00:00:00Z');
@@ -192,11 +169,37 @@ describe('getNodeAndNodeLastModified', () => {
 			lastModified: irrelevantLastModified,
 		});
 
-		const result = getNodeAndNodeLastModified(fileResponse, targetNode.id);
+		const result = getNodeDataFrom(fileResponse, targetNode.id);
 
 		expect(result).toStrictEqual({
 			node: targetNode,
-			nodeLastModified: targetLastModified.toISOString(),
+			extra: {
+				lastModified: targetLastModified.toISOString(),
+			},
+		});
+	});
+
+	it('should return node with file lastModified if no node contains lastModified', () => {
+		const targetNode = generateChildNode({ id: '100:1' });
+		const fileResponse = generateGetFileResponse({
+			document: {
+				...MOCK_DOCUMENT,
+				children: [
+					generateFrameNode({
+						id: '1:2',
+						children: [targetNode],
+					}),
+				],
+			},
+		});
+
+		const result = getNodeDataFrom(fileResponse, targetNode.id);
+
+		expect(result).toStrictEqual({
+			node: targetNode,
+			extra: {
+				lastModified: fileResponse.lastModified,
+			},
 		});
 	});
 
@@ -209,9 +212,7 @@ describe('getNodeAndNodeLastModified', () => {
 			},
 		});
 
-		expect(() =>
-			getNodeAndNodeLastModified(fileResponse, targetNode.id),
-		).toThrow();
+		expect(() => getNodeDataFrom(fileResponse, targetNode.id)).toThrow();
 	});
 });
 
