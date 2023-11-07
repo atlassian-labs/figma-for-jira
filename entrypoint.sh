@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Function to URL-encode a string
 urlencode() {
   local string="$1"
