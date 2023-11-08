@@ -14,6 +14,7 @@ import { connectTeam } from '../../api';
 import {
 	ConnectBanner,
 	FigmaPermissionsPopup,
+	FigmaTeamsPopup,
 	Link,
 	Page,
 } from '../../components';
@@ -152,6 +153,15 @@ export function FigmaTeamConnector({
 										</>
 									)}
 								</Field>
+								<FigmaTeamsPopup>
+									<span
+										css={css`
+											font-size: 11px;
+										`}
+									>
+										How to find your Figma team URL
+									</span>
+								</FigmaTeamsPopup>{' '}
 								<FormFooter align="start">
 									<LoadingButton
 										appearance="primary"
