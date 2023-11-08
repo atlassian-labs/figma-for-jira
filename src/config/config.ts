@@ -47,8 +47,8 @@ export const getConfig = (): Config => {
 				level: readEnvVarString('LOG_LEVEL', ''),
 			},
 			tracer: {
-				service: readEnvVarString('DD_SERVICE'),
-				env: readEnvVarString('DD_ENV'),
+				service: readEnvVarString('DD_SERVICE', ''),
+				env: readEnvVarString('DD_ENV', ''),
 			},
 			figma: {
 				webBaseUrl: readEnvVarString('FIGMA_WEB_BASE_URL'),
