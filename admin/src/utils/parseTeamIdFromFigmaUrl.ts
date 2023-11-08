@@ -18,13 +18,19 @@ export function parseTeamIdFromFigmaUrl(figmaUrl: string): string {
 			throw new FigmaURLError('Invalid Figma URL');
 		}
 		const pathname = url.pathname;
-		const teamIdRegex = /\/files\/\d+\/team\/(\d+)/;
-		const match = pathname.match(teamIdRegex);
-		if (!match || !match[1]) {
-			throw new FigmaURLError('Unable to parse team ID from Figma URL');
+		const orgTeamRegex = /\/files\/\d+\/team\/(\d+)/;
+		const orgTeamMatch = pathname.match(orgTeamRegex);
+		if (orgTeamMatch && orgTeamMatch[1]) {
+			return orgTeamMatch[1];
 		}
 
-		return match[1];
+		const starterTeamRegex = /\/files\/team\/(\d+)/;
+		const starterTeamMatch = pathname.match(starterTeamRegex);
+		if (starterTeamMatch && starterTeamMatch[1]) {
+			return starterTeamMatch[1];
+		}
+
+		throw new FigmaURLError('Unable to parse team ID from Figma URL');
 	} catch (e) {
 		if (e instanceof FigmaURLError) {
 			throw e;
