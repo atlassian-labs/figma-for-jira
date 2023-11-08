@@ -11,6 +11,10 @@ export type Config = {
 	readonly logging: {
 		readonly level: string;
 	};
+	readonly tracer: {
+		readonly service: string;
+		readonly env: string;
+	};
 	readonly figma: {
 		readonly webBaseUrl: string;
 		readonly apiBaseUrl: string;
@@ -41,6 +45,10 @@ export const getConfig = (): Config => {
 			},
 			logging: {
 				level: readEnvVarString('LOG_LEVEL', ''),
+			},
+			tracer: {
+				service: readEnvVarString('DD_SERVICE'),
+				env: readEnvVarString('DD_ENV'),
 			},
 			figma: {
 				webBaseUrl: readEnvVarString('FIGMA_WEB_BASE_URL'),

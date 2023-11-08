@@ -1,15 +1,17 @@
 import ddTrace from 'dd-trace';
 
+import { getConfig } from '../config/config';
+
 const tracer = ddTrace.init({
-	service: process.env.FIGMA_SERVICE_NAME || '',
+	service: getConfig().tracer.service,
 	profiling: true,
-	env: process.env.DD_ENV || '',
+	env: getConfig().tracer.env,
 	runtimeMetrics: true,
 	logInjection: true,
-	tags: { figma_service: process.env.FIGMA_SERVICE_NAME || '' },
+	tags: { figma_service: getConfig().tracer.service },
 });
 
 tracer.use('express', {
 	enabled: true,
-	service: process.env.FIGMA_SERVICE_NAME || '',
+	service: getConfig().tracer.service,
 });
