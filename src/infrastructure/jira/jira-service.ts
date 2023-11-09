@@ -53,7 +53,7 @@ export enum ConfigurationStatus {
 export const issuePropertyKeys = {
 	ATTACHED_DESIGN_URL: 'attached-design-url',
 	ATTACHED_DESIGN_URL_V2: 'attached-design-url-v2',
-	INGESTED_DESIGN_URLS: 'figma-for-jira:ingested-design-urls',
+	INGESTED_DESIGN_URLS: 'figma-for-jira_ingested-design-urls',
 };
 
 export const JIRA_ADMIN_GLOBAL_PERMISSION = 'ADMINISTER';
@@ -93,13 +93,6 @@ class JiraService {
 		);
 
 		this.throwIfSubmitDesignResponseHasErrors(response);
-	};
-
-	deleteDesign = async (
-		designId: FigmaDesignIdentifier,
-		connectInstallation: ConnectInstallation,
-	): Promise<FigmaDesignIdentifier> => {
-		return await jiraClient.deleteDesign(designId, connectInstallation);
 	};
 
 	getIssue = async (

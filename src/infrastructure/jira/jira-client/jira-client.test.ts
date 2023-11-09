@@ -19,10 +19,7 @@ import type {
 
 import { SchemaValidationError } from '../../../common/schema-validation';
 import type { ConnectInstallation } from '../../../domain/entities';
-import {
-	generateConnectInstallation,
-	generateFigmaDesignIdentifier,
-} from '../../../domain/entities/testing';
+import { generateConnectInstallation } from '../../../domain/entities/testing';
 import { NotFoundHttpClientError } from '../../http-client-errors';
 
 jest.mock('./jwt-utils');
@@ -74,26 +71,6 @@ describe('JiraClient', () => {
 			await expect(() =>
 				jiraClient.submitDesigns(request, connectInstallation),
 			).rejects.toThrowError(SchemaValidationError);
-		});
-	});
-
-	describe('deleteDesign', () => {
-		it('should delete design', async () => {
-			const designId = generateFigmaDesignIdentifier();
-			jest.spyOn(axios, 'delete').mockResolvedValue(undefined);
-
-			const result = await jiraClient.deleteDesign(
-				designId,
-				connectInstallation,
-			);
-
-			expect(result).toBe(designId);
-			expect(axios.delete).toHaveBeenCalledWith(
-				`${
-					connectInstallation.baseUrl
-				}/rest/designs/1.0/design/${designId.toAtlassianDesignId()}`,
-				defaultExpectedRequestHeaders(),
-			);
 		});
 	});
 

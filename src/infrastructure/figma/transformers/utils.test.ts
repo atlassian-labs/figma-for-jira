@@ -1,4 +1,9 @@
-import { buildLiveEmbedUrl, getUpdateSequenceNumberFrom } from './utils';
+import {
+	buildDesignUrl,
+	buildInspectUrl,
+	buildLiveEmbedUrl,
+	getUpdateSequenceNumberFrom,
+} from './utils';
 
 import * as configModule from '../../../config';
 import { mockConfig } from '../../../config/testing';
@@ -17,6 +22,76 @@ jest.mock('../../../config', () => {
 });
 
 describe('utils', () => {
+	beforeEach(() => {
+		(configModule.getConfig as jest.Mock).mockReturnValue({
+			...mockConfig,
+			figma: {
+				...mockConfig.figma,
+				webBaseUrl: 'https://www.figma.com',
+			},
+		});
+	});
+
+	afterEach(() => {
+		jest.restoreAllMocks();
+	});
+
+	describe('buildDesignUrl', () => {
+		it('should return a url for Figma file', () => {
+			const fileKey = generateFigmaFileKey();
+
+			const result = buildDesignUrl({
+				fileKey,
+				fileName: 'Test Design',
+			});
+
+			expect(result).toEqual(`https://www.figma.com/file/${fileKey}/`);
+		});
+
+		it('should return a url for Figma node', () => {
+			const fileKey = generateFigmaFileKey();
+			const nodeId = '1:3';
+
+			const result = buildDesignUrl({
+				fileKey,
+				fileName: 'Test Design',
+				nodeId,
+			});
+
+			expect(result).toEqual(
+				`https://www.figma.com/file/${fileKey}/?node-id=1%3A3`,
+			);
+		});
+	});
+
+	describe('buildInspectUrl', () => {
+		it('should return a url for Figma file', () => {
+			const fileKey = generateFigmaFileKey();
+
+			const result = buildInspectUrl({
+				fileKey,
+				fileName: 'Test Design',
+			});
+
+			expect(result).toEqual(`https://www.figma.com/file/${fileKey}/?mode=dev`);
+		});
+
+		it('should return a url for Figma node', () => {
+			const fileKey = generateFigmaFileKey();
+			const nodeId = '1:3';
+
+			const result = buildInspectUrl({
+				fileKey,
+				fileName: 'Test Design',
+				nodeId,
+			});
+
+			expect(result).toEqual(
+				`https://www.figma.com/file/${fileKey}/?node-id=1%3A3&mode=dev`,
+			);
+		});
+	});
+
 	describe('buildLiveEmbedUrl', () => {
 		beforeEach(() => {
 			(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
@@ -26,25 +101,26 @@ describe('utils', () => {
 			jest.restoreAllMocks();
 		});
 
-		it('should return a correctly formatted url', () => {
+		it('should return a url', () => {
 			const fileKey = generateFigmaFileKey();
 			const fileName = generateFigmaFileName();
 			const nodeId = generateFigmaNodeId();
-			const inspectUrl = generateFigmaDesignUrl({
-				fileKey,
-				fileName,
-				nodeId,
-				mode: 'dev',
-			});
-			const expected = new URL('https://www.figma.com/embed');
-			expected.searchParams.append('embed_host', 'figma-jira-add-on');
-			expected.searchParams.append('url', inspectUrl);
 
 			const result = buildLiveEmbedUrl({
 				fileKey,
 				fileName,
 				nodeId,
 			});
+
+			const expected = new URL('https://www.figma.com/embed');
+			expected.search = new URLSearchParams({
+				embed_host: 'figma-jira-add-on',
+				url: generateFigmaDesignUrl({
+					fileKey,
+					nodeId,
+					mode: 'dev',
+				}),
+			}).toString();
 
 			expect(result).toEqual(expected.toString());
 		});

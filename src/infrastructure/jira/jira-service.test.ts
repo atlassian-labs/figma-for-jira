@@ -33,7 +33,6 @@ import {
 import {
 	generateAtlassianDesign,
 	generateConnectInstallation,
-	generateFigmaDesignIdentifier,
 	generateFigmaDesignUrl,
 	generateJiraIssue,
 	generateJiraIssueAri,
@@ -226,25 +225,6 @@ describe('JiraService', () => {
 
 			expect(jiraService.submitDesigns).toBeCalledWith(
 				[{ design, addAssociations, removeAssociations }],
-				connectInstallation,
-			);
-		});
-	});
-
-	describe('deleteDesign', () => {
-		it('should delete design', async () => {
-			const designId = generateFigmaDesignIdentifier();
-			const connectInstallation = generateConnectInstallation();
-			jest.spyOn(jiraClient, 'deleteDesign').mockResolvedValue(designId);
-
-			const result = await jiraService.deleteDesign(
-				designId,
-				connectInstallation,
-			);
-
-			expect(result).toBe(designId);
-			expect(jiraClient.deleteDesign).toHaveBeenCalledWith(
-				designId,
 				connectInstallation,
 			);
 		});

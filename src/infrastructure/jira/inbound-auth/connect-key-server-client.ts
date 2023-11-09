@@ -13,9 +13,12 @@ export class ConnectKeyServerClient {
 	 */
 	getAtlassianConnectPublicKey = async (keyId: string): Promise<string> =>
 		withAxiosErrorTranslation(async () => {
-			const response = await axios.get<string>(
-				`${getConfig().jira.connectKeyServerUrl}/${keyId}`,
+			const url = new URL(
+				`/${encodeURIComponent(keyId)}`,
+				getConfig().jira.connectKeyServerUrl,
 			);
+
+			const response = await axios.get<string>(url.toString());
 			return response.data;
 		});
 }

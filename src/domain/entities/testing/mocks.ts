@@ -45,7 +45,6 @@ export const generateFigmaDesignIdentifier = ({
 export const generateFigmaDesignUrl = ({
 	fileKey = generateFigmaFileKey(),
 	nodeId,
-	fileName = generateFigmaFileName(),
 	mode,
 }: {
 	fileKey?: string;
@@ -53,7 +52,7 @@ export const generateFigmaDesignUrl = ({
 	fileName?: string;
 	mode?: string;
 } = {}) => {
-	const url = new URL(`https://www.figma.com/file/${fileKey}/${fileName}`);
+	const url = new URL(`https://www.figma.com/file/${fileKey}/`);
 	if (nodeId) {
 		url.searchParams.append('node-id', nodeId);
 	}
