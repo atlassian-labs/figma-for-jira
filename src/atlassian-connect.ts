@@ -74,10 +74,10 @@ export const connectAppDescriptor = {
 	 * https://developer.atlassian.com/cloud/jira/platform/about-connect-modules-for-jira/
 	 */
 	modules: {
-		postInstallPage: {
-			key: 'figma-get-started',
+		configurePage: {
+			key: 'figma-configure',
 			name: {
-				value: 'Get Started',
+				value: 'Configure',
 			},
 			url: '/static/admin',
 			conditions: [{ condition: 'user_is_admin' }],
