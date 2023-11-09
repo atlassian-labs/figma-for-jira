@@ -14,6 +14,7 @@ export type Config = {
 	readonly tracer: {
 		readonly service: string;
 		readonly env: string;
+		readonly enabled: boolean;
 	};
 	readonly figma: {
 		readonly webBaseUrl: string;
@@ -49,6 +50,7 @@ export const getConfig = (): Config => {
 			tracer: {
 				service: readEnvVarString('DD_SERVICE', ''),
 				env: readEnvVarString('DD_ENV', ''),
+				enabled: readEnvVarString('DD_TRACE_ENABLED', '') === 'true',
 			},
 			figma: {
 				webBaseUrl: readEnvVarString('FIGMA_WEB_BASE_URL'),
