@@ -45,7 +45,7 @@ describe('utils', () => {
 				fileName: 'Test Design',
 			});
 
-			expect(result).toEqual(`https://www.figma.com/file/${fileKey}/`);
+			expect(result).toEqual(`https://www.figma.com/file/${fileKey}`);
 		});
 
 		it('should return a url for Figma node', () => {
@@ -59,7 +59,7 @@ describe('utils', () => {
 			});
 
 			expect(result).toEqual(
-				`https://www.figma.com/file/${fileKey}/?node-id=1%3A3`,
+				`https://www.figma.com/file/${fileKey}?node-id=1%3A3`,
 			);
 		});
 	});
@@ -73,7 +73,7 @@ describe('utils', () => {
 				fileName: 'Test Design',
 			});
 
-			expect(result).toEqual(`https://www.figma.com/file/${fileKey}/?mode=dev`);
+			expect(result).toEqual(`https://www.figma.com/file/${fileKey}?mode=dev`);
 		});
 
 		it('should return a url for Figma node', () => {
@@ -87,7 +87,7 @@ describe('utils', () => {
 			});
 
 			expect(result).toEqual(
-				`https://www.figma.com/file/${fileKey}/?node-id=1%3A3&mode=dev`,
+				`https://www.figma.com/file/${fileKey}?node-id=1%3A3&mode=dev`,
 			);
 		});
 	});

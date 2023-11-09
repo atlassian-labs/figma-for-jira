@@ -271,10 +271,13 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
+			const expectedValue = new URL(design.url);
+			expectedValue.pathname += `/${encodeURIComponent(design.displayName)}`;
+
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
 				issuePropertyKeys.ATTACHED_DESIGN_URL,
-				design.url,
+				expectedValue.toString(),
 				connectInstallation,
 			);
 		});
@@ -414,7 +417,6 @@ describe('JiraService', () => {
 			const designUrlInDifferentFormat = generateFigmaDesignUrl({
 				fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).fileKey,
 				nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).nodeId,
-				fileName: design.displayName,
 				mode: 'dev',
 			});
 			const otherDesignPropertyValue: AttachedDesignUrlV2IssuePropertyValue[] =
@@ -662,7 +664,6 @@ describe('JiraService', () => {
 			const designUrlInDifferentFormat = generateFigmaDesignUrl({
 				fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).fileKey,
 				nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).nodeId,
-				fileName: design.displayName,
 				mode: 'dev',
 			});
 

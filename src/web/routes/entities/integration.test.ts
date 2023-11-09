@@ -8,6 +8,7 @@ import type {
 } from './types';
 
 import app from '../../../app';
+import { appendToPathname } from '../../../common/url-utils';
 import { getConfig } from '../../../config';
 import type { ConnectInstallation } from '../../../domain/entities';
 import {
@@ -156,12 +157,10 @@ describe('/entities', () => {
 			const issueAri = generateJiraIssueAri({ issueId: issue.id });
 			const inputFigmaDesignUrl = generateFigmaDesignUrl({
 				fileKey,
-				fileName,
 				mode: 'dev',
 			});
 			const normalizedFigmaDesignUrl = generateFigmaDesignUrl({
 				fileKey,
-				fileName,
 			});
 			const fileMetaResponse = generateGetFileMetaResponse({
 				name: fileName,
@@ -227,7 +226,12 @@ describe('/entities', () => {
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				request: JSON.stringify(normalizedFigmaDesignUrl),
+				request: JSON.stringify(
+					appendToPathname(
+						new URL(normalizedFigmaDesignUrl),
+						encodeURIComponent(atlassianDesign.displayName),
+					).toString(),
+				),
 			});
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
@@ -302,13 +306,11 @@ describe('/entities', () => {
 			const issueAri = generateJiraIssueAri({ issueId: issue.id });
 			const inputFigmaDesignUrl = generateFigmaDesignUrl({
 				fileKey,
-				fileName,
 				nodeId,
 				mode: 'dev',
 			});
 			const normalizedFigmaDesignUrl = generateFigmaDesignUrl({
 				fileKey,
-				fileName,
 				nodeId,
 			});
 			const fileResponse = generateGetFileResponseWithNode({
@@ -378,7 +380,12 @@ describe('/entities', () => {
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				request: JSON.stringify(normalizedFigmaDesignUrl),
+				request: JSON.stringify(
+					appendToPathname(
+						new URL(normalizedFigmaDesignUrl),
+						encodeURIComponent(atlassianDesign.displayName),
+					).toString(),
+				),
 			});
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
@@ -497,7 +504,6 @@ describe('/entities', () => {
 			const issueAri = generateJiraIssueAri({ issueId });
 			const inputFigmaDesignUrl = generateFigmaDesignUrl({
 				fileKey,
-				fileName: generateFigmaFileName(),
 				mode: 'dev',
 			});
 
@@ -568,7 +574,6 @@ describe('/entities', () => {
 			const devResourceId = uuidv4();
 			const figmaDesignUrl = generateFigmaDesignUrl({
 				fileKey,
-				fileName,
 			});
 			const fileMetaResponse = generateGetFileMetaResponse({
 				name: fileName,
@@ -710,7 +715,6 @@ describe('/entities', () => {
 			const devResourceId = uuidv4();
 			const figmaDesignUrl = generateFigmaDesignUrl({
 				fileKey,
-				fileName,
 				nodeId,
 			});
 			const fileResponse = generateGetFileResponseWithNode({

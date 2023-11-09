@@ -13,7 +13,7 @@ export const buildDesignUrl = ({
 	nodeId?: string;
 }): string => {
 	const url = new URL(
-		`/file/${encodeURIComponent(fileKey)}/`,
+		`/file/${encodeURIComponent(fileKey)}`,
 		getConfig().figma.webBaseUrl,
 	);
 	if (nodeId) {
@@ -34,7 +34,7 @@ export const buildInspectUrl = ({
 	nodeId?: string;
 }): string => {
 	const url = new URL(
-		`/file/${encodeURIComponent(fileKey)}/`,
+		`/file/${encodeURIComponent(fileKey)}`,
 		getConfig().figma.webBaseUrl,
 	);
 	if (nodeId) {

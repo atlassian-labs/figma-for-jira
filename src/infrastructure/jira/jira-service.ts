@@ -16,6 +16,7 @@ import {
 	SchemaValidationError,
 } from '../../common/schema-validation';
 import { ensureString } from '../../common/string-utils';
+import { appendToPathname } from '../../common/url-utils';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
@@ -209,7 +210,7 @@ class JiraService {
 	 */
 	setAttachedDesignUrlInIssuePropertiesIfMissing = async (
 		issueIdOrKey: string,
-		{ url }: AtlassianDesign,
+		{ url, displayName }: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		try {
@@ -220,10 +221,16 @@ class JiraService {
 			);
 		} catch (error) {
 			if (error instanceof NotFoundHttpClientError) {
+				// Include Design name into the URL for compatibility with the existing "Jira" widget in Figma.
+				const urlWithFileName = appendToPathname(
+					new URL(url),
+					encodeURIComponent(displayName),
+				);
+
 				await jiraClient.setIssueProperty(
 					issueIdOrKey,
 					issuePropertyKeys.ATTACHED_DESIGN_URL,
-					url,
+					urlWithFileName.toString(),
 					connectInstallation,
 				);
 			} else {
