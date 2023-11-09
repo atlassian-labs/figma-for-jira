@@ -1,3 +1,6 @@
+// Must come before importing any instrumented module.
+// eslint-disable-next-line import/no-unassigned-import
+import './infrastructure/tracer';
 import express, { json } from 'express';
 
 import { errorHandlerMiddleware, httpLoggerMiddleware } from './web/middleware';

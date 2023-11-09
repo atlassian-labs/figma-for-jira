@@ -11,6 +11,11 @@ export const mockConfig: Config = {
 	logging: {
 		level: 'TEST',
 	},
+	tracer: {
+		service: 'figma-for-jira',
+		env: 'dev',
+		enabled: false,
+	},
 	figma: {
 		webBaseUrl: 'https://www.figma.com',
 

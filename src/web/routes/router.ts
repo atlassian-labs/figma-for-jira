@@ -1,3 +1,7 @@
+// Must come before importing any instrumented module.
+// eslint-disable-next-line import/no-unassigned-import
+import '../../infrastructure/tracer';
+
 import { HttpStatusCode } from 'axios';
 import type { Request, Response } from 'express';
 import { Router, static as Static } from 'express';
