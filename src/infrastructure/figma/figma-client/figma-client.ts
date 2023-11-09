@@ -137,9 +137,8 @@ export class FigmaClient {
 	): Promise<GetFileMetaResponse> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`${getConfig().figma.apiBaseUrl}/v1/files/${encodeURIComponent(
-					fileKey,
-				)}/meta`,
+				`/v1/files/${encodeURIComponent(fileKey)}/meta`,
+				getConfig().figma.apiBaseUrl,
 			);
 
 			const response = await axios.get<unknown>(url.toString(), {
@@ -167,9 +166,8 @@ export class FigmaClient {
 	): Promise<GetFileResponse> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`${getConfig().figma.apiBaseUrl}/v1/files/${encodeURIComponent(
-					fileKey,
-				)}`,
+				`/v1/files/${encodeURIComponent(fileKey)}`,
+				getConfig().figma.apiBaseUrl,
 			);
 
 			if (params.ids != null) {
