@@ -14,9 +14,8 @@ FROM node:18-bookworm-slim@sha256:b50c0b5628a4a10093a2b4b8b7a7060c10e5983abb8ea8
 
 RUN apt-get update -y && apt-get install -y openssl
 
-RUN mkdir -p /opt/service/ && chown -R node: /opt/service
+RUN mkdir -p /opt/service/
 WORKDIR /opt/service
-USER node
 
 COPY package.json package-lock.json ./
 # Ignore scripts to skip installing Husky
@@ -27,6 +26,8 @@ COPY --from=build /app/admin/dist ./admin/dist
 COPY prisma ./prisma
 COPY static ./static
 COPY entrypoint.sh .
+RUN chown -R node: /opt/service
+USER node
 
 EXPOSE 8080
 ENTRYPOINT ["/opt/service/entrypoint.sh"]
