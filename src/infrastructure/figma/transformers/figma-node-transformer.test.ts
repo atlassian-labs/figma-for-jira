@@ -203,6 +203,109 @@ describe('getNodeDataFrom', () => {
 		});
 	});
 
+	it('should return node with its devStatus if node has devStatus', () => {
+		const targetNode = generateFrameNode({
+			id: '100:1',
+			devStatus: { type: 'READY_FOR_DEV' },
+			lastModified: new Date('2022-01-01T00:00:00Z'),
+			children: [generateChildNode({ id: '2:3' })],
+		});
+
+		const fileResponse = generateGetFileResponse({
+			document: {
+				...MOCK_DOCUMENT,
+				children: [
+					generateFrameNode({
+						id: '1:1',
+						devStatus: undefined,
+						children: [
+							generateChildNode({ id: '2:1' }),
+							generateChildNode({ id: '2:2' }),
+						],
+					}),
+					targetNode,
+				],
+			},
+		});
+
+		const result = getNodeDataFrom(fileResponse, targetNode.id);
+
+		expect(result).toStrictEqual({
+			node: targetNode,
+			extra: {
+				devStatus: targetNode.devStatus,
+				lastModified: targetNode.lastModified,
+			},
+		});
+	});
+
+	it('should return node with ancestor status if node does not have status', () => {
+		const targetNode = generateChildNode({ id: '100:1' });
+		const expectedStatus = { type: 'READY_FOR_DEV' };
+		const expectedLastModified = new Date('2023-06-15T00:00:00Z');
+
+		const fileResponse = generateGetFileResponse({
+			document: {
+				...MOCK_DOCUMENT,
+				children: [
+					generateFrameNode({
+						id: '1:1',
+						children: [
+							generateChildNode({ id: '2:1' }),
+							generateChildNode({ id: '2:2' }),
+						],
+					}),
+					generateFrameNode({
+						id: '1:2',
+						devStatus: expectedStatus,
+						children: [
+							generateChildNode({ id: '2:3' }),
+							generateFrameNode({
+								id: '1:1',
+								children: [generateChildNode({ id: '3:1' }), targetNode],
+							}),
+						],
+					}),
+				],
+			},
+			lastModified: expectedLastModified,
+		});
+
+		const result = getNodeDataFrom(fileResponse, targetNode.id);
+
+		expect(result).toStrictEqual({
+			node: targetNode,
+			extra: {
+				devStatus: expectedStatus,
+				lastModified: expectedLastModified.toISOString(),
+			},
+		});
+	});
+
+	it('should return node with no file status if no node contains status', () => {
+		const targetNode = generateChildNode({ id: '100:1' });
+		const fileResponse = generateGetFileResponse({
+			document: {
+				...MOCK_DOCUMENT,
+				children: [
+					generateFrameNode({
+						id: '1:2',
+						children: [targetNode],
+					}),
+				],
+			},
+		});
+
+		const result = getNodeDataFrom(fileResponse, targetNode.id);
+
+		expect(result).toStrictEqual({
+			node: targetNode,
+			extra: {
+				lastModified: fileResponse.lastModified,
+			},
+		});
+	});
+
 	it('should throw if node is not found', () => {
 		const targetNode = generateChildNode();
 		const fileResponse = generateGetFileResponse({
