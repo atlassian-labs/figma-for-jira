@@ -6,7 +6,7 @@ import {
 	generateFigmaTeam,
 } from '../domain/entities/testing';
 import { figmaService } from '../infrastructure/figma';
-import { ConfigurationStatus, jiraService } from '../infrastructure/jira';
+import { ConfigurationState, jiraService } from '../infrastructure/jira';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
 import { connectFigmaTeamUseCase } from '.';
@@ -28,7 +28,7 @@ describe('connectFigmaTeamUseCase', () => {
 			.spyOn(figmaTeamRepository, 'upsert')
 			.mockResolvedValue(generateFigmaTeam({ teamId, teamName }));
 		jest
-			.spyOn(jiraService, 'setAppConfigurationStatus')
+			.spyOn(jiraService, 'setAppConfigurationState')
 			.mockResolvedValue(undefined);
 
 		const result = await connectFigmaTeamUseCase.execute(
@@ -62,8 +62,8 @@ describe('connectFigmaTeamUseCase', () => {
 			authStatus: FigmaTeamAuthStatus.OK,
 			connectInstallationId: connectInstallation.id,
 		});
-		expect(jiraService.setAppConfigurationStatus).toBeCalledWith(
-			ConfigurationStatus.CONFIGURED,
+		expect(jiraService.setAppConfigurationState).toBeCalledWith(
+			ConfigurationState.CONFIGURED,
 			connectInstallation,
 		);
 	});

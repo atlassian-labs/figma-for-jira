@@ -5,7 +5,7 @@ import {
 	generateFigmaTeam,
 } from '../domain/entities/testing';
 import { figmaService } from '../infrastructure/figma';
-import { ConfigurationStatus, jiraService } from '../infrastructure/jira';
+import { ConfigurationState, jiraService } from '../infrastructure/jira';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
 describe('disconnectFigmaTeamUseCase', () => {
@@ -23,7 +23,7 @@ describe('disconnectFigmaTeamUseCase', () => {
 			.spyOn(figmaTeamRepository, 'findManyByConnectInstallationId')
 			.mockResolvedValue([]);
 		jest
-			.spyOn(jiraService, 'setAppConfigurationStatus')
+			.spyOn(jiraService, 'setAppConfigurationState')
 			.mockResolvedValue(undefined);
 
 		await disconnectFigmaTeamUseCase.execute(
@@ -42,8 +42,8 @@ describe('disconnectFigmaTeamUseCase', () => {
 		expect(figmaTeamRepository.findManyByConnectInstallationId).toBeCalledWith(
 			connectInstallation.id,
 		);
-		expect(jiraService.setAppConfigurationStatus).toBeCalledWith(
-			ConfigurationStatus.NOT_CONFIGURED,
+		expect(jiraService.setAppConfigurationState).toBeCalledWith(
+			ConfigurationState.NOT_CONFIGURED,
 			connectInstallation,
 		);
 	});
@@ -82,6 +82,6 @@ describe('disconnectFigmaTeamUseCase', () => {
 		expect(figmaTeamRepository.findManyByConnectInstallationId).toBeCalledWith(
 			connectInstallation.id,
 		);
-		expect(jiraService.setAppConfigurationStatus).not.toHaveBeenCalled();
+		expect(jiraService.setAppConfigurationState).not.toHaveBeenCalled();
 	});
 });
