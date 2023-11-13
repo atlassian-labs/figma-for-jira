@@ -19,10 +19,7 @@ import type {
 
 import { Duration } from '../../../common/duration';
 import { assertSchema } from '../../../common/schema-validation';
-import type {
-	ConnectInstallation,
-	FigmaDesignIdentifier,
-} from '../../../domain/entities';
+import type { ConnectInstallation } from '../../../domain/entities';
 import { withAxiosErrorTranslation } from '../../axios-utils';
 
 const TOKEN_EXPIRES_IN = Duration.ofMinutes(3);
@@ -56,35 +53,13 @@ class JiraClient {
 
 			const response = await axios.post<unknown>(url.toString(), payload, {
 				headers: new AxiosHeaders().setAuthorization(
-					this.buildAuthorizationHeader(url, 'POST', connectInstallation),
+					this.buildAuthorizationHeader('POST', url, connectInstallation),
 				),
 			});
 
 			assertSchema(response.data, SUBMIT_DESIGNS_RESPONSE_SCHEMA);
 
 			return response.data;
-		});
-
-	/**
-	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 */
-	deleteDesign = async (
-		designId: FigmaDesignIdentifier,
-		connectInstallation: ConnectInstallation,
-	): Promise<FigmaDesignIdentifier> =>
-		withAxiosErrorTranslation(async () => {
-			const url = new URL(
-				`/rest/designs/1.0/design/${designId.toAtlassianDesignId()}`,
-				connectInstallation.baseUrl,
-			);
-
-			await axios.delete(url.toString(), {
-				headers: new AxiosHeaders().setAuthorization(
-					this.buildAuthorizationHeader(url, 'DELETE', connectInstallation),
-				),
-			});
-
-			return designId;
 		});
 
 	/**
@@ -100,13 +75,13 @@ class JiraClient {
 	): Promise<GetIssueResponse> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`/rest/agile/1.0/issue/${issueIdOrKey}`,
+				`/rest/agile/1.0/issue/${encodeURIComponent(issueIdOrKey)}`,
 				connectInstallation.baseUrl,
 			);
 
 			const response = await axios.get<unknown>(url.toString(), {
 				headers: new AxiosHeaders().setAuthorization(
-					this.buildAuthorizationHeader(url, 'GET', connectInstallation),
+					this.buildAuthorizationHeader('GET', url, connectInstallation),
 				),
 			});
 
@@ -129,14 +104,16 @@ class JiraClient {
 	): Promise<GetIssuePropertyResponse> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
+				`/rest/api/2/issue/${encodeURIComponent(
+					issueIdOrKey,
+				)}/properties/${encodeURIComponent(propertyKey)}`,
 				connectInstallation.baseUrl,
 			);
 
 			const response = await axios.get<unknown>(url.toString(), {
 				headers: new AxiosHeaders()
 					.setAuthorization(
-						this.buildAuthorizationHeader(url, 'GET', connectInstallation),
+						this.buildAuthorizationHeader('GET', url, connectInstallation),
 					)
 					.setAccept('application/json'),
 			});
@@ -164,14 +141,16 @@ class JiraClient {
 	): Promise<void> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
+				`/rest/api/2/issue/${encodeURIComponent(
+					issueIdOrKey,
+				)}/properties/${encodeURIComponent(propertyKey)}`,
 				connectInstallation.baseUrl,
 			);
 
-			await axios.put(url.toString(), JSON.stringify(value), {
+			await axios.put<unknown>(url.toString(), JSON.stringify(value), {
 				headers: new AxiosHeaders()
 					.setAuthorization(
-						this.buildAuthorizationHeader(url, 'PUT', connectInstallation),
+						this.buildAuthorizationHeader('PUT', url, connectInstallation),
 					)
 					.setAccept('application/json')
 					.setContentType('application/json'),
@@ -192,13 +171,15 @@ class JiraClient {
 	): Promise<void> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`/rest/api/2/issue/${issueIdOrKey}/properties/${propertyKey}`,
+				`/rest/api/2/issue/${encodeURIComponent(
+					issueIdOrKey,
+				)}/properties/${encodeURIComponent(propertyKey)}`,
 				connectInstallation.baseUrl,
 			);
 
-			await axios.delete(url.toString(), {
+			await axios.delete<unknown>(url.toString(), {
 				headers: new AxiosHeaders().setAuthorization(
-					this.buildAuthorizationHeader(url, 'DELETE', connectInstallation),
+					this.buildAuthorizationHeader('DELETE', url, connectInstallation),
 				),
 			});
 		});
@@ -217,14 +198,16 @@ class JiraClient {
 	): Promise<void> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`/rest/atlassian-connect/1/addons/${connectInstallation.key}/properties/${propertyKey}`,
+				`/rest/atlassian-connect/1/addons/${encodeURIComponent(
+					connectInstallation.key,
+				)}/properties/${encodeURIComponent(propertyKey)}`,
 				connectInstallation.baseUrl,
 			);
 
-			await axios.put(url.toString(), JSON.stringify(value), {
+			await axios.put<unknown>(url.toString(), JSON.stringify(value), {
 				headers: new AxiosHeaders()
 					.setAuthorization(
-						this.buildAuthorizationHeader(url, 'PUT', connectInstallation),
+						this.buildAuthorizationHeader('PUT', url, connectInstallation),
 					)
 					.setAccept('application/json')
 					.setContentType('application/json'),
@@ -250,7 +233,7 @@ class JiraClient {
 
 			const response = await axios.post<unknown>(url.toString(), payload, {
 				headers: new AxiosHeaders().setAuthorization(
-					this.buildAuthorizationHeader(url, 'POST', connectInstallation),
+					this.buildAuthorizationHeader('POST', url, connectInstallation),
 				),
 			});
 
@@ -260,8 +243,8 @@ class JiraClient {
 		});
 
 	private buildAuthorizationHeader(
-		url: URL,
 		method: Method,
+		url: URL,
 		{
 			key: connectAppKey,
 			sharedSecret: connectSharedSecret,

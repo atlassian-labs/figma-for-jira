@@ -48,25 +48,23 @@ export class FigmaClient {
 	 */
 	getOAuth2Token = async (code: string): Promise<GetOAuth2TokenResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const params = new URLSearchParams();
-			params.append('client_id', getConfig().figma.oauth2.clientId);
-			params.append('client_secret', getConfig().figma.oauth2.clientSecret);
-			params.append(
+			const url = new URL(
+				'/api/oauth/token',
+				getConfig().figma.oauth2.authorizationServerBaseUrl,
+			);
+			url.searchParams.append('client_id', getConfig().figma.oauth2.clientId);
+			url.searchParams.append(
+				'client_secret',
+				getConfig().figma.oauth2.clientSecret,
+			);
+			url.searchParams.append(
 				'redirect_uri',
 				`${getConfig().app.baseUrl}/figma/oauth/callback`,
 			);
-			params.append('code', code);
-			params.append('grant_type', 'authorization_code');
+			url.searchParams.append('code', code);
+			url.searchParams.append('grant_type', 'authorization_code');
 
-			const response = await axios.post<GetOAuth2TokenResponse>(
-				`${
-					getConfig().figma.oauth2.authorizationServerBaseUrl
-				}/api/oauth/token`,
-				null,
-				{
-					params,
-				},
-			);
+			const response = await axios.post<unknown>(url.toString());
 
 			assertSchema(response.data, GET_OAUTH2_TOKEN_RESPONSE_SCHEMA);
 
@@ -84,18 +82,18 @@ export class FigmaClient {
 		refreshToken: string,
 	): Promise<RefreshOAuth2TokenResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const params = new URLSearchParams();
-			params.append('client_id', getConfig().figma.oauth2.clientId);
-			params.append('client_secret', getConfig().figma.oauth2.clientSecret);
-			params.append('refresh_token', refreshToken);
-
-			const response = await axios.post<RefreshOAuth2TokenResponse>(
-				`${
-					getConfig().figma.oauth2.authorizationServerBaseUrl
-				}/api/oauth/refresh`,
-				null,
-				{ params },
+			const url = new URL(
+				'/api/oauth/refresh',
+				getConfig().figma.oauth2.authorizationServerBaseUrl,
 			);
+			url.searchParams.append('client_id', getConfig().figma.oauth2.clientId);
+			url.searchParams.append(
+				'client_secret',
+				getConfig().figma.oauth2.clientSecret,
+			);
+			url.searchParams.append('refresh_token', refreshToken);
+
+			const response = await axios.post<unknown>(url.toString());
 
 			assertSchema(response.data, REFRESH_OAUTH2_TOKEN_RESPONSE_SCHEMA);
 
@@ -111,14 +109,13 @@ export class FigmaClient {
 	 */
 	me = async (accessToken: string): Promise<GetMeResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const response = await axios.get<GetMeResponse>(
-				`${getConfig().figma.apiBaseUrl}/v1/me`,
-				{
-					headers: {
-						['Authorization']: `Bearer ${accessToken}`,
-					},
+			const url = new URL(`/v1/me`, getConfig().figma.apiBaseUrl);
+
+			const response = await axios.get<unknown>(url.toString(), {
+				headers: {
+					['Authorization']: `Bearer ${accessToken}`,
 				},
-			);
+			});
 
 			assertSchema(response.data, GET_ME_RESPONSE_SCHEMA);
 
@@ -140,7 +137,8 @@ export class FigmaClient {
 	): Promise<GetFileMetaResponse> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`${getConfig().figma.apiBaseUrl}/v1/files/${fileKey}/meta`,
+				`/v1/files/${encodeURIComponent(fileKey)}/meta`,
+				getConfig().figma.apiBaseUrl,
 			);
 
 			const response = await axios.get<unknown>(url.toString(), {
@@ -168,7 +166,8 @@ export class FigmaClient {
 	): Promise<GetFileResponse> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`${getConfig().figma.apiBaseUrl}/v1/files/${fileKey}`,
+				`/v1/files/${encodeURIComponent(fileKey)}`,
+				getConfig().figma.apiBaseUrl,
 			);
 
 			if (params.ids != null) {
@@ -207,15 +206,13 @@ export class FigmaClient {
 		accessToken: string,
 	): Promise<CreateDevResourcesResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const response = await axios.post<unknown>(
-				`${getConfig().figma.apiBaseUrl}/v1/dev_resources`,
-				request,
-				{
-					headers: {
-						['Authorization']: `Bearer ${accessToken}`,
-					},
+			const url = new URL(`/v1/dev_resources`, getConfig().figma.apiBaseUrl);
+
+			const response = await axios.post<unknown>(url.toString(), request, {
+				headers: {
+					['Authorization']: `Bearer ${accessToken}`,
 				},
-			);
+			});
 
 			assertSchema(response.data, CREATE_DEV_RESOURCE_RESPONSE_SCHEMA);
 
@@ -235,17 +232,19 @@ export class FigmaClient {
 		accessToken,
 	}: GetDevResourcesRequest): Promise<GetDevResourcesResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const response = await axios.get<unknown>(
-				`${getConfig().figma.apiBaseUrl}/v1/files/${fileKey}/dev_resources`,
-				{
-					params: {
-						node_ids: nodeIds?.join(','),
-					},
-					headers: {
-						['Authorization']: `Bearer ${accessToken}`,
-					},
-				},
+			const url = new URL(
+				`/v1/files/${encodeURIComponent(fileKey)}/dev_resources`,
+				getConfig().figma.apiBaseUrl,
 			);
+			if (nodeIds?.length) {
+				url.searchParams.append('node_ids', nodeIds.join(','));
+			}
+
+			const response = await axios.get<unknown>(url.toString(), {
+				headers: {
+					['Authorization']: `Bearer ${accessToken}`,
+				},
+			});
 
 			assertSchema(response.data, GET_DEV_RESOURCE_RESPONSE_SCHEMA);
 
@@ -265,18 +264,18 @@ export class FigmaClient {
 		accessToken,
 	}: DeleteDevResourceRequest): Promise<void> =>
 		withAxiosErrorTranslation(async () => {
-			const response = await axios.delete<void>(
-				`${
-					getConfig().figma.apiBaseUrl
-				}/v1/files/${fileKey}/dev_resources/${devResourceId}`,
-				{
-					headers: {
-						['Authorization']: `Bearer ${accessToken}`,
-					},
-				},
+			const url = new URL(
+				`/v1/files/${encodeURIComponent(
+					fileKey,
+				)}/dev_resources/${encodeURIComponent(devResourceId)}`,
+				getConfig().figma.apiBaseUrl,
 			);
 
-			return response.data;
+			await axios.delete<unknown>(url.toString(), {
+				headers: {
+					['Authorization']: `Bearer ${accessToken}`,
+				},
+			});
 		});
 
 	/**
@@ -291,15 +290,13 @@ export class FigmaClient {
 		accessToken: string,
 	): Promise<CreateWebhookResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const response = await axios.post<unknown>(
-				`${getConfig().figma.apiBaseUrl}/v2/webhooks`,
-				request,
-				{
-					headers: {
-						['Authorization']: `Bearer ${accessToken}`,
-					},
+			const url = new URL(`/v2/webhooks`, getConfig().figma.apiBaseUrl);
+
+			const response = await axios.post<unknown>(url.toString(), request, {
+				headers: {
+					['Authorization']: `Bearer ${accessToken}`,
 				},
-			);
+			});
 
 			assertSchema(response.data, CREATE_WEBHOOK_RESPONSE);
 
@@ -318,14 +315,16 @@ export class FigmaClient {
 		accessToken: string,
 	): Promise<void> =>
 		withAxiosErrorTranslation(async () => {
-			await axios.delete<CreateWebhookResponse>(
-				`${getConfig().figma.apiBaseUrl}/v2/webhooks/${webhookId}`,
-				{
-					headers: {
-						['Authorization']: `Bearer ${accessToken}`,
-					},
-				},
+			const url = new URL(
+				`/v2/webhooks/${encodeURIComponent(webhookId)}`,
+				getConfig().figma.apiBaseUrl,
 			);
+
+			await axios.delete<unknown>(url.toString(), {
+				headers: {
+					['Authorization']: `Bearer ${accessToken}`,
+				},
+			});
 		});
 
 	/**
@@ -340,14 +339,16 @@ export class FigmaClient {
 		accessToken: string,
 	): Promise<GetTeamProjectsResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const response = await axios.get<unknown>(
-				`${getConfig().figma.apiBaseUrl}/v1/teams/${teamId}/projects`,
-				{
-					headers: {
-						['Authorization']: `Bearer ${accessToken}`,
-					},
-				},
+			const url = new URL(
+				`/v1/teams/${encodeURIComponent(teamId)}/projects`,
+				getConfig().figma.apiBaseUrl,
 			);
+
+			const response = await axios.get<unknown>(url.toString(), {
+				headers: {
+					['Authorization']: `Bearer ${accessToken}`,
+				},
+			});
 
 			assertSchema(response.data, GET_TEAM_PROJECTS_RESPONSE_SCHEMA);
 
