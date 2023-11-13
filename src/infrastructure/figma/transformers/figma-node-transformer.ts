@@ -37,8 +37,8 @@ export const transformNodeToAtlassianDesign = ({
 		url: buildDesignUrl({ fileKey, fileName, nodeId }),
 		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName, nodeId }),
 		inspectUrl: buildInspectUrl({ fileKey, fileName, nodeId }),
-		status: node.devStatus
-			? mapNodeStatusToDevStatus(node.devStatus)
+		status: extra.devStatus
+			? mapNodeStatusToDevStatus(extra.devStatus)
 			: AtlassianDesignStatus.NONE,
 		type: mapNodeTypeToDesignType(node.type),
 		lastUpdated: extra.lastModified,
@@ -54,8 +54,7 @@ type NodeData = {
 	 */
 	readonly extra: {
 		readonly lastModified: string;
-		// TODO: Add `devStatus` and update `findNodeDataUsingDfs` implementation to return it.
-		// readonly devStatus?: NodeDevStatus;
+		readonly devStatus?: NodeDevStatus;
 	};
 };
 
@@ -95,6 +94,10 @@ const findNodeDataUsingDfs = (
 ): NodeData | null => {
 	if (currentNode.lastModified) {
 		extra = { ...extra, lastModified: currentNode.lastModified };
+	}
+
+	if (currentNode.devStatus) {
+		extra = { ...extra, devStatus: currentNode.devStatus };
 	}
 
 	if (currentNode.id === targetNodeId) {

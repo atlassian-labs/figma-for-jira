@@ -13,6 +13,7 @@ import type {
 	GetOAuth2TokenResponse,
 	GetTeamProjectsResponse,
 	Node,
+	NodeDevStatus,
 	RefreshOAuth2TokenResponse,
 } from '..';
 import { Duration } from '../../../../common/duration';
@@ -32,15 +33,18 @@ export const MOCK_DOCUMENT: Node = {
 export const generateFrameNode = ({
 	id = generateFigmaNodeId(),
 	lastModified,
+	devStatus,
 	children = [],
 }: {
 	id?: string;
 	lastModified?: Date;
+	devStatus?: NodeDevStatus;
 	children?: Node[];
 } = {}): Node => ({
 	id,
 	name: `Test Frame ${id}`,
 	type: 'FRAME',
+	devStatus: devStatus,
 	lastModified: lastModified?.toISOString(),
 	children,
 });
