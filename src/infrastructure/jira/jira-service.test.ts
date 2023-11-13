@@ -15,7 +15,7 @@ import type {
 	IngestedDesignUrlIssuePropertyValue,
 } from './jira-service';
 import {
-	ConfigurationStatus,
+	ConfigurationState,
 	issuePropertyKeys,
 	jiraService,
 	SubmitDesignJiraServiceError,
@@ -1070,26 +1070,26 @@ describe('JiraService', () => {
 		});
 	});
 
-	describe('setAppConfigurationStatus', () => {
-		it('should set configuration status in app properties', async () => {
-			const configurationState = ConfigurationStatus.CONFIGURED;
+	describe('setAppConfigurationState', () => {
+		it('should set configuration state in app properties', async () => {
+			const configurationState = ConfigurationState.CONFIGURED;
 			const connectInstallation = generateConnectInstallation();
 			jest.spyOn(jiraClient, 'setAppProperty').mockResolvedValue(undefined);
 
-			await jiraService.setAppConfigurationStatus(
+			await jiraService.setAppConfigurationState(
 				configurationState,
 				connectInstallation,
 			);
 
 			expect(jiraClient.setAppProperty).toHaveBeenCalledWith(
 				'is-configured',
-				{ status: configurationState },
+				{ isConfigured: configurationState },
 				connectInstallation,
 			);
 		});
 	});
 
-	describe('setConfigurationStateInAppProperties', () => {
+	describe('isAdmin', () => {
 		it('should return false if user does not have ADMINISTER permission', async () => {
 			const atlassianUserId = uuidv4();
 			const connectInstallation = generateConnectInstallation();

@@ -5,7 +5,7 @@ import {
 	figmaService,
 	UnauthorizedFigmaServiceError,
 } from '../infrastructure/figma';
-import { ConfigurationStatus, jiraService } from '../infrastructure/jira';
+import { ConfigurationState, jiraService } from '../infrastructure/jira';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
 export const disconnectFigmaTeamUseCase = {
@@ -33,8 +33,8 @@ export const disconnectFigmaTeamUseCase = {
 				);
 
 			if (configuredTeams.length === 0) {
-				await jiraService.setAppConfigurationStatus(
-					ConfigurationStatus.NOT_CONFIGURED,
+				await jiraService.setAppConfigurationState(
+					ConfigurationState.NOT_CONFIGURED,
 					connectInstallation,
 				);
 			}
