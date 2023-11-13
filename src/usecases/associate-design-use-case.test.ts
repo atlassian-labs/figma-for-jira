@@ -1,6 +1,6 @@
-import type { AssociateEntityUseCaseParams } from './associate-entity-use-case';
-import { associateEntityUseCase } from './associate-entity-use-case';
-import { generateAssociateEntityUseCaseParams } from './testing';
+import type { AssociateDesignUseCaseParams } from './associate-design-use-case';
+import { associateDesignUseCase } from './associate-design-use-case';
+import { generateAssociateDesignUseCaseParams } from './testing';
 
 import type { AssociatedFigmaDesign } from '../domain/entities';
 import {
@@ -18,7 +18,7 @@ import { figmaService } from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
-describe('associateEntityUseCase', () => {
+describe('associateDesignUseCase', () => {
 	it('should associate design to issue', async () => {
 		const connectInstallation = generateConnectInstallation();
 		const issue = generateJiraIssue();
@@ -27,8 +27,8 @@ describe('associateEntityUseCase', () => {
 		const atlassianDesign = generateAtlassianDesign({
 			id: designId.toAtlassianDesignId(),
 		});
-		const params: AssociateEntityUseCaseParams =
-			generateAssociateEntityUseCaseParams({
+		const params: AssociateDesignUseCaseParams =
+			generateAssociateDesignUseCaseParams({
 				entityUrl: generateFigmaDesignUrl({ fileKey }),
 				issueId: issue.id,
 				connectInstallation,
@@ -46,7 +46,7 @@ describe('associateEntityUseCase', () => {
 			.spyOn(associatedFigmaDesignRepository, 'upsert')
 			.mockResolvedValue({} as AssociatedFigmaDesign);
 
-		await associateEntityUseCase.execute(params);
+		await associateDesignUseCase.execute(params);
 
 		expect(figmaService.getDesign).toHaveBeenCalledWith(designId, {
 			atlassianUserId: params.atlassianUserId,
@@ -95,8 +95,8 @@ describe('associateEntityUseCase', () => {
 		const atlassianDesign = generateAtlassianDesign({
 			id: designId.toAtlassianDesignId(),
 		});
-		const params: AssociateEntityUseCaseParams =
-			generateAssociateEntityUseCaseParams({
+		const params: AssociateDesignUseCaseParams =
+			generateAssociateDesignUseCaseParams({
 				entityUrl: generateFigmaDesignUrl({ fileKey }),
 				issueId: issue.id,
 				connectInstallation,
@@ -113,7 +113,7 @@ describe('associateEntityUseCase', () => {
 		jest.spyOn(associatedFigmaDesignRepository, 'upsert');
 
 		await expect(() =>
-			associateEntityUseCase.execute(params),
+			associateDesignUseCase.execute(params),
 		).rejects.toThrow();
 		expect(associatedFigmaDesignRepository.upsert).not.toHaveBeenCalled();
 	});

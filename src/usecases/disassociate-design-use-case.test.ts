@@ -1,6 +1,6 @@
-import type { DisassociateEntityUseCaseParams } from './disassociate-entity-use-case';
-import { disassociateEntityUseCase } from './disassociate-entity-use-case';
-import { generateDisassociateEntityUseCaseParams } from './testing';
+import type { DisassociateDesignUseCaseParams } from './disassociate-design-use-case';
+import { disassociateDesignUseCase } from './disassociate-design-use-case';
+import { generateDisassociateDesignUseCaseParams } from './testing';
 
 import { AtlassianAssociation } from '../domain/entities';
 import {
@@ -13,7 +13,7 @@ import { figmaService } from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
-describe('disassociateEntityUseCase', () => {
+describe('disassociateDesignUseCase', () => {
 	it('should disassociate design from issue', async () => {
 		const connectInstallation = generateConnectInstallation();
 		const issue = generateJiraIssue();
@@ -21,8 +21,8 @@ describe('disassociateEntityUseCase', () => {
 		const atlassianDesign = generateAtlassianDesign({
 			id: designId.toAtlassianDesignId(),
 		});
-		const params: DisassociateEntityUseCaseParams =
-			generateDisassociateEntityUseCaseParams({
+		const params: DisassociateDesignUseCaseParams =
+			generateDisassociateDesignUseCaseParams({
 				entityId: atlassianDesign.id,
 				issueId: issue.id,
 				connectInstallation,
@@ -41,7 +41,7 @@ describe('disassociateEntityUseCase', () => {
 			)
 			.mockResolvedValue(null);
 
-		await disassociateEntityUseCase.execute(params);
+		await disassociateDesignUseCase.execute(params);
 
 		expect(figmaService.getDesign).toHaveBeenCalledWith(designId, {
 			atlassianUserId: params.atlassianUserId,
@@ -84,8 +84,8 @@ describe('disassociateEntityUseCase', () => {
 		const connectInstallation = generateConnectInstallation();
 		const issue = generateJiraIssue();
 		const atlassianDesign = generateAtlassianDesign();
-		const params: DisassociateEntityUseCaseParams =
-			generateDisassociateEntityUseCaseParams({
+		const params: DisassociateDesignUseCaseParams =
+			generateDisassociateDesignUseCaseParams({
 				entityId: atlassianDesign.id,
 				issueId: issue.id,
 				connectInstallation,
@@ -103,7 +103,7 @@ describe('disassociateEntityUseCase', () => {
 		);
 
 		await expect(() =>
-			disassociateEntityUseCase.execute(params),
+			disassociateDesignUseCase.execute(params),
 		).rejects.toThrow();
 		expect(
 			associatedFigmaDesignRepository.deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId,
