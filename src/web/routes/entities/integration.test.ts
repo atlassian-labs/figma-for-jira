@@ -339,6 +339,7 @@ describe('/entities', () => {
 				accessToken: figmaUserCredentials.accessToken,
 				query: {
 					ids: nodeId,
+					depth: '0',
 					node_last_modified: 'true',
 				},
 				response: fileResponse,
@@ -746,7 +747,11 @@ describe('/entities', () => {
 				baseUrl: getConfig().figma.apiBaseUrl,
 				fileKey,
 				accessToken: figmaUserCredentials.accessToken,
-				query: { ids: nodeId, node_last_modified: 'true' },
+				query: {
+					ids: nodeId,
+					depth: '0',
+					node_last_modified: 'true',
+				},
 				response: fileResponse,
 			});
 			mockJiraGetIssueEndpoint({
@@ -869,7 +874,6 @@ describe('/entities', () => {
 				baseUrl: getConfig().figma.apiBaseUrl,
 				fileKey,
 				accessToken: figmaUserCredentials.accessToken,
-				query: { depth: '1' },
 				response: fileMetaResponse,
 			});
 			mockJiraGetIssueEndpoint({
