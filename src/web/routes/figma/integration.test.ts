@@ -181,6 +181,7 @@ describe('/figma', () => {
 					fileKey: fileKey,
 					query: {
 						ids: nodeIds.join(','),
+						depth: '0',
 						node_last_modified: 'true',
 					},
 					response: fileResponse,
@@ -255,6 +256,7 @@ describe('/figma', () => {
 					fileKey: fileKey,
 					query: {
 						ids: nodeIds.join(','),
+						depth: '0',
 						node_last_modified: 'true',
 					},
 					response: fileResponse,
@@ -318,6 +320,7 @@ describe('/figma', () => {
 					fileKey: fileKey,
 					query: {
 						ids: nodeIds.join(','),
+						depth: '0',
 						node_last_modified: 'true',
 					},
 					status: HttpStatusCode.InternalServerError,
@@ -352,6 +355,7 @@ describe('/figma', () => {
 					fileKey: fileKey,
 					query: {
 						ids: nodeIds.join(','),
+						depth: '0',
 						node_last_modified: 'true',
 					},
 					status: HttpStatusCode.Unauthorized,
@@ -408,6 +412,7 @@ describe('/figma', () => {
 					fileKey: fileKey,
 					query: {
 						ids: nodeIds.join(','),
+						depth: '0',
 						node_last_modified: 'true',
 					},
 					status: HttpStatusCode.InternalServerError,

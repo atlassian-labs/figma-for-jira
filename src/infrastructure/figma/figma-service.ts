@@ -99,6 +99,7 @@ export class FigmaService {
 				fileKey,
 				{
 					ids: designIds.map((id) => id.nodeId).filter(isString),
+					depth: 0, // Exclude children of the target nodes(s) to avoid a massive response payload and high network latency.
 					node_last_modified: true,
 				},
 				accessToken,
@@ -315,6 +316,7 @@ export class FigmaService {
 			fileKey,
 			{
 				ids: [nodeId],
+				depth: 0, // Exclude children of the target node to avoid a massive response payload and high network latency.
 				node_last_modified: true,
 			},
 			credentials.accessToken,

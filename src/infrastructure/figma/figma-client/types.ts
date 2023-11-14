@@ -15,6 +15,13 @@ export type GetMeResponse = {
 };
 
 export type GetFileParams = {
+	/**
+	 * @remarks
+	 * `0` is not documented but a fully supported value when used with the `ids` parameter. If `depth` is:
+	 * - >= 1, it is interpreted relative to the document root.
+	 * - 0, it is interpreted as relative to the target node(s) with IDs from the `ids` parameter. Consider using 0,
+	 * 	when you need to exclude the children of the target nodes.
+	 */
 	readonly depth?: number;
 	readonly ids?: string[];
 	readonly node_last_modified?: boolean;
