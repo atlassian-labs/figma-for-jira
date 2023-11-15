@@ -40,6 +40,7 @@ import {
 } from '../../domain/entities/testing';
 import {
 	ForbiddenHttpClientError,
+	HttpClientError,
 	NotFoundHttpClientError,
 } from '../http-client-errors';
 
@@ -193,6 +194,21 @@ describe('FigmaService', () => {
 			await expect(() =>
 				figmaService.getDesign(designId, MOCK_CONNECT_USER_INFO),
 			).rejects.toThrow();
+		});
+
+		it('should throw when a request to a Figma api fails', async () => {
+			const designId = generateFigmaDesignIdentifier();
+			const credentials = generateFigmaOAuth2UserCredentials();
+			const error = new HttpClientError('Figma API failed');
+
+			jest
+				.spyOn(figmaAuthService, 'getCredentials')
+				.mockResolvedValue(credentials);
+			jest.spyOn(figmaClient, 'getFileMeta').mockRejectedValue(error);
+
+			await expect(
+				figmaService.getDesign(designId, MOCK_CONNECT_USER_INFO),
+			).rejects.toStrictEqual(error);
 		});
 	});
 
