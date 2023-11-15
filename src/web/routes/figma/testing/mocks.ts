@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import type {
+	FigmaFileDeleteWebhookEventRequestBody,
 	FigmaFileUpdateWebhookEventRequestBody,
 	FigmaPingWebhookEventRequestBody,
 } from '../types';
@@ -29,4 +30,15 @@ export const generateFileUpdateWebhookEventRequestBody = ({
 	passcode,
 	timestamp,
 	webhook_id,
+});
+
+export const generateFileDeleteWebhookEventRequestBody = ({
+	webhook_id = uuidv4(),
+	file_key = uuidv4(),
+	passcode = uuidv4(),
+}: Partial<FigmaFileDeleteWebhookEventRequestBody> = {}): FigmaFileDeleteWebhookEventRequestBody => ({
+	event_type: 'FILE_DELETE',
+	webhook_id,
+	file_key,
+	passcode,
 });

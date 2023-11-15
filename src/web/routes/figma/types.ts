@@ -18,9 +18,22 @@ export type FigmaFileUpdateWebhookEventRequestBody = {
 	readonly timestamp: string;
 };
 
+/**
+ * @remarks
+ * Currently, not handled but its sent within a subscription to `FILE_UPDATE` events.
+ * See for more detail: https://www.figma.com/developers/api#webhooks-v2-events
+ */
+export type FigmaFileDeleteWebhookEventRequestBody = {
+	readonly event_type: 'FILE_DELETE';
+	readonly webhook_id: string;
+	readonly file_key: string;
+	readonly passcode: string;
+};
+
 export type FigmaWebhookEventRequestBody =
 	| FigmaPingWebhookEventRequestBody
-	| FigmaFileUpdateWebhookEventRequestBody;
+	| FigmaFileUpdateWebhookEventRequestBody
+	| FigmaFileDeleteWebhookEventRequestBody;
 
 export type FigmaWebhookEventLocals = {
 	readonly figmaTeam: FigmaTeam;

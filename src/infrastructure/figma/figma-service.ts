@@ -2,15 +2,17 @@ import {
 	figmaAuthService,
 	MissingOrInvalidCredentialsFigmaAuthServiceError,
 } from './figma-auth-service';
-import type { CreateWebhookRequest } from './figma-client';
+import type { CreateWebhookRequest, GetFileResponse } from './figma-client';
 import { figmaClient } from './figma-client';
 import {
 	transformFileMetaToAtlassianDesign,
 	transformFileToAtlassianDesign,
 	transformNodeToAtlassianDesign,
+	tryTransformNodeToAtlassianDesign,
 } from './transformers';
 
 import { CauseAwareError } from '../../common/errors';
+import { isNotNullOrUndefined } from '../../common/predicates';
 import { isString } from '../../common/string-utils';
 import { getConfig } from '../../config';
 import type {
@@ -45,7 +47,7 @@ export class FigmaService {
 	};
 
 	/**
-	 * Return Atlassian design representation for the given Figma design.
+	 * Return Atlassian design for the Figma design with the given ID.
 	 *
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 */
@@ -66,7 +68,11 @@ export class FigmaService {
 		});
 
 	/**
-	 * Return Atlassian design representations for the given Figma designs.
+	 * Returns available Atlassian designs for Figma designs with the given IDs.
+	 * IDs should point out to a Figma File or Nodes within the same File.
+	 *
+	 * If some Figma designs are not available (e.g., some Nodes were deleted),
+	 * the returned array will not include designs for these Nodes.
 	 *
 	 * @remarks
 	 * Can be used to efficiently fetch multiple designs within the same file (e.g, a File-based design and multiple
@@ -76,7 +82,7 @@ export class FigmaService {
 	 *
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 */
-	getDesignsFromSameFile = async (
+	getAvailableDesignsFromSameFile = async (
 		designIds: FigmaDesignIdentifier[],
 		user: ConnectUserInfo,
 	): Promise<AtlassianDesign[]> =>
@@ -94,31 +100,39 @@ export class FigmaService {
 			}
 
 			const { accessToken } = await figmaAuthService.getCredentials(user);
+			let fileResponse: GetFileResponse;
 
-			const fileResponse = await figmaClient.getFile(
-				fileKey,
-				{
-					ids: designIds.map((id) => id.nodeId).filter(isString),
-					depth: 0, // Exclude children of the target nodes(s) to avoid a massive response payload and high network latency.
-					node_last_modified: true,
-				},
-				accessToken,
-			);
+			try {
+				fileResponse = await figmaClient.getFile(
+					fileKey,
+					{
+						ids: designIds.map((id) => id.nodeId).filter(isString),
+						depth: 0, // Exclude children of the target nodes(s) to avoid a massive response payload and high network latency.
+						node_last_modified: true,
+					},
+					accessToken,
+				);
+			} catch (e) {
+				if (e instanceof NotFoundHttpClientError) return [];
+				throw e;
+			}
 
-			return designIds.map((designId) => {
-				if (!designId.nodeId) {
-					return transformFileToAtlassianDesign({
-						fileKey: designId.fileKey,
-						fileResponse,
-					});
-				} else {
-					return transformNodeToAtlassianDesign({
-						fileKey: designId.fileKey,
-						nodeId: designId.nodeId,
-						fileResponse,
-					});
-				}
-			});
+			return designIds
+				.map((designId) => {
+					if (!designId.nodeId) {
+						return transformFileToAtlassianDesign({
+							fileKey: designId.fileKey,
+							fileResponse,
+						});
+					} else {
+						return tryTransformNodeToAtlassianDesign({
+							fileKey: designId.fileKey,
+							nodeId: designId.nodeId,
+							fileResponse,
+						});
+					}
+				})
+				.filter(isNotNullOrUndefined);
 		});
 
 	/**
