@@ -1,8 +1,9 @@
 import {
-	getNodeDataFrom,
+	findNodeDataInFile,
 	mapNodeStatusToDevStatus,
 	mapNodeTypeToDesignType,
 	transformNodeToAtlassianDesign,
+	tryTransformNodeToAtlassianDesign,
 } from './figma-node-transformer';
 import {
 	buildDesignUrl,
@@ -40,6 +41,32 @@ describe('transformNodeToAtlassianDesign', () => {
 		jest.restoreAllMocks();
 	});
 
+	it('should throw null if node is not found', () => {
+		const fileKey = generateFigmaFileKey();
+		const fileResponse = generateGetFileResponse({
+			document: {
+				...MOCK_DOCUMENT,
+			},
+		});
+
+		expect(() =>
+			transformNodeToAtlassianDesign({
+				fileKey,
+				nodeId: '100:1',
+				fileResponse,
+			}),
+		).toThrow();
+	});
+});
+
+describe('tryTransformNodeToAtlassianDesign', () => {
+	beforeEach(() => {
+		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
+	});
+	afterEach(() => {
+		jest.restoreAllMocks();
+	});
+
 	it('should correctly map to atlassian design', () => {
 		const fileKey = generateFigmaFileKey();
 		const node = generateChildNode({ id: '100:1' });
@@ -67,7 +94,7 @@ describe('transformNodeToAtlassianDesign', () => {
 			lastModified: irrelevantLastModified,
 		});
 
-		const result = transformNodeToAtlassianDesign({
+		const result = tryTransformNodeToAtlassianDesign({
 			fileKey,
 			nodeId: node.id,
 			fileResponse,
@@ -99,9 +126,26 @@ describe('transformNodeToAtlassianDesign', () => {
 			),
 		});
 	});
+
+	it('should return null if node is not found', () => {
+		const fileKey = generateFigmaFileKey();
+		const fileResponse = generateGetFileResponse({
+			document: {
+				...MOCK_DOCUMENT,
+			},
+		});
+
+		const result = tryTransformNodeToAtlassianDesign({
+			fileKey,
+			nodeId: '100:1',
+			fileResponse,
+		});
+
+		expect(result).toBeNull();
+	});
 });
 
-describe('getNodeDataFrom', () => {
+describe('findNodeDataInFile', () => {
 	it('should return node with its lastModified if node has lastModified', () => {
 		const irrelevantLastModified = new Date('2023-06-15T00:00:00Z');
 		const targetNode = generateFrameNode({
@@ -127,7 +171,7 @@ describe('getNodeDataFrom', () => {
 			lastModified: irrelevantLastModified,
 		});
 
-		const result = getNodeDataFrom(fileResponse, targetNode.id);
+		const result = findNodeDataInFile(fileResponse, targetNode.id);
 
 		expect(result).toStrictEqual({
 			node: targetNode,
@@ -169,7 +213,7 @@ describe('getNodeDataFrom', () => {
 			lastModified: irrelevantLastModified,
 		});
 
-		const result = getNodeDataFrom(fileResponse, targetNode.id);
+		const result = findNodeDataInFile(fileResponse, targetNode.id);
 
 		expect(result).toStrictEqual({
 			node: targetNode,
@@ -193,7 +237,7 @@ describe('getNodeDataFrom', () => {
 			},
 		});
 
-		const result = getNodeDataFrom(fileResponse, targetNode.id);
+		const result = findNodeDataInFile(fileResponse, targetNode.id);
 
 		expect(result).toStrictEqual({
 			node: targetNode,
@@ -228,7 +272,7 @@ describe('getNodeDataFrom', () => {
 			},
 		});
 
-		const result = getNodeDataFrom(fileResponse, targetNode.id);
+		const result = findNodeDataInFile(fileResponse, targetNode.id);
 
 		expect(result).toStrictEqual({
 			node: targetNode,
@@ -271,7 +315,7 @@ describe('getNodeDataFrom', () => {
 			lastModified: expectedLastModified,
 		});
 
-		const result = getNodeDataFrom(fileResponse, targetNode.id);
+		const result = findNodeDataInFile(fileResponse, targetNode.id);
 
 		expect(result).toStrictEqual({
 			node: targetNode,
@@ -296,7 +340,7 @@ describe('getNodeDataFrom', () => {
 			},
 		});
 
-		const result = getNodeDataFrom(fileResponse, targetNode.id);
+		const result = findNodeDataInFile(fileResponse, targetNode.id);
 
 		expect(result).toStrictEqual({
 			node: targetNode,
@@ -306,7 +350,7 @@ describe('getNodeDataFrom', () => {
 		});
 	});
 
-	it('should throw if node is not found', () => {
+	it('should return null node is not found', () => {
 		const targetNode = generateChildNode();
 		const fileResponse = generateGetFileResponse({
 			document: {
@@ -315,7 +359,9 @@ describe('getNodeDataFrom', () => {
 			},
 		});
 
-		expect(() => getNodeDataFrom(fileResponse, targetNode.id)).toThrow();
+		const result = findNodeDataInFile(fileResponse, targetNode.id);
+
+		expect(result).toBeNull();
 	});
 });
 

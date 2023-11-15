@@ -16,6 +16,7 @@ import {
 	generateFrameNode,
 	generateGetDevResourcesResponse,
 	generateGetFileMetaResponse,
+	generateGetFileResponse,
 	generateGetFileResponseWithNode,
 	generateGetFileResponseWithNodes,
 } from './figma-client/testing';
@@ -23,7 +24,7 @@ import { figmaService } from './figma-service';
 import {
 	transformFileMetaToAtlassianDesign,
 	transformFileToAtlassianDesign,
-	transformNodeToAtlassianDesign,
+	tryTransformNodeToAtlassianDesign,
 } from './transformers';
 
 import * as configModule from '../../config';
@@ -31,6 +32,7 @@ import { mockConfig } from '../../config/testing';
 import {
 	generateConnectUserInfo,
 	generateFigmaDesignIdentifier,
+	generateFigmaFileKey,
 	generateFigmaNodeId,
 	generateFigmaOAuth2UserCredentials,
 	generateJiraIssueKey,
@@ -38,6 +40,7 @@ import {
 } from '../../domain/entities/testing';
 import {
 	ForbiddenHttpClientError,
+	HttpClientError,
 	NotFoundHttpClientError,
 } from '../http-client-errors';
 
@@ -165,7 +168,7 @@ describe('FigmaService', () => {
 				MOCK_CONNECT_USER_INFO,
 			);
 
-			const expectedEntity = transformNodeToAtlassianDesign({
+			const expectedEntity = tryTransformNodeToAtlassianDesign({
 				fileKey: designId.fileKey,
 				nodeId: designId.nodeId!,
 				fileResponse,
@@ -176,10 +179,27 @@ describe('FigmaService', () => {
 			});
 		});
 
-		it('should throw when a request to a figma api fails', async () => {
+		it('should throw when node is not found', async () => {
+			const designId = generateFigmaDesignIdentifier({
+				nodeId: generateFigmaNodeId(),
+			});
+			const credentials = generateFigmaOAuth2UserCredentials();
+			const fileResponse = generateGetFileResponse();
+
+			jest
+				.spyOn(figmaAuthService, 'getCredentials')
+				.mockResolvedValue(credentials);
+			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(fileResponse);
+
+			await expect(() =>
+				figmaService.getDesign(designId, MOCK_CONNECT_USER_INFO),
+			).rejects.toThrow();
+		});
+
+		it('should throw when a request to a Figma api fails', async () => {
 			const designId = generateFigmaDesignIdentifier();
 			const credentials = generateFigmaOAuth2UserCredentials();
-			const error = new Error('Figma API failed');
+			const error = new HttpClientError('Figma API failed');
 
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
@@ -192,20 +212,19 @@ describe('FigmaService', () => {
 		});
 	});
 
-	describe('getDesignsFromSameFile', () => {
-		it('should return valid design entities for design ids with and without node ids', async () => {
-			const nodeId1 = generateFigmaNodeId();
-			const node1 = generateFrameNode({ id: nodeId1 });
-			const nodeId2 = generateFigmaNodeId();
-			const node2 = generateFrameNode({ id: nodeId2 });
-			const designIdWithoutNode = generateFigmaDesignIdentifier();
+	describe('getAvailableDesignsFromSameFile', () => {
+		it('should return designs for Figma file and nodes', async () => {
+			const node1 = generateFrameNode({ id: '1:1' });
+			const node2 = generateFrameNode({ id: '1:2' });
+			const fileKey = generateFigmaFileKey();
+			const designIdWithoutNode = generateFigmaDesignIdentifier({ fileKey });
 			const designIdWithNode1 = generateFigmaDesignIdentifier({
-				fileKey: designIdWithoutNode.fileKey,
-				nodeId: nodeId1,
+				fileKey,
+				nodeId: node1.id,
 			});
 			const designIdWithNode2 = generateFigmaDesignIdentifier({
-				fileKey: designIdWithoutNode.fileKey,
-				nodeId: nodeId2,
+				fileKey,
+				nodeId: node2.id,
 			});
 			const credentials = generateFigmaOAuth2UserCredentials();
 			const mockResponse = generateGetFileResponseWithNodes({
@@ -217,35 +236,92 @@ describe('FigmaService', () => {
 				.mockResolvedValue(credentials);
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
 
-			const result = await figmaService.getDesignsFromSameFile(
+			const result = await figmaService.getAvailableDesignsFromSameFile(
 				[designIdWithoutNode, designIdWithNode1, designIdWithNode2],
 				MOCK_CONNECT_USER_INFO,
 			);
 
-			const expectedResult = [
+			expect(result).toStrictEqual([
 				transformFileToAtlassianDesign({
 					fileKey: designIdWithoutNode.fileKey,
 					fileResponse: mockResponse,
 				}),
-				transformNodeToAtlassianDesign({
+				tryTransformNodeToAtlassianDesign({
 					fileKey: designIdWithNode1.fileKey,
 					nodeId: designIdWithNode1.nodeId!,
 					fileResponse: mockResponse,
 				}),
-				transformNodeToAtlassianDesign({
+				tryTransformNodeToAtlassianDesign({
 					fileKey: designIdWithNode2.fileKey,
 					nodeId: designIdWithNode2.nodeId!,
 					fileResponse: mockResponse,
 				}),
-			];
+			]);
+		});
 
-			expect(result).toStrictEqual(expectedResult);
+		it('should return empty array if Figma dile does not exist', async () => {
+			const designId = generateFigmaDesignIdentifier();
+			const credentials = generateFigmaOAuth2UserCredentials();
+			const error = new NotFoundHttpClientError('Figma API failed');
+
+			jest
+				.spyOn(figmaAuthService, 'getCredentials')
+				.mockResolvedValue(credentials);
+			jest.spyOn(figmaClient, 'getFile').mockRejectedValue(error);
+
+			const result = await figmaService.getAvailableDesignsFromSameFile(
+				[designId],
+				MOCK_CONNECT_USER_INFO,
+			);
+
+			expect(result).toEqual([]);
+		});
+
+		it('should return designs excluding designs for non-existent Figma nodes', async () => {
+			const node1 = generateFrameNode({ id: '1:1' });
+			const node2 = generateFrameNode({ id: '1:2' });
+			const fileKey = generateFigmaFileKey();
+			const designIdWithoutNode = generateFigmaDesignIdentifier({ fileKey });
+			const designIdWithNode1 = generateFigmaDesignIdentifier({
+				fileKey,
+				nodeId: node1.id,
+			});
+			const designIdWithNode2 = generateFigmaDesignIdentifier({
+				fileKey,
+				nodeId: node2.id,
+			});
+			const credentials = generateFigmaOAuth2UserCredentials();
+			const mockResponse = generateGetFileResponseWithNodes({
+				nodes: [node1],
+			});
+
+			jest
+				.spyOn(figmaAuthService, 'getCredentials')
+				.mockResolvedValue(credentials);
+			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
+
+			const result = await figmaService.getAvailableDesignsFromSameFile(
+				[designIdWithoutNode, designIdWithNode1, designIdWithNode2],
+				MOCK_CONNECT_USER_INFO,
+			);
+
+			expect(result).toStrictEqual([
+				transformFileToAtlassianDesign({
+					fileKey: designIdWithoutNode.fileKey,
+					fileResponse: mockResponse,
+				}),
+				tryTransformNodeToAtlassianDesign({
+					fileKey: designIdWithNode1.fileKey,
+					nodeId: designIdWithNode1.nodeId!,
+					fileResponse: mockResponse,
+				}),
+			]);
 		});
 
 		it('should immediately return an empty array if passed an empty design ids array', async () => {
 			jest.spyOn(figmaAuthService, 'getCredentials');
 
-			const result = await figmaService.getDesignsFromSameFile(
+			const result = await figmaService.getAvailableDesignsFromSameFile(
 				[],
 				MOCK_CONNECT_USER_INFO,
 			);
@@ -263,24 +339,12 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaAuthService, 'getCredentials');
 
 			await expect(
-				figmaService.getDesignsFromSameFile(designIds, MOCK_CONNECT_USER_INFO),
+				figmaService.getAvailableDesignsFromSameFile(
+					designIds,
+					MOCK_CONNECT_USER_INFO,
+				),
 			).rejects.toThrow();
 			expect(figmaAuthService.getCredentials).not.toBeCalled();
-		});
-
-		it('should throw when a request to a figma api fails', async () => {
-			const designId = generateFigmaDesignIdentifier();
-			const credentials = generateFigmaOAuth2UserCredentials();
-			const mockError = new Error('Figma API failed');
-
-			jest
-				.spyOn(figmaAuthService, 'getCredentials')
-				.mockResolvedValue(credentials);
-			jest.spyOn(figmaClient, 'getFile').mockRejectedValue(mockError);
-
-			await expect(
-				figmaService.getDesignsFromSameFile([designId], MOCK_CONNECT_USER_INFO),
-			).rejects.toStrictEqual(mockError);
 		});
 	});
 

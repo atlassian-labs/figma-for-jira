@@ -20,15 +20,44 @@ type TransformNodeToAtlassianDesignParams = {
 };
 
 /**
- * Transforms a Figma node with the given ID to {@link AtlassianDesign}.
+ * Returns a {@link AtlassianDesign} for the Node with the given ID if it is available in the File;
+ * otherwise -- throws an exception.
+ *
+ * @remarks
+ * Use with cautious since there is guarantee that Node is available in {@link GetFileResponse}
+ * Consider using {@link tryTransformNodeToAtlassianDesign} instead.
  */
 export const transformNodeToAtlassianDesign = ({
 	fileKey,
 	nodeId,
 	fileResponse,
 }: TransformNodeToAtlassianDesignParams): AtlassianDesign => {
+	const result = tryTransformNodeToAtlassianDesign({
+		fileKey,
+		nodeId,
+		fileResponse,
+	});
+
+	if (result === null) throw new Error('Node is not found in the given File.');
+
+	return result;
+};
+
+/**
+ * Returns a {@link AtlassianDesign} for the Node with the given ID if it is available in the File;
+ * otherwise -- `null`.
+ */
+export const tryTransformNodeToAtlassianDesign = ({
+	fileKey,
+	nodeId,
+	fileResponse,
+}: TransformNodeToAtlassianDesignParams): AtlassianDesign | null => {
 	const designId = new FigmaDesignIdentifier(fileKey, nodeId);
-	const { node, extra } = getNodeDataFrom(fileResponse, nodeId);
+	const nodeData = findNodeDataInFile(fileResponse, nodeId);
+
+	if (nodeData == null) return null;
+
+	const { node, extra } = nodeData;
 	const fileName = fileResponse.name;
 
 	return {
@@ -59,10 +88,14 @@ type NodeData = {
 };
 
 /**
- * Returns a node with the given ID and related information extracted from ancestor nodes:
+ * Returns {@link NodeData} for the Node with given ID from the given {@link GetFileResponse} if it is available;
+ * otherwise -- `null`.
  *
+ * In addition to the `node` field, the returned result includes `extra`:
  * - `lastModified`. Currently, Figma provides this field only for File and top-level nodes. Therefore, use
  * `lastModified` of the target node, its closest ancestor or a File respectively as the most accurate value for the node.
+ * - `devStatus`. Currently,  Figma provides this field only for some types of nodes (Section). Therefore, use `devStatus`
+ * of the target node or its closest ancestor.
  *
  * @remarks
  * The function uses depth-first search (DFS) for find a node in `fileResponse` (which contains a tree of nodes).
@@ -72,22 +105,18 @@ type NodeData = {
  * @internal
  * Visible for testing only.
  */
-export const getNodeDataFrom = (
+export const findNodeDataInFile = (
 	fileResponse: GetFileResponse,
 	nodeId: string,
-): NodeData => {
-	const result = findNodeDataUsingDfs(nodeId, fileResponse.document, {
+): NodeData | null => {
+	const result = findNodeDataInFileUsingDfs(nodeId, fileResponse.document, {
 		lastModified: fileResponse.lastModified,
 	});
-
-	if (result == null) {
-		throw new Error('Response does not contain the node with the given ID.');
-	}
 
 	return result;
 };
 
-const findNodeDataUsingDfs = (
+const findNodeDataInFileUsingDfs = (
 	targetNodeId: string,
 	currentNode: Node,
 	extra: NodeData['extra'],
@@ -107,7 +136,7 @@ const findNodeDataUsingDfs = (
 	if (!currentNode.children?.length) return null;
 
 	for (const childNode of currentNode.children) {
-		const result = findNodeDataUsingDfs(targetNodeId, childNode, extra);
+		const result = findNodeDataInFileUsingDfs(targetNodeId, childNode, extra);
 
 		if (result) return result;
 	}
