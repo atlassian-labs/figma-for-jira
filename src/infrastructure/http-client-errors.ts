@@ -1,6 +1,15 @@
 import { CauseAwareError } from '../common/errors';
+export class HttpClientError extends CauseAwareError {
+	constructor(
+		message: string,
+		readonly response?: unknown,
+		cause?: unknown,
+	) {
+		super(message, cause);
+	}
+}
 
-export class HttpClientError extends CauseAwareError {}
+export class BadRequestHttpClientError extends HttpClientError {}
 
 export class NotFoundHttpClientError extends HttpClientError {}
 

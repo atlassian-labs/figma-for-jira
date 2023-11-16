@@ -1,6 +1,7 @@
 import { HttpStatusCode, isAxiosError } from 'axios';
 
 import {
+	BadRequestHttpClientError,
 	ForbiddenHttpClientError,
 	HttpClientError,
 	NotFoundHttpClientError,
@@ -19,6 +20,12 @@ const translateAxiosError = (error: unknown): unknown => {
 	if (!isAxiosError(error)) return error;
 
 	switch (error.response?.status) {
+		case HttpStatusCode.BadRequest:
+			return new BadRequestHttpClientError(
+				error.message,
+				error.response.data,
+				error,
+			);
 		case HttpStatusCode.Unauthorized:
 			return new UnauthorizedHttpClientError(error.message, error);
 		case HttpStatusCode.Forbidden:
