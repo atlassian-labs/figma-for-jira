@@ -10,7 +10,6 @@ import { mockConfig } from '../../../config/testing';
 import {
 	generateFigmaDesignUrl,
 	generateFigmaFileKey,
-	generateFigmaFileName,
 	generateFigmaNodeId,
 } from '../../../domain/entities/testing';
 
@@ -40,10 +39,7 @@ describe('utils', () => {
 		it('should return a url for Figma file', () => {
 			const fileKey = generateFigmaFileKey();
 
-			const result = buildDesignUrl({
-				fileKey,
-				fileName: 'Test Design',
-			});
+			const result = buildDesignUrl({ fileKey });
 
 			expect(result).toEqual(`https://www.figma.com/file/${fileKey}`);
 		});
@@ -52,11 +48,7 @@ describe('utils', () => {
 			const fileKey = generateFigmaFileKey();
 			const nodeId = '1:3';
 
-			const result = buildDesignUrl({
-				fileKey,
-				fileName: 'Test Design',
-				nodeId,
-			});
+			const result = buildDesignUrl({ fileKey, nodeId });
 
 			expect(result).toEqual(
 				`https://www.figma.com/file/${fileKey}?node-id=1%3A3`,
@@ -68,10 +60,7 @@ describe('utils', () => {
 		it('should return a url for Figma file', () => {
 			const fileKey = generateFigmaFileKey();
 
-			const result = buildInspectUrl({
-				fileKey,
-				fileName: 'Test Design',
-			});
+			const result = buildInspectUrl({ fileKey });
 
 			expect(result).toEqual(`https://www.figma.com/file/${fileKey}?mode=dev`);
 		});
@@ -80,11 +69,7 @@ describe('utils', () => {
 			const fileKey = generateFigmaFileKey();
 			const nodeId = '1:3';
 
-			const result = buildInspectUrl({
-				fileKey,
-				fileName: 'Test Design',
-				nodeId,
-			});
+			const result = buildInspectUrl({ fileKey, nodeId });
 
 			expect(result).toEqual(
 				`https://www.figma.com/file/${fileKey}?node-id=1%3A3&mode=dev`,
@@ -103,14 +88,9 @@ describe('utils', () => {
 
 		it('should return a url', () => {
 			const fileKey = generateFigmaFileKey();
-			const fileName = generateFigmaFileName();
 			const nodeId = generateFigmaNodeId();
 
-			const result = buildLiveEmbedUrl({
-				fileKey,
-				fileName,
-				nodeId,
-			});
+			const result = buildLiveEmbedUrl({ fileKey, nodeId });
 
 			const expected = new URL('https://www.figma.com/embed');
 			expected.search = new URLSearchParams({

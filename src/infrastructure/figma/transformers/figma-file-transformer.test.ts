@@ -44,15 +44,12 @@ describe('transformFileToAtlassianDesign', () => {
 			displayName: fileResponse.name,
 			url: buildDesignUrl({
 				fileKey,
-				fileName: fileResponse.name,
 			}),
 			liveEmbedUrl: buildLiveEmbedUrl({
 				fileKey,
-				fileName: fileResponse.name,
 			}),
 			inspectUrl: buildInspectUrl({
 				fileKey,
-				fileName: fileResponse.name,
 			}),
 			status: AtlassianDesignStatus.NONE,
 			type: AtlassianDesignType.FILE,

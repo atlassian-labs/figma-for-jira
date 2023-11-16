@@ -63,9 +63,9 @@ export const tryTransformNodeToAtlassianDesign = ({
 	return {
 		id: designId.toAtlassianDesignId(),
 		displayName: `${fileName} - ${node.name}`,
-		url: buildDesignUrl({ fileKey, fileName, nodeId }),
-		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName, nodeId }),
-		inspectUrl: buildInspectUrl({ fileKey, fileName, nodeId }),
+		url: buildDesignUrl({ fileKey, nodeId }),
+		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, nodeId }),
+		inspectUrl: buildInspectUrl({ fileKey, nodeId }),
 		status: extra.devStatus
 			? mapNodeStatusToDevStatus(extra.devStatus)
 			: AtlassianDesignStatus.NONE,

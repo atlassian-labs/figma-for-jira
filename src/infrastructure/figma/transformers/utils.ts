@@ -9,7 +9,6 @@ export const buildDesignUrl = ({
 	nodeId,
 }: {
 	fileKey: string;
-	fileName: string;
 	nodeId?: string;
 }): string => {
 	const url = new URL(
@@ -30,7 +29,6 @@ export const buildInspectUrl = ({
 	nodeId,
 }: {
 	fileKey: string;
-	fileName: string;
 	nodeId?: string;
 }): string => {
 	const url = new URL(
@@ -51,14 +49,12 @@ export const buildInspectUrl = ({
  */
 export const buildLiveEmbedUrl = ({
 	fileKey,
-	fileName,
 	nodeId,
 }: {
 	fileKey: string;
-	fileName: string;
 	nodeId?: string;
 }): string => {
-	const inspectUrl = buildInspectUrl({ fileKey, fileName, nodeId });
+	const inspectUrl = buildInspectUrl({ fileKey, nodeId });
 	const url = new URL(`/embed`, getConfig().figma.webBaseUrl);
 	url.searchParams.append('embed_host', 'figma-jira-add-on');
 	url.searchParams.append('url', inspectUrl);
