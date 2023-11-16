@@ -222,9 +222,11 @@ class JiraService {
 		} catch (error) {
 			if (error instanceof NotFoundHttpClientError) {
 				// Include the design name into the URL for compatibility with the existing "Jira" widget in Figma.
-				const encodedFileName = encodeURIComponent(displayName)
-					// A "Jira" widget in Figma treats '-' as a space, so encode it as well to make it display the name correctly.
-					.replaceAll('-', '%2D');
+				// A "Jira" widget in Figma treats '-' as a space, so encode it as well to make it display the name correctly.
+				const encodedFileName = encodeURIComponent(displayName).replaceAll(
+					'-',
+					'%2D',
+				);
 				const urlWithFileName = appendToPathname(new URL(url), encodedFileName);
 
 				await jiraClient.setIssueProperty(
