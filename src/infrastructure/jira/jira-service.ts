@@ -15,7 +15,7 @@ import {
 	parseJsonOfSchema,
 	SchemaValidationError,
 } from '../../common/schema-validation';
-import { ensureString } from '../../common/string-utils';
+import { ensureString, isString } from '../../common/string-utils';
 import { appendToPathname } from '../../common/url-utils';
 import type {
 	AtlassianDesign,
@@ -222,9 +222,12 @@ class JiraService {
 		} catch (error) {
 			if (error instanceof NotFoundHttpClientError) {
 				// Include the design name into the URL for compatibility with the existing "Jira" widget in Figma.
+				const encodedDisplayName = encodeURIComponent(displayName)
+					// A "Jira" widget treat '-' as a space, so encode it as well.
+					.replaceAll('-', '%2D');
 				const urlWithFileName = appendToPathname(
 					new URL(url),
-					encodeURIComponent(displayName),
+					encodedDisplayName,
 				);
 
 				await jiraClient.setIssueProperty(
@@ -298,13 +301,14 @@ class JiraService {
 
 			const storedUrl = response.value;
 
-			if (storedUrl === design.url) {
-				await jiraClient.deleteIssueProperty(
-					issueIdOrKey,
-					issuePropertyKeys.ATTACHED_DESIGN_URL,
-					connectInstallation,
-				);
-			}
+			if (!isString(storedUrl)) return;
+			if (!this.areUrlsOfSameDesign(storedUrl, design.url)) return;
+
+			await jiraClient.deleteIssueProperty(
+				issueIdOrKey,
+				issuePropertyKeys.ATTACHED_DESIGN_URL,
+				connectInstallation,
+			);
 		} catch (error) {
 			if (error instanceof NotFoundHttpClientError) {
 				return; // Swallow not found errors
