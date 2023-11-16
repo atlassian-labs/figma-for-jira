@@ -45,15 +45,13 @@ export const generateFigmaDesignIdentifier = ({
 export const generateFigmaDesignUrl = ({
 	fileKey = generateFigmaFileKey(),
 	nodeId,
-	fileName = generateFigmaFileName(),
 	mode,
 }: {
 	fileKey?: string;
 	nodeId?: string;
-	fileName?: string;
 	mode?: string;
 } = {}) => {
-	const url = new URL(`https://www.figma.com/file/${fileKey}/${fileName}`);
+	const url = new URL(`https://www.figma.com/file/${fileKey}`);
 	if (nodeId) {
 		url.searchParams.append('node-id', nodeId);
 	}
@@ -152,13 +150,11 @@ export const generateAtlassianDesign = ({
 	url = generateFigmaDesignUrl({
 		fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(id).fileKey,
 		nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(id).nodeId,
-		fileName: displayName,
 		mode: 'design',
 	}),
 	liveEmbedUrl = generateFigmaDesignUrl({
 		fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(id).fileKey,
 		nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(id).nodeId,
-		fileName: displayName,
 		mode: 'design',
 	}),
 	status = AtlassianDesignStatus.UNKNOWN,

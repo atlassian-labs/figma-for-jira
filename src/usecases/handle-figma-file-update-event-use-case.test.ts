@@ -72,7 +72,7 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				)
 				.mockResolvedValue(associatedFigmaDesigns);
 			jest
-				.spyOn(figmaService, 'getDesignsFromSameFile')
+				.spyOn(figmaService, 'getAvailableDesignsFromSameFile')
 				.mockResolvedValue(associatedAtlassianDesigns);
 			jest.spyOn(jiraService, 'submitDesigns').mockResolvedValue();
 
@@ -110,7 +110,7 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				)
 				.mockResolvedValue(associatedFigmaDesigns);
 			jest
-				.spyOn(figmaService, 'getDesignsFromSameFile')
+				.spyOn(figmaService, 'getAvailableDesignsFromSameFile')
 				.mockResolvedValue(associatedAtlassianDesigns);
 			jest.spyOn(jiraService, 'submitDesigns').mockResolvedValue();
 
@@ -139,7 +139,7 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				)
 				.mockResolvedValue(associatedFigmaDesigns);
 			jest
-				.spyOn(figmaService, 'getDesignsFromSameFile')
+				.spyOn(figmaService, 'getAvailableDesignsFromSameFile')
 				.mockRejectedValue(new UnauthorizedFigmaServiceError());
 			jest.spyOn(figmaTeamRepository, 'updateAuthStatus').mockResolvedValue();
 
@@ -163,7 +163,7 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				)
 				.mockResolvedValue(associatedFigmaDesigns);
 			jest
-				.spyOn(figmaService, 'getDesignsFromSameFile')
+				.spyOn(figmaService, 'getAvailableDesignsFromSameFile')
 				.mockRejectedValue(error);
 			jest.spyOn(jiraService, 'submitDesigns');
 

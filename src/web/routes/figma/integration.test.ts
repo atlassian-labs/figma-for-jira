@@ -11,6 +11,7 @@ import {
 import type { FigmaWebhookEventRequestBody } from './types';
 
 import app from '../../../app';
+import { isNotNullOrUndefined } from '../../../common/predicates';
 import { isString } from '../../../common/string-utils';
 import { getConfig } from '../../../config';
 import type {
@@ -28,7 +29,6 @@ import {
 	generateFigmaDesignIdentifier,
 	generateFigmaFileKey,
 	generateFigmaFileName,
-	generateFigmaNodeId,
 	generateFigmaOAuth2UserCredentialCreateParams,
 	generateFigmaTeamCreateParams,
 } from '../../../domain/entities/testing';
@@ -122,7 +122,7 @@ describe('/figma', () => {
 						generateAssociatedFigmaDesignCreateParams({
 							designId: generateFigmaDesignIdentifier({
 								fileKey,
-								nodeId: generateFigmaNodeId(),
+								nodeId: `1:${i}`,
 							}),
 							connectInstallationId: connectInstallation.id,
 						});
@@ -155,8 +155,8 @@ describe('/figma', () => {
 						connectInstallation.id,
 					);
 				const nodeIds = associatedFigmaDesigns
-					.map(({ designId }) => designId.nodeId!)
-					.filter(isString);
+					.map(({ designId }) => designId.nodeId)
+					.filter(isNotNullOrUndefined);
 				const fileResponse = generateGetFileResponseWithNodes({
 					nodes: nodeIds.map((nodeId) => generateChildNode({ id: nodeId })),
 				});
@@ -181,6 +181,7 @@ describe('/figma', () => {
 					fileKey: fileKey,
 					query: {
 						ids: nodeIds.join(','),
+						depth: '0',
 						node_last_modified: 'true',
 					},
 					response: fileResponse,
@@ -201,7 +202,7 @@ describe('/figma', () => {
 					.expect(HttpStatusCode.Ok);
 			});
 
-			it('should return a 200 if no associated designs are found for the file key', async () => {
+			it('should ignore if no associated designs are found for the file key', async () => {
 				const otherFileKey = generateFigmaFileKey();
 				const otherFilewebhookEventRequestBody =
 					generateFileUpdateWebhookEventRequestBody({
@@ -222,6 +223,99 @@ describe('/figma', () => {
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(otherFilewebhookEventRequestBody)
+					.expect(HttpStatusCode.Ok);
+			});
+
+			it('should ignore if Figma file is not found', async () => {
+				const associatedFigmaDesigns =
+					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
+						fileKey,
+						connectInstallation.id,
+					);
+				const nodeIds = associatedFigmaDesigns
+					.map(({ designId }) => designId.nodeId)
+					.filter(isNotNullOrUndefined);
+
+				mockFigmaGetTeamProjectsEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					teamId: figmaTeam.teamId,
+					response: generateGetTeamProjectsResponse({
+						name: figmaTeam.teamName,
+					}),
+				});
+				mockFigmaGetFileEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					query: {
+						ids: nodeIds.join(','),
+						depth: '0',
+						node_last_modified: 'true',
+					},
+					status: HttpStatusCode.NotFound,
+				});
+
+				await request(app)
+					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.send(webhookEventRequestBody)
+					.expect(HttpStatusCode.Ok);
+			});
+
+			it('should ingest designs for available Figma nodes and ignore deleted nodes', async () => {
+				const associatedFigmaDesigns =
+					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
+						fileKey,
+						connectInstallation.id,
+					);
+				const nodeIds = associatedFigmaDesigns
+					.map(({ designId }) => designId.nodeId)
+					.filter(isNotNullOrUndefined);
+				const fileResponse = generateGetFileResponseWithNodes({
+					nodes: [
+						...nodeIds.map((nodeId) => generateChildNode({ id: nodeId })),
+						generateChildNode({ id: `9999:1` }),
+						generateChildNode({ id: `9999:2` }),
+					],
+				});
+				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
+					(design) =>
+						generateAtlassianDesignFromDesignIdAndFileResponse(
+							design.designId,
+							fileResponse,
+						),
+				);
+
+				mockFigmaGetTeamProjectsEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					teamId: figmaTeam.teamId,
+					response: generateGetTeamProjectsResponse({
+						name: figmaTeam.teamName,
+					}),
+				});
+				mockFigmaGetFileEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					query: {
+						ids: nodeIds.join(','),
+						depth: '0',
+						node_last_modified: 'true',
+					},
+					response: fileResponse,
+				});
+				mockJiraSubmitDesignsEndpoint({
+					baseUrl: connectInstallation.baseUrl,
+					request: generateSubmitDesignsRequest(associatedAtlassianDesigns),
+					response: generateSuccessfulSubmitDesignsResponse(
+						associatedAtlassianDesigns.map(
+							(atlassianDesign) => atlassianDesign.id,
+						),
+					),
+				});
+
+				await request(app)
+					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 			});
 
@@ -255,6 +349,7 @@ describe('/figma', () => {
 					fileKey: fileKey,
 					query: {
 						ids: nodeIds.join(','),
+						depth: '0',
 						node_last_modified: 'true',
 					},
 					response: fileResponse,
@@ -295,7 +390,7 @@ describe('/figma', () => {
 				);
 			});
 
-			it('should return error if fetching Figma designs fails with non-auth error', async () => {
+			it('should return error if fetching Figma designs fails with unexpected error', async () => {
 				const associatedFigmaDesigns =
 					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
 						fileKey,
@@ -318,6 +413,7 @@ describe('/figma', () => {
 					fileKey: fileKey,
 					query: {
 						ids: nodeIds.join(','),
+						depth: '0',
 						node_last_modified: 'true',
 					},
 					status: HttpStatusCode.InternalServerError,
@@ -352,6 +448,7 @@ describe('/figma', () => {
 					fileKey: fileKey,
 					query: {
 						ids: nodeIds.join(','),
+						depth: '0',
 						node_last_modified: 'true',
 					},
 					status: HttpStatusCode.Unauthorized,
@@ -408,6 +505,7 @@ describe('/figma', () => {
 					fileKey: fileKey,
 					query: {
 						ids: nodeIds.join(','),
+						depth: '0',
 						node_last_modified: 'true',
 					},
 					status: HttpStatusCode.InternalServerError,

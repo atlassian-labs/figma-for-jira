@@ -1,7 +1,4 @@
-import {
-	ForbiddenByFigmaUseCaseResultError,
-	InvalidInputUseCaseResultError,
-} from './errors';
+import { ForbiddenByFigmaUseCaseResultError } from './errors';
 import type { AtlassianEntity } from './types';
 
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
@@ -9,7 +6,6 @@ import {
 	AtlassianAssociation,
 	buildJiraIssueUrl,
 	FigmaDesignIdentifier,
-	JIRA_ISSUE_ATI,
 } from '../domain/entities';
 import {
 	figmaService,
@@ -18,34 +14,28 @@ import {
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
-export type DisassociateEntityUseCaseParams = {
+export type AssociateDesignUseCaseParams = {
 	readonly entity: {
-		readonly ari: string;
-		readonly id: string;
+		readonly url: string;
 	};
-	readonly disassociateFrom: AtlassianEntity;
+	readonly associateWith: AtlassianEntity;
 	readonly atlassianUserId: string;
 	readonly connectInstallation: ConnectInstallation;
 };
 
-export const disassociateEntityUseCase = {
+export const associateDesignUseCase = {
 	/**
-	 * @throws {InvalidInputUseCaseResultError} An invalid use case input.
 	 * @throws {ForbiddenByFigmaUseCaseResultError} Not authorized to access Figma.
 	 */
 	execute: async ({
 		entity,
-		disassociateFrom,
+		associateWith,
 		atlassianUserId,
 		connectInstallation,
-	}: DisassociateEntityUseCaseParams): Promise<AtlassianDesign> => {
+	}: AssociateDesignUseCaseParams): Promise<AtlassianDesign> => {
 		try {
-			if (disassociateFrom.ati !== JIRA_ISSUE_ATI) {
-				throw new InvalidInputUseCaseResultError('Unrecognised ATI');
-			}
-
-			const figmaDesignId = FigmaDesignIdentifier.fromAtlassianDesignId(
-				entity.id,
+			const figmaDesignId = FigmaDesignIdentifier.fromFigmaDesignUrl(
+				entity.url,
 			);
 
 			const [design, issue] = await Promise.all([
@@ -53,33 +43,32 @@ export const disassociateEntityUseCase = {
 					atlassianUserId,
 					connectInstallationId: connectInstallation.id,
 				}),
-				jiraService.getIssue(disassociateFrom.id, connectInstallation),
+				jiraService.getIssue(associateWith.id, connectInstallation),
 			]);
 
 			const designIssueAssociation =
-				AtlassianAssociation.createDesignIssueAssociation(disassociateFrom.ari);
-
-			const { key: issueKey, id: issueId } = issue;
+				AtlassianAssociation.createDesignIssueAssociation(associateWith.ari);
 
 			await Promise.all([
 				jiraService.submitDesign(
 					{
 						design,
-						removeAssociations: [designIssueAssociation],
+						addAssociations: [designIssueAssociation],
 					},
 					connectInstallation,
 				),
-				jiraService.deleteDesignUrlInIssueProperties(
-					issueId,
+				jiraService.saveDesignUrlInIssueProperties(
+					issue.id,
 					design,
 					connectInstallation,
 				),
-				figmaService.deleteDevResource({
+				figmaService.tryCreateDevResourceForJiraIssue({
 					designId: figmaDesignId,
-					devResourceUrl: buildJiraIssueUrl(
-						connectInstallation.baseUrl,
-						issueKey,
-					),
+					issue: {
+						url: buildJiraIssueUrl(connectInstallation.baseUrl, issue.key),
+						key: issue.key,
+						title: issue.fields.summary,
+					},
 					user: {
 						atlassianUserId,
 						connectInstallationId: connectInstallation.id,
@@ -87,11 +76,11 @@ export const disassociateEntityUseCase = {
 				}),
 			]);
 
-			await associatedFigmaDesignRepository.deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId(
-				figmaDesignId,
-				disassociateFrom.ari,
-				connectInstallation.id,
-			);
+			await associatedFigmaDesignRepository.upsert({
+				designId: figmaDesignId,
+				associatedWithAri: associateWith.ari,
+				connectInstallationId: connectInstallation.id,
+			});
 
 			return design;
 		} catch (e) {

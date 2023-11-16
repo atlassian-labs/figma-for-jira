@@ -74,10 +74,10 @@ export const connectAppDescriptor = {
 	 * https://developer.atlassian.com/cloud/jira/platform/about-connect-modules-for-jira/
 	 */
 	modules: {
-		postInstallPage: {
-			key: 'figma-get-started',
+		configurePage: {
+			key: 'figma-configure',
 			name: {
-				value: 'Get Started',
+				value: 'Configure',
 			},
 			url: '/static/admin',
 			conditions: [{ condition: 'user_is_admin' }],
@@ -89,17 +89,35 @@ export const connectAppDescriptor = {
 					value: APP_NAME,
 				},
 				location: 'admin_plugins_menu',
+				conditions: [
+					{
+						condition: 'feature_flag_service_flag',
+						params: {
+							featureKey: 'issue-view-designs-panel',
+						},
+					},
+				],
 			},
 		],
 		adminPages: [
 			{
-				key: 'figma-admin-configure',
+				key: 'figma-addon-admin-section-configure',
 				name: {
 					value: 'Configure',
 				},
 				location: 'admin_plugins_menu/figma-addon-admin-section',
 				url: '/static/admin',
-				conditions: [{ condition: 'user_is_admin' }],
+				conditions: [
+					{
+						condition: 'user_is_admin',
+					},
+					{
+						condition: 'feature_flag_service_flag',
+						params: {
+							featureKey: 'issue-view-designs-panel',
+						},
+					},
+				],
 			},
 		],
 		/**
@@ -119,8 +137,9 @@ export const connectAppDescriptor = {
 				conditions: [
 					{
 						condition: 'feature_flag_service_flag',
+						invert: true,
 						params: {
-							featureKey: 'figma-for-jira-upgrade-test',
+							featureKey: 'issue-view-designs-panel',
 						},
 					},
 				],

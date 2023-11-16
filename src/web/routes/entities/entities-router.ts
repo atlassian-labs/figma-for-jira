@@ -14,8 +14,8 @@ import type {
 } from './types';
 
 import {
-	associateEntityUseCase,
-	disassociateEntityUseCase,
+	associateDesignUseCase,
+	disassociateDesignUseCase,
 } from '../../../usecases';
 import { requestSchemaValidationMiddleware } from '../../middleware';
 import { jiraServerSymmetricJwtAuthMiddleware } from '../../middleware/jira';
@@ -35,7 +35,7 @@ entitiesRouter.post(
 		const { connectInstallation } = res.locals;
 		const atlassianUserId = req.query.userId;
 
-		associateEntityUseCase
+		associateDesignUseCase
 			.execute({
 				...req.body,
 				atlassianUserId,
@@ -57,7 +57,7 @@ entitiesRouter.post(
 		const { connectInstallation } = res.locals;
 		const atlassianUserId = req.query.userId;
 
-		disassociateEntityUseCase
+		disassociateDesignUseCase
 			.execute({
 				...req.body,
 				atlassianUserId,

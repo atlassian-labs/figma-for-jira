@@ -8,15 +8,15 @@ import {
 	generateJiraIssueAri,
 	generateJiraIssueId,
 } from '../../domain/entities/testing';
-import type { AssociateEntityUseCaseParams } from '../associate-entity-use-case';
-import type { DisassociateEntityUseCaseParams } from '../disassociate-entity-use-case';
+import type { AssociateDesignUseCaseParams } from '../associate-design-use-case';
+import type { DisassociateDesignUseCaseParams } from '../disassociate-design-use-case';
 
-export const generateAssociateEntityUseCaseParams = ({
+export const generateAssociateDesignUseCaseParams = ({
 	entityUrl = generateFigmaDesignUrl(),
 	issueId = generateJiraIssueId(),
 	atlassianUserId = uuidv4(),
 	connectInstallation = generateConnectInstallation(),
-} = {}): AssociateEntityUseCaseParams => ({
+} = {}): AssociateDesignUseCaseParams => ({
 	entity: {
 		url: entityUrl,
 	},
@@ -30,12 +30,12 @@ export const generateAssociateEntityUseCaseParams = ({
 	connectInstallation,
 });
 
-export const generateDisassociateEntityUseCaseParams = ({
+export const generateDisassociateDesignUseCaseParams = ({
 	entityId = generateFigmaDesignIdentifier().toAtlassianDesignId(),
 	issueId = generateJiraIssueId(),
 	atlassianUserId = uuidv4(),
 	connectInstallation = generateConnectInstallation(),
-} = {}): DisassociateEntityUseCaseParams => ({
+} = {}): DisassociateDesignUseCaseParams => ({
 	entity: {
 		ari: 'NOT_USED',
 		id: entityId,

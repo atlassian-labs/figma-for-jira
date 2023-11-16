@@ -15,7 +15,7 @@ import type {
 	IngestedDesignUrlIssuePropertyValue,
 } from './jira-service';
 import {
-	ConfigurationStatus,
+	ConfigurationState,
 	issuePropertyKeys,
 	jiraService,
 	SubmitDesignJiraServiceError,
@@ -33,7 +33,6 @@ import {
 import {
 	generateAtlassianDesign,
 	generateConnectInstallation,
-	generateFigmaDesignIdentifier,
 	generateFigmaDesignUrl,
 	generateJiraIssue,
 	generateJiraIssueAri,
@@ -231,25 +230,6 @@ describe('JiraService', () => {
 		});
 	});
 
-	describe('deleteDesign', () => {
-		it('should delete design', async () => {
-			const designId = generateFigmaDesignIdentifier();
-			const connectInstallation = generateConnectInstallation();
-			jest.spyOn(jiraClient, 'deleteDesign').mockResolvedValue(designId);
-
-			const result = await jiraService.deleteDesign(
-				designId,
-				connectInstallation,
-			);
-
-			expect(result).toBe(designId);
-			expect(jiraClient.deleteDesign).toHaveBeenCalledWith(
-				designId,
-				connectInstallation,
-			);
-		});
-	});
-
 	describe('getIssue', () => {
 		it('should return issue', async () => {
 			const connectInstallation = generateConnectInstallation();
@@ -291,10 +271,13 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
+			const expectedValue = new URL(design.url);
+			expectedValue.pathname += `/${encodeURIComponent(design.displayName)}`;
+
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
 				issuePropertyKeys.ATTACHED_DESIGN_URL,
-				design.url,
+				expectedValue.toString(),
 				connectInstallation,
 			);
 		});
@@ -434,7 +417,6 @@ describe('JiraService', () => {
 			const designUrlInDifferentFormat = generateFigmaDesignUrl({
 				fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).fileKey,
 				nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).nodeId,
-				fileName: design.displayName,
 				mode: 'dev',
 			});
 			const otherDesignPropertyValue: AttachedDesignUrlV2IssuePropertyValue[] =
@@ -682,7 +664,6 @@ describe('JiraService', () => {
 			const designUrlInDifferentFormat = generateFigmaDesignUrl({
 				fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).fileKey,
 				nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).nodeId,
-				fileName: design.displayName,
 				mode: 'dev',
 			});
 
@@ -1070,26 +1051,26 @@ describe('JiraService', () => {
 		});
 	});
 
-	describe('setAppConfigurationStatus', () => {
-		it('should set configuration status in app properties', async () => {
-			const configurationState = ConfigurationStatus.CONFIGURED;
+	describe('setAppConfigurationState', () => {
+		it('should set configuration state in app properties', async () => {
+			const configurationState = ConfigurationState.CONFIGURED;
 			const connectInstallation = generateConnectInstallation();
 			jest.spyOn(jiraClient, 'setAppProperty').mockResolvedValue(undefined);
 
-			await jiraService.setAppConfigurationStatus(
+			await jiraService.setAppConfigurationState(
 				configurationState,
 				connectInstallation,
 			);
 
 			expect(jiraClient.setAppProperty).toHaveBeenCalledWith(
 				'is-configured',
-				{ status: configurationState },
+				{ isConfigured: configurationState },
 				connectInstallation,
 			);
 		});
 	});
 
-	describe('setConfigurationStateInAppProperties', () => {
+	describe('isAdmin', () => {
 		it('should return false if user does not have ADMINISTER permission', async () => {
 			const atlassianUserId = uuidv4();
 			const connectInstallation = generateConnectInstallation();

@@ -40,6 +40,15 @@ export const FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA = {
 						'timestamp',
 					],
 				},
+				{
+					properties: {
+						event_type: { const: 'FILE_DELETE' },
+						webhook_id: { type: 'string' },
+						file_key: { type: 'string' },
+						passcode: { type: 'string' },
+					},
+					required: ['event_type', 'webhook_id', 'file_key', 'passcode'],
+				},
 			],
 		},
 	},

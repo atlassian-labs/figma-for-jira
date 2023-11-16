@@ -14,11 +14,11 @@ import { connectTeam } from '../../api';
 import {
 	ConnectBanner,
 	FigmaPermissionsPopup,
+	FigmaTeamsPopup,
 	Link,
 	Page,
 } from '../../components';
-import { useAuthenticate } from '../../hooks';
-import { parseTeamIdFromFigmaUrl } from '../../utils';
+import { openInBrowser, parseTeamIdFromFigmaUrl } from '../../utils';
 
 type ConnectTeamProps = {
 	authorizationEndpoint: string;
@@ -34,7 +34,17 @@ export function FigmaTeamConnector({
 	site,
 }: ConnectTeamProps) {
 	const queryClient = useQueryClient();
-	const authenticate = useAuthenticate(authorizationEndpoint);
+	const switchFigmaUser = () => {
+		// Use URL API to handle encoding.
+		const switchFigmaUserUrl = new URL('switch_user', 'https://www.figma.com');
+		switchFigmaUserUrl.searchParams.set('cont', authorizationEndpoint);
+		// Redirect a user to `switchFigmaUserUrl`.
+
+		// We don't set up any logic for auto closing the window here since Figma
+		// ends up setting `window.opener` to `null` when the user selects an account.
+		openInBrowser(switchFigmaUserUrl.toString());
+	};
+
 	const [validationError, setValidationError] = useState<string | null>(null);
 	const connectTeamMutation = useMutation({
 		mutationFn: async (teamId: string) => {
@@ -152,6 +162,15 @@ export function FigmaTeamConnector({
 										</>
 									)}
 								</Field>
+								<FigmaTeamsPopup>
+									<span
+										css={css`
+											font-size: 11px;
+										`}
+									>
+										How to find your Figma team URL
+									</span>
+								</FigmaTeamsPopup>{' '}
 								<FormFooter align="start">
 									<LoadingButton
 										appearance="primary"
@@ -167,7 +186,7 @@ export function FigmaTeamConnector({
 				</div>
 				<div>
 					Logged in as <strong>{currentUser.email}</strong>.{' '}
-					<Link onClick={authenticate}>Change Figma account</Link>
+					<Link onClick={switchFigmaUser}>Change Figma account</Link>
 				</div>
 			</div>
 		);
