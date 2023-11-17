@@ -11,7 +11,10 @@ import {
 	figmaService,
 	UnauthorizedFigmaServiceError,
 } from '../infrastructure/figma';
-import { BadRequestHttpClientError } from '../infrastructure/http-client-errors';
+import {
+	BadRequestHttpClientError,
+	type ResponseDetails,
+} from '../infrastructure/http-client-errors';
 import { ConfigurationState, jiraService } from '../infrastructure/jira';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
@@ -57,9 +60,8 @@ export const connectFigmaTeamUseCase = {
 		} catch (e) {
 			if (e instanceof UnauthorizedFigmaServiceError) {
 				if (e.cause instanceof BadRequestHttpClientError) {
-					throw new InvalidInputUseCaseResultError(
-						e.cause?.response?.reason ?? '',
-					);
+					const reason = (e.cause?.response as ResponseDetails)?.reason;
+					throw new InvalidInputUseCaseResultError(reason);
 				}
 				throw new ForbiddenByFigmaUseCaseResultError(e);
 			}
