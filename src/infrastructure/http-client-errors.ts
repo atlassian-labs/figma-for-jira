@@ -2,8 +2,10 @@ import { CauseAwareError } from '../common/errors';
 export class HttpClientError extends CauseAwareError {
 	constructor(
 		message: string,
-		readonly response?: unknown,
-		cause?: unknown,
+		cause?: Error,
+		readonly response?: {
+			reason: string;
+		},
 	) {
 		super(message, cause);
 	}

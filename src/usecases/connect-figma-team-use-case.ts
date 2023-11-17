@@ -57,8 +57,9 @@ export const connectFigmaTeamUseCase = {
 		} catch (e) {
 			if (e instanceof UnauthorizedFigmaServiceError) {
 				if (e.cause instanceof BadRequestHttpClientError) {
-					const response = e.cause.response as any;
-					throw new InvalidInputUseCaseResultError(response?.reason);
+					throw new InvalidInputUseCaseResultError(
+						e.cause?.response?.reason ?? '',
+					);
 				}
 				throw new ForbiddenByFigmaUseCaseResultError(e);
 			}

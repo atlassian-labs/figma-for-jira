@@ -28,6 +28,17 @@ type ConnectTeamProps = {
 	site: string;
 };
 
+const WEBHOOK_UPGRADE_ERROR = 'Upgrade to professional team to enable webhooks';
+
+type ConnectTeamsError = AxiosError & {
+	response: {
+		data: {
+			message: string;
+			detail?: string;
+		};
+	};
+};
+
 export function FigmaTeamConnector({
 	authorizationEndpoint,
 	currentUser,
@@ -57,13 +68,8 @@ export function FigmaTeamConnector({
 			setShowUnauthorizedError(false);
 			return queryClient.invalidateQueries({ queryKey: ['teams'] });
 		},
-		onError: (error: AxiosError) => {
-			const { response } = error;
-			const detail = (response?.data as any)?.detail;
-			if (
-				response?.status === 400 &&
-				detail === 'Upgrade to professional team to enable webhooks'
-			) {
+		onError: (error: ConnectTeamsError) => {
+			if (error.response?.data?.detail === WEBHOOK_UPGRADE_ERROR) {
 				setShowUnauthorizedError(false);
 				setValidationError('You need a paid Figma plan to add teams to Jira');
 			} else {
