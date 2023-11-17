@@ -58,7 +58,6 @@ export const connectFigmaTeamUseCase = {
 
 			return figmaTeam.toFigmaTeamSummary();
 		} catch (e) {
-			console.log('catching error', e);
 			if (e instanceof UnauthorizedFigmaServiceError) {
 				if (e.cause instanceof BadRequestHttpClientError) {
 					const reason = (e.cause?.response as ResponseDetails)?.reason;
