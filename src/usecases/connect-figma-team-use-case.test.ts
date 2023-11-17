@@ -85,4 +85,22 @@ describe('connectFigmaTeamUseCase', () => {
 
 		expect(figmaTeamRepository.upsert).not.toBeCalled();
 	});
+
+	it('should throw if the user is on the starter plan and cannot create webhooks', async () => {
+		const error = new Error('create webhook failed');
+		jest.spyOn(figmaTeamRepository, 'upsert');
+		jest
+			.spyOn(figmaService, 'createFileUpdateWebhook')
+			.mockRejectedValue(error);
+
+		await expect(
+			connectFigmaTeamUseCase.execute(
+				uuidv4(),
+				uuidv4(),
+				generateConnectInstallation(),
+			),
+		).rejects.toStrictEqual(error);
+
+		expect(figmaTeamRepository.upsert).not.toBeCalled();
+	});
 });

@@ -5,7 +5,7 @@ export type ResponseDetails = {
 };
 export class HttpClientError extends CauseAwareError {
 	constructor(
-		message: string,
+		message?: string,
 		cause?: Error,
 		readonly response?: unknown,
 	) {
