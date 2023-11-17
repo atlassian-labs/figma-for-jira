@@ -5,6 +5,7 @@ import TextField from '@atlaskit/textfield';
 import { token } from '@atlaskit/tokens';
 import { css } from '@emotion/react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
 import { useState } from 'react';
 
 import { ConnectTeamSuccessScreen } from './connect-teams-success-screen';
@@ -46,12 +47,28 @@ export function FigmaTeamConnector({
 	};
 
 	const [validationError, setValidationError] = useState<string | null>(null);
+	const [showUnauthorizedError, setShowUnauthorizedError] =
+		useState<boolean>(false);
 	const connectTeamMutation = useMutation({
 		mutationFn: async (teamId: string) => {
 			return (await connectTeam(teamId)).data;
 		},
 		onSuccess: () => {
+			setShowUnauthorizedError(false);
 			return queryClient.invalidateQueries({ queryKey: ['teams'] });
+		},
+		onError: (error: AxiosError) => {
+			const { response } = error;
+			const detail = (response?.data as any)?.detail;
+			if (
+				response?.status === 400 &&
+				detail === 'Upgrade to professional team to enable webhooks'
+			) {
+				setShowUnauthorizedError(false);
+				setValidationError('You need a paid Figma plan to add teams to Jira');
+			} else {
+				setShowUnauthorizedError(true);
+			}
 		},
 	});
 
@@ -93,9 +110,7 @@ export function FigmaTeamConnector({
 						Connect Figma to Jira
 					</div>
 				</div>
-				{connectTeamMutation.isError && (
-					<ConnectTeamUnauthorizedSectionMessage />
-				)}
+				{showUnauthorizedError && <ConnectTeamUnauthorizedSectionMessage />}
 				<div
 					css={css`
 						border: 2px solid ${token('color.border')};

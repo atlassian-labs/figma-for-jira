@@ -244,9 +244,6 @@ export class FigmaService {
 			return { webhookId: result.id, teamId: result.team_id };
 		});
 
-	// translate BadRequestHttpClientError (thrown from figmaClient.createFileUpdateWebhook)
-	// with error.response.message === 'Access Denied' to UnauthorizedFigmaServiceError
-	// and throw the latter further. You might need to check a type of error.response using validateSchema.
 	/**
 	 * Tries to delete the given webhook.
 	 *
@@ -357,14 +354,9 @@ export class FigmaService {
 			if (
 				e instanceof MissingOrInvalidCredentialsFigmaAuthServiceError ||
 				e instanceof UnauthorizedHttpClientError ||
-				e instanceof ForbiddenHttpClientError
+				e instanceof ForbiddenHttpClientError ||
+				e instanceof BadRequestHttpClientError
 			) {
-				throw new UnauthorizedFigmaServiceError(
-					'Not allowed to perform the operation.',
-					e,
-				);
-			}
-			if (e instanceof BadRequestHttpClientError) {
 				throw new UnauthorizedFigmaServiceError(
 					'Not allowed to perform the operation.',
 					e,

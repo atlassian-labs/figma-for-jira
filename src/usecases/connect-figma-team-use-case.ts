@@ -1,6 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { ForbiddenByFigmaUseCaseResultError } from './errors';
+import {
+	ForbiddenByFigmaUseCaseResultError,
+	InvalidInputUseCaseResultError,
+} from './errors';
 
 import type { ConnectInstallation, FigmaTeamSummary } from '../domain/entities';
 import { FigmaTeamAuthStatus } from '../domain/entities';
@@ -8,6 +11,7 @@ import {
 	figmaService,
 	UnauthorizedFigmaServiceError,
 } from '../infrastructure/figma';
+import { BadRequestHttpClientError } from '../infrastructure/http-client-errors';
 import { ConfigurationState, jiraService } from '../infrastructure/jira';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
@@ -52,7 +56,11 @@ export const connectFigmaTeamUseCase = {
 			return figmaTeam.toFigmaTeamSummary();
 		} catch (e) {
 			if (e instanceof UnauthorizedFigmaServiceError) {
-				throw new ForbiddenByFigmaUseCaseResultError({ cause: e });
+				if (e.cause instanceof BadRequestHttpClientError) {
+					const response = e.cause.response as any;
+					throw new InvalidInputUseCaseResultError(response?.reason);
+				}
+				throw new ForbiddenByFigmaUseCaseResultError(e);
 			}
 
 			throw e;

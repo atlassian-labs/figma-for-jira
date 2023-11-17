@@ -40,7 +40,7 @@ export const disconnectFigmaTeamUseCase = {
 			}
 		} catch (e) {
 			if (e instanceof UnauthorizedFigmaServiceError) {
-				throw new ForbiddenByFigmaUseCaseResultError({ cause: e });
+				throw new ForbiddenByFigmaUseCaseResultError(e);
 			}
 
 			throw e;
