@@ -6,10 +6,12 @@ import {
 	generateFigmaTeam,
 } from '../domain/entities/testing';
 import { figmaService } from '../infrastructure/figma';
+import { UnauthorizedFigmaServiceError } from '../infrastructure/figma/figma-service';
+import { BadRequestHttpClientError } from '../infrastructure/http-client-errors';
 import { ConfigurationState, jiraService } from '../infrastructure/jira';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
-import { connectFigmaTeamUseCase } from '.';
+import { connectFigmaTeamUseCase, InvalidInputUseCaseResultError } from '.';
 
 describe('connectFigmaTeamUseCase', () => {
 	it('should create a webhook and FigmaTeam record', async () => {
@@ -87,7 +89,16 @@ describe('connectFigmaTeamUseCase', () => {
 	});
 
 	it('should throw if the user is on the starter plan and cannot create webhooks', async () => {
-		const error = new Error('create webhook failed');
+		const error = new UnauthorizedFigmaServiceError(
+			'Not allowed to perform the operation.',
+			new BadRequestHttpClientError('Access Denied', new Error(), {
+				error: true,
+				status: 400,
+				message: 'Access Denied',
+				i18n: null,
+				reason: 'Upgrade to professional team to enable webhooks',
+			}),
+		);
 		jest.spyOn(figmaTeamRepository, 'upsert');
 		jest
 			.spyOn(figmaService, 'createFileUpdateWebhook')
@@ -99,7 +110,7 @@ describe('connectFigmaTeamUseCase', () => {
 				uuidv4(),
 				generateConnectInstallation(),
 			),
-		).rejects.toStrictEqual(error);
+		).rejects.toBeInstanceOf(InvalidInputUseCaseResultError);
 
 		expect(figmaTeamRepository.upsert).not.toBeCalled();
 	});
