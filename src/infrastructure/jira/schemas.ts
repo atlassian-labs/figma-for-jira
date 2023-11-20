@@ -1,7 +1,4 @@
-import type {
-	AttachedDesignUrlV2IssuePropertyValue,
-	IngestedDesignUrlIssuePropertyValue,
-} from './jira-service';
+import type { AttachedDesignUrlV2IssuePropertyValue } from './jira-service';
 
 import type { JSONSchemaTypeWithId } from '../../common/schema-validation';
 
@@ -18,12 +15,4 @@ export const ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA: JSONSchemaTypeWithId<
 		},
 		required: ['url', 'name'],
 	},
-};
-
-export const INGESTED_DESIGN_URL_VALUE_SCHEMA: JSONSchemaTypeWithId<
-	IngestedDesignUrlIssuePropertyValue[]
-> = {
-	$id: 'jira-software-cloud-api:ingested-design-url:value',
-	type: 'array',
-	items: { type: 'string' },
 };

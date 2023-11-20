@@ -255,18 +255,6 @@ describe('/entities', () => {
 					]),
 				),
 			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.INGESTED_DESIGN_URLS,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.INGESTED_DESIGN_URLS,
-				request: [normalizedFigmaDesignUrl],
-			});
 
 			await request(app)
 				.post('/entities/associateEntity')
@@ -412,18 +400,6 @@ describe('/entities', () => {
 						},
 					]),
 				),
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.INGESTED_DESIGN_URLS,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.INGESTED_DESIGN_URLS,
-				request: [normalizedFigmaDesignUrl],
 			});
 
 			await request(app)
