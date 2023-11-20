@@ -86,7 +86,7 @@ describe('JiraClient', () => {
 
 			expect(result).toBe(response);
 			expect(axios.get).toHaveBeenCalledWith(
-				`${connectInstallation.baseUrl}/rest/agile/1.0/issue/${issueKey}`,
+				`${connectInstallation.baseUrl}/rest/api/3/issue/${issueKey}`,
 				defaultExpectedRequestHeaders(),
 			);
 		});

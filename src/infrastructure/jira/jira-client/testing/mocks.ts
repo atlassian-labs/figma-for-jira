@@ -22,7 +22,7 @@ import type {
 export const MOCK_JWT_TOKEN_PARAMS: JwtTokenParams = {
 	request: {
 		method: 'GET',
-		pathname: `/rest/agile/1.0/issue/${uuidv4()}`,
+		pathname: `/rest/api/3/issue/${uuidv4()}`,
 		query: {
 			param1: uuidv4,
 		},
