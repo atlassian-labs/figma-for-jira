@@ -20,7 +20,10 @@ import {
 	generateGetFileResponseWithNode,
 	generateGetFileResponseWithNodes,
 } from './figma-client/testing';
-import { figmaService } from './figma-service';
+import {
+	figmaService,
+	PaidPlanRequiredFigmaServiceError,
+} from './figma-service';
 import {
 	transformFileMetaToAtlassianDesign,
 	transformFileToAtlassianDesign,
@@ -39,6 +42,7 @@ import {
 	generateJiraIssueUrl,
 } from '../../domain/entities/testing';
 import {
+	BadRequestHttpClientError,
 	ForbiddenHttpClientError,
 	HttpClientError,
 	NotFoundHttpClientError,
@@ -638,7 +642,44 @@ describe('FigmaService', () => {
 			);
 		});
 
-		it('should throw when webhook creation fails', async () => {
+		it('should throw `PaidPlanRequiredFigmaServiceError` when Figma returns HTTP 400 with "Access Denied" message', async () => {
+			const teamId = uuidv4();
+			const connectInstallationSecret = uuidv4();
+
+			jest.spyOn(figmaClient, 'createWebhook').mockRejectedValue(
+				new BadRequestHttpClientError('Failed', {
+					message: 'Access Denied',
+				}),
+			);
+
+			await expect(() =>
+				figmaService.createFileUpdateWebhook(
+					teamId,
+					connectInstallationSecret,
+					MOCK_CONNECT_USER_INFO,
+				),
+			).rejects.toThrow(PaidPlanRequiredFigmaServiceError);
+		});
+
+		it('should rethrow when Figma returns HTTP 400 with no "Access Denied" message', async () => {
+			const teamId = uuidv4();
+			const connectInstallationSecret = uuidv4();
+			const error = new BadRequestHttpClientError('Failed', {
+				message: 'Bad request',
+			});
+
+			jest.spyOn(figmaClient, 'createWebhook').mockRejectedValue(error);
+
+			await expect(() =>
+				figmaService.createFileUpdateWebhook(
+					teamId,
+					connectInstallationSecret,
+					MOCK_CONNECT_USER_INFO,
+				),
+			).rejects.toThrow(error);
+		});
+
+		it('should rethrow when webhook creation fails with unexpected error', async () => {
 			const teamId = uuidv4();
 			const connectInstallationSecret = uuidv4();
 			const expectedError = new Error('Webhook create failed');

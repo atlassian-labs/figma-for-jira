@@ -59,6 +59,15 @@ export function assertSchema<T>(
 	}
 }
 
+export function isOfSchema<T>(
+	value: unknown,
+	schema: JSONSchemaTypeWithId<T>,
+): value is T {
+	const { valid } = validateSchema(value, schema);
+
+	return valid;
+}
+
 /**
  * @throws {SchemaValidationError} The given value is not of the expected schema.
  */
