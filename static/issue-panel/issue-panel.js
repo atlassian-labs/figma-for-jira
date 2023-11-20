@@ -948,7 +948,7 @@ var FigmaAddon = (function () {
 		};
 		this.getAllAttachedDesigns = function () {
 			return __awaiter(_this, void 0, void 0, function () {
-				var _a, legacyUrl, links, urlInfo;
+				var _a, legacyUrl, links, legacyUrlInfo_1, urlInfo;
 				return __generator(this, function (_b) {
 					switch (_b.label) {
 						case 0:
@@ -962,9 +962,28 @@ var FigmaAddon = (function () {
 						case 1:
 							(_a = _b.sent()), (legacyUrl = _a[0]), (links = _a[1]);
 							if (!legacyUrl) return [3, 3];
+							legacyUrlInfo_1 = infoForURL(legacyUrl);
 							if (
 								!!links.find(function (link) {
-									return link.url === legacyUrl;
+									var info = infoForURL(link.url);
+									return (
+										(info === null || info === void 0
+											? void 0
+											: info.fileKey) ===
+											(legacyUrlInfo_1 === null || legacyUrlInfo_1 === void 0
+												? void 0
+												: legacyUrlInfo_1.fileKey) &&
+										(info === null || info === void 0
+											? void 0
+											: info.nodeId) ===
+											(legacyUrlInfo_1 === null || legacyUrlInfo_1 === void 0
+												? void 0
+												: legacyUrlInfo_1.nodeId) &&
+										(info === null || info === void 0 ? void 0 : info.type) ===
+											(legacyUrlInfo_1 === null || legacyUrlInfo_1 === void 0
+												? void 0
+												: legacyUrlInfo_1.type)
+									);
 								})
 							)
 								return [3, 3];
