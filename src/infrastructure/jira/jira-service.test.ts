@@ -34,6 +34,7 @@ import {
 	generateAtlassianDesign,
 	generateConnectInstallation,
 	generateFigmaDesignUrl,
+	generateFigmaFileKey,
 	generateJiraIssue,
 	generateJiraIssueAri,
 	generateJiraIssueKey,
@@ -256,7 +257,9 @@ describe('JiraService', () => {
 
 		beforeEach(() => {
 			connectInstallation = generateConnectInstallation();
-			design = generateAtlassianDesign();
+			design = generateAtlassianDesign({
+				displayName: 'Test - Design 1',
+			});
 		});
 
 		it('should set the issue property if not present', async () => {
@@ -272,7 +275,7 @@ describe('JiraService', () => {
 			);
 
 			const expectedValue = new URL(design.url);
-			expectedValue.pathname += `/${encodeURIComponent(design.displayName)}`;
+			expectedValue.pathname += `/Test%20%2D%20Design%201`;
 
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
@@ -768,14 +771,17 @@ describe('JiraService', () => {
 			connectInstallation = generateConnectInstallation();
 		});
 
-		it('should delete the URL stored in issue properties if it is the one requested to be deleted', async () => {
-			const urlToDelete = 'https://test-url.com';
-			design = generateAtlassianDesign({ url: urlToDelete });
-			jest
-				.spyOn(jiraClient, 'getIssueProperty')
-				.mockResolvedValue(
-					generateGetIssuePropertyResponse({ value: urlToDelete }),
-				);
+		it('should delete issue property if its value is URL of given design', async () => {
+			const fileKey = generateFigmaFileKey();
+			design = generateAtlassianDesign({
+				id: new FigmaDesignIdentifier(fileKey).toAtlassianDesignId(),
+				url: generateFigmaDesignUrl({ fileKey }),
+			});
+			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+				generateGetIssuePropertyResponse({
+					value: `${generateFigmaDesignUrl({ fileKey })}/Test-Design?mode=dev`,
+				}),
+			);
 			jest
 				.spyOn(jiraClient, 'deleteIssueProperty')
 				.mockImplementation(jest.fn());
@@ -793,7 +799,7 @@ describe('JiraService', () => {
 			);
 		});
 
-		it('should not delete the URL stored in issue properties if it does not match the one requested to be deleted', async () => {
+		it('should delete issue property if its value is not URL of given design', async () => {
 			design = generateAtlassianDesign();
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')

@@ -42,18 +42,9 @@ describe('transformFileMetaToAtlassianDesign', () => {
 		expect(result).toStrictEqual({
 			id: fileKey,
 			displayName: fileMetaResponse.file.name,
-			url: buildDesignUrl({
-				fileKey,
-				fileName: fileMetaResponse.file.name,
-			}),
-			liveEmbedUrl: buildLiveEmbedUrl({
-				fileKey,
-				fileName: fileMetaResponse.file.name,
-			}),
-			inspectUrl: buildInspectUrl({
-				fileKey,
-				fileName: fileMetaResponse.file.name,
-			}),
+			url: buildDesignUrl({ fileKey }),
+			liveEmbedUrl: buildLiveEmbedUrl({ fileKey }),
+			inspectUrl: buildInspectUrl({ fileKey }),
 			status: AtlassianDesignStatus.NONE,
 			type: AtlassianDesignType.FILE,
 			lastUpdated: fileMetaResponse.file.last_touched_at,

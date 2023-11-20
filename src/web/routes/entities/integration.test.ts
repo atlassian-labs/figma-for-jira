@@ -229,7 +229,10 @@ describe('/entities', () => {
 				request: JSON.stringify(
 					appendToPathname(
 						new URL(normalizedFigmaDesignUrl),
-						encodeURIComponent(atlassianDesign.displayName),
+						encodeURIComponent(atlassianDesign.displayName).replaceAll(
+							'-',
+							'%2D',
+						),
 					).toString(),
 				),
 			});
@@ -384,7 +387,10 @@ describe('/entities', () => {
 				request: JSON.stringify(
 					appendToPathname(
 						new URL(normalizedFigmaDesignUrl),
-						encodeURIComponent(atlassianDesign.displayName),
+						encodeURIComponent(atlassianDesign.displayName).replaceAll(
+							'-',
+							'%2D',
+						),
 					).toString(),
 				),
 			});

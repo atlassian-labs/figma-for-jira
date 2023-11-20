@@ -26,14 +26,13 @@ export const transformFileMetaToAtlassianDesign = ({
 	fileMetaResponse,
 }: TransformFileMetaToAtlassianDesignParams): AtlassianDesign => {
 	const designId = new FigmaDesignIdentifier(fileKey);
-	const fileName = fileMetaResponse.file.name;
 
 	return {
 		id: designId.toAtlassianDesignId(),
 		displayName: fileMetaResponse.file.name,
-		url: buildDesignUrl({ fileKey, fileName }),
-		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, fileName }),
-		inspectUrl: buildInspectUrl({ fileKey, fileName }),
+		url: buildDesignUrl({ fileKey }),
+		liveEmbedUrl: buildLiveEmbedUrl({ fileKey }),
+		inspectUrl: buildInspectUrl({ fileKey }),
 		status: AtlassianDesignStatus.NONE,
 		type: AtlassianDesignType.FILE,
 		lastUpdated: fileMetaResponse.file.last_touched_at,

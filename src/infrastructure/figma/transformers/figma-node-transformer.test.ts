@@ -105,17 +105,14 @@ describe('tryTransformNodeToAtlassianDesign', () => {
 			displayName: `${fileResponse.name} - ${node.name}`,
 			url: buildDesignUrl({
 				fileKey,
-				fileName: fileResponse.name,
 				nodeId: node.id,
 			}),
 			liveEmbedUrl: buildLiveEmbedUrl({
 				fileKey,
-				fileName: fileResponse.name,
 				nodeId: node.id,
 			}),
 			inspectUrl: buildInspectUrl({
 				fileKey,
-				fileName: fileResponse.name,
 				nodeId: node.id,
 			}),
 			status: AtlassianDesignStatus.NONE,
