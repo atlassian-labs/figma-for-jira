@@ -42,7 +42,7 @@ export const mockJiraGetIssueEndpoint = ({
 	status?: HttpStatusCode;
 	response?: Record<string, unknown>;
 }) => {
-	nock(baseUrl).get(`/rest/agile/1.0/issue/${issueId}`).reply(status, response);
+	nock(baseUrl).get(`/rest/api/3/issue/${issueId}`).reply(status, response);
 };
 
 export const mockJiraGetIssuePropertyEndpoint = ({

@@ -75,7 +75,7 @@ class JiraClient {
 	): Promise<GetIssueResponse> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`/rest/agile/1.0/issue/${encodeURIComponent(issueIdOrKey)}`,
+				`/rest/api/3/issue/${encodeURIComponent(issueIdOrKey)}`,
 				connectInstallation.baseUrl,
 			);
 
