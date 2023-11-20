@@ -5,9 +5,7 @@ const config: Config = {
 	testEnvironment: 'node',
 	maxWorkers: 4,
 	rootDir: '.',
-	roots: ['<rootDir>/src'],
-	testRegex: '(\\.|/)(test|spec)\\.tsx?$',
-	setupFiles: ['dotenv-expand/config'],
+	testRegex: '(\\.|/)test\\.tsx?$',
 	clearMocks: true,
 };
 

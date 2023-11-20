@@ -19,5 +19,5 @@
 		"outDir": "build",
 		"baseUrl": "."
 	},
-	"include": ["src/**/*", "test/**/*"]
+	"include": ["src/**/*"]
 }
