@@ -127,3 +127,8 @@ export type GetTeamProjectsResponse = {
 		readonly name: string;
 	}[];
 };
+
+export type ErrorResponse = {
+	readonly message: string;
+	readonly reason?: string;
+};

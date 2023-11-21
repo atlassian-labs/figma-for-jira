@@ -12,6 +12,12 @@ export class ForbiddenByFigmaUseCaseResultError extends UseCaseResultError {
 	}
 }
 
+export class PaidFigmaPlanRequiredUseCaseResultError extends UseCaseResultError {
+	constructor(cause: Error) {
+		super('You need a paid Figma plan to perform this operation.', cause);
+	}
+}
+
 export class InvalidInputUseCaseResultError extends UseCaseResultError {
 	constructor(
 		readonly detail: string,

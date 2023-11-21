@@ -260,7 +260,7 @@ describe('/admin/teams', () => {
 			});
 		});
 
-		it('should return a 500 and not create a FigmaTeam when creating the webhook fails', async () => {
+		it('should return HTTP 500 and not create a FigmaTeam when creating the webhook fails', async () => {
 			const teamId = uuidv4();
 			const teamName = uuidv4();
 			const requestPath = connectTeamEndpoint(teamId);
@@ -297,7 +297,45 @@ describe('/admin/teams', () => {
 			expect(await figmaTeamRepository.getAll()).toStrictEqual([]);
 		});
 
-		it('should return unauthorized error if a user is not Jira admin', async () => {
+		it('should return HTTP 402 if a user is not on Figma paid plan', async () => {
+			const teamId = uuidv4();
+			const teamName = uuidv4();
+			const requestPath = connectTeamEndpoint(teamId);
+			const jwt = generateJiraContextSymmetricJwtToken({
+				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
+				connectInstallation,
+			});
+
+			mockJiraCheckPermissionsEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				request: {
+					accountId: figmaOAuth2UserCredentials.atlassianUserId,
+					globalPermissions: ['ADMINISTER'],
+				},
+				response: {
+					globalPermissions: ['ADMINISTER'],
+				},
+			});
+			mockFigmaGetTeamProjectsEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				teamId,
+				response: generateGetTeamProjectsResponse({ name: teamName }),
+			});
+			mockFigmaCreateWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				status: HttpStatusCode.BadRequest,
+				response: {
+					message: 'Access Denied',
+				},
+			});
+
+			await request(app)
+				.post(requestPath)
+				.set('Authorization', `JWT ${jwt}`)
+				.expect(HttpStatusCode.PaymentRequired);
+		});
+
+		it('should return HTTP 403 if a user is not Jira admin', async () => {
 			const teamId = uuidv4();
 			const requestPath = connectTeamEndpoint(teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({

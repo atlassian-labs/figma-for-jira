@@ -20,6 +20,7 @@ import {
 	Page,
 } from '../../components';
 import { openInBrowser, parseTeamIdFromFigmaUrl } from '../../utils';
+import { HttpStatusCode } from 'axios';
 
 type ConnectTeamProps = {
 	authorizationEndpoint: string;
@@ -27,8 +28,6 @@ type ConnectTeamProps = {
 	onClose?: () => void;
 	site: string;
 };
-
-const WEBHOOK_UPGRADE_ERROR = 'Upgrade to professional team to enable webhooks';
 
 type ConnectTeamsError = AxiosError & {
 	response: {
@@ -69,7 +68,7 @@ export function FigmaTeamConnector({
 			return queryClient.invalidateQueries({ queryKey: ['teams'] });
 		},
 		onError: (error: ConnectTeamsError) => {
-			if (error.response?.data?.detail === WEBHOOK_UPGRADE_ERROR) {
+			if (error.response?.status === HttpStatusCode.PaymentRequired) {
 				setShowUnauthorizedError(false);
 				setValidationError('You need a paid Figma plan to add teams to Jira');
 			} else {

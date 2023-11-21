@@ -23,16 +23,28 @@ const translateAxiosError = (error: unknown): unknown => {
 		case HttpStatusCode.BadRequest:
 			return new BadRequestHttpClientError(
 				error.message,
-				error,
 				error.response.data,
+				error,
 			);
 		case HttpStatusCode.Unauthorized:
-			return new UnauthorizedHttpClientError(error.message, error);
+			return new UnauthorizedHttpClientError(
+				error.message,
+				error.response.data,
+				error,
+			);
 		case HttpStatusCode.Forbidden:
-			return new ForbiddenHttpClientError(error.message, error);
+			return new ForbiddenHttpClientError(
+				error.message,
+				error.response.data,
+				error,
+			);
 		case HttpStatusCode.NotFound:
-			return new NotFoundHttpClientError(error.message, error);
+			return new NotFoundHttpClientError(
+				error.message,
+				error.response.data,
+				error,
+			);
 		default:
-			return new HttpClientError(error.message, error);
+			return new HttpClientError(error.message, error.response?.data, error);
 	}
 };

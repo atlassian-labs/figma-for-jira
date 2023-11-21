@@ -2,25 +2,23 @@ import { v4 as uuidv4 } from 'uuid';
 
 import {
 	ForbiddenByFigmaUseCaseResultError,
-	InvalidInputUseCaseResultError,
+	PaidFigmaPlanRequiredUseCaseResultError,
 } from './errors';
 
 import type { ConnectInstallation, FigmaTeamSummary } from '../domain/entities';
 import { FigmaTeamAuthStatus } from '../domain/entities';
 import {
 	figmaService,
+	PaidPlanRequiredFigmaServiceError,
 	UnauthorizedFigmaServiceError,
 } from '../infrastructure/figma';
-import {
-	BadRequestHttpClientError,
-	type ResponseDetails,
-} from '../infrastructure/http-client-errors';
 import { ConfigurationState, jiraService } from '../infrastructure/jira';
 import { figmaTeamRepository } from '../infrastructure/repositories';
 
 export const connectFigmaTeamUseCase = {
 	/**
 	 * @throws {ForbiddenByFigmaUseCaseResultError} Not authorized to access Figma.
+	 * @throws {PaidFigmaPlanRequiredUseCaseResultError} A user does not have a Figma paid plan.
 	 */
 	execute: async (
 		teamId: string,
@@ -59,11 +57,11 @@ export const connectFigmaTeamUseCase = {
 			return figmaTeam.toFigmaTeamSummary();
 		} catch (e) {
 			if (e instanceof UnauthorizedFigmaServiceError) {
-				if (e.cause instanceof BadRequestHttpClientError) {
-					const reason = (e.cause?.response as ResponseDetails)?.reason;
-					throw new InvalidInputUseCaseResultError(reason);
-				}
 				throw new ForbiddenByFigmaUseCaseResultError(e);
+			}
+
+			if (e instanceof PaidPlanRequiredFigmaServiceError) {
+				throw new PaidFigmaPlanRequiredUseCaseResultError(e);
 			}
 
 			throw e;

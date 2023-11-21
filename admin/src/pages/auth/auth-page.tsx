@@ -69,7 +69,7 @@ export function AuthPage({ authorizationEndpoint }: AuthPageProps) {
 								flexDirection: 'column',
 							})}
 						>
-							<span>Admin permissions for a Figma team</span>
+							<span>Admin permissions for a paid Figma team</span>
 							<FigmaPermissionsPopup>
 								How to check Figma permissions
 							</FigmaPermissionsPopup>

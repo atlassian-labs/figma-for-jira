@@ -1,6 +1,5 @@
 /**/*.js
-prestart.ts
-postinstall.ts
+admin
 node_modules
 scripts
 jest.config.**
