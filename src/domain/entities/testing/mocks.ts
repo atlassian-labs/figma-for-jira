@@ -150,7 +150,6 @@ export const generateAtlassianDesign = ({
 	url = generateFigmaDesignUrl({
 		fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(id).fileKey,
 		nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(id).nodeId,
-		mode: 'design',
 	}),
 	liveEmbedUrl = generateFigmaDesignUrl({
 		fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(id).fileKey,

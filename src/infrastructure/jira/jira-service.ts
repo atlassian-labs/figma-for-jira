@@ -59,7 +59,7 @@ export const issuePropertyKeys = {
 
 export const JIRA_ADMIN_GLOBAL_PERMISSION = 'ADMINISTER';
 
-class JiraService {
+export class JiraService {
 	/**
 	 * @throws {SubmitDesignJiraServiceError} Design submission fails.
 	 */
@@ -108,13 +108,14 @@ class JiraService {
 		{ url }: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
-		const storedValue =
-			await this.getIssuePropertyJsonValue<IngestedDesignUrlIssuePropertyValue>(
-				issueIdOrKey,
-				issuePropertyKeys.INGESTED_DESIGN_URLS,
-				connectInstallation,
-				INGESTED_DESIGN_URL_VALUE_SCHEMA,
-			);
+		const storedValue = await this.getIssuePropertyJsonValue<
+			IngestedDesignUrlIssuePropertyValue[]
+		>(
+			issueIdOrKey,
+			issuePropertyKeys.INGESTED_DESIGN_URLS,
+			connectInstallation,
+			INGESTED_DESIGN_URL_VALUE_SCHEMA,
+		);
 
 		if (storedValue?.some((storedUrl) => storedUrl === url)) {
 			return;
@@ -208,9 +209,14 @@ class JiraService {
 	 * @internal
 	 * Only visible for testing. Please use {@link saveDesignUrlInIssueProperties}
 	 */
+	// TODO: Consider removing this method after deprecating the previous version of
+	//  "Figma for Jira" (which is included in this app as the fallback).
+	//  It should be safe to do so since:
+	//  - The "Jira" widget reads from `attached-design-url-v2`
+	//  - The previous version of the "Figma for Jira" did not set `attached-design-url` anyway
 	setAttachedDesignUrlInIssuePropertiesIfMissing = async (
 		issueIdOrKey: string,
-		{ url, displayName }: AtlassianDesign,
+		design: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		try {
@@ -221,18 +227,12 @@ class JiraService {
 			);
 		} catch (error) {
 			if (error instanceof NotFoundHttpClientError) {
-				// Include the design name into the URL for compatibility with the existing "Jira" widget in Figma.
-				// A "Jira" widget in Figma treats '-' as a space, so encode it as well to make it display the name correctly.
-				const encodedFileName = encodeURIComponent(displayName).replaceAll(
-					'-',
-					'%2D',
-				);
-				const urlWithFileName = appendToPathname(new URL(url), encodedFileName);
+				const value = JiraService.buildDesignUrlForIssueProperties(design);
 
 				await jiraClient.setIssueProperty(
 					issueIdOrKey,
 					issuePropertyKeys.ATTACHED_DESIGN_URL,
-					urlWithFileName.toString(),
+					value,
 					connectInstallation,
 				);
 			} else {
@@ -247,31 +247,38 @@ class JiraService {
 	 */
 	updateAttachedDesignUrlV2IssueProperty = async (
 		issueIdOrKey: string,
-		{ url, displayName }: AtlassianDesign,
+		design: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
-		const storedValue =
-			await this.getIssuePropertyJsonValue<AttachedDesignUrlV2IssuePropertyValue>(
-				issueIdOrKey,
-				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				connectInstallation,
-				ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
-			);
-
-		const isTargetValueItemStored = storedValue?.some(
-			(item) => item.url === url && item.name === displayName,
+		const storedValue = await this.getIssuePropertyJsonValue<
+			AttachedDesignUrlV2IssuePropertyValue[]
+		>(
+			issueIdOrKey,
+			issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+			connectInstallation,
+			ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 		);
 
-		if (isTargetValueItemStored) return;
+		const storedItem = storedValue?.find((item) =>
+			this.areUrlsOfSameDesign(item.url, design.url),
+		);
 
-		const storedValueExcludingItemWithTargetUrl =
-			storedValue?.filter((item) => !this.areUrlsOfSameDesign(item.url, url)) ??
-			[];
+		const newItem = {
+			url: JiraService.buildDesignUrlForIssueProperties(design),
+			name: design.displayName,
+		};
 
-		const newValue = [
-			...storedValueExcludingItemWithTargetUrl,
-			{ url, name: displayName },
-		];
+		if (storedItem?.url === newItem.url && storedItem?.name === newItem.name) {
+			return;
+		}
+
+		let newValue = storedValue ? [...storedValue] : [];
+
+		if (storedItem) {
+			newValue = newValue.map((item) => (item === storedItem ? newItem : item));
+		} else {
+			newValue.push(newItem);
+		}
 
 		return jiraClient.setIssueProperty(
 			issueIdOrKey,
@@ -375,8 +382,8 @@ class JiraService {
 		issueIdOrKey: string,
 		propertyKey: string,
 		connectInstallation: ConnectInstallation,
-		schema: JSONSchemaTypeWithId<T[]>,
-	): Promise<T[] | null> {
+		schema: JSONSchemaTypeWithId<T>,
+	): Promise<T | null> {
 		try {
 			const response = await jiraClient.getIssueProperty(
 				issueIdOrKey,
@@ -433,6 +440,26 @@ class JiraService {
 			);
 		}
 	};
+
+	/**
+	 * Returns a design URL in the format expected by other integrations (e.g., "Jira" widget in Figma)
+	 * in Issue Properties.
+	 *
+	 * @internal
+	 * Visible only for testing.
+	 */
+	static buildDesignUrlForIssueProperties({
+		url,
+		displayName,
+	}: AtlassianDesign): string {
+		// In addition to standard encoding, encodes the "-" character, which is treated by the "Jira" widget
+		// as space.
+		const encodedName = encodeURIComponent(displayName).replaceAll('-', '%2D');
+
+		const urlWithFileName = appendToPathname(new URL(url), encodedName);
+
+		return urlWithFileName.toString();
+	}
 }
 
 export const jiraService = new JiraService();
