@@ -4,6 +4,7 @@ import {
 } from './figma-auth-service';
 import type { CreateWebhookRequest, GetFileResponse } from './figma-client';
 import { figmaClient } from './figma-client';
+import { ERROR_RESPONSE_SCHEMA } from './figma-client/schemas';
 import {
 	transformFileMetaToAtlassianDesign,
 	transformFileToAtlassianDesign,
@@ -13,6 +14,7 @@ import {
 
 import { CauseAwareError } from '../../common/errors';
 import { isNotNullOrUndefined } from '../../common/predicates';
+import { isOfSchema } from '../../common/schema-validation';
 import { isString } from '../../common/string-utils';
 import { getConfig } from '../../config';
 import type {
@@ -23,6 +25,7 @@ import type {
 	FigmaUser,
 } from '../../domain/entities';
 import {
+	BadRequestHttpClientError,
 	ForbiddenHttpClientError,
 	NotFoundHttpClientError,
 	UnauthorizedHttpClientError,
@@ -222,6 +225,7 @@ export class FigmaService {
 
 	/**
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
+	 * @throws {PaidPlanRequiredFigmaServiceError} A Figma paid plan is required to perform this operation.
 	 */
 	createFileUpdateWebhook = async (
 		teamId: string,
@@ -239,8 +243,26 @@ export class FigmaService {
 				description: 'Figma for Jira Cloud',
 			};
 
-			const result = await figmaClient.createWebhook(request, accessToken);
-			return { webhookId: result.id, teamId: result.team_id };
+			try {
+				const result = await figmaClient.createWebhook(request, accessToken);
+				return { webhookId: result.id, teamId: result.team_id };
+			} catch (e: unknown) {
+				if (
+					e instanceof BadRequestHttpClientError &&
+					isOfSchema(e.response, ERROR_RESPONSE_SCHEMA)
+				) {
+					// Figma allows to create webhooks only on paid plans.
+					// See https://www.figma.com/pricing/.
+					if (e.response.message == 'Access Denied') {
+						throw new PaidPlanRequiredFigmaServiceError(
+							'A Figma paid plan is required to perform this operation.',
+							e,
+						);
+					}
+				}
+
+				throw e;
+			}
 		});
 
 	/**
@@ -369,3 +391,5 @@ export class FigmaService {
 export const figmaService = new FigmaService();
 
 export class UnauthorizedFigmaServiceError extends CauseAwareError {}
+
+export class PaidPlanRequiredFigmaServiceError extends CauseAwareError {}

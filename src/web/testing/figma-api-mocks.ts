@@ -8,6 +8,7 @@ import type {
 	CreateDevResourcesResponse,
 	CreateWebhookRequest,
 	CreateWebhookResponse,
+	ErrorResponse,
 	GetDevResourcesResponse,
 	GetFileMetaResponse,
 	GetFileResponse,
@@ -143,7 +144,7 @@ export const mockFigmaCreateWebhookEndpoint = ({
 	webhookId?: string;
 	teamId?: string;
 	request?: CreateWebhookRequest | RequestBodyMatcher;
-	response?: CreateWebhookResponse;
+	response?: CreateWebhookResponse | ErrorResponse;
 	status?: HttpStatusCode;
 }) => {
 	nock(baseUrl).post('/v2/webhooks', request).reply(status, response);

@@ -7,6 +7,7 @@
 	"scripts": {
 		"admin:build": "cd admin && npm run build",
 		"admin:start": "cd admin && npm start",
+		"admin:test": "cd admin && npm run test",
 		"build": "run-s build:app admin:build",
 		"build:app": "rimraf build && tsc --project ./tsconfig.build.json",
 		"db:generate": "prisma generate",
@@ -26,7 +27,7 @@
 		"start:tunnel": "./scripts/make-tunnel.sh",
 		"stop:sandbox": "./scripts/stop-sandbox.sh docker-compose.yml",
 		"stop:sandbox:test": "./scripts/stop-sandbox.sh docker-compose.integration.yml",
-		"test": "run-s test:unit test:it",
+		"test": "run-s test:unit test:it admin:test",
 		"test:it": "(dotenv -e .env.test -- prisma migrate reset -f) && (DOTENV_CONFIG_PATH=.env.test jest -c jest.config.integration.ts --runInBand)",
 		"test:it:ci": "run-s start:sandbox:test test:it stop:sandbox:test",
 		"test:unit": "jest -c jest.config.unit.ts"

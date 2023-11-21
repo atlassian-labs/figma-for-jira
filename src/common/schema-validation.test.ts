@@ -1,5 +1,6 @@
 import {
 	assertSchema,
+	isOfSchema,
 	type JSONSchemaTypeWithId,
 	parseJsonOfSchema,
 	SchemaValidationError,
@@ -22,7 +23,7 @@ const TEST_SCHEMA: JSONSchemaTypeWithId<TestObject> = {
 };
 
 describe('schema-validation', () => {
-	describe('assertSchema', () => {
+	describe('validateSchema', () => {
 		it('should return result indicating input is valid when validating a valid object', () => {
 			const validObject: unknown = { value: 'test' };
 
@@ -32,9 +33,9 @@ describe('schema-validation', () => {
 		});
 
 		it('should return result indicating input is invalid when validating a non-conforming object', () => {
-			const validObject: unknown = { value: 123 };
+			const invalidObject: unknown = { value: 123 };
 
-			const result = validateSchema(validObject, TEST_SCHEMA);
+			const result = validateSchema(invalidObject, TEST_SCHEMA);
 
 			expect(result).toStrictEqual({
 				valid: false,
@@ -56,6 +57,24 @@ describe('schema-validation', () => {
 			expect(() => {
 				assertSchema(validObject, TEST_SCHEMA);
 			}).toThrow(SchemaValidationError);
+		});
+	});
+
+	describe('isOfSchema', () => {
+		it('should return true when input matches schema', () => {
+			const validObject: unknown = { value: 'test' };
+
+			const result = isOfSchema(validObject, TEST_SCHEMA);
+
+			expect(result).toBe(true);
+		});
+
+		it('should return false when input does not match schema', () => {
+			const invalidObject: unknown = { value: 123 };
+
+			const result = isOfSchema(invalidObject, TEST_SCHEMA);
+
+			expect(result).toBe(false);
 		});
 	});
 
