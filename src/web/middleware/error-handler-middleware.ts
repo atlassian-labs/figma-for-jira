@@ -4,6 +4,7 @@ import type { NextFunction, Request, Response } from 'express';
 import {
 	ForbiddenByFigmaUseCaseResultError,
 	InvalidInputUseCaseResultError,
+	PaidFigmaPlanRequiredUseCaseResultError,
 	UseCaseResultError,
 } from '../../usecases';
 import { ResponseStatusError } from '../errors';
@@ -39,6 +40,11 @@ export const errorHandlerMiddleware = (
 
 		if (err instanceof ForbiddenByFigmaUseCaseResultError) {
 			res.status(HttpStatusCode.Forbidden).send({ message: err.message });
+			return next();
+		}
+
+		if (err instanceof PaidFigmaPlanRequiredUseCaseResultError) {
+			res.status(HttpStatusCode.PaymentRequired).send({ message: err.message });
 			return next();
 		}
 	}

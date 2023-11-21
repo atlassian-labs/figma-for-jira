@@ -6,6 +6,7 @@ import type {
 	CreateDevResourcesResponse,
 	CreateWebhookResponse,
 	DevResource,
+	ErrorResponse,
 	GetDevResourcesResponse,
 	GetFileMetaResponse,
 	GetFileResponse,
@@ -204,3 +205,13 @@ export const GET_TEAM_PROJECTS_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetTeamProj
 		},
 		required: ['name', 'projects'],
 	};
+
+export const ERROR_RESPONSE_SCHEMA: JSONSchemaTypeWithId<ErrorResponse> = {
+	$id: 'figma-api:error:response',
+	type: 'object',
+	properties: {
+		message: { type: 'string' },
+		reason: { type: 'string', nullable: true },
+	},
+	required: ['message'],
+};

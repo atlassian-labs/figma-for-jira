@@ -81,7 +81,7 @@ export const SUBMIT_DESIGNS_RESPONSE_SCHEMA: JSONSchemaTypeWithId<SubmitDesignsR
 
 export const GET_ISSUE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetIssueResponse> =
 	{
-		$id: 'jira-software-cloud-api:get:/rest/agile/1.0/issue/$issueIdOrKey:response',
+		$id: 'jira-software-cloud-api:get:/rest/api/3/issue/$issueIdOrKey:response',
 		type: 'object',
 		properties: {
 			id: { type: 'string' },
