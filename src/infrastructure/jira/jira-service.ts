@@ -35,7 +35,7 @@ type SubmitDesignParams = {
 export type AttachedDesignUrlV2IssuePropertyValue = {
 	readonly url: string;
 	readonly name: string;
-};
+}[];
 
 export const appPropertyKeys = {
 	CONFIGURATION_STATE: 'is-configured',
@@ -206,14 +206,13 @@ export class JiraService {
 		design: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
-		const storedValue = await this.getIssuePropertyJsonValue<
-			AttachedDesignUrlV2IssuePropertyValue[]
-		>(
-			issueIdOrKey,
-			issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-			connectInstallation,
-			ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
-		);
+		const storedValue =
+			await this.getIssuePropertyJsonValue<AttachedDesignUrlV2IssuePropertyValue>(
+				issueIdOrKey,
+				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				connectInstallation,
+				ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
+			);
 
 		const storedItem = storedValue?.find((item) =>
 			this.areUrlsOfSameDesign(item.url, design.url),
@@ -306,7 +305,7 @@ export class JiraService {
 			ensureString(response.value),
 		) as unknown;
 
-		assertSchema<AttachedDesignUrlV2IssuePropertyValue[]>(
+		assertSchema<AttachedDesignUrlV2IssuePropertyValue>(
 			storedAttachedDesignUrlIssuePropertyValue,
 			ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 		);

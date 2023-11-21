@@ -621,29 +621,28 @@ describe('/entities', () => {
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 			});
 
-			const expectedDesignUrlV2Value: AttachedDesignUrlV2IssuePropertyValue = {
+			const expectedDesignUrlV2ValueItem = {
 				url: 'https://should-not-be-deleted.com',
 				name: 'should not be deleted',
 			};
-			const attachedDesignUrlV2Values: AttachedDesignUrlV2IssuePropertyValue[] =
-				[
-					{ url: figmaDesignUrl, name: atlassianDesign.displayName },
-					expectedDesignUrlV2Value,
-				];
+			const attachedDesignUrlV2Value: AttachedDesignUrlV2IssuePropertyValue = [
+				{ url: figmaDesignUrl, name: atlassianDesign.displayName },
+				expectedDesignUrlV2ValueItem,
+			];
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				response: generateGetIssuePropertyResponse({
 					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-					value: JSON.stringify(attachedDesignUrlV2Values),
+					value: JSON.stringify(attachedDesignUrlV2Value),
 				}),
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				request: JSON.stringify(JSON.stringify([expectedDesignUrlV2Value])),
+				request: JSON.stringify(JSON.stringify([expectedDesignUrlV2ValueItem])),
 			});
 
 			await request(app)
@@ -770,29 +769,28 @@ describe('/entities', () => {
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 			});
 
-			const expectedDesignUrlV2Value: AttachedDesignUrlV2IssuePropertyValue = {
+			const expectedDesignUrlV2ValueItem = {
 				url: 'https://should-not-be-deleted.com',
 				name: 'should not be deleted',
 			};
-			const attachedDesignUrlV2Values: AttachedDesignUrlV2IssuePropertyValue[] =
-				[
-					{ url: figmaDesignUrl, name: atlassianDesign.displayName },
-					expectedDesignUrlV2Value,
-				];
+			const attachedDesignUrlV2Value: AttachedDesignUrlV2IssuePropertyValue = [
+				{ url: figmaDesignUrl, name: atlassianDesign.displayName },
+				expectedDesignUrlV2ValueItem,
+			];
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				response: generateGetIssuePropertyResponse({
 					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-					value: JSON.stringify(attachedDesignUrlV2Values),
+					value: JSON.stringify(attachedDesignUrlV2Value),
 				}),
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				request: JSON.stringify(JSON.stringify([expectedDesignUrlV2Value])),
+				request: JSON.stringify(JSON.stringify([expectedDesignUrlV2ValueItem])),
 			});
 
 			await request(app)

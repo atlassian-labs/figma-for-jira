@@ -352,7 +352,7 @@ describe('JiraService', () => {
 		});
 
 		it('should not update issue property with if it contains target item', async () => {
-			const issuePropertyValueItems: AttachedDesignUrlV2IssuePropertyValue[] = [
+			const issuePropertyValueItems: AttachedDesignUrlV2IssuePropertyValue = [
 				{
 					url: JiraService.buildDesignUrlForIssueProperties(design),
 					name: design.displayName,
@@ -376,7 +376,7 @@ describe('JiraService', () => {
 		});
 
 		it('should update issue property with item if it does not contains target', async () => {
-			const issuePropertyValueItems: AttachedDesignUrlV2IssuePropertyValue[] = [
+			const issuePropertyValueItems: AttachedDesignUrlV2IssuePropertyValue = [
 				{
 					url: `https://www.figma.com/file/${uuidv4()}/Test-File`,
 					name: 'Test File',
@@ -415,7 +415,7 @@ describe('JiraService', () => {
 				url: design.url,
 				name: design.displayName,
 			};
-			const otherIssuePropertyValueItems: AttachedDesignUrlV2IssuePropertyValue[] =
+			const otherIssuePropertyValueItems: AttachedDesignUrlV2IssuePropertyValue =
 				[
 					{
 						url: `https://www.figma.com/file/${uuidv4()}/Test-File`,
@@ -651,16 +651,16 @@ describe('JiraService', () => {
 
 		it('should delete the URL from the array stored in issue properties', async () => {
 			const designToDelete = generateAtlassianDesign();
-			const designPropertyValue: AttachedDesignUrlV2IssuePropertyValue = {
+			const designPropertyValue = {
 				url: design.url,
 				name: design.displayName,
 			};
-			const designToDeletePropertyValue: AttachedDesignUrlV2IssuePropertyValue =
-				{ url: designToDelete.url, name: designToDelete.displayName };
-			const attachedDesignPropertyValues = [
-				designPropertyValue,
-				designToDeletePropertyValue,
-			];
+			const designToDeletePropertyValue = {
+				url: designToDelete.url,
+				name: designToDelete.displayName,
+			};
+			const attachedDesignPropertyValues: AttachedDesignUrlV2IssuePropertyValue =
+				[designPropertyValue, designToDeletePropertyValue];
 
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
@@ -690,16 +690,13 @@ describe('JiraService', () => {
 				url: design.url,
 				name: design.displayName,
 			};
-			const designToDeletePropertyValue: AttachedDesignUrlV2IssuePropertyValue =
-				{
-					url: `${designToDelete.url}&mode=dev`,
-					name: designToDelete.displayName,
-				};
+			const designToDeletePropertyValue = {
+				url: `${designToDelete.url}&mode=dev`,
+				name: designToDelete.displayName,
+			};
 
-			const attachedDesignPropertyValues = [
-				designPropertyValue,
-				designToDeletePropertyValue,
-			];
+			const attachedDesignPropertyValues: AttachedDesignUrlV2IssuePropertyValue =
+				[designPropertyValue, designToDeletePropertyValue];
 
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
@@ -725,11 +722,12 @@ describe('JiraService', () => {
 
 		it('should not set issue properties again if the array remained unchanged', async () => {
 			const designToDelete = generateAtlassianDesign();
-			const designPropertyValue: AttachedDesignUrlV2IssuePropertyValue = {
+			const designPropertyValue = {
 				url: design.url,
 				name: design.displayName,
 			};
-			const attachedDesignPropertyValues = [designPropertyValue];
+			const attachedDesignPropertyValues: AttachedDesignUrlV2IssuePropertyValue =
+				[designPropertyValue];
 
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
