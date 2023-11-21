@@ -8,10 +8,6 @@ import type {
 } from './types';
 
 import app from '../../../app';
-import {
-	appendToPathname,
-	encodeURIComponentAndDash,
-} from '../../../common/url-utils';
 import { getConfig } from '../../../config';
 import type { ConnectInstallation } from '../../../domain/entities';
 import {
@@ -45,7 +41,7 @@ import {
 	transformNodeToAtlassianDesign,
 } from '../../../infrastructure/figma/transformers';
 import type { AttachedDesignUrlV2IssuePropertyValue } from '../../../infrastructure/jira';
-import { issuePropertyKeys } from '../../../infrastructure/jira';
+import { issuePropertyKeys, JiraService } from '../../../infrastructure/jira';
 import {
 	generateGetIssuePropertyResponse,
 	generateSubmitDesignsRequest,
@@ -230,10 +226,7 @@ describe('/entities', () => {
 				issueId: issue.id,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				request: JSON.stringify(
-					appendToPathname(
-						new URL(normalizedFigmaDesignUrl),
-						encodeURIComponentAndDash(atlassianDesign.displayName),
-					).toString(),
+					JiraService.buildDesignUrlForIssueProperties(atlassianDesign),
 				),
 			});
 			mockJiraGetIssuePropertyEndpoint({
@@ -249,10 +242,9 @@ describe('/entities', () => {
 				request: JSON.stringify(
 					JSON.stringify([
 						{
-							url: appendToPathname(
-								new URL(normalizedFigmaDesignUrl),
-								encodeURIComponentAndDash(atlassianDesign.displayName),
-							).toString(),
+							url: JiraService.buildDesignUrlForIssueProperties(
+								atlassianDesign,
+							),
 							name: fileName,
 						},
 					]),
@@ -388,13 +380,7 @@ describe('/entities', () => {
 				issueId: issue.id,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				request: JSON.stringify(
-					appendToPathname(
-						new URL(normalizedFigmaDesignUrl),
-						encodeURIComponent(atlassianDesign.displayName).replaceAll(
-							'-',
-							'%2D',
-						),
-					).toString(),
+					JiraService.buildDesignUrlForIssueProperties(atlassianDesign),
 				),
 			});
 			mockJiraGetIssuePropertyEndpoint({
@@ -410,10 +396,9 @@ describe('/entities', () => {
 				request: JSON.stringify(
 					JSON.stringify([
 						{
-							url: appendToPathname(
-								new URL(normalizedFigmaDesignUrl),
-								encodeURIComponentAndDash(atlassianDesign.displayName),
-							).toString(),
+							url: JiraService.buildDesignUrlForIssueProperties(
+								atlassianDesign,
+							),
 							name: atlassianDesign.displayName,
 						},
 					]),

@@ -17,6 +17,7 @@ import type {
 import {
 	ConfigurationState,
 	issuePropertyKeys,
+	JiraService,
 	jiraService,
 	SubmitDesignJiraServiceError,
 } from './jira-service';
@@ -274,13 +275,10 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			const expectedValue = new URL(design.url);
-			expectedValue.pathname += `/Test%20%2D%20Design%201`;
-
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
 				issuePropertyKeys.ATTACHED_DESIGN_URL,
-				expectedValue.toString(),
+				JiraService.buildDesignUrlForIssueProperties(design),
 				connectInstallation,
 			);
 		});
@@ -329,9 +327,7 @@ describe('JiraService', () => {
 	describe('updateAttachedDesignUrlV2IssueProperty', () => {
 		const issueId = generateJiraIssueKey();
 		const connectInstallation = generateConnectInstallation();
-		const designName = 'Test - Design 1';
-		const encodedDesignName = 'Test%20%2D%20Design%201';
-		const design = generateAtlassianDesign({ displayName: designName });
+		const design = generateAtlassianDesign({ displayName: 'Test / Design 1' });
 
 		it('should set issue property if not present', async () => {
 			jest
@@ -345,15 +341,12 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			const expectedUrl = new URL(design.url);
-			expectedUrl.pathname += `/${encodedDesignName}`;
-
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
 				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				JSON.stringify([
 					{
-						url: expectedUrl.toString(),
+						url: JiraService.buildDesignUrlForIssueProperties(design),
 						name: design.displayName,
 					},
 				]),
@@ -361,10 +354,10 @@ describe('JiraService', () => {
 			);
 		});
 
-		it('should not update issue property with if it contains target item with same URL and name', async () => {
+		it('should not update issue property with if it contains target item', async () => {
 			const issuePropertyValueItems: AttachedDesignUrlV2IssuePropertyValue[] = [
 				{
-					url: design.url,
+					url: JiraService.buildDesignUrlForIssueProperties(design),
 					name: design.displayName,
 				},
 			];
@@ -406,16 +399,13 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			const expectedUrl = new URL(design.url);
-			expectedUrl.pathname += `/${encodedDesignName}`;
-
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
 				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				JSON.stringify([
 					...issuePropertyValueItems,
 					{
-						url: expectedUrl.toString(),
+						url: JiraService.buildDesignUrlForIssueProperties(design),
 						name: design.displayName,
 					},
 				]),
@@ -423,15 +413,10 @@ describe('JiraService', () => {
 			);
 		});
 
-		it('should update issue property with new item name if it contains target item with URL in different format', async () => {
-			const designUrlInDifferentFormat = generateFigmaDesignUrl({
-				fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).fileKey,
-				nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).nodeId,
-				mode: 'dev',
-			});
+		it('should update issue property if it contains target item with URL in different format', async () => {
 			const targetIssuePropertyValueItem = {
-				url: designUrlInDifferentFormat,
-				name: 'Outdated Name',
+				url: design.url,
+				name: design.displayName,
 			};
 			const otherIssuePropertyValueItems: AttachedDesignUrlV2IssuePropertyValue[] =
 				[
@@ -445,7 +430,7 @@ describe('JiraService', () => {
 				generateGetIssuePropertyResponse({
 					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 					value: JSON.stringify([
-						{ ...targetIssuePropertyValueItem },
+						targetIssuePropertyValueItem,
 						...otherIssuePropertyValueItems,
 					]),
 				}),
@@ -462,7 +447,10 @@ describe('JiraService', () => {
 				issueId,
 				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				JSON.stringify([
-					{ ...targetIssuePropertyValueItem, name: design.displayName },
+					{
+						url: JiraService.buildDesignUrlForIssueProperties(design),
+						name: design.displayName,
+					},
 					...otherIssuePropertyValueItems,
 				]),
 				connectInstallation,
@@ -492,15 +480,12 @@ describe('JiraService', () => {
 					connectInstallation,
 				);
 
-				const expectedUrl = new URL(design.url);
-				expectedUrl.pathname += `/${encodedDesignName}`;
-
 				expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 					issueId,
 					issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 					JSON.stringify([
 						{
-							url: expectedUrl.toString(),
+							url: JiraService.buildDesignUrlForIssueProperties(design),
 							name: design.displayName,
 						},
 					]),
@@ -521,15 +506,12 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			const expectedUrl = new URL(design.url);
-			expectedUrl.pathname += `/${encodedDesignName}`;
-
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
 				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				JSON.stringify([
 					{
-						url: expectedUrl,
+						url: JiraService.buildDesignUrlForIssueProperties(design),
 						name: design.displayName,
 					},
 				]),
@@ -1080,6 +1062,23 @@ describe('JiraService', () => {
 			);
 
 			expect(result).toBe(true);
+		});
+	});
+
+	describe('buildDesignUrlForIssueProperties', () => {
+		it('should return URL with encoded design name', () => {
+			const fileKey = generateFigmaFileKey();
+			const design = generateAtlassianDesign({
+				id: fileKey,
+				url: `https://www.figma.com/file/${fileKey}`,
+				displayName: 'Test / Design - 1',
+			});
+
+			const result = JiraService.buildDesignUrlForIssueProperties(design);
+
+			expect(result).toBe(
+				`https://www.figma.com/file/${fileKey}/Test%20%2F%20Design%20%2D%201`,
+			);
 		});
 	});
 });

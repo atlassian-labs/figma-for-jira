@@ -16,10 +16,7 @@ import {
 	SchemaValidationError,
 } from '../../common/schema-validation';
 import { ensureString, isString } from '../../common/string-utils';
-import {
-	appendToPathname,
-	encodeURIComponentAndDash,
-} from '../../common/url-utils';
+import { appendToPathname } from '../../common/url-utils';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
@@ -40,7 +37,7 @@ type SubmitDesignParams = {
 
 export type AttachedDesignUrlV2IssuePropertyValue = {
 	readonly url: string;
-	name: string;
+	readonly name: string;
 };
 
 export type IngestedDesignUrlIssuePropertyValue = string;
@@ -62,7 +59,7 @@ export const issuePropertyKeys = {
 
 export const JIRA_ADMIN_GLOBAL_PERMISSION = 'ADMINISTER';
 
-class JiraService {
+export class JiraService {
 	/**
 	 * @throws {SubmitDesignJiraServiceError} Design submission fails.
 	 */
@@ -217,7 +214,7 @@ class JiraService {
 	//  - The previous version of the "Figma for Jira" does not set `attached-design-url`
 	setAttachedDesignUrlInIssuePropertiesIfMissing = async (
 		issueIdOrKey: string,
-		{ url, displayName }: AtlassianDesign,
+		design: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		try {
@@ -228,16 +225,12 @@ class JiraService {
 			);
 		} catch (error) {
 			if (error instanceof NotFoundHttpClientError) {
-				// Include the design name into the URL for compatibility with the existing "Jira" widget in Figma.
-				const urlWithFileName = appendToPathname(
-					new URL(url),
-					encodeURIComponentAndDash(displayName),
-				);
+				const value = JiraService.buildDesignUrlForIssueProperties(design);
 
 				await jiraClient.setIssueProperty(
 					issueIdOrKey,
 					issuePropertyKeys.ATTACHED_DESIGN_URL,
-					urlWithFileName.toString(),
+					value,
 					connectInstallation,
 				);
 			} else {
@@ -252,7 +245,7 @@ class JiraService {
 	 */
 	updateAttachedDesignUrlV2IssueProperty = async (
 		issueIdOrKey: string,
-		{ url, displayName }: AtlassianDesign,
+		design: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		const storedValue = await this.getIssuePropertyJsonValue<
@@ -265,27 +258,24 @@ class JiraService {
 		);
 
 		const storedItem = storedValue?.find((item) =>
-			this.areUrlsOfSameDesign(item.url, url),
+			this.areUrlsOfSameDesign(item.url, design.url),
 		);
 
-		// Skip if the design in the Issue Property already contains the latest name.
-		if (storedItem?.name === displayName) return;
+		const newItem = {
+			url: JiraService.buildDesignUrlForIssueProperties(design),
+			name: design.displayName,
+		};
 
-		const newValue = storedValue ?? [];
+		if (storedItem?.url === newItem.url && storedItem?.name === newItem.name) {
+			return;
+		}
+
+		let newValue = storedValue ? [...storedValue] : [];
 
 		if (storedItem) {
-			// Do not update `url` since it can be in a different format, which can cause unexpected side effects in the
-			// previous version of the app (in case, downgrade is required).
-			storedItem.name = displayName;
+			newValue = newValue.map((item) => (item === storedItem ? newItem : item));
 		} else {
-			// Include the design name into the URL for compatibility with the existing "Jira" widget in Figma,
-			// which expects the name to be included.
-			const urlWithFileName = appendToPathname(
-				new URL(url),
-				encodeURIComponentAndDash(displayName),
-			);
-
-			newValue.push({ url: urlWithFileName.toString(), name: displayName });
+			newValue.push(newItem);
 		}
 
 		return jiraClient.setIssueProperty(
@@ -448,6 +438,26 @@ class JiraService {
 			);
 		}
 	};
+
+	/**
+	 * Returns a design URL in the format expected by other integrations (e.g., "Jira" widget in Figma)
+	 * in Issue Properties.
+	 *
+	 * @internal
+	 * Visible only for testing.
+	 */
+	static buildDesignUrlForIssueProperties({
+		url,
+		displayName,
+	}: AtlassianDesign): string {
+		// In addition to standard encoding, encodes the "-" character, which is treated by the "Jira" widget
+		// as space.
+		const encodedName = encodeURIComponent(displayName).replaceAll('-', '%2D');
+
+		const urlWithFileName = appendToPathname(new URL(url), encodedName);
+
+		return urlWithFileName.toString();
+	}
 }
 
 export const jiraService = new JiraService();
