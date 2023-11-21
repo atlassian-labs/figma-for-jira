@@ -209,9 +209,11 @@ export class JiraService {
 	 * @internal
 	 * Only visible for testing. Please use {@link saveDesignUrlInIssueProperties}
 	 */
-	// TODO: Consider removing this method since:
+	// TODO: Consider removing this method after deprecating the previous version of
+	//  "Figma for Jira" (which is included in this app as the fallback).
+	//  It should be safe to do so since:
 	//  - The "Jira" widget reads from `attached-design-url-v2`
-	//  - The previous version of the "Figma for Jira" does not set `attached-design-url`
+	//  - The previous version of the "Figma for Jira" did not set `attached-design-url` anyway
 	setAttachedDesignUrlInIssuePropertiesIfMissing = async (
 		issueIdOrKey: string,
 		design: AtlassianDesign,
