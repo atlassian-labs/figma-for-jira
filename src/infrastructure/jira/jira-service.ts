@@ -16,7 +16,10 @@ import {
 	SchemaValidationError,
 } from '../../common/schema-validation';
 import { ensureString, isString } from '../../common/string-utils';
-import { appendToPathname } from '../../common/url-utils';
+import {
+	appendToPathname,
+	encodeURIComponentAndDash,
+} from '../../common/url-utils';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
@@ -37,7 +40,7 @@ type SubmitDesignParams = {
 
 export type AttachedDesignUrlV2IssuePropertyValue = {
 	readonly url: string;
-	readonly name: string;
+	name: string;
 };
 
 export type IngestedDesignUrlIssuePropertyValue = string;
@@ -108,13 +111,14 @@ class JiraService {
 		{ url }: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
-		const storedValue =
-			await this.getIssuePropertyJsonValue<IngestedDesignUrlIssuePropertyValue>(
-				issueIdOrKey,
-				issuePropertyKeys.INGESTED_DESIGN_URLS,
-				connectInstallation,
-				INGESTED_DESIGN_URL_VALUE_SCHEMA,
-			);
+		const storedValue = await this.getIssuePropertyJsonValue<
+			IngestedDesignUrlIssuePropertyValue[]
+		>(
+			issueIdOrKey,
+			issuePropertyKeys.INGESTED_DESIGN_URLS,
+			connectInstallation,
+			INGESTED_DESIGN_URL_VALUE_SCHEMA,
+		);
 
 		if (storedValue?.some((storedUrl) => storedUrl === url)) {
 			return;
@@ -208,6 +212,9 @@ class JiraService {
 	 * @internal
 	 * Only visible for testing. Please use {@link saveDesignUrlInIssueProperties}
 	 */
+	// TODO: Consider removing this method since:
+	//  - The "Jira" widget reads from `attached-design-url-v2`
+	//  - The previous version of the "Figma for Jira" does not set `attached-design-url`
 	setAttachedDesignUrlInIssuePropertiesIfMissing = async (
 		issueIdOrKey: string,
 		{ url, displayName }: AtlassianDesign,
@@ -222,12 +229,10 @@ class JiraService {
 		} catch (error) {
 			if (error instanceof NotFoundHttpClientError) {
 				// Include the design name into the URL for compatibility with the existing "Jira" widget in Figma.
-				// A "Jira" widget in Figma treats '-' as a space, so encode it as well to make it display the name correctly.
-				const encodedFileName = encodeURIComponent(displayName).replaceAll(
-					'-',
-					'%2D',
+				const urlWithFileName = appendToPathname(
+					new URL(url),
+					encodeURIComponentAndDash(displayName),
 				);
-				const urlWithFileName = appendToPathname(new URL(url), encodedFileName);
 
 				await jiraClient.setIssueProperty(
 					issueIdOrKey,
@@ -250,28 +255,38 @@ class JiraService {
 		{ url, displayName }: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
-		const storedValue =
-			await this.getIssuePropertyJsonValue<AttachedDesignUrlV2IssuePropertyValue>(
-				issueIdOrKey,
-				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				connectInstallation,
-				ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
-			);
-
-		const isTargetValueItemStored = storedValue?.some(
-			(item) => item.url === url && item.name === displayName,
+		const storedValue = await this.getIssuePropertyJsonValue<
+			AttachedDesignUrlV2IssuePropertyValue[]
+		>(
+			issueIdOrKey,
+			issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+			connectInstallation,
+			ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 		);
 
-		if (isTargetValueItemStored) return;
+		const storedItem = storedValue?.find((item) =>
+			this.areUrlsOfSameDesign(item.url, url),
+		);
 
-		const storedValueExcludingItemWithTargetUrl =
-			storedValue?.filter((item) => !this.areUrlsOfSameDesign(item.url, url)) ??
-			[];
+		// Skip if the design in the Issue Property already contains the latest name.
+		if (storedItem?.name === displayName) return;
 
-		const newValue = [
-			...storedValueExcludingItemWithTargetUrl,
-			{ url, name: displayName },
-		];
+		const newValue = storedValue ?? [];
+
+		if (storedItem) {
+			// Do not update `url` since it can be in a different format, which can cause unexpected side effects in the
+			// previous version of the app (in case, downgrade is required).
+			storedItem.name = displayName;
+		} else {
+			// Include the design name into the URL for compatibility with the existing "Jira" widget in Figma,
+			// which expects the name to be included.
+			const urlWithFileName = appendToPathname(
+				new URL(url),
+				encodeURIComponentAndDash(displayName),
+			);
+
+			newValue.push({ url: urlWithFileName.toString(), name: displayName });
+		}
 
 		return jiraClient.setIssueProperty(
 			issueIdOrKey,
@@ -375,8 +390,8 @@ class JiraService {
 		issueIdOrKey: string,
 		propertyKey: string,
 		connectInstallation: ConnectInstallation,
-		schema: JSONSchemaTypeWithId<T[]>,
-	): Promise<T[] | null> {
+		schema: JSONSchemaTypeWithId<T>,
+	): Promise<T | null> {
 		try {
 			const response = await jiraClient.getIssueProperty(
 				issueIdOrKey,

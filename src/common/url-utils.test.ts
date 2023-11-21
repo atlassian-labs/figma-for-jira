@@ -1,4 +1,4 @@
-import { appendToPathname } from './url-utils';
+import { appendToPathname, encodeURIComponentAndDash } from './url-utils';
 
 describe('urlUtils', () => {
 	describe('removeTrailingSlashFromPathname', () => {
@@ -17,5 +17,19 @@ describe('urlUtils', () => {
 				expect(result).toBe(expected.toString());
 			},
 		);
+	});
+
+	describe('encodeURIComponentAndDash', () => {
+		it('should encode URI component as encodeURIComponent', () => {
+			const result = encodeURIComponentAndDash('test/?@:;');
+
+			expect(result).toBe(encodeURIComponent('test/?@:;'));
+		});
+
+		it('should encode dash character', () => {
+			const result = encodeURIComponentAndDash('test-1');
+
+			expect(result).toBe('test%2D1');
+		});
 	});
 });

@@ -13,3 +13,13 @@ export const appendToPathname = (url: URL, segment: string): URL => {
 
 	return result;
 };
+
+/**
+ * Encodes a URI as {@link encodeURIComponent} and additionally encodes the "-" character.
+ *
+ * @remarks
+ * This encoding is used by Figma for a File name.
+ */
+export const encodeURIComponentAndDash = (value: string): string => {
+	return encodeURIComponent(value).replaceAll('-', '%2D');
+};

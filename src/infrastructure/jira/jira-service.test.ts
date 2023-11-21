@@ -224,7 +224,7 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			expect(jiraService.submitDesigns).toBeCalledWith(
+			expect(jiraService.submitDesigns).toHaveBeenCalledWith(
 				[{ design, addAssociations, removeAssociations }],
 				connectInstallation,
 			);
@@ -329,9 +329,11 @@ describe('JiraService', () => {
 	describe('updateAttachedDesignUrlV2IssueProperty', () => {
 		const issueId = generateJiraIssueKey();
 		const connectInstallation = generateConnectInstallation();
-		const design = generateAtlassianDesign();
+		const designName = 'Test - Design 1';
+		const encodedDesignName = 'Test%20%2D%20Design%201';
+		const design = generateAtlassianDesign({ displayName: designName });
 
-		it('should set the issue property if not present', async () => {
+		it('should set issue property if not present', async () => {
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockRejectedValue(new NotFoundHttpClientError());
@@ -343,12 +345,15 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
+			const expectedUrl = new URL(design.url);
+			expectedUrl.pathname += `/${encodedDesignName}`;
+
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
 				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				JSON.stringify([
 					{
-						url: design.url,
+						url: expectedUrl.toString(),
 						name: design.displayName,
 					},
 				]),
@@ -356,53 +361,17 @@ describe('JiraService', () => {
 			);
 		});
 
-		it('should add to the issue property if it contains other items', async () => {
-			const attachedDesignPropertyValueItems: AttachedDesignUrlV2IssuePropertyValue[] =
-				[
-					{
-						url: `https://www.figma.com/file/${uuidv4()}/test-file`,
-						name: 'test-file',
-					},
-				];
+		it('should not update issue property with if it contains target item with same URL and name', async () => {
+			const issuePropertyValueItems: AttachedDesignUrlV2IssuePropertyValue[] = [
+				{
+					url: design.url,
+					name: design.displayName,
+				},
+			];
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
 					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-					value: JSON.stringify(attachedDesignPropertyValueItems),
-				}),
-			);
-			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
-
-			await jiraService.updateAttachedDesignUrlV2IssueProperty(
-				issueId,
-				design,
-				connectInstallation,
-			);
-
-			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
-				issueId,
-				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				JSON.stringify([
-					...attachedDesignPropertyValueItems,
-					{
-						url: design.url,
-						name: design.displayName,
-					},
-				]),
-				connectInstallation,
-			);
-		});
-
-		it('should not update the issue property if it contains target item', async () => {
-			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
-				generateGetIssuePropertyResponse({
-					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-					value: JSON.stringify([
-						{
-							url: `https://www.figma.com/file/${uuidv4()}/test-file`,
-							name: `Design ${uuidv4()}`,
-						},
-						{ url: design.url, name: design.displayName },
-					]),
+					value: JSON.stringify(issuePropertyValueItems),
 				}),
 			);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
@@ -416,27 +385,17 @@ describe('JiraService', () => {
 			expect(jiraClient.setIssueProperty).not.toHaveBeenCalled();
 		});
 
-		it('should overwrite the issue property if it contains item with URL in different format', async () => {
-			const designUrlInDifferentFormat = generateFigmaDesignUrl({
-				fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).fileKey,
-				nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).nodeId,
-				mode: 'dev',
-			});
-			const otherDesignPropertyValue: AttachedDesignUrlV2IssuePropertyValue[] =
-				[
-					{
-						url: `https://www.figma.com/file/${uuidv4()}/test-file`,
-						name: `Design ${uuidv4()}`,
-					},
-				];
-
+		it('should update issue property with item if it does not contains target', async () => {
+			const issuePropertyValueItems: AttachedDesignUrlV2IssuePropertyValue[] = [
+				{
+					url: `https://www.figma.com/file/${uuidv4()}/Test-File`,
+					name: 'Test File',
+				},
+			];
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
 					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-					value: JSON.stringify([
-						...otherDesignPropertyValue,
-						{ url: designUrlInDifferentFormat, name: design.displayName },
-					]),
+					value: JSON.stringify(issuePropertyValueItems),
 				}),
 			);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
@@ -447,13 +406,16 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
+			const expectedUrl = new URL(design.url);
+			expectedUrl.pathname += `/${encodedDesignName}`;
+
 			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
 				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				JSON.stringify([
-					...otherDesignPropertyValue,
+					...issuePropertyValueItems,
 					{
-						url: design.url,
+						url: expectedUrl.toString(),
 						name: design.displayName,
 					},
 				]),
@@ -461,24 +423,30 @@ describe('JiraService', () => {
 			);
 		});
 
-		it('should overwrite the issue property if it contains item with same URL but different name', async () => {
-			const otherDesignPropertyValueItems: AttachedDesignUrlV2IssuePropertyValue[] =
+		it('should update issue property with new item name if it contains target item with URL in different format', async () => {
+			const designUrlInDifferentFormat = generateFigmaDesignUrl({
+				fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).fileKey,
+				nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(design.id).nodeId,
+				mode: 'dev',
+			});
+			const targetIssuePropertyValueItem = {
+				url: designUrlInDifferentFormat,
+				name: 'Outdated Name',
+			};
+			const otherIssuePropertyValueItems: AttachedDesignUrlV2IssuePropertyValue[] =
 				[
 					{
-						url: `https://www.figma.com/file/${uuidv4()}/test-file`,
-						name: `Design ${uuidv4()}`,
-					},
-					{
-						url: `https://www.figma.com/file/${uuidv4()}/test-file`,
-						name: design.displayName,
+						url: `https://www.figma.com/file/${uuidv4()}/Test-File`,
+						name: `Test File`,
 					},
 				];
+
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
 					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 					value: JSON.stringify([
-						...otherDesignPropertyValueItems,
-						{ url: design.url, name: `Design ${uuidv4()}` },
+						{ ...targetIssuePropertyValueItem },
+						...otherIssuePropertyValueItems,
 					]),
 				}),
 			);
@@ -494,11 +462,8 @@ describe('JiraService', () => {
 				issueId,
 				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				JSON.stringify([
-					...otherDesignPropertyValueItems,
-					{
-						url: design.url,
-						name: design.displayName,
-					},
+					{ ...targetIssuePropertyValueItem, name: design.displayName },
+					...otherIssuePropertyValueItems,
 				]),
 				connectInstallation,
 			);
@@ -527,12 +492,15 @@ describe('JiraService', () => {
 					connectInstallation,
 				);
 
-				expect(jiraClient.setIssueProperty).toBeCalledWith(
+				const expectedUrl = new URL(design.url);
+				expectedUrl.pathname += `/${encodedDesignName}`;
+
+				expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 					issueId,
 					issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 					JSON.stringify([
 						{
-							url: design.url,
+							url: expectedUrl.toString(),
 							name: design.displayName,
 						},
 					]),
@@ -553,12 +521,15 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			expect(jiraClient.setIssueProperty).toBeCalledWith(
+			const expectedUrl = new URL(design.url);
+			expectedUrl.pathname += `/${encodedDesignName}`;
+
+			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
 				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				JSON.stringify([
 					{
-						url: design.url,
+						url: expectedUrl,
 						name: design.displayName,
 					},
 				]),
@@ -684,7 +655,7 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			expect(jiraClient.setIssueProperty).toBeCalledWith(
+			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
 				issuePropertyKeys.INGESTED_DESIGN_URLS,
 				[design.url],
@@ -709,7 +680,7 @@ describe('JiraService', () => {
 					connectInstallation,
 				);
 
-				expect(jiraClient.setIssueProperty).toBeCalledWith(
+				expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 					issueId,
 					issuePropertyKeys.INGESTED_DESIGN_URLS,
 					[design.url],
@@ -730,7 +701,7 @@ describe('JiraService', () => {
 				connectInstallation,
 			);
 
-			expect(jiraClient.setIssueProperty).toBeCalledWith(
+			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
 				issueId,
 				issuePropertyKeys.INGESTED_DESIGN_URLS,
 				[design.url],
@@ -908,7 +879,7 @@ describe('JiraService', () => {
 
 		it('should delete the URL from the array stored in issue properties if in a different format', async () => {
 			const designToDelete = generateAtlassianDesign();
-			const designPropertyValue: AttachedDesignUrlV2IssuePropertyValue = {
+			const designPropertyValue = {
 				url: design.url,
 				name: design.displayName,
 			};

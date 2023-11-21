@@ -8,7 +8,10 @@ import type {
 } from './types';
 
 import app from '../../../app';
-import { appendToPathname } from '../../../common/url-utils';
+import {
+	appendToPathname,
+	encodeURIComponentAndDash,
+} from '../../../common/url-utils';
 import { getConfig } from '../../../config';
 import type { ConnectInstallation } from '../../../domain/entities';
 import {
@@ -229,10 +232,7 @@ describe('/entities', () => {
 				request: JSON.stringify(
 					appendToPathname(
 						new URL(normalizedFigmaDesignUrl),
-						encodeURIComponent(atlassianDesign.displayName).replaceAll(
-							'-',
-							'%2D',
-						),
+						encodeURIComponentAndDash(atlassianDesign.displayName),
 					).toString(),
 				),
 			});
@@ -249,7 +249,10 @@ describe('/entities', () => {
 				request: JSON.stringify(
 					JSON.stringify([
 						{
-							url: normalizedFigmaDesignUrl,
+							url: appendToPathname(
+								new URL(normalizedFigmaDesignUrl),
+								encodeURIComponentAndDash(atlassianDesign.displayName),
+							).toString(),
 							name: fileName,
 						},
 					]),
@@ -407,7 +410,10 @@ describe('/entities', () => {
 				request: JSON.stringify(
 					JSON.stringify([
 						{
-							url: normalizedFigmaDesignUrl,
+							url: appendToPathname(
+								new URL(normalizedFigmaDesignUrl),
+								encodeURIComponentAndDash(atlassianDesign.displayName),
+							).toString(),
 							name: atlassianDesign.displayName,
 						},
 					]),
