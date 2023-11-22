@@ -6,6 +6,7 @@ import type { CreateWebhookRequest, GetFileResponse } from './figma-client';
 import { figmaClient } from './figma-client';
 import { ERROR_RESPONSE_SCHEMA } from './figma-client/schemas';
 import {
+	DesignNodeNotFoundError,
 	transformFileMetaToAtlassianDesign,
 	transformFileToAtlassianDesign,
 	transformNodeToAtlassianDesign,
@@ -52,6 +53,7 @@ export class FigmaService {
 	/**
 	 * Return Atlassian design for the Figma design with the given ID.
 	 *
+	 * @throws {DesignNodeNotFoundError} Design node referenced by the designId was not found.
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 */
 	getDesign = async (
@@ -68,6 +70,29 @@ export class FigmaService {
 			} else {
 				return this.getDesignForNode(fileKey, nodeId, credentials);
 			}
+		});
+
+	/**
+	 * Return Atlassian design for the Figma design with the given ID. If the design
+	 * for the given ID doesn't exist, return the parent design identified by the
+	 * fileKey part of the design ID.
+	 *
+	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
+	 */
+	getDesignOrParent = async (
+		designId: FigmaDesignIdentifier,
+		user: ConnectUserInfo,
+	): Promise<AtlassianDesign> =>
+		this.withErrorTranslation(async () => {
+			const credentials = await figmaAuthService.getCredentials(user);
+
+			return this.getDesign(designId, user).catch((e) => {
+				if (e instanceof DesignNodeNotFoundError) {
+					return this.getDesignForFile(designId.fileKey, credentials);
+				}
+
+				throw e;
+			});
 		});
 
 	/**

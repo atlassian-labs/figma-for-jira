@@ -1,4 +1,5 @@
 import {
+	DesignNodeNotFoundError,
 	findNodeDataInFile,
 	mapNodeStatusToDevStatus,
 	mapNodeTypeToDesignType,
@@ -41,7 +42,7 @@ describe('transformNodeToAtlassianDesign', () => {
 		jest.restoreAllMocks();
 	});
 
-	it('should throw null if node is not found', () => {
+	it('should throw error if node is not found', () => {
 		const fileKey = generateFigmaFileKey();
 		const fileResponse = generateGetFileResponse({
 			document: {
@@ -55,7 +56,7 @@ describe('transformNodeToAtlassianDesign', () => {
 				nodeId: '100:1',
 				fileResponse,
 			}),
-		).toThrow();
+		).toThrow(DesignNodeNotFoundError);
 	});
 });
 
