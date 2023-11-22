@@ -157,10 +157,7 @@ var FigmaAPI;
 			return __generator(this, function (_a) {
 				switch (_a.label) {
 					case 0:
-						return [
-							4,
-							fetch('https://www.figma.com/api/file_metadata/'.concat(fileKey)),
-						];
+						return [4, fetch('/api/file_metadata/'.concat(fileKey))];
 					case 1:
 						resp = _a.sent();
 						if (!resp.ok) return [3, 3];
@@ -188,23 +185,17 @@ var FigmaAPI;
 					case 0:
 						return [
 							4,
-							fetch(
-								'https://www.figma.com/api/files/'.concat(
-									fileKey,
-									'/related_links',
-								),
-								{
-									method: 'POST',
-									headers: {
-										'Content-Type': 'application/json',
-									},
-									body: JSON.stringify({
-										node_id: nodeId,
-										link_name: linkName,
-										link_url: url,
-									}),
+							fetch('/api/files/'.concat(fileKey, '/related_links'), {
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/json',
 								},
-							),
+								body: JSON.stringify({
+									node_id: nodeId,
+									link_name: linkName,
+									link_url: url,
+								}),
+							}),
 						];
 					case 1:
 						resp = _b.sent();
@@ -298,22 +289,16 @@ var FigmaAPI;
 					case 0:
 						return [
 							4,
-							fetch(
-								'https://www.figma.com/api/files/'.concat(
-									fileKey,
-									'/related_links',
-								),
-								{
-									method: 'DELETE',
-									headers: {
-										'Content-Type': 'application/json',
-									},
-									body: JSON.stringify({
-										node_id: nodeId,
-										link_url: url,
-									}),
+							fetch('/api/files/'.concat(fileKey, '/related_links'), {
+								method: 'DELETE',
+								headers: {
+									'Content-Type': 'application/json',
 								},
-							),
+								body: JSON.stringify({
+									node_id: nodeId,
+									link_url: url,
+								}),
+							}),
 						];
 					case 1:
 						resp = _b.sent();
