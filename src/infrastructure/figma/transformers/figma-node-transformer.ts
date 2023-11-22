@@ -5,6 +5,7 @@ import {
 	getUpdateSequenceNumberFrom,
 } from './utils';
 
+import { CauseAwareError } from '../../../common/errors';
 import type { AtlassianDesign } from '../../../domain/entities';
 import {
 	AtlassianDesignStatus,
@@ -38,7 +39,8 @@ export const transformNodeToAtlassianDesign = ({
 		fileResponse,
 	});
 
-	if (result === null) throw new Error('Node is not found in the given File.');
+	if (result === null)
+		throw new DesignNodeNotFoundError('Node is not found in the given File.');
 
 	return result;
 };
@@ -181,3 +183,5 @@ export const mapNodeTypeToDesignType = (type: string): AtlassianDesignType => {
 			return AtlassianDesignType.OTHER;
 	}
 };
+
+export class DesignNodeNotFoundError extends CauseAwareError {}

@@ -39,7 +39,7 @@ export const associateDesignUseCase = {
 			);
 
 			const [design, issue] = await Promise.all([
-				figmaService.getDesign(figmaDesignId, {
+				figmaService.getDesignOrParent(figmaDesignId, {
 					atlassianUserId,
 					connectInstallationId: connectInstallation.id,
 				}),
