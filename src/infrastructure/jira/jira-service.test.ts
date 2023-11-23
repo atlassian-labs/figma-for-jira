@@ -334,6 +334,7 @@ describe('JiraService', () => {
 
 			await jiraService.updateAttachedDesignUrlV2IssueProperty(
 				issueId,
+				FigmaDesignIdentifier.fromAtlassianDesignId(design.id),
 				design,
 				connectInstallation,
 			);
@@ -368,6 +369,7 @@ describe('JiraService', () => {
 
 			await jiraService.updateAttachedDesignUrlV2IssueProperty(
 				issueId,
+				FigmaDesignIdentifier.fromAtlassianDesignId(design.id),
 				design,
 				connectInstallation,
 			);
@@ -392,6 +394,7 @@ describe('JiraService', () => {
 
 			await jiraService.updateAttachedDesignUrlV2IssueProperty(
 				issueId,
+				FigmaDesignIdentifier.fromAtlassianDesignId(design.id),
 				design,
 				connectInstallation,
 			);
@@ -436,6 +439,7 @@ describe('JiraService', () => {
 
 			await jiraService.updateAttachedDesignUrlV2IssueProperty(
 				issueId,
+				FigmaDesignIdentifier.fromAtlassianDesignId(design.id),
 				design,
 				connectInstallation,
 			);
@@ -447,6 +451,56 @@ describe('JiraService', () => {
 					{
 						url: JiraService.buildDesignUrlForIssueProperties(design),
 						name: design.displayName,
+					},
+					...otherIssuePropertyValueItems,
+				]),
+				connectInstallation,
+			);
+		});
+
+		it('should update issue property if it contains target item with URL matching design ID to replace', async () => {
+			const designId = FigmaDesignIdentifier.fromAtlassianDesignId(design.id);
+			const parentDesign = generateAtlassianDesign({
+				id: designId.fileKey,
+				displayName: 'Test',
+			});
+			const targetIssuePropertyValueItem = {
+				url: JiraService.buildDesignUrlForIssueProperties(design),
+				name: design.displayName,
+			};
+			const otherIssuePropertyValueItems: AttachedDesignUrlV2IssuePropertyValue =
+				[
+					{
+						url: `https://www.figma.com/file/${uuidv4()}/Test-File`,
+						name: `Test File`,
+					},
+				];
+
+			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+				generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify([
+						targetIssuePropertyValueItem,
+						...otherIssuePropertyValueItems,
+					]),
+				}),
+			);
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+
+			await jiraService.updateAttachedDesignUrlV2IssueProperty(
+				issueId,
+				designId,
+				parentDesign,
+				connectInstallation,
+			);
+
+			expect(jiraClient.setIssueProperty).toHaveBeenCalledWith(
+				issueId,
+				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				JSON.stringify([
+					{
+						url: JiraService.buildDesignUrlForIssueProperties(parentDesign),
+						name: parentDesign.displayName,
 					},
 					...otherIssuePropertyValueItems,
 				]),
@@ -473,6 +527,7 @@ describe('JiraService', () => {
 
 				await jiraService.updateAttachedDesignUrlV2IssueProperty(
 					issueId,
+					FigmaDesignIdentifier.fromAtlassianDesignId(design.id),
 					design,
 					connectInstallation,
 				);
@@ -499,6 +554,7 @@ describe('JiraService', () => {
 
 			await jiraService.updateAttachedDesignUrlV2IssueProperty(
 				issueId,
+				FigmaDesignIdentifier.fromAtlassianDesignId(design.id),
 				design,
 				connectInstallation,
 			);
@@ -533,6 +589,7 @@ describe('JiraService', () => {
 			await expect(
 				jiraService.updateAttachedDesignUrlV2IssueProperty(
 					issueId,
+					FigmaDesignIdentifier.fromAtlassianDesignId(design.id),
 					design,
 					connectInstallation,
 				),

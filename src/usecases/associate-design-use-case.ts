@@ -59,6 +59,7 @@ export const associateDesignUseCase = {
 				),
 				jiraService.saveDesignUrlInIssueProperties(
 					issue.id,
+					figmaDesignId,
 					design,
 					connectInstallation,
 				),

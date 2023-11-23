@@ -67,6 +67,7 @@ describe('associateDesignUseCase', () => {
 		);
 		expect(jiraService.saveDesignUrlInIssueProperties).toHaveBeenCalledWith(
 			issue.id,
+			designId,
 			atlassianDesign,
 			connectInstallation,
 		);

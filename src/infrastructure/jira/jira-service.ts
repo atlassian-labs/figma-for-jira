@@ -99,6 +99,7 @@ export class JiraService {
 
 	saveDesignUrlInIssueProperties = async (
 		issueIdOrKey: string,
+		figmaDesignIdToReplace: FigmaDesignIdentifier,
 		design: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
@@ -110,6 +111,7 @@ export class JiraService {
 			),
 			this.updateAttachedDesignUrlV2IssueProperty(
 				issueIdOrKey,
+				figmaDesignIdToReplace,
 				design,
 				connectInstallation,
 			),
@@ -203,6 +205,7 @@ export class JiraService {
 	 */
 	updateAttachedDesignUrlV2IssueProperty = async (
 		issueIdOrKey: string,
+		figmaDesignIdToReplace: FigmaDesignIdentifier,
 		design: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
@@ -215,7 +218,7 @@ export class JiraService {
 			);
 
 		const storedItem = storedValue?.find((item) =>
-			this.areUrlsOfSameDesign(item.url, design.url),
+			this.isUrlForDesign(item.url, figmaDesignIdToReplace),
 		);
 
 		const newItem = {
@@ -357,6 +360,20 @@ export class JiraService {
 			}
 		}
 	}
+
+	private isUrlForDesign = (
+		storedUrl: string,
+		figmaDesignId: FigmaDesignIdentifier,
+	) => {
+		try {
+			return figmaDesignId.equals(
+				FigmaDesignIdentifier.fromFigmaDesignUrl(storedUrl),
+			);
+		} catch (error) {
+			// For existing designs that were previously stored in the issue property, we may not be able to parse the URL.
+			return false;
+		}
+	};
 
 	private areUrlsOfSameDesign = (storedUrl: string, url: string) => {
 		try {
