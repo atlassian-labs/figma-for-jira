@@ -3,10 +3,7 @@ import type {
 	SubmitDesignsResponse,
 } from './jira-client';
 import { jiraClient } from './jira-client';
-import {
-	ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
-	INGESTED_DESIGN_URL_VALUE_SCHEMA,
-} from './schemas';
+import { ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA } from './schemas';
 
 import { CauseAwareError } from '../../common/errors';
 import type { JSONSchemaTypeWithId } from '../../common/schema-validation';
@@ -38,9 +35,7 @@ type SubmitDesignParams = {
 export type AttachedDesignUrlV2IssuePropertyValue = {
 	readonly url: string;
 	readonly name: string;
-};
-
-export type IngestedDesignUrlIssuePropertyValue = string;
+}[];
 
 export const appPropertyKeys = {
 	CONFIGURATION_STATE: 'is-configured',
@@ -54,7 +49,6 @@ export enum ConfigurationState {
 export const issuePropertyKeys = {
 	ATTACHED_DESIGN_URL: 'attached-design-url',
 	ATTACHED_DESIGN_URL_V2: 'attached-design-url-v2',
-	INGESTED_DESIGN_URLS: 'figma-for-jira_ingested-design-urls',
 };
 
 export const JIRA_ADMIN_GLOBAL_PERMISSION = 'ADMINISTER';
@@ -103,39 +97,6 @@ export class JiraService {
 		return await jiraClient.getIssue(issueIdOrKey, connectInstallation);
 	};
 
-	updateIngestedDesignsIssueProperty = async (
-		issueIdOrKey: string,
-		{ url }: AtlassianDesign,
-		connectInstallation: ConnectInstallation,
-	): Promise<void> => {
-		const storedValue = await this.getIssuePropertyJsonValue<
-			IngestedDesignUrlIssuePropertyValue[]
-		>(
-			issueIdOrKey,
-			issuePropertyKeys.INGESTED_DESIGN_URLS,
-			connectInstallation,
-			INGESTED_DESIGN_URL_VALUE_SCHEMA,
-		);
-
-		if (storedValue?.some((storedUrl) => storedUrl === url)) {
-			return;
-		}
-
-		const storedValueExcludingItemWithTargetUrl =
-			storedValue?.filter(
-				(storedUrl) => !this.areUrlsOfSameDesign(storedUrl, url),
-			) ?? [];
-
-		const newValue = [...storedValueExcludingItemWithTargetUrl, url];
-
-		return jiraClient.setIssueProperty(
-			issueIdOrKey,
-			issuePropertyKeys.INGESTED_DESIGN_URLS,
-			newValue,
-			connectInstallation,
-		);
-	};
-
 	saveDesignUrlInIssueProperties = async (
 		issueIdOrKey: string,
 		design: AtlassianDesign,
@@ -148,11 +109,6 @@ export class JiraService {
 				connectInstallation,
 			),
 			this.updateAttachedDesignUrlV2IssueProperty(
-				issueIdOrKey,
-				design,
-				connectInstallation,
-			),
-			this.updateIngestedDesignsIssueProperty(
 				issueIdOrKey,
 				design,
 				connectInstallation,
@@ -250,14 +206,13 @@ export class JiraService {
 		design: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
-		const storedValue = await this.getIssuePropertyJsonValue<
-			AttachedDesignUrlV2IssuePropertyValue[]
-		>(
-			issueIdOrKey,
-			issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-			connectInstallation,
-			ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
-		);
+		const storedValue =
+			await this.getIssuePropertyJsonValue<AttachedDesignUrlV2IssuePropertyValue>(
+				issueIdOrKey,
+				issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				connectInstallation,
+				ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
+			);
 
 		const storedItem = storedValue?.find((item) =>
 			this.areUrlsOfSameDesign(item.url, design.url),
@@ -350,7 +305,7 @@ export class JiraService {
 			ensureString(response.value),
 		) as unknown;
 
-		assertSchema<AttachedDesignUrlV2IssuePropertyValue[]>(
+		assertSchema<AttachedDesignUrlV2IssuePropertyValue>(
 			storedAttachedDesignUrlIssuePropertyValue,
 			ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 		);
