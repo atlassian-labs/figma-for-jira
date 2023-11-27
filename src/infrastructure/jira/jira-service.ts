@@ -217,26 +217,17 @@ export class JiraService {
 				ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA,
 			);
 
-		const storedItem = storedValue?.find((item) =>
-			this.isUrlForDesign(item.url, figmaDesignIdToReplace),
-		);
-
 		const newItem = {
 			url: JiraService.buildDesignUrlForIssueProperties(design),
 			name: design.displayName,
 		};
 
-		if (storedItem?.url === newItem.url && storedItem?.name === newItem.name) {
-			return;
-		}
+		const newValue =
+			storedValue?.filter(
+				(item) => !this.isUrlForDesign(item.url, figmaDesignIdToReplace),
+			) || [];
 
-		let newValue = storedValue ? [...storedValue] : [];
-
-		if (storedItem) {
-			newValue = newValue.map((item) => (item === storedItem ? newItem : item));
-		} else {
-			newValue.push(newItem);
-		}
+		newValue.push(newItem);
 
 		return jiraClient.setIssueProperty(
 			issueIdOrKey,
