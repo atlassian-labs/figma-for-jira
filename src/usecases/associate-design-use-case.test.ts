@@ -1,5 +1,6 @@
 import type { AssociateDesignUseCaseParams } from './associate-design-use-case';
 import { associateDesignUseCase } from './associate-design-use-case';
+import { FigmaDesignNotFoundUseCaseResultError } from './errors';
 import { generateAssociateDesignUseCaseParams } from './testing';
 
 import type { AssociatedFigmaDesign } from '../domain/entities';
@@ -88,6 +89,24 @@ describe('associateDesignUseCase', () => {
 			associatedWithAri: params.associateWith.ari,
 			connectInstallationId: connectInstallation.id,
 		});
+	});
+
+	it('should throw FigmaDesignNotFoundUseCaseResultError when design is not found', async () => {
+		const connectInstallation = generateConnectInstallation();
+		const issue = generateJiraIssue();
+		const fileKey = generateFigmaFileKey();
+		const params: AssociateDesignUseCaseParams =
+			generateAssociateDesignUseCaseParams({
+				entityUrl: generateFigmaDesignUrl({ fileKey }),
+				issueId: issue.id,
+				connectInstallation,
+			});
+		jest.spyOn(figmaService, 'getDesignOrParent').mockResolvedValue(null);
+		jest.spyOn(jiraService, 'getIssue').mockResolvedValue(issue);
+
+		await expect(() =>
+			associateDesignUseCase.execute(params),
+		).rejects.toBeInstanceOf(FigmaDesignNotFoundUseCaseResultError);
 	});
 
 	it('should not save associated Figma design when design submission fails', async () => {

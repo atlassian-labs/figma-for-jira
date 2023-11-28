@@ -2,6 +2,7 @@ import { HttpStatusCode } from 'axios';
 import type { NextFunction, Request, Response } from 'express';
 
 import {
+	FigmaDesignNotFoundUseCaseResultError,
 	ForbiddenByFigmaUseCaseResultError,
 	InvalidInputUseCaseResultError,
 	PaidFigmaPlanRequiredUseCaseResultError,
@@ -38,13 +39,18 @@ export const errorHandlerMiddleware = (
 			return next();
 		}
 
+		if (err instanceof PaidFigmaPlanRequiredUseCaseResultError) {
+			res.status(HttpStatusCode.PaymentRequired).send({ message: err.message });
+			return next();
+		}
+
 		if (err instanceof ForbiddenByFigmaUseCaseResultError) {
 			res.status(HttpStatusCode.Forbidden).send({ message: err.message });
 			return next();
 		}
 
-		if (err instanceof PaidFigmaPlanRequiredUseCaseResultError) {
-			res.status(HttpStatusCode.PaymentRequired).send({ message: err.message });
+		if (err instanceof FigmaDesignNotFoundUseCaseResultError) {
+			res.status(HttpStatusCode.NotFound).send({ message: err.message });
 			return next();
 		}
 	}
