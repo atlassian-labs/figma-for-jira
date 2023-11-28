@@ -151,26 +151,60 @@ function logInfo(s) {
 }
 var FigmaAPI;
 (function (FigmaAPI) {
+	function fetchWithIframe(params) {
+		return __awaiter(this, void 0, void 0, function () {
+			return __generator(this, function (_a) {
+				return [
+					2,
+					new Promise(function (resolve, reject) {
+						var iframe = document.createElement('iframe');
+						iframe.style.display = 'hidden';
+						iframe.style.width = '0px';
+						iframe.style.height = '0px';
+						function onMessage(event) {
+							var _a;
+							if (event.origin !== 'https://www.figma.com') {
+								return;
+							}
+							var message = event.data;
+							if (typeof message !== 'object' || message == null) {
+								reject('Error receiving data from iframe');
+							}
+							if (message.success === true) {
+								resolve(message.data);
+							} else {
+								reject(
+									(_a = message.error) !== null && _a !== void 0
+										? _a
+										: 'Received an unknown error from iframe',
+								);
+							}
+							window.removeEventListener('message', onMessage);
+							document.body.removeChild(iframe);
+						}
+						window.addEventListener('message', onMessage);
+						var url = new URL(
+							'https://www.figma.com/jira-add-on/issue-iframe.html',
+						);
+						url.search = new URLSearchParams(params).toString();
+						iframe.src = url.toString();
+						document.body.appendChild(iframe);
+					}),
+				];
+			});
+		});
+	}
 	function getFileName(fileKey) {
 		return __awaiter(this, void 0, void 0, function () {
-			var resp, data, name_1;
 			return __generator(this, function (_a) {
 				switch (_a.label) {
 					case 0:
 						return [
 							4,
-							fetch('https://www.figma.com/api/file_metadata/'.concat(fileKey)),
+							fetchWithIframe({ type: 'get_file_name', fileKey: fileKey }),
 						];
 					case 1:
-						resp = _a.sent();
-						if (!resp.ok) return [3, 3];
-						return [4, resp.json()];
-					case 2:
-						data = _a.sent();
-						name_1 = data.meta.name;
-						return [2, name_1 !== null && name_1 !== void 0 ? name_1 : ''];
-					case 3:
-						throw new Error('Error fetching file name');
+						return [2, _a.sent()];
 				}
 			});
 		});
@@ -182,38 +216,28 @@ var FigmaAPI;
 			url = _a.url,
 			linkName = _a.linkName;
 		return __awaiter(this, void 0, void 0, function () {
-			var resp, data;
+			var e_1;
 			return __generator(this, function (_b) {
 				switch (_b.label) {
 					case 0:
+						_b.trys.push([0, 2, , 3]);
 						return [
 							4,
-							fetch(
-								'https://www.figma.com/api/files/'.concat(
-									fileKey,
-									'/related_links',
-								),
-								{
-									method: 'POST',
-									headers: {
-										'Content-Type': 'application/json',
-									},
-									body: JSON.stringify({
-										node_id: nodeId,
-										link_name: linkName,
-										link_url: url,
-									}),
-								},
-							),
+							fetchWithIframe({
+								type: 'add_related_link',
+								fileKey: fileKey,
+								nodeId: nodeId,
+								url: url,
+								linkName: linkName,
+							}),
 						];
 					case 1:
-						resp = _b.sent();
-						if (!!resp.ok) return [3, 3];
-						return [4, resp.json()];
+						_b.sent();
+						return [3, 3];
 					case 2:
-						data = _b.sent();
-						console.error(data);
-						_b.label = 3;
+						e_1 = _b.sent();
+						console.error(e_1);
+						return [3, 3];
 					case 3:
 						return [2];
 				}
@@ -223,7 +247,7 @@ var FigmaAPI;
 	function maybeAddRelatedLink(linkUrl, issueKey) {
 		var _a, _b, _c;
 		return __awaiter(this, void 0, void 0, function () {
-			var info, fileKey, nodeId, _d, issueUrl, issueInfo, linkName, e_1;
+			var info, fileKey, nodeId, _d, issueUrl, issueInfo, linkName, e_2;
 			return __generator(this, function (_e) {
 				switch (_e.label) {
 					case 0:
@@ -277,8 +301,8 @@ var FigmaAPI;
 						_e.sent();
 						return [3, 5];
 					case 4:
-						e_1 = _e.sent();
-						console.error('Error adding dev resource '.concat(e_1));
+						e_2 = _e.sent();
+						console.error('Error adding dev resource '.concat(e_2));
 						return [3, 5];
 					case 5:
 						return [2];
@@ -292,37 +316,27 @@ var FigmaAPI;
 			fileKey = _a.fileKey,
 			url = _a.url;
 		return __awaiter(this, void 0, void 0, function () {
-			var resp, data;
+			var e_3;
 			return __generator(this, function (_b) {
 				switch (_b.label) {
 					case 0:
+						_b.trys.push([0, 2, , 3]);
 						return [
 							4,
-							fetch(
-								'https://www.figma.com/api/files/'.concat(
-									fileKey,
-									'/related_links',
-								),
-								{
-									method: 'DELETE',
-									headers: {
-										'Content-Type': 'application/json',
-									},
-									body: JSON.stringify({
-										node_id: nodeId,
-										link_url: url,
-									}),
-								},
-							),
+							fetchWithIframe({
+								type: 'remove_related_link',
+								nodeId: nodeId,
+								fileKey: fileKey,
+								url: url,
+							}),
 						];
 					case 1:
-						resp = _b.sent();
-						if (!!resp.ok) return [3, 3];
-						return [4, resp.json()];
+						_b.sent();
+						return [3, 3];
 					case 2:
-						data = _b.sent();
-						console.error(data);
-						_b.label = 3;
+						e_3 = _b.sent();
+						console.error(e_3);
+						return [3, 3];
 					case 3:
 						return [2];
 				}
@@ -332,7 +346,7 @@ var FigmaAPI;
 	function maybeRemoveRelatedLink(linkUrl, issueKey) {
 		var _a;
 		return __awaiter(this, void 0, void 0, function () {
-			var info, fileKey, nodeId, issueUrl, e_2;
+			var info, fileKey, nodeId, issueUrl, e_4;
 			return __generator(this, function (_b) {
 				switch (_b.label) {
 					case 0:
@@ -369,8 +383,8 @@ var FigmaAPI;
 						_b.sent();
 						return [3, 5];
 					case 4:
-						e_2 = _b.sent();
-						console.error('Error removing dev resource '.concat(e_2));
+						e_4 = _b.sent();
+						console.error('Error removing dev resource '.concat(e_4));
 						return [3, 5];
 					case 5:
 						return [2];
@@ -820,7 +834,7 @@ var FigmaAddon = (function () {
 		};
 		this.lookupDesignInfo = function (urls) {
 			return __awaiter(_this, void 0, void 0, function () {
-				var _i, urls_1, url, info, fileKey, name_2, urlRef, e_3;
+				var _i, urls_1, url, info, fileKey, name_1, urlRef, e_5;
 				return __generator(this, function (_a) {
 					switch (_a.label) {
 						case 0:
@@ -839,14 +853,14 @@ var FigmaAddon = (function () {
 							_a.trys.push([2, 6, , 7]);
 							return [4, FigmaAPI.getFileName(fileKey)];
 						case 3:
-							name_2 = _a.sent();
+							name_1 = _a.sent();
 							urlRef = urlToDiv[url];
 							if (!urlRef) return [3, 5];
-							urlRef.name.innerText = name_2;
+							urlRef.name.innerText = name_1;
 							return [
 								4,
 								this.updateAttachedLinks({
-									toAdd: [{ url: url, name: name_2 }],
+									toAdd: [{ url: url, name: name_1 }],
 								}),
 							];
 						case 4:
@@ -855,10 +869,10 @@ var FigmaAddon = (function () {
 						case 5:
 							return [3, 7];
 						case 6:
-							e_3 = _a.sent();
+							e_5 = _a.sent();
 							console.error(
 								'Error fetching info for file '.concat(fileKey),
-								e_3,
+								e_5,
 							);
 							return [3, 7];
 						case 7:
@@ -1201,7 +1215,7 @@ var FigmaAddon = (function () {
 			for (var _b = 0, _c = _this.links; _b < _c.length; _b++) {
 				var link = _c[_b];
 				var url = link.url,
-					name_3 = link.name;
+					name_2 = link.name;
 				var isCurrent =
 					url ===
 					((_a = _this.currentPageInfo) === null || _a === void 0
@@ -1216,7 +1230,7 @@ var FigmaAddon = (function () {
 				header.appendChild(logo);
 				var title = document.createElement('div');
 				title.className = 'collapsed-title';
-				title.innerText = name_3;
+				title.innerText = name_2;
 				header.appendChild(title);
 				collapsed.appendChild(header);
 				var caret = document.createElement('img');
