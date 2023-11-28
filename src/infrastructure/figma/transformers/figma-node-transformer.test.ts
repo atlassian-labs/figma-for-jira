@@ -1,5 +1,4 @@
 import {
-	DesignNodeNotFoundError,
 	findNodeDataInFile,
 	mapNodeStatusToDevStatus,
 	mapNodeTypeToDesignType,
@@ -56,7 +55,7 @@ describe('transformNodeToAtlassianDesign', () => {
 				nodeId: '100:1',
 				fileResponse,
 			}),
-		).toThrow(DesignNodeNotFoundError);
+		).toThrow();
 	});
 });
 

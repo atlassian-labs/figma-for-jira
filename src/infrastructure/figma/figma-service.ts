@@ -51,7 +51,6 @@ export class FigmaService {
 	/**
 	 * Returns Atlassian design for the Figma design with the given ID if it exists; otherwise -- `null`.
 	 *
-	 * @throws {DesignNodeNotFoundError} Design node referenced by the designId was not found.
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 */
 	getDesign = async (
@@ -64,9 +63,9 @@ export class FigmaService {
 			const { fileKey, nodeId } = designId;
 
 			if (!nodeId) {
-				return this.getDesignForFile(fileKey, credentials);
+				return await this.getDesignForFile(fileKey, credentials);
 			} else {
-				return this.getDesignForNode(fileKey, nodeId, credentials);
+				return await this.getDesignForNode(fileKey, nodeId, credentials);
 			}
 		});
 
@@ -343,91 +342,100 @@ export class FigmaService {
 
 	/**
 	 * Returns Atlassian design representation for the given Figma File if it exists; otherwise -- `null`.
+	 *
+	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 */
 	private getDesignForFile = async (
 		fileKey: string,
 		credentials: FigmaOAuth2UserCredentials,
-	): Promise<AtlassianDesign | null> => {
-		try {
-			// Use File Metadata API for better performance.
-			const fileMetaResponse = await figmaClient.getFileMeta(
-				fileKey,
-				credentials.accessToken,
-			);
-			return transformFileMetaToAtlassianDesign({
-				fileKey,
-				fileMetaResponse,
-			});
-		} catch (e) {
-			if (e instanceof NotFoundHttpClientError) return null;
-			throw e;
-		}
-	};
+	): Promise<AtlassianDesign | null> =>
+		this.withErrorTranslation(async () => {
+			try {
+				// Use File Metadata API for better performance.
+				const fileMetaResponse = await figmaClient.getFileMeta(
+					fileKey,
+					credentials.accessToken,
+				);
+				return transformFileMetaToAtlassianDesign({
+					fileKey,
+					fileMetaResponse,
+				});
+			} catch (e) {
+				if (e instanceof NotFoundHttpClientError) return null;
+				throw e;
+			}
+		});
 
 	/**
 	 * Returns Atlassian design representation for the given Figma Node if it exists; otherwise -- `null`.
+	 *
+	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 */
 	private getDesignForNode = async (
 		fileKey: string,
 		nodeId: string,
 		credentials: FigmaOAuth2UserCredentials,
-	): Promise<AtlassianDesign | null> => {
-		try {
-			const fileResponse = await figmaClient.getFile(
-				fileKey,
-				{
-					ids: [nodeId],
-					depth: 0, // Exclude children of the target node to avoid a massive response payload and high network latency.
-					node_last_modified: true,
-				},
-				credentials.accessToken,
-			);
+	): Promise<AtlassianDesign | null> =>
+		this.withErrorTranslation(async () => {
+			try {
+				const fileResponse = await figmaClient.getFile(
+					fileKey,
+					{
+						ids: [nodeId],
+						depth: 0, // Exclude children of the target node to avoid a massive response payload and high network latency.
+						node_last_modified: true,
+					},
+					credentials.accessToken,
+				);
 
-			return tryTransformNodeToAtlassianDesign({
-				fileKey,
-				nodeId,
-				fileResponse,
-			});
-		} catch (e) {
-			if (e instanceof NotFoundHttpClientError) return null;
-			throw e;
-		}
-	};
+				return tryTransformNodeToAtlassianDesign({
+					fileKey,
+					nodeId,
+					fileResponse,
+				});
+			} catch (e) {
+				if (e instanceof NotFoundHttpClientError) return null;
+				throw e;
+			}
+		});
 
 	/**
 	 * Returns Atlassian design representation for the given Figma Node if it exists; Figma File if Node does not exist;
 	 * otherwise -- `null`.
+	 *
+	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 */
 	private getDesignForNodeOrFile = async (
 		fileKey: string,
 		nodeId: string,
 		credentials: FigmaOAuth2UserCredentials,
-	): Promise<AtlassianDesign | null> => {
-		try {
-			const fileResponse = await figmaClient.getFile(
-				fileKey,
-				{
-					ids: [nodeId],
-					depth: 0, // Exclude children of the target node to avoid a massive response payload and high network latency.
-					node_last_modified: true,
-				},
-				credentials.accessToken,
-			);
+	): Promise<AtlassianDesign | null> =>
+		this.withErrorTranslation(async () => {
+			try {
+				const fileResponse = await figmaClient.getFile(
+					fileKey,
+					{
+						ids: [nodeId],
+						depth: 0, // Exclude children of the target node to avoid a massive response payload and high network latency.
+						node_last_modified: true,
+					},
+					credentials.accessToken,
+				);
 
-			let design = tryTransformNodeToAtlassianDesign({
-				fileKey,
-				nodeId,
-				fileResponse,
-			});
+				let design = tryTransformNodeToAtlassianDesign({
+					fileKey,
+					nodeId,
+					fileResponse,
+				});
 
-			design ??= transformFileToAtlassianDesign({ fileKey, fileResponse });
+				design ??= transformFileToAtlassianDesign({ fileKey, fileResponse });
 
-			return design;
-		} catch (e) {
-			if (e instanceof NotFoundHttpClientError) return null;
-			throw e;
-		}
-	};
+				return design;
+			} catch (e) {
+				if (e instanceof NotFoundHttpClientError) return null;
+				throw e;
+			}
+		});
 
 	/**
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
