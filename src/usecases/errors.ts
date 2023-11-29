@@ -7,13 +7,19 @@ import { CauseAwareError } from '../common/errors';
 export class UseCaseResultError extends CauseAwareError {}
 
 export class ForbiddenByFigmaUseCaseResultError extends UseCaseResultError {
-	constructor(cause: Error) {
+	constructor(cause?: Error) {
 		super('Not authorized to access Figma API.', cause);
 	}
 }
 
+export class FigmaDesignNotFoundUseCaseResultError extends UseCaseResultError {
+	constructor(cause?: Error) {
+		super('Design is not found.', cause);
+	}
+}
+
 export class PaidFigmaPlanRequiredUseCaseResultError extends UseCaseResultError {
-	constructor(cause: Error) {
+	constructor(cause?: Error) {
 		super('You need a paid Figma plan to perform this operation.', cause);
 	}
 }

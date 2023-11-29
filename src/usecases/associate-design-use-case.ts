@@ -1,4 +1,7 @@
-import { ForbiddenByFigmaUseCaseResultError } from './errors';
+import {
+	FigmaDesignNotFoundUseCaseResultError,
+	ForbiddenByFigmaUseCaseResultError,
+} from './errors';
 import type { AtlassianEntity } from './types';
 
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
@@ -45,6 +48,8 @@ export const associateDesignUseCase = {
 				}),
 				jiraService.getIssue(associateWith.id, connectInstallation),
 			]);
+
+			if (!design) throw new FigmaDesignNotFoundUseCaseResultError();
 
 			const designIssueAssociation =
 				AtlassianAssociation.createDesignIssueAssociation(associateWith.ari);

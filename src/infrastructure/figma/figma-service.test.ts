@@ -128,7 +128,7 @@ describe('FigmaService', () => {
 	});
 
 	describe('getDesign', () => {
-		it('should return a valid design entity if design id points out to file', async () => {
+		it('should return design if design id points out to Figma file', async () => {
 			const designId = generateFigmaDesignIdentifier();
 			const credentials = generateFigmaOAuth2UserCredentials();
 			const fileMetaResponse = generateGetFileMetaResponse();
@@ -155,7 +155,7 @@ describe('FigmaService', () => {
 			});
 		});
 
-		it('should return a valid design entity if design id points out to node', async () => {
+		it('should return design if design id points out to Figma node', async () => {
 			const nodeId = generateFigmaNodeId();
 			const node = generateChildNode({ id: nodeId });
 			const designId = generateFigmaDesignIdentifier({ nodeId });
@@ -183,21 +183,25 @@ describe('FigmaService', () => {
 			});
 		});
 
-		it('should throw when node is not found', async () => {
+		it('should return `null` when Figma node is not found', async () => {
 			const designId = generateFigmaDesignIdentifier({
 				nodeId: generateFigmaNodeId(),
 			});
 			const credentials = generateFigmaOAuth2UserCredentials();
-			const fileResponse = generateGetFileResponse();
 
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
-			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(fileResponse);
+			jest
+				.spyOn(figmaClient, 'getFile')
+				.mockRejectedValue(new NotFoundHttpClientError());
 
-			await expect(() =>
-				figmaService.getDesign(designId, MOCK_CONNECT_USER_INFO),
-			).rejects.toThrow();
+			const result = await figmaService.getDesign(
+				designId,
+				MOCK_CONNECT_USER_INFO,
+			);
+
+			expect(result).toBeNull();
 		});
 
 		it('should throw when a request to a Figma api fails', async () => {
@@ -217,7 +221,7 @@ describe('FigmaService', () => {
 	});
 
 	describe('getDesignOrParent', () => {
-		it('should return a valid design entity if design id points out to file', async () => {
+		it('should return a valid design entity if design id points out to Figma file', async () => {
 			const designId = generateFigmaDesignIdentifier();
 			const credentials = generateFigmaOAuth2UserCredentials();
 			const fileMetaResponse = generateGetFileMetaResponse();
@@ -229,7 +233,7 @@ describe('FigmaService', () => {
 				.spyOn(figmaClient, 'getFileMeta')
 				.mockResolvedValue(fileMetaResponse);
 
-			const res = await figmaService.getDesignOrParent(
+			const result = await figmaService.getDesignOrParent(
 				designId,
 				MOCK_CONNECT_USER_INFO,
 			);
@@ -238,13 +242,13 @@ describe('FigmaService', () => {
 				fileKey: designId.fileKey,
 				fileMetaResponse,
 			});
-			expect(res).toStrictEqual({
+			expect(result).toStrictEqual({
 				...expectedEntity,
 				lastUpdated: expect.anything(),
 			});
 		});
 
-		it('should return a valid design entity if design id points out to node', async () => {
+		it('should return a valid design entity if design id points out to Figma node', async () => {
 			const nodeId = generateFigmaNodeId();
 			const node = generateChildNode({ id: nodeId });
 			const designId = generateFigmaDesignIdentifier({ nodeId });
@@ -272,35 +276,52 @@ describe('FigmaService', () => {
 			});
 		});
 
-		it('should return parent design entity when node is not found', async () => {
+		it('should return design for Figma file when Figma node is not found', async () => {
 			const designId = generateFigmaDesignIdentifier({
 				nodeId: generateFigmaNodeId(),
 			});
 			const credentials = generateFigmaOAuth2UserCredentials();
 			const fileResponse = generateGetFileResponse();
-			const fileMetaResponse = generateGetFileMetaResponse();
 
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(fileResponse);
-			jest
-				.spyOn(figmaClient, 'getFileMeta')
-				.mockResolvedValue(fileMetaResponse);
 
-			const res = await figmaService.getDesignOrParent(
+			const result = await figmaService.getDesignOrParent(
 				designId,
 				MOCK_CONNECT_USER_INFO,
 			);
 
-			const expectedEntity = transformFileMetaToAtlassianDesign({
+			const expectedEntity = transformFileToAtlassianDesign({
 				fileKey: designId.fileKey,
-				fileMetaResponse,
+				fileResponse,
 			});
-			expect(res).toStrictEqual({
+			expect(result).toStrictEqual({
 				...expectedEntity,
 				lastUpdated: expect.anything(),
 			});
+		});
+
+		it('should return `null` when Figma file is not found', async () => {
+			const designId = generateFigmaDesignIdentifier({
+				nodeId: generateFigmaNodeId(),
+			});
+			const credentials = generateFigmaOAuth2UserCredentials();
+
+			jest
+				.spyOn(figmaAuthService, 'getCredentials')
+				.mockResolvedValue(credentials);
+			jest
+				.spyOn(figmaClient, 'getFile')
+				.mockRejectedValue(new NotFoundHttpClientError());
+
+			const design = await figmaService.getDesignOrParent(
+				designId,
+				MOCK_CONNECT_USER_INFO,
+			);
+
+			expect(design).toBeNull();
 		});
 
 		it('should throw when a request to a Figma api fails', async () => {
@@ -366,7 +387,7 @@ describe('FigmaService', () => {
 			]);
 		});
 
-		it('should return empty array if Figma dile does not exist', async () => {
+		it('should return empty array if Figma file does not exist', async () => {
 			const designId = generateFigmaDesignIdentifier();
 			const credentials = generateFigmaOAuth2UserCredentials();
 			const error = new NotFoundHttpClientError('Figma API failed');

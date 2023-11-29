@@ -1,4 +1,5 @@
 import {
+	FigmaDesignNotFoundUseCaseResultError,
 	ForbiddenByFigmaUseCaseResultError,
 	InvalidInputUseCaseResultError,
 } from './errors';
@@ -55,6 +56,9 @@ export const disassociateDesignUseCase = {
 				}),
 				jiraService.getIssue(disassociateFrom.id, connectInstallation),
 			]);
+
+			// TODO: Remove this once FABB-56 is resolved.
+			if (!design) throw new FigmaDesignNotFoundUseCaseResultError();
 
 			const designIssueAssociation =
 				AtlassianAssociation.createDesignIssueAssociation(disassociateFrom.ari);

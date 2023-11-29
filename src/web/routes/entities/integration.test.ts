@@ -464,6 +464,57 @@ describe('/entities', () => {
 				.expect(HttpStatusCode.Forbidden);
 		});
 
+		it('should respond with 404 if design is not found', async () => {
+			const atlassianUserId = uuidv4();
+			const fileKey = generateFigmaFileKey();
+			const issueId = generateJiraIssueId();
+			const issueAri = generateJiraIssueAri({ issueId });
+			const inputFigmaDesignUrl = generateFigmaDesignUrl({ fileKey });
+
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const figmaUserCredentials =
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaOAuth2UserCredentialCreateParams({
+						atlassianUserId,
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
+
+			mockJiraGetIssueEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId,
+			});
+			mockFigmaGetFileMetaEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey,
+				accessToken: figmaUserCredentials.accessToken,
+				status: HttpStatusCode.NotFound,
+			});
+
+			await request(app)
+				.post('/entities/associateEntity')
+				.query({ userId: atlassianUserId })
+				.send(
+					generateAssociateEntityRequest({
+						issueId,
+						issueAri,
+						figmaDesignUrl: inputFigmaDesignUrl,
+					}),
+				)
+				.set(
+					'Authorization',
+					`JWT ${generateAssociateEntityJwt(
+						connectInstallation,
+						atlassianUserId,
+					)}`,
+				)
+				.set('Content-Type', 'application/json')
+				.set('User-Id', atlassianUserId)
+				.expect(HttpStatusCode.NotFound);
+		});
+
 		it('should respond with 500 if design fetching fails', async () => {
 			const atlassianUserId = uuidv4();
 			const fileKey = generateFigmaFileKey();
@@ -514,7 +565,8 @@ describe('/entities', () => {
 					)}`,
 				)
 				.set('Content-Type', 'application/json')
-				.set('User-Id', atlassianUserId);
+				.set('User-Id', atlassianUserId)
+				.expect(HttpStatusCode.InternalServerError);
 		});
 	});
 
