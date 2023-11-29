@@ -128,11 +128,14 @@ export class FigmaService {
 			let fileResponse: GetFileResponse;
 
 			try {
+				const nodeIds = designIds.map((id) => id.nodeId).filter(isString);
 				fileResponse = await figmaClient.getFile(
 					fileKey,
 					{
-						ids: designIds.map((id) => id.nodeId).filter(isString),
-						depth: 0, // Exclude children of the target nodes(s) to avoid a massive response payload and high network latency.
+						ids: nodeIds,
+						// If there is at least 1 node, use `depth=0` to exclude children and, therefore, avoid a massive response payload and high network latency.
+						// If there is no node, `depth=0` is considered invalid -- use `depth=1` instead.
+						depth: nodeIds.length ? 0 : 1,
 						node_last_modified: true,
 					},
 					accessToken,

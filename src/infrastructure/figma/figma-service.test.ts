@@ -341,6 +341,39 @@ describe('FigmaService', () => {
 	});
 
 	describe('getAvailableDesignsFromSameFile', () => {
+		it('should return designs for Figma file', async () => {
+			const fileKey = generateFigmaFileKey();
+			const designIdWithoutNode = generateFigmaDesignIdentifier({ fileKey });
+			const credentials = generateFigmaOAuth2UserCredentials();
+			const mockResponse = generateGetFileResponse();
+
+			jest
+				.spyOn(figmaAuthService, 'getCredentials')
+				.mockResolvedValue(credentials);
+			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
+
+			const result = await figmaService.getAvailableDesignsFromSameFile(
+				[designIdWithoutNode],
+				MOCK_CONNECT_USER_INFO,
+			);
+
+			expect(result).toStrictEqual([
+				transformFileToAtlassianDesign({
+					fileKey: designIdWithoutNode.fileKey,
+					fileResponse: mockResponse,
+				}),
+			]);
+			expect(figmaClient.getFile).toHaveBeenCalledWith(
+				fileKey,
+				{
+					ids: [],
+					depth: 1,
+					node_last_modified: true,
+				},
+				credentials.accessToken,
+			);
+		});
+
 		it('should return designs for Figma file and nodes', async () => {
 			const node1 = generateFrameNode({ id: '1:1' });
 			const node2 = generateFrameNode({ id: '1:2' });
@@ -385,6 +418,15 @@ describe('FigmaService', () => {
 					fileResponse: mockResponse,
 				}),
 			]);
+			expect(figmaClient.getFile).toHaveBeenCalledWith(
+				fileKey,
+				{
+					ids: [designIdWithNode1.nodeId, designIdWithNode2.nodeId],
+					depth: 0,
+					node_last_modified: true,
+				},
+				credentials.accessToken,
+			);
 		});
 
 		it('should return empty array if Figma file does not exist', async () => {
