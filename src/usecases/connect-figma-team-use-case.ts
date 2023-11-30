@@ -10,7 +10,7 @@ import type { ConnectInstallation, FigmaTeamSummary } from '../domain/entities';
 import { FigmaTeamAuthStatus } from '../domain/entities';
 import {
 	figmaService,
-	InvalidRequestFigmaServiceError,
+	InvalidInputFigmaServiceError,
 	PaidPlanRequiredFigmaServiceError,
 	UnauthorizedFigmaServiceError,
 } from '../infrastructure/figma';
@@ -66,7 +66,7 @@ export const connectFigmaTeamUseCase = {
 				throw new PaidFigmaPlanRequiredUseCaseResultError(e);
 			}
 
-			if (e instanceof InvalidRequestFigmaServiceError) {
+			if (e instanceof InvalidInputFigmaServiceError) {
 				throw new InvalidInputUseCaseResultError(e.message, e);
 			}
 

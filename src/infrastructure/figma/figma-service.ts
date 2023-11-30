@@ -347,7 +347,7 @@ export class FigmaService {
 					e instanceof BadRequestHttpClientError &&
 					isOfSchema(e.response, ERROR_RESPONSE_SCHEMA)
 				) {
-					throw new InvalidRequestFigmaServiceError(e.response.message, e);
+					throw new InvalidInputFigmaServiceError(e.response.message, e);
 				}
 
 				throw e;
@@ -458,7 +458,6 @@ export class FigmaService {
 		try {
 			return await fn();
 		} catch (e: unknown) {
-			console.log('with error translation', e);
 			if (
 				e instanceof MissingOrInvalidCredentialsFigmaAuthServiceError ||
 				e instanceof UnauthorizedHttpClientError ||
@@ -481,4 +480,4 @@ export class UnauthorizedFigmaServiceError extends CauseAwareError {}
 
 export class PaidPlanRequiredFigmaServiceError extends CauseAwareError {}
 
-export class InvalidRequestFigmaServiceError extends CauseAwareError {}
+export class InvalidInputFigmaServiceError extends CauseAwareError {}

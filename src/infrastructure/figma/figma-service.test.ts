@@ -22,7 +22,7 @@ import {
 } from './figma-client/testing';
 import {
 	figmaService,
-	InvalidRequestFigmaServiceError,
+	InvalidInputFigmaServiceError,
 	PaidPlanRequiredFigmaServiceError,
 } from './figma-service';
 import {
@@ -902,7 +902,7 @@ describe('FigmaService', () => {
 		});
 	});
 
-	describe.only('getTeamName', () => {
+	describe('getTeamName', () => {
 		beforeEach(() => {
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
@@ -935,7 +935,7 @@ describe('FigmaService', () => {
 
 			await expect(
 				figmaService.getTeamName(teamId, MOCK_CONNECT_USER_INFO),
-			).rejects.toThrow(InvalidRequestFigmaServiceError);
+			).rejects.toThrow(InvalidInputFigmaServiceError);
 		});
 
 		it('should throw an error when the request fails', async () => {
