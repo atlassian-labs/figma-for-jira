@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import {
 	ForbiddenByFigmaUseCaseResultError,
+	InvalidInputUseCaseResultError,
 	PaidFigmaPlanRequiredUseCaseResultError,
 } from './errors';
 
@@ -9,6 +10,7 @@ import type { ConnectInstallation, FigmaTeamSummary } from '../domain/entities';
 import { FigmaTeamAuthStatus } from '../domain/entities';
 import {
 	figmaService,
+	InvalidRequestFigmaServiceError,
 	PaidPlanRequiredFigmaServiceError,
 	UnauthorizedFigmaServiceError,
 } from '../infrastructure/figma';
@@ -62,6 +64,10 @@ export const connectFigmaTeamUseCase = {
 
 			if (e instanceof PaidPlanRequiredFigmaServiceError) {
 				throw new PaidFigmaPlanRequiredUseCaseResultError(e);
+			}
+
+			if (e instanceof InvalidRequestFigmaServiceError) {
+				throw new InvalidInputUseCaseResultError(e.message, e);
 			}
 
 			throw e;
