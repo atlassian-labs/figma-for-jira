@@ -1,5 +1,4 @@
 import {
-	FigmaDesignNotFoundUseCaseResultError,
 	ForbiddenByFigmaUseCaseResultError,
 	InvalidInputUseCaseResultError,
 } from './errors';
@@ -8,6 +7,8 @@ import type { AtlassianEntity } from './types';
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
 import {
 	AtlassianAssociation,
+	AtlassianDesignStatus,
+	AtlassianDesignType,
 	buildJiraIssueUrl,
 	FigmaDesignIdentifier,
 	JIRA_ISSUE_ATI,
@@ -16,6 +17,11 @@ import {
 	figmaService,
 	UnauthorizedFigmaServiceError,
 } from '../infrastructure/figma';
+import {
+	buildDesignUrl,
+	buildInspectUrl,
+	buildLiveEmbedUrl,
+} from '../infrastructure/figma/transformers/utils';
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
@@ -49,16 +55,24 @@ export const disassociateDesignUseCase = {
 				entity.id,
 			);
 
-			const [design, issue] = await Promise.all([
-				figmaService.getDesign(figmaDesignId, {
-					atlassianUserId,
-					connectInstallationId: connectInstallation.id,
-				}),
-				jiraService.getIssue(disassociateFrom.id, connectInstallation),
-			]);
+			// By setting updateSequenceNumber to 0 the design will not be updated,
+			// and therefore we don't need to fetch the actual design data.
+			const designStub = {
+				id: figmaDesignId.toAtlassianDesignId(),
+				displayName: 'Untitled',
+				url: buildDesignUrl(figmaDesignId),
+				liveEmbedUrl: buildLiveEmbedUrl(figmaDesignId),
+				inspectUrl: buildInspectUrl(figmaDesignId),
+				status: AtlassianDesignStatus.UNKNOWN,
+				type: AtlassianDesignType.OTHER,
+				lastUpdated: new Date().toISOString(),
+				updateSequenceNumber: 0,
+			};
 
-			// TODO: Remove this once FABB-56 is resolved.
-			if (!design) throw new FigmaDesignNotFoundUseCaseResultError();
+			const issue = await jiraService.getIssue(
+				disassociateFrom.id,
+				connectInstallation,
+			);
 
 			const designIssueAssociation =
 				AtlassianAssociation.createDesignIssueAssociation(disassociateFrom.ari);
@@ -68,14 +82,14 @@ export const disassociateDesignUseCase = {
 			await Promise.all([
 				jiraService.submitDesign(
 					{
-						design,
+						design: designStub,
 						removeAssociations: [designIssueAssociation],
 					},
 					connectInstallation,
 				),
 				jiraService.deleteDesignUrlInIssueProperties(
 					issueId,
-					design,
+					designStub,
 					connectInstallation,
 				),
 				figmaService.deleteDevResource({
@@ -97,7 +111,7 @@ export const disassociateDesignUseCase = {
 				connectInstallation.id,
 			);
 
-			return design;
+			return designStub;
 		} catch (e) {
 			if (e instanceof UnauthorizedFigmaServiceError) {
 				throw new ForbiddenByFigmaUseCaseResultError(e);
