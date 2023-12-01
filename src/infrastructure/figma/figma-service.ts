@@ -339,8 +339,19 @@ export class FigmaService {
 		this.withErrorTranslation(async () => {
 			const { accessToken } = await figmaAuthService.getCredentials(user);
 
-			const response = await figmaClient.getTeamProjects(teamId, accessToken);
-			return response.name;
+			try {
+				const response = await figmaClient.getTeamProjects(teamId, accessToken);
+				return response.name;
+			} catch (e) {
+				if (
+					e instanceof BadRequestHttpClientError &&
+					isOfSchema(e.response, ERROR_RESPONSE_SCHEMA)
+				) {
+					throw new InvalidInputFigmaServiceError(e.response.message, e);
+				}
+
+				throw e;
+			}
 		});
 
 	/**
@@ -468,3 +479,5 @@ export const figmaService = new FigmaService();
 export class UnauthorizedFigmaServiceError extends CauseAwareError {}
 
 export class PaidPlanRequiredFigmaServiceError extends CauseAwareError {}
+
+export class InvalidInputFigmaServiceError extends CauseAwareError {}

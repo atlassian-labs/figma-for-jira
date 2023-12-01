@@ -22,6 +22,7 @@ import {
 } from './figma-client/testing';
 import {
 	figmaService,
+	InvalidInputFigmaServiceError,
 	PaidPlanRequiredFigmaServiceError,
 } from './figma-service';
 import {
@@ -921,6 +922,32 @@ describe('FigmaService', () => {
 				MOCK_CONNECT_USER_INFO,
 			);
 			expect(result).toStrictEqual(teamName);
+		});
+
+		it('should throw an invalid request error when the team id is invalid', async () => {
+			const teamId = uuidv4();
+
+			jest.spyOn(figmaClient, 'getTeamProjects').mockRejectedValue(
+				new BadRequestHttpClientError('Failed', {
+					message: 'No such team',
+				}),
+			);
+
+			await expect(
+				figmaService.getTeamName(teamId, MOCK_CONNECT_USER_INFO),
+			).rejects.toThrow(InvalidInputFigmaServiceError);
+		});
+
+		it('should throw an error when the request fails', async () => {
+			const teamId = uuidv4();
+
+			jest
+				.spyOn(figmaClient, 'getTeamProjects')
+				.mockRejectedValue(new NotFoundHttpClientError());
+
+			await expect(
+				figmaService.getTeamName(teamId, MOCK_CONNECT_USER_INFO),
+			).rejects.toThrow();
 		});
 	});
 });
