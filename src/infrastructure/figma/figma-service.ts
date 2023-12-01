@@ -250,24 +250,24 @@ export class FigmaService {
 		this.withErrorTranslation(async () => {
 			const { accessToken } = await figmaAuthService.getCredentials(user);
 
-			const { dev_resources } = await figmaClient.getDevResources({
-				fileKey: designId.fileKey,
-				nodeIds: [designId.nodeIdOrDefaultDocumentId],
-				accessToken,
-			});
-
-			const devResourceToDelete = dev_resources.find(
-				(devResource) => devResource.url === devResourceUrl,
-			);
-
-			if (!devResourceToDelete) {
-				getLogger().info(
-					`No matching dev resource found to delete for file ${designId.fileKey} and node ${designId.nodeId}`,
-				);
-				return;
-			}
-
 			try {
+				const { dev_resources } = await figmaClient.getDevResources({
+					fileKey: designId.fileKey,
+					nodeIds: [designId.nodeIdOrDefaultDocumentId],
+					accessToken,
+				});
+
+				const devResourceToDelete = dev_resources.find(
+					(devResource) => devResource.url === devResourceUrl,
+				);
+
+				if (!devResourceToDelete) {
+					getLogger().info(
+						`No matching dev resource found to delete for file ${designId.fileKey} and node ${designId.nodeId}`,
+					);
+					return;
+				}
+
 				await figmaClient.deleteDevResource({
 					fileKey: designId.fileKey,
 					devResourceId: devResourceToDelete.id,
