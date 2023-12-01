@@ -14,7 +14,6 @@ import {
 	figmaService,
 	UnauthorizedFigmaServiceError,
 } from '../infrastructure/figma';
-import { figmaBackfillService } from '../infrastructure/figma/figma-backfill-service';
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
@@ -41,8 +40,7 @@ export const associateDesignUseCase = {
 			const designUrl = new URL(entity.url);
 			const figmaDesignId = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
 
-			// eslint-disable-next-line prefer-const
-			let [design, issue] = await Promise.all([
+			const [design, issue] = await Promise.all([
 				figmaService.getDesignOrParent(figmaDesignId, {
 					atlassianUserId,
 					connectInstallationId: connectInstallation.id,
@@ -50,17 +48,7 @@ export const associateDesignUseCase = {
 				jiraService.getIssue(associateWith.id, connectInstallation),
 			]);
 
-			if (!design) {
-				// If a design is not found, it either has been deleted or a user does not have access to the design.
-				// For the "Backfill" operation, try to build the design from the URL as a fallback.
-				// Therefore, deleted/unavailable designs can still be migrated to the new experience.
-				// Then, a user can decide what to do with them after backfill (e.g., keep or unlink them).
-				if (figmaBackfillService.isDesignForBackfill(designUrl)) {
-					design = figmaBackfillService.buildMinimalDesignFromUrl(designUrl);
-				} else {
-					throw new FigmaDesignNotFoundUseCaseResultError();
-				}
-			}
+			if (!design) throw new FigmaDesignNotFoundUseCaseResultError();
 
 			const designIssueAssociation =
 				AtlassianAssociation.createDesignIssueAssociation(associateWith.ari);
