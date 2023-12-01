@@ -2,7 +2,13 @@ import type { DisassociateDesignUseCaseParams } from './disassociate-design-use-
 import { disassociateDesignUseCase } from './disassociate-design-use-case';
 import { generateDisassociateDesignUseCaseParams } from './testing';
 
-import { AtlassianAssociation } from '../domain/entities';
+import * as configModule from '../config';
+import { mockConfig } from '../config/testing';
+import {
+	AtlassianAssociation,
+	AtlassianDesignStatus,
+	AtlassianDesignType,
+} from '../domain/entities';
 import {
 	generateAtlassianDesign,
 	generateConnectInstallation,
@@ -10,24 +16,57 @@ import {
 	generateJiraIssue,
 } from '../domain/entities/testing';
 import { figmaService } from '../infrastructure/figma';
+import {
+	buildDesignUrl,
+	buildInspectUrl,
+	buildLiveEmbedUrl,
+} from '../infrastructure/figma/transformers/utils';
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
+jest.mock('../config', () => {
+	return {
+		...jest.requireActual('../config'),
+		getConfig: jest.fn(),
+	};
+});
+
 describe('disassociateDesignUseCase', () => {
+	const currentDate = new Date();
+
+	beforeEach(() => {
+		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
+		jest
+			.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] })
+			.setSystemTime(currentDate);
+	});
+
+	afterEach(() => {
+		jest.restoreAllMocks();
+		jest.useRealTimers();
+	});
+
 	it('should disassociate design from issue', async () => {
 		const connectInstallation = generateConnectInstallation();
 		const issue = generateJiraIssue();
 		const designId = generateFigmaDesignIdentifier();
-		const atlassianDesign = generateAtlassianDesign({
+		const designStub = {
 			id: designId.toAtlassianDesignId(),
-		});
+			displayName: 'Untitled',
+			url: buildDesignUrl(designId),
+			liveEmbedUrl: buildLiveEmbedUrl(designId),
+			inspectUrl: buildInspectUrl(designId),
+			status: AtlassianDesignStatus.UNKNOWN,
+			type: AtlassianDesignType.OTHER,
+			lastUpdated: currentDate.toISOString(),
+			updateSequenceNumber: 0,
+		};
 		const params: DisassociateDesignUseCaseParams =
 			generateDisassociateDesignUseCaseParams({
-				entityId: atlassianDesign.id,
+				entityId: designStub.id,
 				issueId: issue.id,
 				connectInstallation,
 			});
-		jest.spyOn(figmaService, 'getDesign').mockResolvedValue(atlassianDesign);
 		jest.spyOn(jiraService, 'getIssue').mockResolvedValue(issue);
 		jest.spyOn(jiraService, 'submitDesign').mockResolvedValue();
 		jest
@@ -43,13 +82,9 @@ describe('disassociateDesignUseCase', () => {
 
 		await disassociateDesignUseCase.execute(params);
 
-		expect(figmaService.getDesign).toHaveBeenCalledWith(designId, {
-			atlassianUserId: params.atlassianUserId,
-			connectInstallationId: params.connectInstallation.id,
-		});
 		expect(jiraService.submitDesign).toHaveBeenCalledWith(
 			{
-				design: atlassianDesign,
+				design: designStub,
 				removeAssociations: [
 					AtlassianAssociation.createDesignIssueAssociation(
 						params.disassociateFrom.ari,
@@ -60,7 +95,7 @@ describe('disassociateDesignUseCase', () => {
 		);
 		expect(jiraService.deleteDesignUrlInIssueProperties).toHaveBeenCalledWith(
 			issue.id,
-			atlassianDesign,
+			designStub,
 			params.connectInstallation,
 		);
 		expect(figmaService.deleteDevResource).toHaveBeenCalledWith({
