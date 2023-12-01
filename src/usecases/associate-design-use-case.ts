@@ -26,22 +26,22 @@ export type AssociateDesignUseCaseParams = {
 	readonly connectInstallation: ConnectInstallation;
 };
 
-export const associateDesignUseCase = {
+export class AssociateDesignUseCase {
 	/**
 	 * @throws {ForbiddenByFigmaUseCaseResultError} Not authorized to access Figma.
 	 */
-	execute: async ({
+	execute = async ({
 		entity,
 		associateWith,
 		atlassianUserId,
 		connectInstallation,
 	}: AssociateDesignUseCaseParams): Promise<AtlassianDesign> => {
 		try {
-			const figmaDesignId = FigmaDesignIdentifier.fromFigmaDesignUrl(
-				entity.url,
-			);
+			const designUrl = new URL(entity.url);
+			const figmaDesignId = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
 
-			const [design, issue] = await Promise.all([
+			// eslint-disable-next-line prefer-const
+			let [design, issue] = await Promise.all([
 				figmaService.getDesignOrParent(figmaDesignId, {
 					atlassianUserId,
 					connectInstallationId: connectInstallation.id,
@@ -49,7 +49,20 @@ export const associateDesignUseCase = {
 				jiraService.getIssue(associateWith.id, connectInstallation),
 			]);
 
-			if (!design) throw new FigmaDesignNotFoundUseCaseResultError();
+			if (!design) {
+				// If design is not found, it either has been deleted or a user does not have
+				// access to this design.
+				if (this.isDesignForBackfill(designUrl)) {
+					// For the "Backfill" operation, try to build the design from the URL as a fallback.
+					// Therefore, deleted/unavailable designs can still be migrated to the new experience.
+					// Then, a user can decide what to do with them after backfill (e.g., to keep or unlink them).
+					design = figmaService.buildMinimalDesignFromUrl(designUrl);
+				} else {
+					// For a normal "Associate" operation, throw an error since users should not associate deleted or
+					// unavailable designs.
+					throw new FigmaDesignNotFoundUseCaseResultError();
+				}
+			}
 
 			const designIssueAssociation =
 				AtlassianAssociation.createDesignIssueAssociation(associateWith.ari);
@@ -96,5 +109,24 @@ export const associateDesignUseCase = {
 
 			throw e;
 		}
-	},
-};
+	};
+
+	/**
+	 * Returns a flag indicating whether the design is associated within the backfill process.
+	 *
+	 * The design is considered for backfill if it contains a special query parameter (`com.atlassian.designs.backfill`).
+	 *
+	 * @remarks
+	 * Jira Frontend appends an additional query parameter to the design URL as a temporary workaround that allows to
+	 * distinguish "Backfill" from normal "Associate" operations. Therefore, the app can apply some special considerations
+	 * to designs for backfill (e.g., handle deleted designs).
+	 */
+	private isDesignForBackfill = (url: URL): boolean => {
+		return url.searchParams.has(
+			'com.atlassian.figma-for-jira.backfill',
+			'true',
+		);
+	};
+}
+
+export const associateDesignUseCase = new AssociateDesignUseCase();

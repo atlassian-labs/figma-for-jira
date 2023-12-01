@@ -10,6 +10,11 @@ import {
 	transformFileToAtlassianDesign,
 	tryTransformNodeToAtlassianDesign,
 } from './transformers';
+import {
+	buildDesignUrl,
+	buildInspectUrl,
+	buildLiveEmbedUrl,
+} from './transformers/utils';
 
 import { CauseAwareError } from '../../common/errors';
 import { isNotNullOrUndefined } from '../../common/predicates';
@@ -19,9 +24,13 @@ import { getConfig } from '../../config';
 import type {
 	AtlassianDesign,
 	ConnectUserInfo,
-	FigmaDesignIdentifier,
 	FigmaOAuth2UserCredentials,
 	FigmaUser,
+} from '../../domain/entities';
+import {
+	AtlassianDesignStatus,
+	AtlassianDesignType,
+	FigmaDesignIdentifier,
 } from '../../domain/entities';
 import {
 	BadRequestHttpClientError,
@@ -162,6 +171,28 @@ export class FigmaService {
 				})
 				.filter(isNotNullOrUndefined);
 		});
+
+	/**
+	 * Creates {@link AtlassianDesign} from the given design URL.
+	 */
+	buildMinimalDesignFromUrl(url: URL): AtlassianDesign {
+		const designId = FigmaDesignIdentifier.fromFigmaDesignUrl(url);
+		const [, , name] = url.pathname.split('/');
+
+		return {
+			id: designId.toAtlassianDesignId(),
+			displayName: name ?? 'Untitled',
+			url: buildDesignUrl(designId).toString(),
+			liveEmbedUrl: buildLiveEmbedUrl(designId).toString(),
+			inspectUrl: buildInspectUrl(designId).toString(),
+			status: AtlassianDesignStatus.UNKNOWN, // Cannot be derived from the URL. Use the default value.
+			type: designId.nodeId
+				? AtlassianDesignType.NODE
+				: AtlassianDesignType.FILE,
+			lastUpdated: new Date(0).toISOString(), // Cannot be derived from the URL. Use the default value.
+			updateSequenceNumber: 0,
+		};
+	}
 
 	/**
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.

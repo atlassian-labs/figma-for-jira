@@ -106,15 +106,15 @@ describe('tryTransformNodeToAtlassianDesign', () => {
 			url: buildDesignUrl({
 				fileKey,
 				nodeId: node.id,
-			}),
+			}).toString(),
 			liveEmbedUrl: buildLiveEmbedUrl({
 				fileKey,
 				nodeId: node.id,
-			}),
+			}).toString(),
 			inspectUrl: buildInspectUrl({
 				fileKey,
 				nodeId: node.id,
-			}),
+			}).toString(),
 			status: AtlassianDesignStatus.NONE,
 			type: AtlassianDesignType.OTHER,
 			lastUpdated: nodeLastModified.toISOString(),

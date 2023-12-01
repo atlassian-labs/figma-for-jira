@@ -636,7 +636,7 @@ describe('JiraService', () => {
 			const fileKey = generateFigmaFileKey();
 			design = generateAtlassianDesign({
 				id: new FigmaDesignIdentifier(fileKey).toAtlassianDesignId(),
-				url: generateFigmaDesignUrl({ fileKey }),
+				url: generateFigmaDesignUrl({ fileKey }).toString(),
 			});
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
