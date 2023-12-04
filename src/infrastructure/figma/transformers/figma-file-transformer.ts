@@ -30,9 +30,9 @@ export const transformFileToAtlassianDesign = ({
 	return {
 		id: designId.toAtlassianDesignId(),
 		displayName: fileResponse.name,
-		url: buildDesignUrl({ fileKey }),
-		liveEmbedUrl: buildLiveEmbedUrl({ fileKey }),
-		inspectUrl: buildInspectUrl({ fileKey }),
+		url: buildDesignUrl({ fileKey }).toString(),
+		liveEmbedUrl: buildLiveEmbedUrl({ fileKey }).toString(),
+		inspectUrl: buildInspectUrl({ fileKey }).toString(),
 		status: AtlassianDesignStatus.NONE,
 		type: AtlassianDesignType.FILE,
 		lastUpdated: fileResponse.lastModified,

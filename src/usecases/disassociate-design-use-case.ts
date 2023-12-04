@@ -60,9 +60,9 @@ export const disassociateDesignUseCase = {
 			const designStub = {
 				id: figmaDesignId.toAtlassianDesignId(),
 				displayName: 'Untitled',
-				url: buildDesignUrl(figmaDesignId),
-				liveEmbedUrl: buildLiveEmbedUrl(figmaDesignId),
-				inspectUrl: buildInspectUrl(figmaDesignId),
+				url: buildDesignUrl(figmaDesignId).toString(),
+				liveEmbedUrl: buildLiveEmbedUrl(figmaDesignId).toString(),
+				inspectUrl: buildInspectUrl(figmaDesignId).toString(),
 				status: AtlassianDesignStatus.UNKNOWN,
 				type: AtlassianDesignType.OTHER,
 				lastUpdated: new Date().toISOString(),

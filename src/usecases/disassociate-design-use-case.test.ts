@@ -53,9 +53,9 @@ describe('disassociateDesignUseCase', () => {
 		const designStub = {
 			id: designId.toAtlassianDesignId(),
 			displayName: 'Untitled',
-			url: buildDesignUrl(designId),
-			liveEmbedUrl: buildLiveEmbedUrl(designId),
-			inspectUrl: buildInspectUrl(designId),
+			url: buildDesignUrl(designId).toString(),
+			liveEmbedUrl: buildLiveEmbedUrl(designId).toString(),
+			inspectUrl: buildInspectUrl(designId).toString(),
 			status: AtlassianDesignStatus.UNKNOWN,
 			type: AtlassianDesignType.OTHER,
 			lastUpdated: currentDate.toISOString(),

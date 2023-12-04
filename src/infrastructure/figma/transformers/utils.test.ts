@@ -41,7 +41,9 @@ describe('utils', () => {
 
 			const result = buildDesignUrl({ fileKey });
 
-			expect(result).toEqual(`https://www.figma.com/file/${fileKey}`);
+			expect(result.toString()).toEqual(
+				`https://www.figma.com/file/${fileKey}`,
+			);
 		});
 
 		it('should return a url for Figma node', () => {
@@ -50,7 +52,7 @@ describe('utils', () => {
 
 			const result = buildDesignUrl({ fileKey, nodeId });
 
-			expect(result).toEqual(
+			expect(result.toString()).toEqual(
 				`https://www.figma.com/file/${fileKey}?node-id=1%3A3`,
 			);
 		});
@@ -62,7 +64,9 @@ describe('utils', () => {
 
 			const result = buildInspectUrl({ fileKey });
 
-			expect(result).toEqual(`https://www.figma.com/file/${fileKey}?mode=dev`);
+			expect(result.toString()).toEqual(
+				`https://www.figma.com/file/${fileKey}?mode=dev`,
+			);
 		});
 
 		it('should return a url for Figma node', () => {
@@ -71,7 +75,7 @@ describe('utils', () => {
 
 			const result = buildInspectUrl({ fileKey, nodeId });
 
-			expect(result).toEqual(
+			expect(result.toString()).toEqual(
 				`https://www.figma.com/file/${fileKey}?node-id=1%3A3&mode=dev`,
 			);
 		});
@@ -102,7 +106,7 @@ describe('utils', () => {
 				}),
 			}).toString();
 
-			expect(result).toEqual(expected.toString());
+			expect(result.toString()).toEqual(expected.toString());
 		});
 	});
 

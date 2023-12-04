@@ -37,9 +37,8 @@ export const associateDesignUseCase = {
 		connectInstallation,
 	}: AssociateDesignUseCaseParams): Promise<AtlassianDesign> => {
 		try {
-			const figmaDesignId = FigmaDesignIdentifier.fromFigmaDesignUrl(
-				entity.url,
-			);
+			const designUrl = new URL(entity.url);
+			const figmaDesignId = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
 
 			const [design, issue] = await Promise.all([
 				figmaService.getDesignOrParent(figmaDesignId, {

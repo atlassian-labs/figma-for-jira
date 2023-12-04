@@ -45,7 +45,7 @@ describe('FigmaDesignIdentifier', () => {
 	describe('fromFigmaDesignUrl', () => {
 		it('should return identifier when URL does not contain node_id', () => {
 			const fileKey = generateFigmaFileKey();
-			const designUrl = generateFigmaDesignUrl({ fileKey });
+			const designUrl = new URL(generateFigmaDesignUrl({ fileKey }));
 
 			const result = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
 
@@ -55,7 +55,9 @@ describe('FigmaDesignIdentifier', () => {
 		it('should return identifier when URL contains node_id with ":" separator', () => {
 			const fileKey = generateFigmaFileKey();
 			const nodeId = '42:1';
-			const designUrl = `https://www.figma.com/file/${fileKey}?node-id=${nodeId}`;
+			const designUrl = new URL(
+				`https://www.figma.com/file/${fileKey}?node-id=${nodeId}`,
+			);
 
 			const result = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
 
@@ -65,7 +67,9 @@ describe('FigmaDesignIdentifier', () => {
 		it('should return identifier when URL contains node_id with encoded ":" separator', () => {
 			const fileKey = generateFigmaFileKey();
 			const nodeId = '42:1';
-			const designUrl = `https://www.figma.com/file/${fileKey}?node-id=42%3A1`;
+			const designUrl = new URL(
+				`https://www.figma.com/file/${fileKey}?node-id=42%3A1`,
+			);
 
 			const result = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
 
@@ -75,7 +79,9 @@ describe('FigmaDesignIdentifier', () => {
 		it('should return identifier when URL contains node_id with "-" separator', () => {
 			const fileKey = generateFigmaFileKey();
 			const nodeId = '42:1';
-			const designUrl = `https://www.figma.com/file/${fileKey}?node-id=42-1`;
+			const designUrl = new URL(
+				`https://www.figma.com/file/${fileKey}?node-id=42-1`,
+			);
 
 			const result = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
 
@@ -85,7 +91,9 @@ describe('FigmaDesignIdentifier', () => {
 		it('should return an identifier when URL is a prototype link', () => {
 			const fileKey = generateFigmaFileKey();
 			const nodeId = '42:1';
-			const designUrl = `https://www.figma.com/proto/${fileKey}?node-id=42%3A1`;
+			const designUrl = new URL(
+				`https://www.figma.com/proto/${fileKey}?node-id=42%3A1`,
+			);
 
 			const result = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
 
@@ -95,7 +103,9 @@ describe('FigmaDesignIdentifier', () => {
 		it('should return an identifier when URL is a prototype link with additional query parameters', () => {
 			const fileKey = generateFigmaFileKey();
 			const nodeId = '42:1';
-			const designUrl = `https://www.figma.com/proto/${fileKey}?type=design&node-id=42%3A1&scaling=min-zoom&page-id=935%3A206682&starting-point-node-id=1197%3A290236`;
+			const designUrl = new URL(
+				`https://www.figma.com/proto/${fileKey}?type=design&node-id=42%3A1&scaling=min-zoom&page-id=935%3A206682&starting-point-node-id=1197%3A290236`,
+			);
 
 			const result = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
 
@@ -103,13 +113,12 @@ describe('FigmaDesignIdentifier', () => {
 		});
 
 		it.each([
-			`https://www.figma.com`,
-			`https://www.figma.com/file`,
-			`https://www.figma.com/proto`,
-			`https://www.figma.com?param=file%2Fsome-id`,
-			`https://www.figma.com?param=proto%2Fsome-id`,
-			'',
-		])('should throw when URL has an unexpected format', (input: string) => {
+			new URL(`https://www.figma.com`),
+			new URL(`https://www.figma.com/file`),
+			new URL(`https://www.figma.com/proto`),
+			new URL(`https://www.figma.com?param=file%2Fsome-id`),
+			new URL(`https://www.figma.com?param=proto%2Fsome-id`),
+		])('should throw when URL has an unexpected format', (input: URL) => {
 			expect(() => FigmaDesignIdentifier.fromFigmaDesignUrl(input)).toThrow();
 		});
 	});

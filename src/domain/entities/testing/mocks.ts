@@ -50,7 +50,7 @@ export const generateFigmaDesignUrl = ({
 	fileKey?: string;
 	nodeId?: string;
 	mode?: string;
-} = {}) => {
+} = {}): string => {
 	const url = new URL(`https://www.figma.com/file/${fileKey}`);
 	if (nodeId) {
 		url.searchParams.append('node-id', nodeId);

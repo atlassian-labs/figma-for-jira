@@ -358,7 +358,7 @@ export class JiraService {
 	) => {
 		try {
 			return figmaDesignId.equals(
-				FigmaDesignIdentifier.fromFigmaDesignUrl(storedUrl),
+				FigmaDesignIdentifier.fromFigmaDesignUrl(new URL(storedUrl)),
 			);
 		} catch (error) {
 			// For existing designs that were previously stored in the issue property, we may not be able to parse the URL.
@@ -368,8 +368,8 @@ export class JiraService {
 
 	private areUrlsOfSameDesign = (storedUrl: string, url: string) => {
 		try {
-			return FigmaDesignIdentifier.fromFigmaDesignUrl(url).equals(
-				FigmaDesignIdentifier.fromFigmaDesignUrl(storedUrl),
+			return FigmaDesignIdentifier.fromFigmaDesignUrl(new URL(url)).equals(
+				FigmaDesignIdentifier.fromFigmaDesignUrl(new URL(storedUrl)),
 			);
 		} catch (error) {
 			// For existing designs that were previously stored in the issue property, we may not be able to parse the URL.

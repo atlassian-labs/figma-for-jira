@@ -33,18 +33,17 @@ export class FigmaDesignIdentifier {
 	 *
 	 * The method parses the URL and extracts data required for building {@link FigmaDesignIdentifier}.
 	 */
-	static fromFigmaDesignUrl = (url: string): FigmaDesignIdentifier => {
-		const parsedUrl = new URL(url);
-
-		const pathComponents = parsedUrl.pathname.split('/');
+	static fromFigmaDesignUrl = (url: URL): FigmaDesignIdentifier => {
+		const pathComponents = url.pathname.split('/');
 		const filePathComponentId = pathComponents.findIndex(
 			(x) => x === 'file' || x === 'proto',
 		);
 
 		const fileKey = pathComponents[filePathComponentId + 1];
-		const nodeId = parsedUrl.searchParams.get('node-id')?.replace('-', ':');
+		const nodeId = url.searchParams.get('node-id')?.replace('-', ':');
 
-		if (!fileKey) throw new Error(`Received invalid Figma URL: ${url}`);
+		if (!fileKey)
+			throw new Error(`Received invalid Figma URL: ${url.toString()}`);
 
 		return new FigmaDesignIdentifier(fileKey, nodeId);
 	};
