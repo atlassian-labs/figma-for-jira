@@ -24,6 +24,8 @@ export type BackfillDesignUseCaseParams = {
 
 export const backfillDesignUseCase = {
 	/**
+	 * Backfills designs created via the old "Figma for Jira" experience or the "Jira" widget in Figma.
+	 *
 	 * @throws {ForbiddenByFigmaUseCaseResultError} Not authorized to access Figma.
 	 */
 	execute: async ({
