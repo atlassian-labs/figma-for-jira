@@ -3,6 +3,8 @@ import { associateDesignUseCase } from './associate-design-use-case';
 import { FigmaDesignNotFoundUseCaseResultError } from './errors';
 import { generateAssociateDesignUseCaseParams } from './testing';
 
+import * as configModule from '../config';
+import { mockConfig } from '../config/testing';
 import type { AssociatedFigmaDesign } from '../domain/entities';
 import {
 	AtlassianAssociation,
@@ -20,7 +22,22 @@ import { figmaBackfillService } from '../infrastructure/figma/figma-backfill-ser
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
+jest.mock('../config', () => {
+	return {
+		...jest.requireActual('../config'),
+		getConfig: jest.fn(),
+	};
+});
+
 describe('associateDesignUseCase', () => {
+	beforeEach(() => {
+		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
+	});
+
+	afterEach(() => {
+		jest.restoreAllMocks();
+	});
+
 	it('should associate design to issue', async () => {
 		const connectInstallation = generateConnectInstallation();
 		const issue = generateJiraIssue();
