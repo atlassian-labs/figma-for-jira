@@ -103,7 +103,7 @@ describe('utils', () => {
 					fileKey,
 					nodeId,
 					mode: 'dev',
-				}),
+				}).toString(),
 			}).toString();
 
 			expect(result.toString()).toEqual(expected.toString());

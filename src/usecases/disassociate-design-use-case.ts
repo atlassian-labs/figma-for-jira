@@ -92,7 +92,7 @@ export const disassociateDesignUseCase = {
 					designStub,
 					connectInstallation,
 				),
-				figmaService.deleteDevResource({
+				figmaService.tryDeleteDevResource({
 					designId: figmaDesignId,
 					devResourceUrl: buildJiraIssueUrl(
 						connectInstallation.baseUrl,

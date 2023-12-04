@@ -1,7 +1,4 @@
-import {
-	FigmaDesignNotFoundUseCaseResultError,
-	ForbiddenByFigmaUseCaseResultError,
-} from './errors';
+import { ForbiddenByFigmaUseCaseResultError } from './errors';
 import type { AtlassianEntity } from './types';
 
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
@@ -14,18 +11,21 @@ import {
 	figmaService,
 	UnauthorizedFigmaServiceError,
 } from '../infrastructure/figma';
+import { figmaBackfillService } from '../infrastructure/figma/figma-backfill-service';
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
-export type AssociateDesignUseCaseParams = {
+export type BackfillDesignUseCaseParams = {
 	readonly designUrl: URL;
 	readonly associateWith: AtlassianEntity;
 	readonly atlassianUserId: string;
 	readonly connectInstallation: ConnectInstallation;
 };
 
-export const associateDesignUseCase = {
+export const backfillDesignUseCase = {
 	/**
+	 * Backfills designs created via the old "Figma for Jira" experience or the "Jira" widget in Figma.
+	 *
 	 * @throws {ForbiddenByFigmaUseCaseResultError} Not authorized to access Figma.
 	 */
 	execute: async ({
@@ -33,11 +33,12 @@ export const associateDesignUseCase = {
 		associateWith,
 		atlassianUserId,
 		connectInstallation,
-	}: AssociateDesignUseCaseParams): Promise<AtlassianDesign> => {
+	}: BackfillDesignUseCaseParams): Promise<AtlassianDesign> => {
 		try {
 			const figmaDesignId = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
 
-			const [design, issue] = await Promise.all([
+			// eslint-disable-next-line prefer-const
+			let [design, issue] = await Promise.all([
 				figmaService.getDesignOrParent(figmaDesignId, {
 					atlassianUserId,
 					connectInstallationId: connectInstallation.id,
@@ -45,7 +46,10 @@ export const associateDesignUseCase = {
 				jiraService.getIssue(associateWith.id, connectInstallation),
 			]);
 
-			if (!design) throw new FigmaDesignNotFoundUseCaseResultError();
+			// If a design is not found, it either has been deleted or a user does not have access to the design.
+			// In order to backfill deleted/unavailable designs, try to build the design from the URL as a fallback.
+			// Once the design is backfilled, a user can decide what to do with it (e.g., keep or unlink them).
+			design ??= figmaBackfillService.buildMinimalDesignFromUrl(designUrl);
 
 			const designIssueAssociation =
 				AtlassianAssociation.createDesignIssueAssociation(associateWith.ari);
