@@ -20,6 +20,7 @@ import {
 } from './jira-service';
 
 import { SchemaValidationError } from '../../common/schema-validation';
+import { appendToPathname } from '../../common/url-utils';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
@@ -640,7 +641,10 @@ describe('JiraService', () => {
 			});
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
-					value: `${generateFigmaDesignUrl({ fileKey })}/Test-Design?mode=dev`,
+					value: appendToPathname(
+						new URL(design.url),
+						'Test-Design',
+					).toString(),
 				}),
 			);
 			jest

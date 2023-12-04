@@ -13,3 +13,11 @@ export const appendToPathname = (url: URL, segment: string): URL => {
 
 	return result;
 };
+
+export const tryParseUrl = (url: string): URL | undefined => {
+	try {
+		return new URL(url);
+	} catch (e) {
+		return undefined;
+	}
+};

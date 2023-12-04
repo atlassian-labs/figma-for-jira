@@ -33,42 +33,6 @@ describe('FigmaBackfillService', () => {
 		jest.restoreAllMocks();
 	});
 
-	describe('isDesignForBackfill', () => {
-		it('should return `true` if backfill-indicating query parameter is set to `true`', () => {
-			const fileKey = generateFigmaFileKey();
-
-			const result = figmaBackfillService.isDesignForBackfill(
-				new URL(
-					`https://www.figma.com/file/${fileKey}?com.atlassian.designs.backfill=true`,
-				),
-			);
-
-			expect(result).toBe(true);
-		});
-
-		it('should return `false` if URL backfill-indicating query parameter is set to `false`', () => {
-			const fileKey = generateFigmaFileKey();
-
-			const result = figmaBackfillService.isDesignForBackfill(
-				new URL(
-					`https://www.figma.com/file/${fileKey}?com.atlassian.designs.backfill=false`,
-				),
-			);
-
-			expect(result).toBe(false);
-		});
-
-		it('should return `false` if URL does not contain backfill-indicating query parameter', () => {
-			const fileKey = generateFigmaFileKey();
-
-			const result = figmaBackfillService.isDesignForBackfill(
-				new URL(`https://www.figma.com/file/${fileKey}`),
-			);
-
-			expect(result).toBe(false);
-		});
-	});
-
 	describe('buildMinimalDesignFromUrl', () => {
 		it('should return design for Figma file URL', () => {
 			const fileKey = generateFigmaFileKey();

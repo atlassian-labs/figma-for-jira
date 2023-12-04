@@ -50,7 +50,7 @@ export const generateFigmaDesignUrl = ({
 	fileKey?: string;
 	nodeId?: string;
 	mode?: string;
-} = {}): string => {
+} = {}): URL => {
 	const url = new URL(`https://www.figma.com/file/${fileKey}`);
 	if (nodeId) {
 		url.searchParams.append('node-id', nodeId);
@@ -59,7 +59,7 @@ export const generateFigmaDesignUrl = ({
 		url.searchParams.append('mode', mode);
 	}
 
-	return url.toString();
+	return url;
 };
 
 export const generateFigmaOAuth2UserCredentialCreateParams = ({
@@ -150,12 +150,12 @@ export const generateAtlassianDesign = ({
 	url = generateFigmaDesignUrl({
 		fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(id).fileKey,
 		nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(id).nodeId,
-	}),
+	}).toString(),
 	liveEmbedUrl = generateFigmaDesignUrl({
 		fileKey: FigmaDesignIdentifier.fromAtlassianDesignId(id).fileKey,
 		nodeId: FigmaDesignIdentifier.fromAtlassianDesignId(id).nodeId,
 		mode: 'design',
-	}),
+	}).toString(),
 	status = AtlassianDesignStatus.UNKNOWN,
 	type = AtlassianDesignType.FILE,
 	lastUpdated = new Date().toISOString(),

@@ -103,7 +103,7 @@ const generateDisassociateEntityJwt = (
 const generateAssociateEntityRequest = ({
 	issueId = generateJiraIssueId(),
 	issueAri = generateJiraIssueId(),
-	figmaDesignUrl = generateFigmaDesignUrl(),
+	figmaDesignUrl = generateFigmaDesignUrl().toString(),
 }: {
 	issueId?: string;
 	issueAri?: string;
@@ -164,7 +164,7 @@ describe('/entities', () => {
 			const inputFigmaDesignUrl = generateFigmaDesignUrl({
 				fileKey,
 				mode: 'dev',
-			});
+			}).toString();
 			const fileMetaResponse = generateGetFileMetaResponse({
 				name: fileName,
 			});
@@ -298,7 +298,7 @@ describe('/entities', () => {
 				fileKey,
 				nodeId,
 				mode: 'dev',
-			});
+			}).toString();
 			const fileResponse = generateGetFileResponseWithNode({
 				name: fileName,
 				node,
@@ -476,7 +476,9 @@ describe('/entities', () => {
 			const fileKey = generateFigmaFileKey();
 			const issueId = generateJiraIssueId();
 			const issueAri = generateJiraIssueAri({ issueId });
-			const inputFigmaDesignUrl = generateFigmaDesignUrl({ fileKey });
+			const inputFigmaDesignUrl = generateFigmaDesignUrl({
+				fileKey,
+			}).toString();
 
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
@@ -530,7 +532,7 @@ describe('/entities', () => {
 			const inputFigmaDesignUrl = generateFigmaDesignUrl({
 				fileKey,
 				mode: 'dev',
-			});
+			}).toString();
 
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
@@ -599,7 +601,7 @@ describe('/entities', () => {
 			const devResourceId = uuidv4();
 			const figmaDesignUrl = generateFigmaDesignUrl({
 				fileKey,
-			});
+			}).toString();
 			const designStub = {
 				id: designId.toAtlassianDesignId(),
 				displayName: 'Untitled',
@@ -735,7 +737,7 @@ describe('/entities', () => {
 			const figmaDesignUrl = generateFigmaDesignUrl({
 				fileKey,
 				nodeId,
-			});
+			}).toString();
 			const designStub = {
 				id: designId.toAtlassianDesignId(),
 				displayName: 'Untitled',

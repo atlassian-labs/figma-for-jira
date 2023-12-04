@@ -19,20 +19,6 @@ import {
  */
 export class FigmaBackfillService {
 	/**
-	 * Returns a flag indicating whether the design is being backfilled.
-	 *
-	 * The design is considered for backfill if it contains a special query parameter (`com.atlassian.designs.backfill`).
-	 *
-	 * @remarks
-	 * Jira Frontend appends an additional query parameter to the design URL as a temporary workaround that allows to
-	 * distinguish "Backfill" from normal "Associate" operations. Therefore, the app can apply some special considerations
-	 * to designs for backfill (e.g., handle deleted designs).
-	 */
-	isDesignForBackfill = (url: URL): boolean => {
-		return url.searchParams.has('com.atlassian.designs.backfill', 'true');
-	};
-
-	/**
 	 * Creates {@link AtlassianDesign} from the given design URL.
 	 * If data cannot be derived from the URL, use a reasonable default value for corresponding field.
 	 *

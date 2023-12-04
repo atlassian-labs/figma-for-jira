@@ -12,14 +12,29 @@ import type { AssociateDesignUseCaseParams } from '../associate-design-use-case'
 import type { DisassociateDesignUseCaseParams } from '../disassociate-design-use-case';
 
 export const generateAssociateDesignUseCaseParams = ({
-	entityUrl = generateFigmaDesignUrl(),
+	designUrl = generateFigmaDesignUrl(),
 	issueId = generateJiraIssueId(),
 	atlassianUserId = uuidv4(),
 	connectInstallation = generateConnectInstallation(),
 } = {}): AssociateDesignUseCaseParams => ({
-	entity: {
-		url: entityUrl,
+	designUrl,
+	associateWith: {
+		ari: generateJiraIssueAri({ issueId }),
+		ati: JIRA_ISSUE_ATI,
+		id: issueId,
+		cloudId: uuidv4(),
 	},
+	atlassianUserId,
+	connectInstallation,
+});
+
+export const generateBackfillDesignUseCaseParams = ({
+	designUrl = generateFigmaDesignUrl(),
+	issueId = generateJiraIssueId(),
+	atlassianUserId = uuidv4(),
+	connectInstallation = generateConnectInstallation(),
+} = {}): AssociateDesignUseCaseParams => ({
+	designUrl,
 	associateWith: {
 		ari: generateJiraIssueAri({ issueId }),
 		ati: JIRA_ISSUE_ATI,
