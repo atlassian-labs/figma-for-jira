@@ -47,6 +47,7 @@ import {
 	ForbiddenHttpClientError,
 	HttpClientError,
 	NotFoundHttpClientError,
+	UnauthorizedHttpClientError,
 } from '../http-client-errors';
 
 jest.mock('../../config', () => {
@@ -620,7 +621,7 @@ describe('FigmaService', () => {
 		});
 	});
 
-	describe('deleteDevResource', () => {
+	describe('tryDeleteDevResource', () => {
 		const MOCK_CREDENTIALS = generateFigmaOAuth2UserCredentials();
 		beforeEach(() => {
 			jest
@@ -639,7 +640,7 @@ describe('FigmaService', () => {
 				.mockResolvedValue(getDevResourcesResponse);
 			jest.spyOn(figmaClient, 'deleteDevResource').mockResolvedValue();
 
-			await figmaService.deleteDevResource({
+			await figmaService.tryDeleteDevResource({
 				designId,
 				devResourceUrl,
 				user: MOCK_CONNECT_USER_INFO,
@@ -673,7 +674,7 @@ describe('FigmaService', () => {
 				.mockResolvedValue(getDevResourcesResponse);
 			jest.spyOn(figmaClient, 'deleteDevResource').mockResolvedValue();
 
-			await figmaService.deleteDevResource({
+			await figmaService.tryDeleteDevResource({
 				designId,
 				devResourceUrl,
 				user: MOCK_CONNECT_USER_INFO,
@@ -707,7 +708,7 @@ describe('FigmaService', () => {
 				.mockResolvedValue(getDevResourcesResponse);
 			jest.spyOn(figmaClient, 'deleteDevResource').mockResolvedValue();
 
-			await figmaService.deleteDevResource({
+			await figmaService.tryDeleteDevResource({
 				designId,
 				devResourceUrl,
 				user: MOCK_CONNECT_USER_INFO,
@@ -716,29 +717,34 @@ describe('FigmaService', () => {
 			expect(figmaClient.deleteDevResource).not.toHaveBeenCalled();
 		});
 
-		it('should not throw if dev resource does not exist on deletion', async () => {
-			const designId = generateFigmaDesignIdentifier({
-				nodeId: generateFigmaNodeId(),
-			});
-			const devResourceUrl = generateJiraIssueUrl();
-			const getDevResourcesResponse = generateGetDevResourcesResponse({
-				url: devResourceUrl,
-			});
-			jest
-				.spyOn(figmaClient, 'getDevResources')
-				.mockResolvedValue(getDevResourcesResponse);
-			jest
-				.spyOn(figmaClient, 'deleteDevResource')
-				.mockRejectedValue(new NotFoundHttpClientError());
+		it.each([
+			new UnauthorizedHttpClientError(),
+			new ForbiddenHttpClientError(),
+			new NotFoundHttpClientError(),
+		])(
+			'should not throw if dev resource deletion fails with %s',
+			async (error: Error) => {
+				const designId = generateFigmaDesignIdentifier({
+					nodeId: generateFigmaNodeId(),
+				});
+				const devResourceUrl = generateJiraIssueUrl();
+				const getDevResourcesResponse = generateGetDevResourcesResponse({
+					url: devResourceUrl,
+				});
+				jest
+					.spyOn(figmaClient, 'getDevResources')
+					.mockResolvedValue(getDevResourcesResponse);
+				jest.spyOn(figmaClient, 'deleteDevResource').mockRejectedValue(error);
 
-			await expect(
-				figmaService.deleteDevResource({
-					designId,
-					devResourceUrl,
-					user: MOCK_CONNECT_USER_INFO,
-				}),
-			).resolves.toBeUndefined();
-		});
+				await expect(
+					figmaService.tryDeleteDevResource({
+						designId,
+						devResourceUrl,
+						user: MOCK_CONNECT_USER_INFO,
+					}),
+				).resolves.toBeUndefined();
+			},
+		);
 
 		it('should throw if dev resource deletion fails with unexpected error', async () => {
 			const designId = generateFigmaDesignIdentifier({
@@ -755,7 +761,7 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'deleteDevResource').mockRejectedValue(error);
 
 			await expect(() =>
-				figmaService.deleteDevResource({
+				figmaService.tryDeleteDevResource({
 					designId,
 					devResourceUrl,
 					user: MOCK_CONNECT_USER_INFO,

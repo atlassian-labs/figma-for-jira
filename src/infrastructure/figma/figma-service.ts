@@ -205,9 +205,12 @@ export class FigmaService {
 		});
 
 	/**
-	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
+	 * Deletes the Figma dev resource from the design with given ID.
+	 *
+	 * The deletion is performed on a best-efforts basis: if the design is not found or
+	 * unavailable for the user, no error is thrown.
 	 */
-	deleteDevResource = async ({
+	tryDeleteDevResource = async ({
 		designId,
 		devResourceUrl,
 		user,
@@ -215,38 +218,46 @@ export class FigmaService {
 		designId: FigmaDesignIdentifier;
 		devResourceUrl: string;
 		user: ConnectUserInfo;
-	}): Promise<void> =>
-		this.withErrorTranslation(async () => {
+	}): Promise<void> => {
+		try {
 			const { accessToken } = await figmaAuthService.getCredentials(user);
 
-			try {
-				const { dev_resources } = await figmaClient.getDevResources({
-					fileKey: designId.fileKey,
-					nodeIds: [designId.nodeIdOrDefaultDocumentId],
-					accessToken,
-				});
+			const { dev_resources } = await figmaClient.getDevResources({
+				fileKey: designId.fileKey,
+				nodeIds: [designId.nodeIdOrDefaultDocumentId],
+				accessToken,
+			});
 
-				const devResourceToDelete = dev_resources.find(
-					(devResource) => devResource.url === devResourceUrl,
+			const devResourceToDelete = dev_resources.find(
+				(devResource) => devResource.url === devResourceUrl,
+			);
+
+			if (!devResourceToDelete) {
+				getLogger().info(
+					`No matching dev resource found to delete for file ${designId.fileKey} and node ${designId.nodeId}`,
 				);
-
-				if (!devResourceToDelete) {
-					getLogger().info(
-						`No matching dev resource found to delete for file ${designId.fileKey} and node ${designId.nodeId}`,
-					);
-					return;
-				}
-
-				await figmaClient.deleteDevResource({
-					fileKey: designId.fileKey,
-					devResourceId: devResourceToDelete.id,
-					accessToken,
-				});
-			} catch (e) {
-				if (e instanceof NotFoundHttpClientError) return;
-				throw e;
+				return;
 			}
-		});
+
+			await figmaClient.deleteDevResource({
+				fileKey: designId.fileKey,
+				devResourceId: devResourceToDelete.id,
+				accessToken,
+			});
+		} catch (e) {
+			if (
+				e instanceof MissingOrInvalidCredentialsFigmaAuthServiceError ||
+				e instanceof UnauthorizedHttpClientError ||
+				e instanceof ForbiddenHttpClientError ||
+				e instanceof NotFoundHttpClientError
+			) {
+				getLogger().error(e, 'Failed to delete the Figma dev resource.');
+				return;
+			}
+
+			throw e;
+		}
+	};
 
 	/**
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.

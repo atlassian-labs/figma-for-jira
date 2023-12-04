@@ -72,7 +72,7 @@ describe('disassociateDesignUseCase', () => {
 		jest
 			.spyOn(jiraService, 'deleteDesignUrlInIssueProperties')
 			.mockResolvedValue();
-		jest.spyOn(figmaService, 'deleteDevResource').mockResolvedValue();
+		jest.spyOn(figmaService, 'tryDeleteDevResource').mockResolvedValue();
 		jest
 			.spyOn(
 				associatedFigmaDesignRepository,
@@ -98,7 +98,7 @@ describe('disassociateDesignUseCase', () => {
 			designStub,
 			params.connectInstallation,
 		);
-		expect(figmaService.deleteDevResource).toHaveBeenCalledWith({
+		expect(figmaService.tryDeleteDevResource).toHaveBeenCalledWith({
 			designId: designId,
 			devResourceUrl: `${connectInstallation.baseUrl}/browse/${issue.key}`,
 			user: {
@@ -131,7 +131,7 @@ describe('disassociateDesignUseCase', () => {
 		jest
 			.spyOn(jiraService, 'deleteDesignUrlInIssueProperties')
 			.mockResolvedValue();
-		jest.spyOn(figmaService, 'deleteDevResource').mockResolvedValue();
+		jest.spyOn(figmaService, 'tryDeleteDevResource').mockResolvedValue();
 		jest.spyOn(
 			associatedFigmaDesignRepository,
 			'deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId',
