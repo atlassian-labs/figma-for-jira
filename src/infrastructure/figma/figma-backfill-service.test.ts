@@ -5,8 +5,6 @@ import {
 	buildLiveEmbedUrl,
 } from './transformers/utils';
 
-import * as configModule from '../../config';
-import { mockConfig } from '../../config/testing';
 import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
@@ -17,22 +15,7 @@ import {
 	generateFigmaNodeId,
 } from '../../domain/entities/testing';
 
-jest.mock('../../config', () => {
-	return {
-		...jest.requireActual('../../config'),
-		getConfig: jest.fn(),
-	};
-});
-
 describe('FigmaBackfillService', () => {
-	beforeEach(() => {
-		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
-	});
-
-	afterEach(() => {
-		jest.restoreAllMocks();
-	});
-
 	describe('buildMinimalDesignFromUrl', () => {
 		it('should return design for Figma file URL', () => {
 			const fileKey = generateFigmaFileKey();

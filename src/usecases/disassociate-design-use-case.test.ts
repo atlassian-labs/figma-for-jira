@@ -2,8 +2,6 @@ import type { DisassociateDesignUseCaseParams } from './disassociate-design-use-
 import { disassociateDesignUseCase } from './disassociate-design-use-case';
 import { generateDisassociateDesignUseCaseParams } from './testing';
 
-import * as configModule from '../config';
-import { mockConfig } from '../config/testing';
 import {
 	AtlassianAssociation,
 	AtlassianDesignStatus,
@@ -24,25 +22,16 @@ import {
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
-jest.mock('../config', () => {
-	return {
-		...jest.requireActual('../config'),
-		getConfig: jest.fn(),
-	};
-});
-
 describe('disassociateDesignUseCase', () => {
 	const currentDate = new Date();
 
 	beforeEach(() => {
-		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
 		jest
 			.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] })
 			.setSystemTime(currentDate);
 	});
 
 	afterEach(() => {
-		jest.restoreAllMocks();
 		jest.useRealTimers();
 	});
 

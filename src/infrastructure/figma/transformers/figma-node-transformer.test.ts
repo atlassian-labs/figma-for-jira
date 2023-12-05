@@ -12,8 +12,6 @@ import {
 	getUpdateSequenceNumberFrom,
 } from './utils';
 
-import * as configModule from '../../../config';
-import { mockConfig } from '../../../config/testing';
 import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
@@ -26,21 +24,7 @@ import {
 	MOCK_DOCUMENT,
 } from '../figma-client/testing';
 
-jest.mock('../../../config', () => {
-	return {
-		...jest.requireActual('../../../config'),
-		getConfig: jest.fn(),
-	};
-});
-
 describe('transformNodeToAtlassianDesign', () => {
-	beforeEach(() => {
-		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
-	});
-	afterEach(() => {
-		jest.restoreAllMocks();
-	});
-
 	it('should throw error if node is not found', () => {
 		const fileKey = generateFigmaFileKey();
 		const fileResponse = generateGetFileResponse({
@@ -60,13 +44,6 @@ describe('transformNodeToAtlassianDesign', () => {
 });
 
 describe('tryTransformNodeToAtlassianDesign', () => {
-	beforeEach(() => {
-		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
-	});
-	afterEach(() => {
-		jest.restoreAllMocks();
-	});
-
 	it('should correctly map to atlassian design', () => {
 		const fileKey = generateFigmaFileKey();
 		const node = generateChildNode({ id: '100:1' });

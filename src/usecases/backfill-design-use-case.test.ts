@@ -2,8 +2,6 @@ import type { BackfillDesignUseCaseParams } from './backfill-design-use-case';
 import { backfillDesignUseCase } from './backfill-design-use-case';
 import { generateBackfillDesignUseCaseParams } from './testing';
 
-import * as configModule from '../config';
-import { mockConfig } from '../config/testing';
 import type { AssociatedFigmaDesign } from '../domain/entities';
 import {
 	AtlassianAssociation,
@@ -21,23 +19,9 @@ import { figmaBackfillService } from '../infrastructure/figma/figma-backfill-ser
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
-jest.mock('../config', () => {
-	return {
-		...jest.requireActual('../config'),
-		getConfig: jest.fn(),
-	};
-});
-
 describe('backfillDesignUseCase', () => {
-	beforeEach(() => {
-		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
-	});
-
-	afterEach(() => {
-		jest.restoreAllMocks();
-	});
-
 	it('should associate design to issue', async () => {
+		console.log(process.env.APP_URL);
 		const connectInstallation = generateConnectInstallation();
 		const issue = generateJiraIssue();
 		const fileKey = generateFigmaFileKey();

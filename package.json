@@ -30,7 +30,7 @@
 		"test": "run-s test:unit test:it admin:test",
 		"test:it": "(dotenv -e .env.test -- prisma migrate reset -f) && (DOTENV_CONFIG_PATH=.env.test jest -c jest.config.integration.ts --runInBand)",
 		"test:it:ci": "run-s start:sandbox:test test:it stop:sandbox:test",
-		"test:unit": "jest -c jest.config.unit.ts"
+		"test:unit": "DOTENV_CONFIG_PATH=.env.test jest -c jest.config.unit.ts"
 	},
 	"dependencies": {
 		"@prisma/client": "^5.1.1",
