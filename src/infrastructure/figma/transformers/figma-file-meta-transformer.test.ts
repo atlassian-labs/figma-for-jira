@@ -6,8 +6,6 @@ import {
 	getUpdateSequenceNumberFrom,
 } from './utils';
 
-import * as configModule from '../../../config';
-import { mockConfig } from '../../../config/testing';
 import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
@@ -15,21 +13,7 @@ import {
 import { generateFigmaFileKey } from '../../../domain/entities/testing';
 import { generateGetFileMetaResponse } from '../figma-client/testing';
 
-jest.mock('../../../config', () => {
-	return {
-		...jest.requireActual('../../../config'),
-		getConfig: jest.fn(),
-	};
-});
-
 describe('transformFileMetaToAtlassianDesign', () => {
-	beforeEach(() => {
-		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
-	});
-	afterEach(() => {
-		jest.restoreAllMocks();
-	});
-
 	it('should correctly map to atlassian design', () => {
 		const fileKey = generateFigmaFileKey();
 		const fileMetaResponse = generateGetFileMetaResponse();

@@ -13,7 +13,6 @@ import { jiraAsymmetricJwtTokenVerifier } from './jira-asymmetric-jwt-token-veri
 
 import { Duration } from '../../../common/duration';
 import * as configModule from '../../../config';
-import { mockConfig } from '../../../config/testing';
 
 const NOW = Date.now();
 const NOW_IN_SECONDS = Math.floor(NOW / 1000);
@@ -43,22 +42,13 @@ const generateRsaKeyPair = async (): Promise<{
 	});
 };
 
-jest.mock('../../../config', () => {
-	return {
-		...jest.requireActual('../../../config'),
-		getConfig: jest.fn(),
-	};
-});
-
 describe('JiraAsymmetricJwtTokenVerifier', () => {
 	beforeEach(() => {
-		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
 		jest.useFakeTimers().setSystemTime(NOW);
 	});
 
 	afterEach(() => {
 		jest.useRealTimers();
-		jest.restoreAllMocks();
 	});
 
 	describe('verify', () => {

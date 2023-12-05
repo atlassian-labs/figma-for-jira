@@ -6,7 +6,6 @@ import {
 } from './figma-auth-service';
 import type {
 	CreateDevResourcesResponse,
-	CreateWebhookRequest,
 	CreateWebhookResponse,
 	GetDevResourcesResponse,
 } from './figma-client';
@@ -31,8 +30,7 @@ import {
 	tryTransformNodeToAtlassianDesign,
 } from './transformers';
 
-import * as configModule from '../../config';
-import { mockConfig } from '../../config/testing';
+import { getConfig } from '../../config';
 import {
 	generateConnectUserInfo,
 	generateFigmaDesignIdentifier,
@@ -50,25 +48,11 @@ import {
 	UnauthorizedHttpClientError,
 } from '../http-client-errors';
 
-jest.mock('../../config', () => {
-	return {
-		...jest.requireActual('../../config'),
-		getConfig: jest.fn(),
-	};
-});
-
 describe('FigmaService', () => {
 	const MOCK_CONNECT_USER_INFO = generateConnectUserInfo();
 	const MOCK_CREDENTIALS = generateFigmaOAuth2UserCredentials({
 		atlassianUserId: MOCK_CONNECT_USER_INFO.atlassianUserId,
 		connectInstallationId: MOCK_CONNECT_USER_INFO.connectInstallationId,
-	});
-
-	beforeEach(() => {
-		(configModule.getConfig as jest.Mock).mockReturnValue(mockConfig);
-	});
-	afterEach(() => {
-		jest.restoreAllMocks();
 	});
 
 	describe('getCurrentUser', () => {
@@ -780,7 +764,7 @@ describe('FigmaService', () => {
 		it('should call figmaClient to create a webhook', async () => {
 			const webhookId = uuidv4();
 			const teamId = uuidv4();
-			const endpoint = `${mockConfig.app.baseUrl}/figma/webhook`;
+			const endpoint = `${getConfig().app.baseUrl}/figma/webhook`;
 			const passcode = uuidv4();
 			const description = 'Figma for Jira Cloud';
 
@@ -788,7 +772,7 @@ describe('FigmaService', () => {
 				id: webhookId,
 				team_id: teamId,
 				event_type: 'FILE_UPDATE',
-				client_id: mockConfig.figma.oauth2.clientId,
+				client_id: 'test-client',
 				endpoint,
 				passcode,
 				status: 'ACTIVE',
@@ -802,15 +786,14 @@ describe('FigmaService', () => {
 				MOCK_CONNECT_USER_INFO,
 			);
 
-			const expectedCreateWebhookRequest: CreateWebhookRequest = {
-				event_type: 'FILE_UPDATE',
-				team_id: teamId,
-				endpoint,
-				passcode,
-				description,
-			};
 			expect(figmaClient.createWebhook).toHaveBeenCalledWith(
-				expectedCreateWebhookRequest,
+				{
+					event_type: 'FILE_UPDATE',
+					team_id: teamId,
+					endpoint,
+					passcode,
+					description,
+				},
 				MOCK_CREDENTIALS.accessToken,
 			);
 		});
