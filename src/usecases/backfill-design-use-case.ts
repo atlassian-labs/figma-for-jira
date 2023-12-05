@@ -85,8 +85,8 @@ export const backfillDesignUseCase = {
 			await associatedFigmaDesignRepository.upsert({
 				designId: figmaDesignId,
 				associatedWithAri: associateWith.ari,
-				inputUrl: designUrl,
 				connectInstallationId: connectInstallation.id,
+				inputUrl: designUrl,
 			});
 
 			return design;

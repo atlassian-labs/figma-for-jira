@@ -82,6 +82,7 @@ export const associateDesignUseCase = {
 				designId: figmaDesignId,
 				associatedWithAri: associateWith.ari,
 				connectInstallationId: connectInstallation.id,
+				inputUrl: designUrl,
 			});
 
 			return design;
