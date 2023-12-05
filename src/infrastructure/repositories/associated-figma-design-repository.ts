@@ -91,6 +91,7 @@ export class AssociatedFigmaDesignRepository {
 		fileKey,
 		nodeId,
 		associatedWithAri,
+		inputUrl,
 		connectInstallationId,
 	}: PrismaAssociatedFigmaDesign): AssociatedFigmaDesign => ({
 		id: id.toString(),
@@ -98,6 +99,7 @@ export class AssociatedFigmaDesignRepository {
 			fileKey,
 			nodeId !== '' ? nodeId : undefined,
 		),
+		inputUrl: inputUrl ? new URL(inputUrl) : undefined,
 		associatedWithAri,
 		connectInstallationId: connectInstallationId.toString(),
 	});
@@ -105,11 +107,13 @@ export class AssociatedFigmaDesignRepository {
 	private mapCreateParamsToDbModel = ({
 		designId,
 		associatedWithAri,
+		inputUrl,
 		connectInstallationId,
 	}: AssociatedFigmaDesignCreateParams): PrismaAssociatedFigmaDesignCreateParams => ({
 		fileKey: designId.fileKey,
 		nodeId: designId.nodeId ?? '',
 		associatedWithAri,
+		inputUrl: inputUrl?.toString() ?? null,
 		connectInstallationId: BigInt(connectInstallationId),
 	});
 }

@@ -87,6 +87,7 @@ describe('backfillDesignUseCase', () => {
 		expect(associatedFigmaDesignRepository.upsert).toHaveBeenCalledWith({
 			designId,
 			associatedWithAri: params.associateWith.ari,
+			inputUrl: params.designUrl,
 			connectInstallationId: connectInstallation.id,
 		});
 	});
@@ -158,6 +159,7 @@ describe('backfillDesignUseCase', () => {
 		expect(associatedFigmaDesignRepository.upsert).toHaveBeenCalledWith({
 			designId,
 			associatedWithAri: params.associateWith.ari,
+			inputUrl: params.designUrl,
 			connectInstallationId: connectInstallation.id,
 		});
 	});

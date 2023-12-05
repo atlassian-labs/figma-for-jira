@@ -22,10 +22,11 @@ model ConnectInstallation {
 }
 
 model AssociatedFigmaDesign {
-  id                    BigInt              @id @default(autoincrement())
-  fileKey               String              @map("file_key")
-  nodeId                String              @map("node_id") // Prisma does not support nullable columns with the composite indexes: https://github.com/prisma/prisma/issues/3197
-  associatedWithAri     String              @map("associated-with-ari")
+  id                BigInt  @id @default(autoincrement())
+  fileKey           String  @map("file_key")
+  nodeId            String  @map("node_id") // Prisma does not support nullable columns with the composite indexes: https://github.com/prisma/prisma/issues/3197
+  associatedWithAri String  @map("associated-with-ari")
+  inputUrl          String? @map("input_url")
 
   connectInstallation   ConnectInstallation @relation(fields: [connectInstallationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   connectInstallationId BigInt              @map("connect_installation_id")
@@ -35,11 +36,11 @@ model AssociatedFigmaDesign {
 }
 
 model FigmaOAuth2UserCredentials {
-  id                    BigInt              @id @default(autoincrement())
-  atlassianUserId       String              @map("atlassian_user_id")
-  accessToken           String              @map("access_token")
-  refreshToken          String              @map("refresh_token")
-  expiresAt             DateTime            @map("expires_at") @db.Timestamptz
+  id              BigInt   @id @default(autoincrement())
+  atlassianUserId String   @map("atlassian_user_id")
+  accessToken     String   @map("access_token")
+  refreshToken    String   @map("refresh_token")
+  expiresAt       DateTime @map("expires_at") @db.Timestamptz
 
   connectInstallation   ConnectInstallation @relation(fields: [connectInstallationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   connectInstallationId BigInt              @map("connect_installation_id")
@@ -61,11 +62,11 @@ model FigmaTeam {
   webhookPasscode           String              @map("webhook_passcode")
   teamId                    String              @map("team_id")
   teamName                  String              @map("team_name")
-  figmaAdminAtlassianUserId String              @map("figma_admin_atlassian_user_id")  // Atlassian user ID of the Figma team admin that configured the webhook
+  figmaAdminAtlassianUserId String              @map("figma_admin_atlassian_user_id") // Atlassian user ID of the Figma team admin that configured the webhook
   authStatus                FigmaTeamAuthStatus
 
-  connectInstallation       ConnectInstallation @relation(fields: [connectInstallationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  connectInstallationId     BigInt              @map("connect_installation_id")
+  connectInstallation   ConnectInstallation @relation(fields: [connectInstallationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  connectInstallationId BigInt              @map("connect_installation_id")
 
   @@unique([teamId, connectInstallationId])
   @@map("jira_figma_team")
