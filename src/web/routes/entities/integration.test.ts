@@ -718,11 +718,12 @@ describe('/entities', () => {
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
 				.expect(atlassianDesign);
-			expect(await associatedFigmaDesignRepository.getAll()).toEqual([
+			expect(await associatedFigmaDesignRepository.getAll()).toStrictEqual([
 				{
 					id: expect.anything(),
 					designId: new FigmaDesignIdentifier(fileKey),
 					associatedWithAri: issueAri,
+					inputUrl: inputFigmaDesignUrl,
 					connectInstallationId: connectInstallation.id,
 				},
 			]);
@@ -984,11 +985,12 @@ describe('/entities', () => {
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
 				.expect(atlassianDesign);
-			expect(await associatedFigmaDesignRepository.getAll()).toEqual([
+			expect(await associatedFigmaDesignRepository.getAll()).toStrictEqual([
 				{
 					id: expect.anything(),
 					designId: new FigmaDesignIdentifier(fileKey),
 					associatedWithAri: issueAri,
+					inputUrl: inputFigmaDesignUrl,
 					connectInstallationId: connectInstallation.id,
 				},
 			]);

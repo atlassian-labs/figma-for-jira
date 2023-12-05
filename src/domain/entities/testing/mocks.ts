@@ -213,11 +213,13 @@ export const generateAssociatedFigmaDesign = ({
 	id = generateNumericStringId(),
 	designId = generateFigmaDesignIdentifier(),
 	associatedWithAri = generateJiraIssueAri(),
+	inputUrl = generateFigmaDesignUrl(designId),
 	connectInstallationId = generateNumericStringId(),
 }: Partial<AssociatedFigmaDesign> = {}): AssociatedFigmaDesign => ({
 	id,
 	designId,
 	associatedWithAri,
+	inputUrl,
 	connectInstallationId,
 });
 
