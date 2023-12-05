@@ -219,8 +219,8 @@ export const generateAssociatedFigmaDesign = ({
 	id,
 	designId,
 	associatedWithAri,
-	inputUrl,
 	connectInstallationId,
+	inputUrl,
 });
 
 export const generateFigmaTeamCreateParams = ({
