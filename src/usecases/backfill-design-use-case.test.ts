@@ -21,7 +21,6 @@ import { associatedFigmaDesignRepository } from '../infrastructure/repositories'
 
 describe('backfillDesignUseCase', () => {
 	it('should associate design to issue', async () => {
-		console.log(process.env.APP_URL);
 		const connectInstallation = generateConnectInstallation();
 		const issue = generateJiraIssue();
 		const fileKey = generateFigmaFileKey();
