@@ -88,6 +88,7 @@ describe('backfillDesignUseCase', () => {
 			designId,
 			associatedWithAri: params.associateWith.ari,
 			connectInstallationId: connectInstallation.id,
+			inputUrl: params.designUrl.toString(),
 		});
 	});
 
@@ -159,6 +160,7 @@ describe('backfillDesignUseCase', () => {
 			designId,
 			associatedWithAri: params.associateWith.ari,
 			connectInstallationId: connectInstallation.id,
+			inputUrl: params.designUrl.toString(),
 		});
 	});
 

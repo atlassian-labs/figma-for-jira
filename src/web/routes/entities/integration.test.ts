@@ -283,6 +283,7 @@ describe('/entities', () => {
 					designId: new FigmaDesignIdentifier(fileKey),
 					associatedWithAri: issueAri,
 					connectInstallationId: connectInstallation.id,
+					inputUrl: inputFigmaDesignUrl.toString(),
 				},
 			]);
 		});
@@ -415,12 +416,13 @@ describe('/entities', () => {
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
 				.expect(atlassianDesign);
-			expect(await associatedFigmaDesignRepository.getAll()).toEqual([
+			expect(await associatedFigmaDesignRepository.getAll()).toStrictEqual([
 				{
 					id: expect.anything(),
 					designId: new FigmaDesignIdentifier(fileKey, nodeId),
 					associatedWithAri: issueAri,
 					connectInstallationId: connectInstallation.id,
+					inputUrl: inputFigmaDesignUrl.toString(),
 				},
 			]);
 		});
@@ -718,12 +720,13 @@ describe('/entities', () => {
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
 				.expect(atlassianDesign);
-			expect(await associatedFigmaDesignRepository.getAll()).toEqual([
+			expect(await associatedFigmaDesignRepository.getAll()).toStrictEqual([
 				{
 					id: expect.anything(),
 					designId: new FigmaDesignIdentifier(fileKey),
 					associatedWithAri: issueAri,
 					connectInstallationId: connectInstallation.id,
+					inputUrl: inputFigmaDesignUrl.toString(),
 				},
 			]);
 		});
@@ -856,12 +859,13 @@ describe('/entities', () => {
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
 				.expect(atlassianDesign);
-			expect(await associatedFigmaDesignRepository.getAll()).toEqual([
+			expect(await associatedFigmaDesignRepository.getAll()).toStrictEqual([
 				{
 					id: expect.anything(),
 					designId: new FigmaDesignIdentifier(fileKey, nodeId),
 					associatedWithAri: issueAri,
 					connectInstallationId: connectInstallation.id,
+					inputUrl: inputFigmaDesignUrl.toString(),
 				},
 			]);
 		});
@@ -984,12 +988,13 @@ describe('/entities', () => {
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
 				.expect(atlassianDesign);
-			expect(await associatedFigmaDesignRepository.getAll()).toEqual([
+			expect(await associatedFigmaDesignRepository.getAll()).toStrictEqual([
 				{
 					id: expect.anything(),
 					designId: new FigmaDesignIdentifier(fileKey),
 					associatedWithAri: issueAri,
 					connectInstallationId: connectInstallation.id,
+					inputUrl: inputFigmaDesignUrl.toString(),
 				},
 			]);
 		});
