@@ -101,7 +101,7 @@ export class AssociatedFigmaDesignRepository {
 		),
 		associatedWithAri,
 		connectInstallationId: connectInstallationId.toString(),
-		inputUrl: inputUrl ? new URL(inputUrl) : undefined,
+		inputUrl: inputUrl ?? undefined,
 	});
 
 	private mapCreateParamsToDbModel = ({
@@ -116,7 +116,7 @@ export class AssociatedFigmaDesignRepository {
 		associatedWithAri,
 
 		connectInstallationId: BigInt(connectInstallationId),
-		inputUrl: inputUrl?.toString() ?? null,
+		inputUrl: inputUrl ?? null,
 	});
 }
 

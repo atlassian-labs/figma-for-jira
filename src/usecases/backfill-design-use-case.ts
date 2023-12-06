@@ -86,7 +86,7 @@ export const backfillDesignUseCase = {
 				designId: figmaDesignId,
 				associatedWithAri: associateWith.ari,
 				connectInstallationId: connectInstallation.id,
-				inputUrl: designUrl,
+				inputUrl: designUrl.toString(),
 			});
 
 			return design;

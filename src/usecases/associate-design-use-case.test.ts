@@ -88,7 +88,7 @@ describe('associateDesignUseCase', () => {
 			designId,
 			associatedWithAri: params.associateWith.ari,
 			connectInstallationId: connectInstallation.id,
-			inputUrl: params.designUrl,
+			inputUrl: params.designUrl.toString(),
 		});
 	});
 

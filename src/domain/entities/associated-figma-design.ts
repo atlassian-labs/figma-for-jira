@@ -20,7 +20,7 @@ export type AssociatedFigmaDesign = {
 	 * changes in the requirements. For example, having the original user's URL, it is possible
 	 * to adjust the way how designs are constructed and re-submit these designs to Jira.
 	 */
-	readonly inputUrl?: URL;
+	readonly inputUrl?: string;
 };
 
 export type AssociatedFigmaDesignCreateParams = Omit<
