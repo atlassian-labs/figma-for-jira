@@ -47,7 +47,7 @@ export function ConnectTeamSuccessScreen({
 				css={css`
 					display: flex;
 					width: 580px;
-					padding: 32px 0px;
+					padding: 32px;
 					flex-direction: column;
 					align-items: center;
 					gap: 24px;
@@ -70,6 +70,7 @@ export function ConnectTeamSuccessScreen({
 							color: ${token('color.text')};
 							font-size: 16px;
 							font-weight: 600;
+							text-align: center;
 						`}
 					>
 						It's time to let {teamName} know that Figma for Jira is connected
