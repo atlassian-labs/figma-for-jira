@@ -107,7 +107,6 @@ export class AssociatedFigmaDesignRepository {
 	private mapCreateParamsToDbModel = ({
 		designId,
 		associatedWithAri,
-
 		connectInstallationId,
 		inputUrl,
 	}: AssociatedFigmaDesignCreateParams): PrismaAssociatedFigmaDesignCreateParams => ({
