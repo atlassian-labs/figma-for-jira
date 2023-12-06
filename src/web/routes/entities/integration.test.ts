@@ -283,7 +283,7 @@ describe('/entities', () => {
 					designId: new FigmaDesignIdentifier(fileKey),
 					associatedWithAri: issueAri,
 					connectInstallationId: connectInstallation.id,
-					inputUrl: inputFigmaDesignUrl,
+					inputUrl: inputFigmaDesignUrl.toString(),
 				},
 			]);
 		});
@@ -422,7 +422,7 @@ describe('/entities', () => {
 					designId: new FigmaDesignIdentifier(fileKey, nodeId),
 					associatedWithAri: issueAri,
 					connectInstallationId: connectInstallation.id,
-					inputUrl: inputFigmaDesignUrl,
+					inputUrl: inputFigmaDesignUrl.toString(),
 				},
 			]);
 		});
@@ -726,7 +726,7 @@ describe('/entities', () => {
 					designId: new FigmaDesignIdentifier(fileKey),
 					associatedWithAri: issueAri,
 					connectInstallationId: connectInstallation.id,
-					inputUrl: inputFigmaDesignUrl,
+					inputUrl: inputFigmaDesignUrl.toString(),
 				},
 			]);
 		});
@@ -865,7 +865,7 @@ describe('/entities', () => {
 					designId: new FigmaDesignIdentifier(fileKey, nodeId),
 					associatedWithAri: issueAri,
 					connectInstallationId: connectInstallation.id,
-					inputUrl: inputFigmaDesignUrl,
+					inputUrl: inputFigmaDesignUrl.toString(),
 				},
 			]);
 		});
@@ -994,7 +994,7 @@ describe('/entities', () => {
 					designId: new FigmaDesignIdentifier(fileKey),
 					associatedWithAri: issueAri,
 					connectInstallationId: connectInstallation.id,
-					inputUrl: inputFigmaDesignUrl,
+					inputUrl: inputFigmaDesignUrl.toString(),
 				},
 			]);
 		});
