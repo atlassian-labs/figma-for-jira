@@ -111,6 +111,7 @@ export class AssociatedFigmaDesignRepository {
 		nodeId: designId.nodeId ?? '',
 		associatedWithAri,
 		connectInstallationId: BigInt(connectInstallationId),
+		inputUrl: null,
 	});
 }
 
