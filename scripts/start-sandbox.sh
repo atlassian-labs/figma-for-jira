@@ -22,4 +22,4 @@ until [ "$(docker inspect -f '{{.State.Health.Status}}' "$DB_CONTAINER_NAME")" =
 done
 
 echo 'Running DB migrations...'
-dotenv -e "$ENV_FILE" -- prisma migrate dev
+dotenv -e "$ENV_FILE" -- prisma migrate deploy
