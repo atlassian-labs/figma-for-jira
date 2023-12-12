@@ -1,6 +1,9 @@
 import type { AssociateDesignUseCaseParams } from './associate-design-use-case';
 import { associateDesignUseCase } from './associate-design-use-case';
-import { FigmaDesignNotFoundUseCaseResultError } from './errors';
+import {
+	FigmaDesignNotFoundUseCaseResultError,
+	InvalidInputUseCaseResultError,
+} from './errors';
 import { generateAssociateDesignUseCaseParams } from './testing';
 
 import type { AssociatedFigmaDesign } from '../domain/entities';
@@ -108,6 +111,26 @@ describe('associateDesignUseCase', () => {
 		await expect(() =>
 			associateDesignUseCase.execute(params),
 		).rejects.toBeInstanceOf(FigmaDesignNotFoundUseCaseResultError);
+	});
+
+	it('should throw InvalidInputUseCaseResultError when the file is not valid', async () => {
+		const connectInstallation = generateConnectInstallation();
+		const issue = generateJiraIssue();
+		const params: AssociateDesignUseCaseParams =
+			generateAssociateDesignUseCaseParams({
+				// This URL is not valid because it does not contain a file key.
+				designUrl: new URL(
+					'https://www.figma.com/files/project/176167247/Team-project?fuid=1166427116484924636',
+				),
+				issueId: issue.id,
+				connectInstallation,
+			});
+		jest.spyOn(figmaService, 'getDesignOrParent').mockResolvedValue(null);
+		jest.spyOn(jiraService, 'getIssue').mockResolvedValue(issue);
+
+		await expect(() =>
+			associateDesignUseCase.execute(params),
+		).rejects.toBeInstanceOf(InvalidInputUseCaseResultError);
 	});
 
 	it('should not save associated Figma design when design submission fails', async () => {

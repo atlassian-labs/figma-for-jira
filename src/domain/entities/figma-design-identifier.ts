@@ -1,3 +1,5 @@
+import { InvalidInputUseCaseResultError } from '../../usecases/errors';
+
 const FIGMA_DOCUMENT_NODE_ID = '0:0';
 
 /**
@@ -43,7 +45,9 @@ export class FigmaDesignIdentifier {
 		const nodeId = url.searchParams.get('node-id')?.replace('-', ':');
 
 		if (!fileKey)
-			throw new Error(`Received invalid Figma URL: ${url.toString()}`);
+			throw new InvalidInputUseCaseResultError(
+				`Received invalid Figma URL: ${url.toString()}`,
+			);
 
 		return new FigmaDesignIdentifier(fileKey, nodeId);
 	};

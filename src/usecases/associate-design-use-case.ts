@@ -1,6 +1,7 @@
 import {
 	FigmaDesignNotFoundUseCaseResultError,
 	ForbiddenByFigmaUseCaseResultError,
+	InvalidInputUseCaseResultError,
 } from './errors';
 import type { AtlassianEntity } from './types';
 
@@ -89,6 +90,9 @@ export const associateDesignUseCase = {
 		} catch (e) {
 			if (e instanceof UnauthorizedFigmaServiceError) {
 				throw new ForbiddenByFigmaUseCaseResultError(e);
+			}
+			if (e instanceof InvalidInputUseCaseResultError) {
+				throw new InvalidInputUseCaseResultError(e.message, e);
 			}
 
 			throw e;
