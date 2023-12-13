@@ -12,6 +12,12 @@ export class ForbiddenByFigmaUseCaseResultError extends UseCaseResultError {
 	}
 }
 
+export class JiraIssueNotFoundUseCaseResultError extends UseCaseResultError {
+	constructor(cause?: Error) {
+		super('Issue is not found.', cause);
+	}
+}
+
 export class FigmaDesignNotFoundUseCaseResultError extends UseCaseResultError {
 	constructor(cause?: Error) {
 		super('Design is not found.', cause);
