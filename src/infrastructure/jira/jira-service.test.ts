@@ -13,9 +13,10 @@ import {
 import type { AttachedDesignUrlV2IssuePropertyValue } from './jira-service';
 import {
 	ConfigurationState,
+	ForbiddenByJiraServiceError,
 	issuePropertyKeys,
-	JiraService,
 	jiraService,
+	JiraService,
 	SubmitDesignJiraServiceError,
 } from './jira-service';
 
@@ -38,7 +39,10 @@ import {
 	generateJiraIssueAri,
 	generateJiraIssueKey,
 } from '../../domain/entities/testing';
-import { NotFoundHttpClientError } from '../http-client-errors';
+import {
+	ForbiddenHttpClientError,
+	NotFoundHttpClientError,
+} from '../http-client-errors';
 
 describe('JiraService', () => {
 	describe('submitDesigns', () => {
@@ -974,17 +978,26 @@ describe('JiraService', () => {
 			expect(result).toBe(true);
 		});
 
-		it('should return false if the method throws an error', async () => {
+		it('should throw a ForbiddenByJiraServiceError if checkPermissions returns a 403', async () => {
+			const atlassianUserId = uuidv4();
+			const connectInstallation = generateConnectInstallation();
+			jest
+				.spyOn(jiraClient, 'checkPermissions')
+				.mockRejectedValue(new ForbiddenHttpClientError());
+
+			await expect(() =>
+				jiraService.isAdmin(atlassianUserId, connectInstallation),
+			).rejects.toThrow(ForbiddenByJiraServiceError);
+		});
+
+		it('should throw an error if checkPermissions returns a 500', async () => {
 			const atlassianUserId = uuidv4();
 			const connectInstallation = generateConnectInstallation();
 			jest.spyOn(jiraClient, 'checkPermissions').mockRejectedValue(new Error());
 
-			const result = await jiraService.isAdmin(
-				atlassianUserId,
-				connectInstallation,
-			);
-
-			expect(result).toBe(false);
+			await expect(() =>
+				jiraService.isAdmin(atlassianUserId, connectInstallation),
+			).rejects.toThrow(Error);
 		});
 	});
 

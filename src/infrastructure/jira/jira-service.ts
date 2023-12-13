@@ -23,7 +23,10 @@ import {
 	AtlassianAssociation,
 	FigmaDesignIdentifier,
 } from '../../domain/entities';
-import { NotFoundHttpClientError } from '../http-client-errors';
+import {
+	ForbiddenHttpClientError,
+	NotFoundHttpClientError,
+} from '../http-client-errors';
 import { getLogger } from '../logger';
 
 type SubmitDesignParams = {
@@ -162,7 +165,10 @@ export class JiraService {
 			);
 			return response.globalPermissions.includes(JIRA_ADMIN_GLOBAL_PERMISSION);
 		} catch (err) {
-			return false;
+			if (err instanceof ForbiddenHttpClientError) {
+				throw new ForbiddenByJiraServiceError();
+			}
+			throw err;
 		}
 	};
 
@@ -481,3 +487,5 @@ export class SubmitDesignJiraServiceError extends CauseAwareError {
 		});
 	}
 }
+
+export class ForbiddenByJiraServiceError extends CauseAwareError {}
