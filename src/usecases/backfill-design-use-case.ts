@@ -1,4 +1,7 @@
-import { ForbiddenByFigmaUseCaseResultError } from './errors';
+import {
+	ForbiddenByFigmaUseCaseResultError,
+	InvalidInputUseCaseResultError,
+} from './errors';
 import type { AtlassianEntity } from './types';
 
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
@@ -27,6 +30,7 @@ export const backfillDesignUseCase = {
 	 * Backfills designs created via the old "Figma for Jira" experience or the "Jira" widget in Figma.
 	 *
 	 * @throws {ForbiddenByFigmaUseCaseResultError} Not authorized to access Figma.
+	 * @throws {InvalidInputUseCaseResultError} The given design URL is invalid.
 	 */
 	execute: async ({
 		designUrl,
@@ -34,9 +38,16 @@ export const backfillDesignUseCase = {
 		atlassianUserId,
 		connectInstallation,
 	}: BackfillDesignUseCaseParams): Promise<AtlassianDesign> => {
+		let figmaDesignId: FigmaDesignIdentifier;
 		try {
-			const figmaDesignId = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
+			figmaDesignId = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
+		} catch (e) {
+			throw new InvalidInputUseCaseResultError(
+				'The given design URL is invalid',
+			);
+		}
 
+		try {
 			// eslint-disable-next-line prefer-const
 			let [design, issue] = await Promise.all([
 				figmaService.getDesignOrParent(figmaDesignId, {

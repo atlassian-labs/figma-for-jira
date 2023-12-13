@@ -118,6 +118,9 @@ describe('FigmaDesignIdentifier', () => {
 			new URL(`https://www.figma.com/proto`),
 			new URL(`https://www.figma.com?param=file%2Fsome-id`),
 			new URL(`https://www.figma.com?param=proto%2Fsome-id`),
+			new URL(
+				`https://www.figma.com/files/project/176167247/Team-project?fuid=1166427116484924636`,
+			),
 		])('should throw when URL has an unexpected format', (input: URL) => {
 			expect(() => FigmaDesignIdentifier.fromFigmaDesignUrl(input)).toThrow();
 		});

@@ -1,6 +1,7 @@
 import {
 	FigmaDesignNotFoundUseCaseResultError,
 	ForbiddenByFigmaUseCaseResultError,
+	InvalidInputUseCaseResultError,
 } from './errors';
 import type { AtlassianEntity } from './types';
 
@@ -27,6 +28,7 @@ export type AssociateDesignUseCaseParams = {
 export const associateDesignUseCase = {
 	/**
 	 * @throws {ForbiddenByFigmaUseCaseResultError} Not authorized to access Figma.
+	 * @throws {InvalidInputUseCaseResultError} The given design URL is invalid.
 	 */
 	execute: async ({
 		designUrl,
@@ -34,9 +36,16 @@ export const associateDesignUseCase = {
 		atlassianUserId,
 		connectInstallation,
 	}: AssociateDesignUseCaseParams): Promise<AtlassianDesign> => {
+		let figmaDesignId: FigmaDesignIdentifier;
 		try {
-			const figmaDesignId = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
+			figmaDesignId = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
+		} catch (e) {
+			throw new InvalidInputUseCaseResultError(
+				'The given design URL is invalid',
+			);
+		}
 
+		try {
 			const [design, issue] = await Promise.all([
 				figmaService.getDesignOrParent(figmaDesignId, {
 					atlassianUserId,
