@@ -35,9 +35,16 @@ export const associateDesignUseCase = {
 		atlassianUserId,
 		connectInstallation,
 	}: AssociateDesignUseCaseParams): Promise<AtlassianDesign> => {
+		let figmaDesignId: FigmaDesignIdentifier;
 		try {
-			const figmaDesignId = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
+			figmaDesignId = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
+		} catch (e) {
+			throw new InvalidInputUseCaseResultError(
+				'The given design URL is invalid',
+			);
+		}
 
+		try {
 			const [design, issue] = await Promise.all([
 				figmaService.getDesignOrParent(figmaDesignId, {
 					atlassianUserId,
@@ -90,9 +97,6 @@ export const associateDesignUseCase = {
 		} catch (e) {
 			if (e instanceof UnauthorizedFigmaServiceError) {
 				throw new ForbiddenByFigmaUseCaseResultError(e);
-			}
-			if (e instanceof InvalidInputUseCaseResultError) {
-				throw new InvalidInputUseCaseResultError(e.message, e);
 			}
 
 			throw e;

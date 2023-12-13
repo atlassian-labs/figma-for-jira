@@ -6,8 +6,6 @@ import {
 	generateFigmaNodeId,
 } from './testing';
 
-import { InvalidInputUseCaseResultError } from '../../usecases/errors';
-
 describe('FigmaDesignIdentifier', () => {
 	describe('constructor', () => {
 		it('should throw when fileKey is empty string', () => {
@@ -124,9 +122,7 @@ describe('FigmaDesignIdentifier', () => {
 				`https://www.figma.com/files/project/176167247/Team-project?fuid=1166427116484924636`,
 			),
 		])('should throw when URL has an unexpected format', (input: URL) => {
-			expect(() => FigmaDesignIdentifier.fromFigmaDesignUrl(input)).toThrow(
-				InvalidInputUseCaseResultError,
-			);
+			expect(() => FigmaDesignIdentifier.fromFigmaDesignUrl(input)).toThrow();
 		});
 	});
 

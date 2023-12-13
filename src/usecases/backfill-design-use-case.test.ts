@@ -1,5 +1,6 @@
 import type { BackfillDesignUseCaseParams } from './backfill-design-use-case';
 import { backfillDesignUseCase } from './backfill-design-use-case';
+import { InvalidInputUseCaseResultError } from './errors';
 import { generateBackfillDesignUseCaseParams } from './testing';
 
 import type { AssociatedFigmaDesign } from '../domain/entities';
@@ -192,6 +193,26 @@ describe('backfillDesignUseCase', () => {
 		jest.spyOn(associatedFigmaDesignRepository, 'upsert');
 
 		await expect(() => backfillDesignUseCase.execute(params)).rejects.toThrow();
+		expect(associatedFigmaDesignRepository.upsert).not.toHaveBeenCalled();
+	});
+
+	it('should throw InvalidInputUseCaseResultError when the file is not valid', async () => {
+		const connectInstallation = generateConnectInstallation();
+		const issue = generateJiraIssue();
+
+		const params: BackfillDesignUseCaseParams =
+			generateBackfillDesignUseCaseParams({
+				// This URL is not valid because it does not contain a file key.
+				designUrl: new URL(
+					'https://www.figma.com/files/project/176167247/Team-project?fuid=1166427116484924636',
+				),
+				issueId: issue.id,
+				connectInstallation,
+			});
+
+		await expect(() => backfillDesignUseCase.execute(params)).rejects.toThrow(
+			InvalidInputUseCaseResultError,
+		);
 		expect(associatedFigmaDesignRepository.upsert).not.toHaveBeenCalled();
 	});
 });
