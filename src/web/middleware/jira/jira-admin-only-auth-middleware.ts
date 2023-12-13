@@ -1,7 +1,10 @@
 import type { NextFunction, Request, Response } from 'express';
 
 import type { ConnectInstallation } from '../../../domain/entities';
-import { jiraService } from '../../../infrastructure/jira';
+import {
+	ForbiddenByJiraServiceError,
+	jiraService,
+} from '../../../infrastructure/jira';
 import { UnauthorizedResponseStatusError } from '../../errors';
 
 export const jiraAdminOnlyAuthMiddleware = (
@@ -27,5 +30,14 @@ export const jiraAdminOnlyAuthMiddleware = (
 
 			next();
 		})
-		.catch(next);
+		.catch((err) => {
+			if (err instanceof ForbiddenByJiraServiceError) {
+				return next(
+					new UnauthorizedResponseStatusError(
+						'Unauthorized. The resource is available only for admins.',
+					),
+				);
+			}
+			next(err);
+		});
 };
