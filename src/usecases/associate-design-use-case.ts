@@ -28,6 +28,7 @@ export type AssociateDesignUseCaseParams = {
 export const associateDesignUseCase = {
 	/**
 	 * @throws {ForbiddenByFigmaUseCaseResultError} Not authorized to access Figma.
+	 * @throws {InvalidInputUseCaseResultError} The given design URL is invalid.
 	 */
 	execute: async ({
 		designUrl,
