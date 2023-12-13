@@ -1,6 +1,9 @@
 import type { BackfillDesignUseCaseParams } from './backfill-design-use-case';
 import { backfillDesignUseCase } from './backfill-design-use-case';
-import { InvalidInputUseCaseResultError } from './errors';
+import {
+	InvalidInputUseCaseResultError,
+	JiraIssueNotFoundUseCaseResultError,
+} from './errors';
 import { generateBackfillDesignUseCaseParams } from './testing';
 
 import type { AssociatedFigmaDesign } from '../domain/entities';
@@ -17,7 +20,10 @@ import {
 } from '../domain/entities/testing';
 import { figmaService } from '../infrastructure/figma';
 import { figmaBackfillService } from '../infrastructure/figma/figma-backfill-service';
-import { jiraService } from '../infrastructure/jira';
+import {
+	IssueNotFoundJiraServiceError,
+	jiraService,
+} from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
 describe('backfillDesignUseCase', () => {
@@ -212,6 +218,43 @@ describe('backfillDesignUseCase', () => {
 
 		await expect(() => backfillDesignUseCase.execute(params)).rejects.toThrow(
 			InvalidInputUseCaseResultError,
+		);
+		expect(associatedFigmaDesignRepository.upsert).not.toHaveBeenCalled();
+	});
+
+	it('should throw JiraIssueNotFoundUseCaseResultError when the issue is not found', async () => {
+		const connectInstallation = generateConnectInstallation();
+		const issue = generateJiraIssue();
+		const fileKey = generateFigmaFileKey();
+		const designId = new FigmaDesignIdentifier(fileKey);
+		const atlassianDesign = generateAtlassianDesign({
+			id: designId.toAtlassianDesignId(),
+		});
+
+		const params: BackfillDesignUseCaseParams =
+			generateBackfillDesignUseCaseParams({
+				designUrl: generateFigmaDesignUrl({ fileKey }),
+				issueId: issue.id,
+				connectInstallation,
+			});
+
+		jest
+			.spyOn(figmaService, 'getDesignOrParent')
+			.mockResolvedValue(atlassianDesign);
+		jest.spyOn(jiraService, 'getIssue').mockResolvedValue(issue);
+		jest
+			.spyOn(jiraService, 'submitDesign')
+			.mockRejectedValue(new IssueNotFoundJiraServiceError());
+		jest
+			.spyOn(jiraService, 'saveDesignUrlInIssueProperties')
+			.mockResolvedValue();
+		jest
+			.spyOn(figmaService, 'tryCreateDevResourceForJiraIssue')
+			.mockResolvedValue();
+		jest.spyOn(associatedFigmaDesignRepository, 'upsert');
+
+		await expect(() => backfillDesignUseCase.execute(params)).rejects.toThrow(
+			JiraIssueNotFoundUseCaseResultError,
 		);
 		expect(associatedFigmaDesignRepository.upsert).not.toHaveBeenCalled();
 	});

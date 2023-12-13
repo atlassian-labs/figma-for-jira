@@ -13,9 +13,10 @@ import {
 import type { AttachedDesignUrlV2IssuePropertyValue } from './jira-service';
 import {
 	ConfigurationState,
+	IssueNotFoundJiraServiceError,
 	issuePropertyKeys,
-	JiraService,
 	jiraService,
+	JiraService,
 	SubmitDesignJiraServiceError,
 } from './jira-service';
 
@@ -246,6 +247,18 @@ describe('JiraService', () => {
 				jiraIssue.key,
 				connectInstallation,
 			);
+		});
+
+		it('should throw an error if issue is not found', async () => {
+			const connectInstallation = generateConnectInstallation();
+			const jiraIssue = generateJiraIssue();
+			jest
+				.spyOn(jiraClient, 'getIssue')
+				.mockRejectedValue(new NotFoundHttpClientError());
+
+			await expect(() =>
+				jiraService.getIssue(jiraIssue.key, connectInstallation),
+			).rejects.toThrow(IssueNotFoundJiraServiceError);
 		});
 	});
 

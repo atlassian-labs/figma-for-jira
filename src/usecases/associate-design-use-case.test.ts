@@ -3,6 +3,7 @@ import { associateDesignUseCase } from './associate-design-use-case';
 import {
 	FigmaDesignNotFoundUseCaseResultError,
 	InvalidInputUseCaseResultError,
+	JiraIssueNotFoundUseCaseResultError,
 } from './errors';
 import { generateAssociateDesignUseCaseParams } from './testing';
 
@@ -19,7 +20,10 @@ import {
 	generateJiraIssue,
 } from '../domain/entities/testing';
 import { figmaService } from '../infrastructure/figma';
-import { jiraService } from '../infrastructure/jira';
+import {
+	IssueNotFoundJiraServiceError,
+	jiraService,
+} from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
 describe('associateDesignUseCase', () => {
@@ -131,6 +135,26 @@ describe('associateDesignUseCase', () => {
 		await expect(() =>
 			associateDesignUseCase.execute(params),
 		).rejects.toBeInstanceOf(InvalidInputUseCaseResultError);
+	});
+
+	it('should throw JiraIssueNotFoundUseCaseResultError when the issue is not found', async () => {
+		const connectInstallation = generateConnectInstallation();
+		const issue = generateJiraIssue();
+		const fileKey = generateFigmaFileKey();
+		const params: AssociateDesignUseCaseParams =
+			generateAssociateDesignUseCaseParams({
+				designUrl: generateFigmaDesignUrl({ fileKey }),
+				issueId: issue.id,
+				connectInstallation,
+			});
+		jest.spyOn(figmaService, 'getDesignOrParent').mockResolvedValue(null);
+		jest
+			.spyOn(jiraService, 'getIssue')
+			.mockRejectedValue(new IssueNotFoundJiraServiceError());
+
+		await expect(() =>
+			associateDesignUseCase.execute(params),
+		).rejects.toBeInstanceOf(JiraIssueNotFoundUseCaseResultError);
 	});
 
 	it('should not save associated Figma design when design submission fails', async () => {
