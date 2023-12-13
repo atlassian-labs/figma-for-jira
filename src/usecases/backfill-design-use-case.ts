@@ -1,6 +1,7 @@
 import {
 	ForbiddenByFigmaUseCaseResultError,
 	InvalidInputUseCaseResultError,
+	JiraIssueNotFoundUseCaseResultError,
 } from './errors';
 import type { AtlassianEntity } from './types';
 
@@ -15,7 +16,10 @@ import {
 	UnauthorizedFigmaServiceError,
 } from '../infrastructure/figma';
 import { figmaBackfillService } from '../infrastructure/figma/figma-backfill-service';
-import { jiraService } from '../infrastructure/jira';
+import {
+	IssueNotFoundJiraServiceError,
+	jiraService,
+} from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
 export type BackfillDesignUseCaseParams = {
@@ -104,6 +108,9 @@ export const backfillDesignUseCase = {
 		} catch (e) {
 			if (e instanceof UnauthorizedFigmaServiceError) {
 				throw new ForbiddenByFigmaUseCaseResultError(e);
+			}
+			if (e instanceof IssueNotFoundJiraServiceError) {
+				throw new JiraIssueNotFoundUseCaseResultError(e);
 			}
 
 			throw e;

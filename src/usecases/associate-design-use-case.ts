@@ -2,6 +2,7 @@ import {
 	FigmaDesignNotFoundUseCaseResultError,
 	ForbiddenByFigmaUseCaseResultError,
 	InvalidInputUseCaseResultError,
+	JiraIssueNotFoundUseCaseResultError,
 } from './errors';
 import type { AtlassianEntity } from './types';
 
@@ -15,7 +16,10 @@ import {
 	figmaService,
 	UnauthorizedFigmaServiceError,
 } from '../infrastructure/figma';
-import { jiraService } from '../infrastructure/jira';
+import {
+	IssueNotFoundJiraServiceError,
+	jiraService,
+} from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
 export type AssociateDesignUseCaseParams = {
@@ -98,6 +102,9 @@ export const associateDesignUseCase = {
 		} catch (e) {
 			if (e instanceof UnauthorizedFigmaServiceError) {
 				throw new ForbiddenByFigmaUseCaseResultError(e);
+			}
+			if (e instanceof IssueNotFoundJiraServiceError) {
+				throw new JiraIssueNotFoundUseCaseResultError(e);
 			}
 
 			throw e;

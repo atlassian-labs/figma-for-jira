@@ -94,7 +94,14 @@ export class JiraService {
 		issueIdOrKey: string,
 		connectInstallation: ConnectInstallation,
 	): Promise<JiraIssue> => {
-		return await jiraClient.getIssue(issueIdOrKey, connectInstallation);
+		try {
+			return await jiraClient.getIssue(issueIdOrKey, connectInstallation);
+		} catch (err) {
+			if (err instanceof NotFoundHttpClientError) {
+				throw new IssueNotFoundJiraServiceError('Issue not found');
+			}
+			throw err;
+		}
 	};
 
 	saveDesignUrlInIssueProperties = async (
@@ -426,6 +433,8 @@ export class JiraService {
 }
 
 export const jiraService = new JiraService();
+
+export class IssueNotFoundJiraServiceError extends CauseAwareError {}
 
 export class SubmitDesignJiraServiceError extends CauseAwareError {
 	designId?: string;

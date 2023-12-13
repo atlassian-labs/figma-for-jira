@@ -5,6 +5,7 @@ import {
 	FigmaDesignNotFoundUseCaseResultError,
 	ForbiddenByFigmaUseCaseResultError,
 	InvalidInputUseCaseResultError,
+	JiraIssueNotFoundUseCaseResultError,
 	PaidFigmaPlanRequiredUseCaseResultError,
 	UseCaseResultError,
 } from '../../usecases';
@@ -49,7 +50,10 @@ export const errorHandlerMiddleware = (
 			return next();
 		}
 
-		if (err instanceof FigmaDesignNotFoundUseCaseResultError) {
+		if (
+			err instanceof FigmaDesignNotFoundUseCaseResultError ||
+			err instanceof JiraIssueNotFoundUseCaseResultError
+		) {
 			res.status(HttpStatusCode.NotFound).send({ message: err.message });
 			return next();
 		}
