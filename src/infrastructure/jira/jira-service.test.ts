@@ -957,7 +957,7 @@ describe('JiraService', () => {
 			expect(result).toBe(false);
 		});
 
-		it('should return false if user has ADMINISTER permission', async () => {
+		it('should return true if user has ADMINISTER permission', async () => {
 			const atlassianUserId = uuidv4();
 			const connectInstallation = generateConnectInstallation();
 			jest.spyOn(jiraClient, 'checkPermissions').mockResolvedValue(
@@ -972,6 +972,19 @@ describe('JiraService', () => {
 			);
 
 			expect(result).toBe(true);
+		});
+
+		it('should return false if the method throws an error', async () => {
+			const atlassianUserId = uuidv4();
+			const connectInstallation = generateConnectInstallation();
+			jest.spyOn(jiraClient, 'checkPermissions').mockRejectedValue(new Error());
+
+			const result = await jiraService.isAdmin(
+				atlassianUserId,
+				connectInstallation,
+			);
+
+			expect(result).toBe(false);
 		});
 	});
 

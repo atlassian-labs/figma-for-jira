@@ -152,15 +152,18 @@ export class JiraService {
 		atlassianUserId: string,
 		connectInstallation: ConnectInstallation,
 	): Promise<boolean> => {
-		const response = await jiraClient.checkPermissions(
-			{
-				accountId: atlassianUserId,
-				globalPermissions: [JIRA_ADMIN_GLOBAL_PERMISSION],
-			},
-			connectInstallation,
-		);
-
-		return response.globalPermissions.includes(JIRA_ADMIN_GLOBAL_PERMISSION);
+		try {
+			const response = await jiraClient.checkPermissions(
+				{
+					accountId: atlassianUserId,
+					globalPermissions: [JIRA_ADMIN_GLOBAL_PERMISSION],
+				},
+				connectInstallation,
+			);
+			return response.globalPermissions.includes(JIRA_ADMIN_GLOBAL_PERMISSION);
+		} catch (err) {
+			return false;
+		}
 	};
 
 	/**
