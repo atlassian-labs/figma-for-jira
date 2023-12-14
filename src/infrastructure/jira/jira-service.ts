@@ -75,11 +75,15 @@ export class JiraService {
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		const associationsLastUpdated = new Date();
+
+		// Jira does not allow display names longer than 255 characters.
+		const MAX_DISPLAY_NAME_LENGTH = 255;
 		const response = await jiraClient.submitDesigns(
 			{
 				designs: designs.map(
 					({ design, addAssociations, removeAssociations }) => ({
 						...design,
+						displayName: design.displayName.slice(0, MAX_DISPLAY_NAME_LENGTH),
 						addAssociations: addAssociations ?? null,
 						removeAssociations: removeAssociations ?? null,
 						associationsLastUpdated: associationsLastUpdated.toISOString(),
