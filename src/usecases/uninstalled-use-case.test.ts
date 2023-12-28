@@ -5,6 +5,7 @@ import {
 	generateFigmaTeam,
 } from '../domain/entities/testing';
 import { figmaService } from '../infrastructure/figma';
+import { jiraService } from '../infrastructure/jira';
 import {
 	connectInstallationRepository,
 	figmaTeamRepository,
@@ -31,6 +32,9 @@ describe('uninstalledUseCase', () => {
 		jest
 			.spyOn(connectInstallationRepository, 'deleteByClientKey')
 			.mockResolvedValue(connectInstallation);
+		jest
+			.spyOn(jiraService, 'deleteAppConfigurationState')
+			.mockResolvedValue(undefined);
 
 		await uninstalledUseCase.execute(connectInstallation.clientKey);
 
@@ -46,5 +50,8 @@ describe('uninstalledUseCase', () => {
 		expect(
 			connectInstallationRepository.deleteByClientKey,
 		).toHaveBeenCalledWith(connectInstallation.clientKey);
+		expect(jiraService.deleteAppConfigurationState).toHaveBeenCalledWith(
+			connectInstallation,
+		);
 	});
 });

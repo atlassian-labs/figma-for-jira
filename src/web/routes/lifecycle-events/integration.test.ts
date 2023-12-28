@@ -25,6 +25,7 @@ import {
 	generateJiraAsymmetricJwtToken,
 	mockConnectGetKeyEndpoint,
 	mockFigmaDeleteWebhookEndpoint,
+	mockJiraDeleteAppPropertyEndpoint,
 } from '../../testing';
 
 describe('/lifecycleEvents', () => {
@@ -53,12 +54,18 @@ describe('/lifecycleEvents', () => {
 				response: publicKey,
 				status: HttpStatusCode.Ok,
 			});
+			mockJiraDeleteAppPropertyEndpoint({
+				baseUrl: installedRequest.baseUrl,
+				appKey: installedRequest.key,
+				propertyKey: 'is-configured',
+			});
 
 			await request(app)
 				.post('/lifecycleEvents/installed')
 				.set('Authorization', `JWT ${jwtToken}`)
 				.send(installedRequest)
 				.expect(HttpStatusCode.NoContent);
+
 			expect(
 				await connectInstallationRepository.getByClientKey(clientKey),
 			).toEqual({
@@ -205,6 +212,11 @@ describe('/lifecycleEvents', () => {
 				webhookId: targetFigmaTeam2.webhookId,
 				accessToken: targetFigmaOAuth2UserCredentials2.accessToken,
 				status: HttpStatusCode.Ok,
+			});
+			mockJiraDeleteAppPropertyEndpoint({
+				baseUrl: targetConnectInstallation.baseUrl,
+				appKey: targetConnectInstallation.key,
+				propertyKey: 'is-configured',
 			});
 
 			await request(app)
