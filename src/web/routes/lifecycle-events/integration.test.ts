@@ -54,11 +54,6 @@ describe('/lifecycleEvents', () => {
 				response: publicKey,
 				status: HttpStatusCode.Ok,
 			});
-			mockJiraDeleteAppPropertyEndpoint({
-				baseUrl: installedRequest.baseUrl,
-				appKey: installedRequest.key,
-				propertyKey: 'is-configured',
-			});
 
 			await request(app)
 				.post('/lifecycleEvents/installed')

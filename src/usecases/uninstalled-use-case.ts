@@ -28,9 +28,9 @@ export const uninstalledUseCase = {
 				figmaService.tryDeleteWebhook(figmaTeam.webhookId, figmaTeam.adminInfo),
 			),
 		);
-		// Delete the configuration state of the app since it is being uninstalled
-		await jiraService.deleteAppConfigurationState(connectInstallation);
 		// The `ConnectInstallation` deletion causes cascading deletion of all the related records.
 		await connectInstallationRepository.deleteByClientKey(clientKey);
+		// Delete the configuration state of the app since it is being uninstalled
+		await jiraService.deleteAppConfigurationState(connectInstallation);
 	},
 };
