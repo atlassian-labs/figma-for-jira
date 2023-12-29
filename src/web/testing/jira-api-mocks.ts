@@ -118,6 +118,24 @@ export const mockJiraSetAppPropertyEndpoint = ({
 		.reply(status);
 };
 
+export const mockJiraDeleteAppPropertyEndpoint = ({
+	baseUrl,
+	appKey,
+	propertyKey,
+	status = HttpStatusCode.NoContent,
+}: {
+	baseUrl: string;
+	appKey: string;
+	propertyKey: string;
+	status?: HttpStatusCode;
+}) => {
+	nock(baseUrl)
+		.delete(
+			`/rest/atlassian-connect/1/addons/${appKey}/properties/${propertyKey}`,
+		)
+		.reply(status);
+};
+
 export const mockJiraCheckPermissionsEndpoint = ({
 	baseUrl,
 	request,

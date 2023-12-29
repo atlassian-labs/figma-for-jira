@@ -943,6 +943,47 @@ describe('JiraService', () => {
 		});
 	});
 
+	describe('deleteAppConfigurationState', () => {
+		let connectInstallation: ConnectInstallation;
+
+		beforeEach(() => {
+			connectInstallation = generateConnectInstallation();
+		});
+
+		it('should delete the configuration state in app properties', async () => {
+			jest.spyOn(jiraClient, 'deleteAppProperty').mockResolvedValue(undefined);
+
+			await jiraService.deleteAppConfigurationState(connectInstallation);
+
+			expect(jiraClient.deleteAppProperty).toHaveBeenCalledWith(
+				'is-configured',
+				connectInstallation,
+			);
+		});
+
+		it('should not rethrow NotFoundHttpClientError errors', async () => {
+			const notFoundError = new NotFoundHttpClientError();
+			jest
+				.spyOn(jiraClient, 'deleteAppProperty')
+				.mockRejectedValue(notFoundError);
+
+			await expect(
+				jiraService.deleteAppConfigurationState(connectInstallation),
+			).resolves.not.toThrow(notFoundError);
+		});
+
+		it('should rethrow unexpected errors', async () => {
+			const unexpectedError = new ForbiddenHttpClientError();
+			jest
+				.spyOn(jiraClient, 'deleteAppProperty')
+				.mockRejectedValue(unexpectedError);
+
+			await expect(
+				jiraService.deleteAppConfigurationState(connectInstallation),
+			).rejects.toThrow(unexpectedError);
+		});
+	});
+
 	describe('isAdmin', () => {
 		it('should return false if user does not have ADMINISTER permission', async () => {
 			const atlassianUserId = uuidv4();

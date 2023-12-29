@@ -151,6 +151,23 @@ export class JiraService {
 		);
 	};
 
+	deleteAppConfigurationState = async (
+		connectInstallation: ConnectInstallation,
+	): Promise<void> => {
+		try {
+			return await jiraClient.deleteAppProperty(
+				appPropertyKeys.CONFIGURATION_STATE,
+				connectInstallation,
+			);
+		} catch (error) {
+			if (error instanceof NotFoundHttpClientError) {
+				return; // Swallow not found errors
+			} else {
+				throw error;
+			}
+		}
+	};
+
 	isAdmin = async (
 		atlassianUserId: string,
 		connectInstallation: ConnectInstallation,
