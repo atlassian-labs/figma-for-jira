@@ -201,6 +201,11 @@ export class FigmaService {
 					{ errors: response.errors },
 					'Failed to create Figma dev resources.',
 				);
+
+				const { error } = response.errors[0];
+				if (error === 'Url already exists') {
+					throw new InvalidInputFigmaServiceError(error);
+				}
 			}
 		});
 

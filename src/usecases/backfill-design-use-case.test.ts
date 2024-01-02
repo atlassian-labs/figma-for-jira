@@ -15,7 +15,10 @@ import {
 	generateFigmaFileKey,
 	generateJiraIssue,
 } from '../domain/entities/testing';
-import { figmaService } from '../infrastructure/figma';
+import {
+	figmaService,
+	InvalidInputFigmaServiceError,
+} from '../infrastructure/figma';
 import { figmaBackfillService } from '../infrastructure/figma/figma-backfill-service';
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
@@ -209,6 +212,39 @@ describe('backfillDesignUseCase', () => {
 				issueId: issue.id,
 				connectInstallation,
 			});
+
+		await expect(() => backfillDesignUseCase.execute(params)).rejects.toThrow(
+			InvalidInputUseCaseResultError,
+		);
+		expect(associatedFigmaDesignRepository.upsert).not.toHaveBeenCalled();
+	});
+
+	it('should throw InvalidInputUseCaseResultError when the dev resource url already exists', async () => {
+		const connectInstallation = generateConnectInstallation();
+		const issue = generateJiraIssue();
+		const fileKey = generateFigmaFileKey();
+
+		const params: BackfillDesignUseCaseParams =
+			generateBackfillDesignUseCaseParams({
+				designUrl: generateFigmaDesignUrl({ fileKey }),
+				issueId: issue.id,
+				connectInstallation,
+			});
+
+		jest.spyOn(figmaService, 'getDesignOrParent').mockResolvedValue(null);
+		jest.spyOn(jiraService, 'getIssue').mockResolvedValue(issue);
+		jest.spyOn(jiraService, 'submitDesign').mockResolvedValue();
+		jest
+			.spyOn(jiraService, 'saveDesignUrlInIssueProperties')
+			.mockResolvedValue();
+		jest
+			.spyOn(figmaService, 'tryCreateDevResourceForJiraIssue')
+			.mockRejectedValue(
+				new InvalidInputFigmaServiceError('Url already exists'),
+			);
+		jest
+			.spyOn(associatedFigmaDesignRepository, 'upsert')
+			.mockResolvedValue({} as AssociatedFigmaDesign);
 
 		await expect(() => backfillDesignUseCase.execute(params)).rejects.toThrow(
 			InvalidInputUseCaseResultError,

@@ -12,6 +12,7 @@ import {
 } from '../domain/entities';
 import {
 	figmaService,
+	InvalidInputFigmaServiceError,
 	UnauthorizedFigmaServiceError,
 } from '../infrastructure/figma';
 import { figmaBackfillService } from '../infrastructure/figma/figma-backfill-service';
@@ -104,6 +105,10 @@ export const backfillDesignUseCase = {
 		} catch (e) {
 			if (e instanceof UnauthorizedFigmaServiceError) {
 				throw new ForbiddenByFigmaUseCaseResultError(e);
+			}
+
+			if (e instanceof InvalidInputFigmaServiceError) {
+				throw new InvalidInputUseCaseResultError(e.message, e);
 			}
 
 			throw e;

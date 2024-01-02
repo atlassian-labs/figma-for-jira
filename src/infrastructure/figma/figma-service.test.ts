@@ -603,6 +603,33 @@ describe('FigmaService', () => {
 				}),
 			).rejects.toThrow(expectedError);
 		});
+
+		it('should throw when the dev_resource url already exists', async () => {
+			const issueKey = generateJiraIssueKey();
+			const issueUrl = generateJiraIssueUrl();
+			const issueTitle = uuidv4();
+			const designId = generateFigmaDesignIdentifier();
+			const expectedError = new InvalidInputFigmaServiceError(
+				'Url already exists',
+			);
+			jest.spyOn(figmaClient, 'createDevResources').mockResolvedValue({
+				errors: [
+					{ error: 'Url already exists', file_key: '1234', node_id: '1:1' },
+				],
+			} as CreateDevResourcesResponse);
+
+			await expect(() =>
+				figmaService.tryCreateDevResourceForJiraIssue({
+					designId,
+					issue: {
+						url: issueUrl,
+						key: issueKey,
+						title: issueTitle,
+					},
+					user: MOCK_CONNECT_USER_INFO,
+				}),
+			).rejects.toThrow(expectedError);
+		});
 	});
 
 	describe('tryDeleteDevResource', () => {

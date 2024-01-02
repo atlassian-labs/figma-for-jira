@@ -13,6 +13,7 @@ import {
 } from '../domain/entities';
 import {
 	figmaService,
+	InvalidInputFigmaServiceError,
 	UnauthorizedFigmaServiceError,
 } from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
@@ -98,6 +99,10 @@ export const associateDesignUseCase = {
 		} catch (e) {
 			if (e instanceof UnauthorizedFigmaServiceError) {
 				throw new ForbiddenByFigmaUseCaseResultError(e);
+			}
+
+			if (e instanceof InvalidInputFigmaServiceError) {
+				throw new InvalidInputUseCaseResultError(e.message, e);
 			}
 
 			throw e;
