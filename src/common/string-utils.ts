@@ -11,3 +11,9 @@ export const ensureString = (value: unknown) => {
 		`The provided value is not of the correct type. Expected string, but received: ${typeof value}`,
 	);
 };
+
+export const truncate = (str: string, maxLength: number) => {
+	if (str.length <= maxLength) return str;
+
+	return `${str.slice(0, maxLength - 1)}…`;
+};

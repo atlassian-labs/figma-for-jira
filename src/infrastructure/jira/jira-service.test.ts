@@ -106,7 +106,7 @@ describe('JiraService', () => {
 					designs: [
 						{
 							...design,
-							displayName: 'a'.repeat(255),
+							displayName: 'a'.repeat(254) + '…',
 							addAssociations: null,
 							removeAssociations: null,
 							associationsLastUpdated: currentDate.toISOString(),

@@ -1,4 +1,4 @@
-import { ensureString, isString } from './string-utils';
+import { ensureString, isString, truncate } from './string-utils';
 
 describe('stringUtils', () => {
 	describe('isString', () => {
@@ -21,6 +21,20 @@ describe('stringUtils', () => {
 					'The provided value is not of the correct type. Expected string, but received: number',
 				),
 			);
+		});
+	});
+
+	describe('truncate', () => {
+		it('does nothing when the string is less than the max length', () => {
+			const string = 'hello there yay!';
+			const result = truncate(string, 100);
+			expect(result).toBe(string);
+		});
+
+		it('truncates strings greater than the max length', () => {
+			const string = 'hello there yay!';
+			const result = truncate(string, 10);
+			expect(result).toBe('hello the…');
 		});
 	});
 });

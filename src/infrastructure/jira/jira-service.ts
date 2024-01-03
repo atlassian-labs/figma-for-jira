@@ -12,7 +12,7 @@ import {
 	parseJsonOfSchema,
 	SchemaValidationError,
 } from '../../common/schema-validation';
-import { ensureString, isString } from '../../common/string-utils';
+import { ensureString, isString, truncate } from '../../common/string-utils';
 import { appendToPathname } from '../../common/url-utils';
 import type {
 	AtlassianDesign,
@@ -83,7 +83,7 @@ export class JiraService {
 				designs: designs.map(
 					({ design, addAssociations, removeAssociations }) => ({
 						...design,
-						displayName: design.displayName.slice(0, MAX_DISPLAY_NAME_LENGTH),
+						displayName: truncate(design.displayName, MAX_DISPLAY_NAME_LENGTH),
 						addAssociations: addAssociations ?? null,
 						removeAssociations: removeAssociations ?? null,
 						associationsLastUpdated: associationsLastUpdated.toISOString(),
