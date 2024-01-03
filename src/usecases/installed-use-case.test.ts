@@ -7,10 +7,13 @@ import { connectInstallationRepository } from '../infrastructure/repositories';
 describe('installedUseCase', () => {
 	it('should call repository layer upsert', async () => {
 		const installationCreateParams = generateConnectInstallationCreateParams();
-		jest.spyOn(connectInstallationRepository, 'upsert').mockResolvedValue({
+		const connectInstallation = {
 			...installationCreateParams,
 			id: generateNumericStringId(),
-		});
+		};
+		jest
+			.spyOn(connectInstallationRepository, 'upsert')
+			.mockResolvedValue(connectInstallation);
 
 		await installedUseCase.execute(installationCreateParams);
 

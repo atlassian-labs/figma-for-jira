@@ -259,6 +259,22 @@ describe('JiraClient', () => {
 		});
 	});
 
+	describe('deleteAppProperty', () => {
+		const propertyKey = 'property-key';
+		it('should delete app property', async () => {
+			jest.spyOn(axios, 'delete').mockResolvedValue({
+				status: HttpStatusCode.NoContent,
+			});
+
+			await jiraClient.deleteAppProperty(propertyKey, connectInstallation);
+
+			expect(axios.delete).toHaveBeenCalledWith(
+				`${connectInstallation.baseUrl}/rest/atlassian-connect/1/addons/${connectInstallation.key}/properties/${propertyKey}`,
+				defaultExpectedRequestHeaders(),
+			);
+		});
+	});
+
 	describe('checkPermissions', () => {
 		it('should check permissions', async () => {
 			const request: CheckPermissionsRequest =

@@ -1,4 +1,5 @@
 import { figmaService } from '../infrastructure/figma';
+import { jiraService } from '../infrastructure/jira';
 import {
 	connectInstallationRepository,
 	figmaTeamRepository,
@@ -29,5 +30,7 @@ export const uninstalledUseCase = {
 		);
 		// The `ConnectInstallation` deletion causes cascading deletion of all the related records.
 		await connectInstallationRepository.deleteByClientKey(clientKey);
+		// Delete the configuration state of the app since it is being uninstalled
+		await jiraService.deleteAppConfigurationState(connectInstallation);
 	},
 };

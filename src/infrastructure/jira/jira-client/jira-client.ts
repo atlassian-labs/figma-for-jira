@@ -215,6 +215,32 @@ class JiraClient {
 		});
 
 	/**
+	 * Deletes a connect app property.
+	 *
+	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-app-properties/#api-rest-atlassian-connect-1-addons-addonkey-properties-propertykey-delete
+	 *
+	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
+	 */
+	deleteAppProperty = async (
+		propertyKey: string,
+		connectInstallation: ConnectInstallation,
+	): Promise<void> =>
+		withAxiosErrorTranslation(async () => {
+			const url = new URL(
+				`/rest/atlassian-connect/1/addons/${encodeURIComponent(
+					connectInstallation.key,
+				)}/properties/${encodeURIComponent(propertyKey)}`,
+				connectInstallation.baseUrl,
+			);
+
+			await axios.delete(url.toString(), {
+				headers: new AxiosHeaders().setAuthorization(
+					this.buildAuthorizationHeader('DELETE', url, connectInstallation),
+				),
+			});
+		});
+
+	/**
 	 * Returns a list of requested global and project permissions.
 	 *
 	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-permissions/#api-rest-api-3-permissions-check-post
