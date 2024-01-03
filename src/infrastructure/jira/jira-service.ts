@@ -12,7 +12,7 @@ import {
 	parseJsonOfSchema,
 	SchemaValidationError,
 } from '../../common/schema-validation';
-import { ensureString, isString } from '../../common/string-utils';
+import { ensureString, isString, truncate } from '../../common/string-utils';
 import { appendToPathname } from '../../common/url-utils';
 import type {
 	AtlassianDesign,
@@ -75,11 +75,15 @@ export class JiraService {
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		const associationsLastUpdated = new Date();
+
+		// Jira does not allow display names longer than 255 characters.
+		const MAX_DISPLAY_NAME_LENGTH = 255;
 		const response = await jiraClient.submitDesigns(
 			{
 				designs: designs.map(
 					({ design, addAssociations, removeAssociations }) => ({
 						...design,
+						displayName: truncate(design.displayName, MAX_DISPLAY_NAME_LENGTH),
 						addAssociations: addAssociations ?? null,
 						removeAssociations: removeAssociations ?? null,
 						associationsLastUpdated: associationsLastUpdated.toISOString(),
