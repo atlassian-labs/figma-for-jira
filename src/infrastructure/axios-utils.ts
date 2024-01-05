@@ -8,10 +8,14 @@ import {
 	UnauthorizedHttpClientError,
 } from './http-client-errors';
 
-export const withAxiosErrorTranslation = async <T>(fn: () => Promise<T>) => {
+export const withAxiosErrorTranslation = async <T>(
+	fn: () => Promise<T>,
+	context?: unknown,
+) => {
 	try {
 		return await fn();
 	} catch (e: unknown) {
+		console.log('Error in withAxiosErrorTranslation', { context, error: e });
 		throw translateAxiosError(e);
 	}
 };
