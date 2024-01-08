@@ -7,6 +7,7 @@ import {
 	NotFoundHttpClientError,
 	UnauthorizedHttpClientError,
 } from './http-client-errors';
+import { getLogger } from './logger';
 
 export const withAxiosErrorTranslation = async <T>(
 	fn: () => Promise<T>,
@@ -15,7 +16,10 @@ export const withAxiosErrorTranslation = async <T>(
 	try {
 		return await fn();
 	} catch (e: unknown) {
-		console.log('Error in withAxiosErrorTranslation', { context, error: e });
+		getLogger().info(
+			{ err: e, context },
+			'An HTTP request to the external system failed.',
+		);
 		throw translateAxiosError(e);
 	}
 };
