@@ -226,7 +226,6 @@ class JiraClient {
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		const context = {
-			propertyKey,
 			baseUrl: connectInstallation.baseUrl,
 			clientKey: connectInstallation.clientKey,
 		};
@@ -261,7 +260,6 @@ class JiraClient {
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		const context = {
-			propertyKey,
 			baseUrl: connectInstallation.baseUrl,
 			clientKey: connectInstallation.clientKey,
 		};
