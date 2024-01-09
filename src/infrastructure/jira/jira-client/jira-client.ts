@@ -115,6 +115,7 @@ class JiraClient {
 	): Promise<GetIssuePropertyResponse> => {
 		const context = {
 			issueIdOrKey,
+			propertyKey,
 			baseUrl: connectInstallation.baseUrl,
 			clientKey: connectInstallation.clientKey,
 		};
@@ -158,6 +159,7 @@ class JiraClient {
 	): Promise<void> => {
 		const context = {
 			issueIdOrKey,
+			propertyKey,
 			baseUrl: connectInstallation.baseUrl,
 			clientKey: connectInstallation.clientKey,
 		};
@@ -194,6 +196,7 @@ class JiraClient {
 	): Promise<void> => {
 		const context = {
 			issueIdOrKey,
+			propertyKey,
 			baseUrl: connectInstallation.baseUrl,
 			clientKey: connectInstallation.clientKey,
 		};
@@ -226,6 +229,7 @@ class JiraClient {
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		const context = {
+			propertyKey,
 			baseUrl: connectInstallation.baseUrl,
 			clientKey: connectInstallation.clientKey,
 		};
@@ -260,6 +264,7 @@ class JiraClient {
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		const context = {
+			propertyKey,
 			baseUrl: connectInstallation.baseUrl,
 			clientKey: connectInstallation.clientKey,
 		};
