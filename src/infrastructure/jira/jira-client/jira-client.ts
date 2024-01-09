@@ -44,8 +44,12 @@ class JiraClient {
 	submitDesigns = async (
 		payload: SubmitDesignsRequest,
 		connectInstallation: ConnectInstallation,
-	): Promise<SubmitDesignsResponse> =>
-		withAxiosErrorTranslation(async () => {
+	): Promise<SubmitDesignsResponse> => {
+		const context = {
+			baseUrl: connectInstallation.baseUrl,
+			clientKey: connectInstallation.clientKey,
+		};
+		return withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				'/rest/designs/1.0/bulk',
 				connectInstallation.baseUrl,
@@ -60,7 +64,8 @@ class JiraClient {
 			assertSchema(response.data, SUBMIT_DESIGNS_RESPONSE_SCHEMA);
 
 			return response.data;
-		});
+		}, context);
+	};
 
 	/**
 	 * Returns a single issue, for a given issue ID or issue key.
@@ -72,8 +77,13 @@ class JiraClient {
 	getIssue = async (
 		issueIdOrKey: string,
 		connectInstallation: ConnectInstallation,
-	): Promise<GetIssueResponse> =>
-		withAxiosErrorTranslation(async () => {
+	): Promise<GetIssueResponse> => {
+		const context = {
+			issueIdOrKey,
+			baseUrl: connectInstallation.baseUrl,
+			clientKey: connectInstallation.clientKey,
+		};
+		return withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`/rest/api/3/issue/${encodeURIComponent(issueIdOrKey)}`,
 				connectInstallation.baseUrl,
@@ -88,7 +98,8 @@ class JiraClient {
 			assertSchema(response.data, GET_ISSUE_RESPONSE_SCHEMA);
 
 			return response.data;
-		});
+		}, context);
+	};
 
 	/**
 	 * Returns the key and value of an issue's property
@@ -101,8 +112,14 @@ class JiraClient {
 		issueIdOrKey: string,
 		propertyKey: string,
 		connectInstallation: ConnectInstallation,
-	): Promise<GetIssuePropertyResponse> =>
-		withAxiosErrorTranslation(async () => {
+	): Promise<GetIssuePropertyResponse> => {
+		const context = {
+			issueIdOrKey,
+			propertyKey,
+			baseUrl: connectInstallation.baseUrl,
+			clientKey: connectInstallation.clientKey,
+		};
+		return withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`/rest/api/2/issue/${encodeURIComponent(
 					issueIdOrKey,
@@ -124,7 +141,8 @@ class JiraClient {
 			);
 
 			return response.data;
-		});
+		}, context);
+	};
 
 	/**
 	 * Sets the value of an issue's property. Use this resource to store custom data against an issue.
@@ -138,8 +156,14 @@ class JiraClient {
 		propertyKey: string,
 		value: unknown,
 		connectInstallation: ConnectInstallation,
-	): Promise<void> =>
-		withAxiosErrorTranslation(async () => {
+	): Promise<void> => {
+		const context = {
+			issueIdOrKey,
+			propertyKey,
+			baseUrl: connectInstallation.baseUrl,
+			clientKey: connectInstallation.clientKey,
+		};
+		return withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`/rest/api/2/issue/${encodeURIComponent(
 					issueIdOrKey,
@@ -155,7 +179,8 @@ class JiraClient {
 					.setAccept('application/json')
 					.setContentType('application/json'),
 			});
-		});
+		}, context);
+	};
 
 	/**
 	 * Deletes an issue's property
@@ -168,8 +193,14 @@ class JiraClient {
 		issueIdOrKey: string,
 		propertyKey: string,
 		connectInstallation: ConnectInstallation,
-	): Promise<void> =>
-		withAxiosErrorTranslation(async () => {
+	): Promise<void> => {
+		const context = {
+			issueIdOrKey,
+			propertyKey,
+			baseUrl: connectInstallation.baseUrl,
+			clientKey: connectInstallation.clientKey,
+		};
+		return withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`/rest/api/2/issue/${encodeURIComponent(
 					issueIdOrKey,
@@ -182,7 +213,8 @@ class JiraClient {
 					this.buildAuthorizationHeader('DELETE', url, connectInstallation),
 				),
 			});
-		});
+		}, context);
+	};
 
 	/**
 	 * Sets a connect app property.
@@ -195,8 +227,13 @@ class JiraClient {
 		propertyKey: string,
 		value: unknown,
 		connectInstallation: ConnectInstallation,
-	): Promise<void> =>
-		withAxiosErrorTranslation(async () => {
+	): Promise<void> => {
+		const context = {
+			propertyKey,
+			baseUrl: connectInstallation.baseUrl,
+			clientKey: connectInstallation.clientKey,
+		};
+		return withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`/rest/atlassian-connect/1/addons/${encodeURIComponent(
 					connectInstallation.key,
@@ -212,7 +249,8 @@ class JiraClient {
 					.setAccept('application/json')
 					.setContentType('application/json'),
 			});
-		});
+		}, context);
+	};
 
 	/**
 	 * Deletes a connect app property.
@@ -224,8 +262,13 @@ class JiraClient {
 	deleteAppProperty = async (
 		propertyKey: string,
 		connectInstallation: ConnectInstallation,
-	): Promise<void> =>
-		withAxiosErrorTranslation(async () => {
+	): Promise<void> => {
+		const context = {
+			propertyKey,
+			baseUrl: connectInstallation.baseUrl,
+			clientKey: connectInstallation.clientKey,
+		};
+		return withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`/rest/atlassian-connect/1/addons/${encodeURIComponent(
 					connectInstallation.key,
@@ -238,7 +281,8 @@ class JiraClient {
 					this.buildAuthorizationHeader('DELETE', url, connectInstallation),
 				),
 			});
-		});
+		}, context);
+	};
 
 	/**
 	 * Returns a list of requested global and project permissions.
@@ -250,8 +294,12 @@ class JiraClient {
 	checkPermissions = async (
 		payload: CheckPermissionsRequest,
 		connectInstallation: ConnectInstallation,
-	): Promise<CheckPermissionsResponse> =>
-		withAxiosErrorTranslation(async () => {
+	): Promise<CheckPermissionsResponse> => {
+		const context = {
+			baseUrl: connectInstallation.baseUrl,
+			clientKey: connectInstallation.clientKey,
+		};
+		return withAxiosErrorTranslation(async () => {
 			const url = new URL(
 				`/rest/api/3/permissions/check`,
 				connectInstallation.baseUrl,
@@ -266,7 +314,8 @@ class JiraClient {
 			assertSchema(response.data, CHECK_PERMISSIONS_RESPONSE_SCHEMA);
 
 			return response.data;
-		});
+		}, context);
+	};
 
 	private buildAuthorizationHeader(
 		method: Method,
