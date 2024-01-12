@@ -1,12 +1,18 @@
 // Must come before importing any instrumented module.
 // eslint-disable-next-line import/no-unassigned-import
 import './infrastructure/tracer';
+import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
 import express, { json } from 'express';
 
 import { errorHandlerMiddleware, httpLoggerMiddleware } from './web/middleware';
 import { rootRouter } from './web/routes/router';
 
 const app = express();
+
+app.use(bodyParser.urlencoded({ extended: false }));
+
+app.use(cookieParser());
 
 app.use(httpLoggerMiddleware);
 

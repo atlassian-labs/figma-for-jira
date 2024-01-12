@@ -3,6 +3,9 @@ import {
 	encodeSymmetric,
 	SymmetricAlgorithm,
 } from 'atlassian-jwt';
+import type { Response } from 'express';
+
+import crypto from 'node:crypto';
 
 import type { RefreshOAuth2TokenResponse } from './figma-client';
 import { figmaClient } from './figma-client';
@@ -27,6 +30,9 @@ type FigmaOAuth2StateJwtClaims = {
 	readonly exp: number;
 	readonly sub: string;
 	readonly aud: string[];
+	readonly context: {
+		readonly nonce: string;
+	};
 };
 
 const FIGMA_OAUTH2_STATE_JWT_CLAIMS_SCHEMA: JSONSchemaTypeWithId<FigmaOAuth2StateJwtClaims> =
@@ -42,9 +48,18 @@ const FIGMA_OAUTH2_STATE_JWT_CLAIMS_SCHEMA: JSONSchemaTypeWithId<FigmaOAuth2Stat
 				type: 'array',
 				items: { type: 'string' },
 			},
+			context: {
+				type: 'object',
+				properties: {
+					nonce: { type: 'string' },
+				},
+				required: ['nonce'],
+			},
 		},
-		required: ['iss', 'iat', 'exp', 'sub', 'aud'],
+		required: ['iss', 'iat', 'exp', 'sub', 'aud', 'context'],
 	};
+
+export const FIGMA_AUTH_NONCE_COOKIE_NAME = 'figma-for-jira.auth.nonce';
 
 export class FigmaAuthService {
 	/**
@@ -112,10 +127,12 @@ export class FigmaAuthService {
 		atlassianUserId,
 		connectInstallation,
 		redirectEndpoint,
+		response,
 	}: {
 		atlassianUserId: string;
 		connectInstallation: ConnectInstallation;
 		redirectEndpoint: string;
+		response: Response;
 	}): string => {
 		const authorizationEndpoint = new URL(
 			'/oauth',
@@ -123,6 +140,12 @@ export class FigmaAuthService {
 		);
 
 		const nowInSeconds = Math.floor(Date.now() / 1000);
+		const nonce = this.generateRandomString();
+		response.cookie(FIGMA_AUTH_NONCE_COOKIE_NAME, nonce, {
+			httpOnly: true,
+			secure: true,
+			sameSite: 'lax',
+		});
 
 		const state = encodeSymmetric(
 			{
@@ -131,6 +154,7 @@ export class FigmaAuthService {
 				exp: nowInSeconds + Duration.ofMinutes(5).asSeconds,
 				sub: atlassianUserId,
 				aud: [getConfig().app.baseUrl],
+				context: { nonce },
 			},
 			getConfig().figma.oauth2.stateSecretKey,
 			SymmetricAlgorithm.HS256,
@@ -158,6 +182,7 @@ export class FigmaAuthService {
 	 */
 	verifyOAuth2AuthorizationResponseState = (
 		state: unknown,
+		nonce: unknown,
 	): { atlassianUserId: string; connectClientKey: string } => {
 		const encodedState = ensureString(state);
 
@@ -177,6 +202,12 @@ export class FigmaAuthService {
 
 		if (claims.aud[0] !== getConfig().app.baseUrl) {
 			throw new Error('The token contains an invalid `aud` claim.');
+		}
+
+		if (claims.context.nonce !== nonce) {
+			console.log('Expected:', claims.context.nonce);
+			console.log('Received:', nonce);
+			throw new Error('The token contains an invalid `nonce` claim.');
 		}
 
 		return {
@@ -213,6 +244,14 @@ export class FigmaAuthService {
 
 	private createExpiryDate(expiresInSeconds: number): Date {
 		return new Date(Date.now() + expiresInSeconds * 1000);
+	}
+
+	private generateRandomString(): string {
+		const array = new Uint32Array(4);
+		crypto.getRandomValues(array);
+		return Array.from(array, (dec) =>
+			('0' + dec.toString(16)).substring(-2),
+		).join('');
 	}
 }
 

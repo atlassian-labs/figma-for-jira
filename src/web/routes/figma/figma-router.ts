@@ -1,4 +1,5 @@
 import { HttpStatusCode } from 'axios';
+import cors from 'cors';
 import type { Response } from 'express';
 import { Router } from 'express';
 
@@ -13,6 +14,7 @@ import type {
 } from './types';
 
 import { getLogger } from '../../../infrastructure';
+import { FIGMA_AUTH_NONCE_COOKIE_NAME } from '../../../infrastructure/figma';
 import {
 	handleFigmaAuthorizationResponseUseCase,
 	handleFigmaFileUpdateEventUseCase,
@@ -52,6 +54,13 @@ figmaRouter.post(
 	},
 );
 
+figmaRouter.options(
+	'/oauth/callback',
+	cors({
+		credentials: true,
+	}),
+);
+
 /**
  * A callback called by Figma authentication server with the access token included.
  *
@@ -63,13 +72,20 @@ figmaRouter.get(
 	function (req: FigmaOAuth2CallbackRequest, res: Response) {
 		const { code, state } = req.query;
 
+		console.log('COOKIES');
+		console.log(req.cookies);
+
+		const nonce = req.cookies[FIGMA_AUTH_NONCE_COOKIE_NAME];
+
 		handleFigmaAuthorizationResponseUseCase
-			.execute(code, state)
+			.execute(code, state, nonce)
 			.then(() => {
+				res.clearCookie(FIGMA_AUTH_NONCE_COOKIE_NAME);
 				res.redirect(SUCCESS_PAGE_URL);
 			})
 			.catch((error) => {
 				getLogger().error(error, 'Figma OAuth 2.0 callback failed.');
+				res.clearCookie(FIGMA_AUTH_NONCE_COOKIE_NAME);
 				res.redirect(FAILURE_PAGE_URL);
 			});
 	},

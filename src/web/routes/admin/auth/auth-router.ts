@@ -5,6 +5,7 @@ import type { MeRequest, MeResponse } from './types';
 
 import { figmaAuthService } from '../../../../infrastructure/figma';
 import { getCurrentFigmaUserUseCase } from '../../../../usecases';
+import { getConfig } from '../../../../config';
 
 export const authRouter = Router();
 
@@ -19,12 +20,10 @@ authRouter.get(
 		getCurrentFigmaUserUseCase
 			.execute(atlassianUserId, connectInstallation)
 			.then((currentUser) => {
-				const authorizationEndpoint =
-					figmaAuthService.createOAuth2AuthorizationRequest({
-						atlassianUserId,
-						connectInstallation,
-						redirectEndpoint: `figma/oauth/callback`,
-					});
+				const authorizationEndpoint = new URL(
+					'/auth/grant',
+					getConfig().app.baseUrl,
+				).toString();
 
 				if (currentUser) {
 					return res.send({

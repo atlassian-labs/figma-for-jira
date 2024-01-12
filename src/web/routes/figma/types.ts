@@ -57,10 +57,13 @@ export type FigmaOAuth2CallbackQueryParameters = {
 	readonly state: string;
 };
 
-export type FigmaOAuth2CallbackRequest = Request<
-	Record<string, never>,
-	never,
-	never,
-	FigmaOAuth2CallbackQueryParameters,
-	never
->;
+export type FigmaOAuth2CallbackRequest = Omit<
+	Request<
+		Record<string, never>,
+		never,
+		never,
+		FigmaOAuth2CallbackQueryParameters,
+		never
+	>,
+	'cookies'
+> & { cookies: Record<string, string> };

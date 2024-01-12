@@ -4,9 +4,11 @@ import UnlockFilledIcon from '@atlaskit/icon/glyph/unlock-filled';
 import UserAvatarCircleIcon from '@atlaskit/icon/glyph/user-avatar-circle';
 import { token } from '@atlaskit/tokens';
 import { css } from '@emotion/react';
+import Spinner from '@atlaskit/spinner';
 
 import { ConnectBanner, FigmaPermissionsPopup, Page } from '../../components';
 import { useAuthenticate } from '../../hooks';
+import { useQuery } from '@tanstack/react-query';
 
 type AuthPageProps = {
 	authorizationEndpoint: string;
@@ -14,6 +16,26 @@ type AuthPageProps = {
 
 export function AuthPage({ authorizationEndpoint }: AuthPageProps) {
 	const authenticate = useAuthenticate(authorizationEndpoint);
+	const jwtQuery = useQuery({
+		queryKey: ['jwt'],
+		queryFn: async () => {
+			return await AP.context.getToken();
+		},
+	});
+
+	if (jwtQuery.isPending) {
+		return (
+			<Page>
+				<Spinner size="large" />
+			</Page>
+		);
+	}
+
+	if (jwtQuery.isError) {
+		// TODO: render an error if we can't fetch the JWT
+		return null;
+	}
+
 	return (
 		<Page>
 			<div
@@ -76,9 +98,27 @@ export function AuthPage({ authorizationEndpoint }: AuthPageProps) {
 						</div>
 					</div>
 				</div>
+				<form
+					id="form-id"
+					target="_blank"
+					method="post"
+					style={{ visibility: 'hidden' }}
+					action={authorizationEndpoint}
+				>
+					<input
+						type="hidden"
+						id="jwt"
+						name="jwt"
+						value={jwtQuery.data}
+						required
+					></input>
+				</form>
+
 				<Button
+					type="submit"
 					appearance="primary"
-					onClick={authenticate}
+					form="form-id"
+					// onClick={authenticate}
 					iconAfter={<ArrowRightIcon label="" size="medium" />}
 				>
 					Continue
