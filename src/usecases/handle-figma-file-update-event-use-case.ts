@@ -74,9 +74,7 @@ export const handleFigmaFileUpdateEventUseCase = {
 							design.id ===
 								associatedFigmaDesign.designId.toAtlassianDesignId() &&
 							// Exclude associatedFigmaDesigns with no nodeId
-							associatedFigmaDesign.designId.nodeId != null &&
-							// Exclude associatedFigmaDesigns where the dev status didn't change
-							design.status !== associatedFigmaDesign.devStatus,
+							associatedFigmaDesign.designId.nodeId != null,
 					);
 					return { design, associatedFigmaDesign } as const;
 				})
