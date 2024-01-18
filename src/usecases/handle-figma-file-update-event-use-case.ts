@@ -88,7 +88,7 @@ export const handleFigmaFileUpdateEventUseCase = {
 					return associatedFigmaDesignRepository.upsert({
 						...associatedFigmaDesign,
 						devStatus: design.status,
-						devStatusLastModified: design.lastUpdated,
+						lastUpdated: design.lastUpdated,
 					});
 				}),
 		]);

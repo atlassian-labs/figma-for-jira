@@ -24,7 +24,7 @@ export type AssociatedFigmaDesign = {
 	readonly inputUrl?: string;
 
 	readonly devStatus: AtlassianDesignStatus;
-	readonly devStatusLastModified?: string;
+	readonly lastUpdated: string;
 };
 
 export type AssociatedFigmaDesignCreateParams = Omit<

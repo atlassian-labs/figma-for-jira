@@ -17,8 +17,8 @@ type TransformNodeToAtlassianDesignParams = {
 	readonly fileKey: string;
 	readonly nodeId: string;
 	readonly fileResponse: GetFileResponse;
-	readonly devStatus?: AtlassianDesignStatus;
-	readonly devStatusLastModified?: string;
+	readonly prevDevStatus?: AtlassianDesignStatus;
+	readonly prevLastUpdated?: string;
 };
 
 /**
@@ -45,6 +45,49 @@ export const transformNodeToAtlassianDesign = ({
 	return result;
 };
 
+const getLastUpdatedTimeForNode = ({
+	newDevStatus,
+	nodeLastModified,
+	fileLastModified,
+	prevDevStatus,
+	prevLastUpdated,
+}: {
+	newDevStatus: AtlassianDesignStatus;
+	nodeLastModified: string;
+	fileLastModified: string;
+	prevDevStatus: AtlassianDesignStatus;
+	prevLastUpdated: string;
+}): string => {
+	if (newDevStatus !== prevDevStatus) {
+		if (prevDevStatus === AtlassianDesignStatus.UNKNOWN) {
+			// Use the existing lastModified time on the node if the cached devStatus
+			// we have is UNKNOWN since we can't be certain that the file update
+			// triggered the dev status to change
+			return nodeLastModified;
+		} else {
+			// Use the lastModified time on the file if the devStatus changes.
+			// Since any node changes cascade upwards, we can be certain that the
+			// file.lastModified time > the node.lastModified time
+			return fileLastModified;
+		}
+	} else {
+		// If there has been no dev status change to the node, there are 2 cases we
+		// need to consider:
+		// - The node itself has changed without changing the dev status
+		// - The node has not changed but we previously used the file last modified
+		//   time when sending data to Jira
+		// In either case, we just want to use whichever is the most recent timestamp
+		if (
+			getUpdateSequenceNumberFrom(prevLastUpdated) >
+			getUpdateSequenceNumberFrom(nodeLastModified)
+		) {
+			return prevLastUpdated;
+		} else {
+			return nodeLastModified;
+		}
+	}
+};
+
 /**
  * Returns a {@link AtlassianDesign} for the Node with the given ID if it is available in the File;
  * otherwise -- `null`.
@@ -53,8 +96,8 @@ export const tryTransformNodeToAtlassianDesign = ({
 	fileKey,
 	nodeId,
 	fileResponse,
-	devStatus,
-	devStatusLastModified,
+	prevDevStatus = AtlassianDesignStatus.UNKNOWN,
+	prevLastUpdated = new Date(0).toISOString(),
 }: TransformNodeToAtlassianDesignParams): AtlassianDesign | null => {
 	const designId = new FigmaDesignIdentifier(fileKey, nodeId);
 	const nodeData = findNodeDataInFile(fileResponse, nodeId);
@@ -64,28 +107,17 @@ export const tryTransformNodeToAtlassianDesign = ({
 	const { node, extra } = nodeData;
 	const fileName = fileResponse.name;
 
-	const prevDevStatus = devStatus ?? AtlassianDesignStatus.NONE;
-
-	const nodeDevStatus = extra.devStatus
+	const devStatus = extra.devStatus
 		? mapNodeStatusToDevStatus(extra.devStatus)
 		: AtlassianDesignStatus.NONE;
 
-	let nodeLastModified = extra.lastModified;
-	if (nodeDevStatus !== prevDevStatus) {
-		// Always treat the devStatus we just received as the source of truth
-		// so update the lastModifiedTime to be that of the file since devStatus
-		// is not tracked at a node level
-		nodeLastModified = fileResponse.lastModified;
-	} else if (devStatusLastModified != null) {
-		// If the timestamp we have from changing the dev status is more recent than
-		// the node's last modified time, we should use that value instead.
-		if (
-			getUpdateSequenceNumberFrom(devStatusLastModified) >
-			getUpdateSequenceNumberFrom(nodeLastModified)
-		) {
-			nodeLastModified = devStatusLastModified;
-		}
-	}
+	const lastUpdated = getLastUpdatedTimeForNode({
+		newDevStatus: devStatus,
+		nodeLastModified: extra.lastModified,
+		fileLastModified: fileResponse.lastModified,
+		prevDevStatus,
+		prevLastUpdated,
+	});
 
 	return {
 		id: designId.toAtlassianDesignId(),
@@ -93,10 +125,10 @@ export const tryTransformNodeToAtlassianDesign = ({
 		url: buildDesignUrl({ fileKey, nodeId }).toString(),
 		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, nodeId }).toString(),
 		inspectUrl: buildInspectUrl({ fileKey, nodeId }).toString(),
-		status: nodeDevStatus,
+		status: devStatus,
 		type: mapNodeTypeToDesignType(node.type),
-		lastUpdated: nodeLastModified,
-		updateSequenceNumber: getUpdateSequenceNumberFrom(nodeLastModified),
+		lastUpdated,
+		updateSequenceNumber: getUpdateSequenceNumberFrom(lastUpdated),
 	};
 };
 

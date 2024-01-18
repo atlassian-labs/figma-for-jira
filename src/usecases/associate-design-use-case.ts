@@ -98,20 +98,13 @@ export const associateDesignUseCase = {
 				}),
 			]);
 
-			let devStatusLastModified =
-				existingAssociatedFigmaDesign?.devStatusLastModified;
-			// Only update the devStatusLastModified if devStatus has changed
-			if (design.status !== existingAssociatedFigmaDesign?.devStatus) {
-				devStatusLastModified = design.lastUpdated;
-			}
-
 			await associatedFigmaDesignRepository.upsert({
 				designId: figmaDesignId,
 				associatedWithAri: associateWith.ari,
 				connectInstallationId: connectInstallation.id,
 				inputUrl: designUrl.toString(),
 				devStatus: design.status,
-				devStatusLastModified,
+				lastUpdated: design.lastUpdated,
 			});
 
 			return design;

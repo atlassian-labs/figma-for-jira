@@ -101,7 +101,7 @@ describe('backfillDesignUseCase', () => {
 			connectInstallationId: connectInstallation.id,
 			inputUrl: params.designUrl.toString(),
 			devStatus: atlassianDesign.status,
-			devStatusLastModified: atlassianDesign.lastUpdated,
+			lastUpdated: atlassianDesign.lastUpdated,
 		});
 	});
 
@@ -179,7 +179,7 @@ describe('backfillDesignUseCase', () => {
 			connectInstallationId: connectInstallation.id,
 			inputUrl: params.designUrl.toString(),
 			devStatus: minimalAtlassianDesign.status,
-			devStatusLastModified: minimalAtlassianDesign.lastUpdated,
+			lastUpdated: minimalAtlassianDesign.lastUpdated,
 		});
 	});
 

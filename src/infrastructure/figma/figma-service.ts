@@ -167,9 +167,8 @@ export class FigmaService {
 							fileKey: associatedFigmaDesign.designId.fileKey,
 							nodeId: associatedFigmaDesign.designId.nodeId,
 							fileResponse,
-							devStatus: associatedFigmaDesign.devStatus,
-							devStatusLastModified:
-								associatedFigmaDesign.devStatusLastModified,
+							prevDevStatus: associatedFigmaDesign.devStatus,
+							prevLastUpdated: associatedFigmaDesign.lastUpdated,
 						});
 					}
 				})
@@ -465,8 +464,8 @@ export class FigmaService {
 					fileKey,
 					nodeId,
 					fileResponse,
-					devStatus: associatedFigmaDesign?.devStatus,
-					devStatusLastModified: associatedFigmaDesign?.devStatusLastModified,
+					prevDevStatus: associatedFigmaDesign?.devStatus,
+					prevLastUpdated: associatedFigmaDesign?.lastUpdated,
 				});
 
 				design ??= transformFileToAtlassianDesign({ fileKey, fileResponse });

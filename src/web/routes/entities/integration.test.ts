@@ -285,7 +285,7 @@ describe('/entities', () => {
 					connectInstallationId: connectInstallation.id,
 					inputUrl: inputFigmaDesignUrl.toString(),
 					devStatus: atlassianDesign.status,
-					devStatusLastModified: atlassianDesign.lastUpdated,
+					lastUpdated: atlassianDesign.lastUpdated,
 				},
 			]);
 		});
@@ -426,7 +426,7 @@ describe('/entities', () => {
 					connectInstallationId: connectInstallation.id,
 					inputUrl: inputFigmaDesignUrl.toString(),
 					devStatus: atlassianDesign.status,
-					devStatusLastModified: atlassianDesign.lastUpdated,
+					lastUpdated: atlassianDesign.lastUpdated,
 				},
 			]);
 		});
@@ -732,7 +732,7 @@ describe('/entities', () => {
 					connectInstallationId: connectInstallation.id,
 					inputUrl: inputFigmaDesignUrl.toString(),
 					devStatus: atlassianDesign.status,
-					devStatusLastModified: atlassianDesign.lastUpdated,
+					lastUpdated: atlassianDesign.lastUpdated,
 				},
 			]);
 		});
@@ -873,7 +873,7 @@ describe('/entities', () => {
 					connectInstallationId: connectInstallation.id,
 					inputUrl: inputFigmaDesignUrl.toString(),
 					devStatus: atlassianDesign.status,
-					devStatusLastModified: atlassianDesign.lastUpdated,
+					lastUpdated: atlassianDesign.lastUpdated,
 				},
 			]);
 		});
@@ -1004,7 +1004,7 @@ describe('/entities', () => {
 					connectInstallationId: connectInstallation.id,
 					inputUrl: inputFigmaDesignUrl.toString(),
 					devStatus: atlassianDesign.status,
-					devStatusLastModified: atlassianDesign.lastUpdated,
+					lastUpdated: atlassianDesign.lastUpdated,
 				},
 			]);
 		});
@@ -1058,7 +1058,7 @@ describe('/entities', () => {
 				associatedWithAri: issueAri,
 				connectInstallationId: connectInstallation.id,
 				devStatus: designStub.status,
-				devStatusLastModified: designStub.lastUpdated,
+				lastUpdated: designStub.lastUpdated,
 			});
 
 			mockJiraGetIssueEndpoint({
@@ -1196,7 +1196,7 @@ describe('/entities', () => {
 				associatedWithAri: issueAri,
 				connectInstallationId: connectInstallation.id,
 				devStatus: designStub.status,
-				devStatusLastModified: designStub.lastUpdated,
+				lastUpdated: designStub.lastUpdated,
 			});
 
 			mockJiraGetIssueEndpoint({

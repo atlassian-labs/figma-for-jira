@@ -103,7 +103,7 @@ describe('associateDesignUseCase', () => {
 			connectInstallationId: connectInstallation.id,
 			inputUrl: params.designUrl.toString(),
 			devStatus: atlassianDesign.status,
-			devStatusLastModified: atlassianDesign.lastUpdated,
+			lastUpdated: atlassianDesign.lastUpdated,
 		});
 	});
 
