@@ -15,9 +15,9 @@ import { isNotNullOrUndefined } from '../../../common/predicates';
 import { isString } from '../../../common/string-utils';
 import { getConfig } from '../../../config';
 import type {
+	AssociatedFigmaDesign,
 	AtlassianDesign,
 	ConnectInstallation,
-	FigmaDesignIdentifier,
 	FigmaOAuth2UserCredentials,
 	FigmaTeam,
 } from '../../../domain/entities';
@@ -70,20 +70,22 @@ const FIGMA_OAUTH_TOKEN_ENDPOINT = '/api/oauth/token';
 const FIGMA_WEBHOOK_EVENT_ENDPOINT = '/figma/webhook';
 
 function generateAtlassianDesignFromDesignIdAndFileResponse(
-	designId: FigmaDesignIdentifier,
+	associatedFigmaDesign: AssociatedFigmaDesign,
 	fileResponse: GetFileResponse,
 ) {
 	let atlassianDesign: AtlassianDesign;
-	if (!designId.nodeId) {
+	if (!associatedFigmaDesign.designId.nodeId) {
 		atlassianDesign = transformFileToAtlassianDesign({
-			fileKey: designId.fileKey,
+			fileKey: associatedFigmaDesign.designId.fileKey,
 			fileResponse,
 		});
 	} else {
 		atlassianDesign = transformNodeToAtlassianDesign({
-			fileKey: designId.fileKey,
-			nodeId: designId.nodeId,
+			fileKey: associatedFigmaDesign.designId.fileKey,
+			nodeId: associatedFigmaDesign.designId.nodeId,
 			fileResponse,
+			prevDevStatus: associatedFigmaDesign.devStatus,
+			prevLastUpdated: associatedFigmaDesign.lastUpdated,
 		});
 	}
 
@@ -126,6 +128,7 @@ describe('/figma', () => {
 								nodeId: `1:${i}`,
 							}),
 							connectInstallationId: connectInstallation.id,
+							lastUpdated: currentDate.toISOString(),
 						});
 
 					await associatedFigmaDesignRepository.upsert(
@@ -164,7 +167,7 @@ describe('/figma', () => {
 				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
 					(design) =>
 						generateAtlassianDesignFromDesignIdAndFileResponse(
-							design.designId,
+							design,
 							fileResponse,
 						),
 				);
@@ -287,7 +290,7 @@ describe('/figma', () => {
 				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
 					(design) =>
 						generateAtlassianDesignFromDesignIdAndFileResponse(
-							design.designId,
+							design,
 							fileResponse,
 						),
 				);
@@ -343,7 +346,7 @@ describe('/figma', () => {
 				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
 					(design) =>
 						generateAtlassianDesignFromDesignIdAndFileResponse(
-							design.designId,
+							design,
 							fileResponse,
 						),
 				);

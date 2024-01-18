@@ -60,7 +60,7 @@ export const handleFigmaFileUpdateEventUseCase = {
 
 		if (!designs.length) return;
 
-		// Update the timestamp for all the designs that updated their dev status
+		// Update the timestamp for all the designs attached to a node
 		await Promise.all([
 			await jiraService.submitDesigns(
 				designs.map((design) => ({ design })),

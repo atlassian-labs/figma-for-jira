@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { handleFigmaFileUpdateEventUseCase } from './handle-figma-file-update-event-use-case';
 
 import { FigmaTeamAuthStatus } from '../domain/entities';
+import type { AssociatedFigmaDesign } from '../domain/entities/associated-figma-design';
 import {
 	generateAssociatedFigmaDesign,
 	generateAtlassianDesign,
@@ -72,6 +73,9 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				)
 				.mockResolvedValue(associatedFigmaDesigns);
 			jest
+				.spyOn(associatedFigmaDesignRepository, 'upsert')
+				.mockResolvedValue({} as AssociatedFigmaDesign);
+			jest
 				.spyOn(figmaService, 'getAvailableDesignsFromSameFile')
 				.mockResolvedValue(associatedAtlassianDesigns);
 			jest.spyOn(jiraService, 'submitDesigns').mockResolvedValue();
@@ -110,6 +114,9 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				)
 				.mockResolvedValue(associatedFigmaDesigns);
 			jest
+				.spyOn(associatedFigmaDesignRepository, 'upsert')
+				.mockResolvedValue({} as AssociatedFigmaDesign);
+			jest
 				.spyOn(figmaService, 'getAvailableDesignsFromSameFile')
 				.mockResolvedValue(associatedAtlassianDesigns);
 			jest.spyOn(jiraService, 'submitDesigns').mockResolvedValue();
@@ -139,6 +146,9 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				)
 				.mockResolvedValue(associatedFigmaDesigns);
 			jest
+				.spyOn(associatedFigmaDesignRepository, 'upsert')
+				.mockResolvedValue({} as AssociatedFigmaDesign);
+			jest
 				.spyOn(figmaService, 'getAvailableDesignsFromSameFile')
 				.mockRejectedValue(new UnauthorizedFigmaServiceError());
 			jest.spyOn(figmaTeamRepository, 'updateAuthStatus').mockResolvedValue();
@@ -162,6 +172,9 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 					'findManyByFileKeyAndConnectInstallationId',
 				)
 				.mockResolvedValue(associatedFigmaDesigns);
+			jest
+				.spyOn(associatedFigmaDesignRepository, 'upsert')
+				.mockResolvedValue({} as AssociatedFigmaDesign);
 			jest
 				.spyOn(figmaService, 'getAvailableDesignsFromSameFile')
 				.mockRejectedValue(error);
