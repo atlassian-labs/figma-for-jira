@@ -39,7 +39,9 @@ export const handleFigmaFileUpdateEventUseCase = {
 			),
 		]);
 
-		if (!associatedFigmaDesigns.length) return;
+		if (associatedFigmaDesigns.length === 0) {
+			return;
+		}
 
 		let designs: AtlassianDesign[];
 
@@ -58,7 +60,9 @@ export const handleFigmaFileUpdateEventUseCase = {
 			throw e;
 		}
 
-		if (!designs.length) return;
+		if (designs.length === 0) {
+			return;
+		}
 
 		// Update the timestamp for all the designs attached to a node
 		await Promise.all([
