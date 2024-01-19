@@ -33,7 +33,7 @@ figmaRouter.post(
 	'/webhook',
 	requestSchemaValidationMiddleware(FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA),
 	figmaWebhookAuthMiddleware,
-	(req: FigmaWebhookEventRequest, res: FigmaWebhookEventResponse, next) => {
+	(req: FigmaWebhookEventRequest, res: FigmaWebhookEventResponse) => {
 		const { figmaTeam } = res.locals;
 
 		switch (req.body.event_type) {
@@ -42,8 +42,17 @@ figmaRouter.post(
 
 				handleFigmaFileUpdateEventUseCase
 					.execute(figmaTeam, file_key)
-					.then(() => res.sendStatus(HttpStatusCode.Ok))
-					.catch(next);
+					.then(() => {
+						getLogger().info(
+							'handleFigmaFileUpdateEventUseCase.execute completed successfully',
+						);
+					})
+					.catch((e) => {
+						getLogger().error(e, 'Figma webhook callback failed');
+					});
+				// Immediately send a 200 back to figma, before doing any of our own
+				// async processing
+				res.sendStatus(HttpStatusCode.Ok);
 				return;
 			}
 			default:
