@@ -8,7 +8,10 @@ import type {
 	AssociatedFigmaDesign,
 	AssociatedFigmaDesignCreateParams,
 } from '../../domain/entities';
-import { FigmaDesignIdentifier } from '../../domain/entities';
+import {
+	AtlassianDesignStatus,
+	FigmaDesignIdentifier,
+} from '../../domain/entities';
 
 type PrismaAssociatedFigmaDesignCreateParams = Omit<
 	PrismaAssociatedFigmaDesign,
@@ -57,6 +60,29 @@ export class AssociatedFigmaDesignRepository {
 		return dbModels.map(this.mapToDomainModel);
 	};
 
+	findByDesignIdAndAssociatedWithAriAndConnectInstallationId = async (
+		designId: FigmaDesignIdentifier,
+		associatedWithAri: string,
+		connectInstallationId: string,
+	): Promise<AssociatedFigmaDesign | null> => {
+		const record = await prismaClient.get().associatedFigmaDesign.findUnique({
+			where: {
+				fileKey_nodeId_associatedWithAri_connectInstallationId: {
+					fileKey: designId.fileKey,
+					nodeId: designId.nodeId ?? '',
+					associatedWithAri: associatedWithAri,
+					connectInstallationId: BigInt(connectInstallationId),
+				},
+			},
+		});
+
+		if (!record) {
+			return null;
+		}
+
+		return this.mapToDomainModel(record);
+	};
+
 	deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId = async (
 		designId: FigmaDesignIdentifier,
 		associatedWithAri: string,
@@ -93,6 +119,8 @@ export class AssociatedFigmaDesignRepository {
 		associatedWithAri,
 		connectInstallationId,
 		inputUrl,
+		devStatus,
+		devStatusLastModified,
 	}: PrismaAssociatedFigmaDesign): AssociatedFigmaDesign => ({
 		id: id.toString(),
 		designId: new FigmaDesignIdentifier(
@@ -102,6 +130,10 @@ export class AssociatedFigmaDesignRepository {
 		associatedWithAri,
 		connectInstallationId: connectInstallationId.toString(),
 		inputUrl: inputUrl ?? undefined,
+		devStatus:
+			(devStatus as AtlassianDesignStatus | undefined) ??
+			AtlassianDesignStatus.NONE,
+		devStatusLastModified: devStatusLastModified ?? undefined,
 	});
 
 	private mapCreateParamsToDbModel = ({
@@ -109,12 +141,16 @@ export class AssociatedFigmaDesignRepository {
 		associatedWithAri,
 		connectInstallationId,
 		inputUrl,
+		devStatus,
+		devStatusLastModified,
 	}: AssociatedFigmaDesignCreateParams): PrismaAssociatedFigmaDesignCreateParams => ({
 		fileKey: designId.fileKey,
 		nodeId: designId.nodeId ?? '',
 		associatedWithAri,
 		connectInstallationId: BigInt(connectInstallationId),
 		inputUrl: inputUrl ?? null,
+		devStatus: devStatus ?? null,
+		devStatusLastModified: devStatusLastModified ?? null,
 	});
 }
 

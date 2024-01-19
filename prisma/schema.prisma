@@ -22,11 +22,13 @@ model ConnectInstallation {
 }
 
 model AssociatedFigmaDesign {
-  id                BigInt  @id @default(autoincrement())
-  fileKey           String  @map("file_key")
-  nodeId            String  @map("node_id") // Prisma does not support nullable columns with the composite indexes: https://github.com/prisma/prisma/issues/3197
-  associatedWithAri String  @map("associated-with-ari")
-  inputUrl          String? @map("input_url")
+  id                    BigInt  @id @default(autoincrement())
+  fileKey               String  @map("file_key")
+  nodeId                String  @map("node_id") // Prisma does not support nullable columns with the composite indexes: https://github.com/prisma/prisma/issues/3197
+  associatedWithAri     String  @map("associated-with-ari")
+  inputUrl              String? @map("input_url")
+  devStatus             String? @map("dev_status")
+  devStatusLastModified String? @map("dev_status_last_modified")
 
   connectInstallation   ConnectInstallation @relation(fields: [connectInstallationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   connectInstallationId BigInt              @map("connect_installation_id")

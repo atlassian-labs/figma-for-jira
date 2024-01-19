@@ -48,12 +48,23 @@ export const backfillDesignUseCase = {
 		}
 
 		try {
+			const existingAssociatedFigmaDesign =
+				await associatedFigmaDesignRepository.findByDesignIdAndAssociatedWithAriAndConnectInstallationId(
+					figmaDesignId,
+					associateWith.ari,
+					connectInstallation.id,
+				);
+
 			// eslint-disable-next-line prefer-const
 			let [design, issue] = await Promise.all([
-				figmaService.getDesignOrParent(figmaDesignId, {
-					atlassianUserId,
-					connectInstallationId: connectInstallation.id,
-				}),
+				figmaService.getDesignOrParent(
+					figmaDesignId,
+					{
+						atlassianUserId,
+						connectInstallationId: connectInstallation.id,
+					},
+					existingAssociatedFigmaDesign,
+				),
 				jiraService.getIssue(associateWith.id, connectInstallation),
 			]);
 
@@ -93,11 +104,20 @@ export const backfillDesignUseCase = {
 				}),
 			]);
 
+			let devStatusLastModified =
+				existingAssociatedFigmaDesign?.devStatusLastModified;
+			// Only update the devStatusLastModified if devStatus has changed
+			if (design.status !== existingAssociatedFigmaDesign?.devStatus) {
+				devStatusLastModified = design.lastUpdated;
+			}
+
 			await associatedFigmaDesignRepository.upsert({
 				designId: figmaDesignId,
 				associatedWithAri: associateWith.ari,
 				connectInstallationId: connectInstallation.id,
 				inputUrl: designUrl.toString(),
+				devStatus: design.status,
+				devStatusLastModified,
 			});
 
 			return design;

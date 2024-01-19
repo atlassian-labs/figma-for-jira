@@ -17,6 +17,8 @@ type TransformNodeToAtlassianDesignParams = {
 	readonly fileKey: string;
 	readonly nodeId: string;
 	readonly fileResponse: GetFileResponse;
+	readonly devStatus?: AtlassianDesignStatus;
+	readonly devStatusLastModified?: string;
 };
 
 /**
@@ -51,6 +53,8 @@ export const tryTransformNodeToAtlassianDesign = ({
 	fileKey,
 	nodeId,
 	fileResponse,
+	devStatus,
+	devStatusLastModified,
 }: TransformNodeToAtlassianDesignParams): AtlassianDesign | null => {
 	const designId = new FigmaDesignIdentifier(fileKey, nodeId);
 	const nodeData = findNodeDataInFile(fileResponse, nodeId);
@@ -60,18 +64,39 @@ export const tryTransformNodeToAtlassianDesign = ({
 	const { node, extra } = nodeData;
 	const fileName = fileResponse.name;
 
+	const prevDevStatus = devStatus ?? AtlassianDesignStatus.NONE;
+
+	const nodeDevStatus = extra.devStatus
+		? mapNodeStatusToDevStatus(extra.devStatus)
+		: AtlassianDesignStatus.NONE;
+
+	let nodeLastModified = extra.lastModified;
+	if (nodeDevStatus !== prevDevStatus) {
+		// Always treat the devStatus we just received as the source of truth
+		// so update the lastModifiedTime to be that of the file since devStatus
+		// is not tracked at a node level
+		nodeLastModified = fileResponse.lastModified;
+	} else if (devStatusLastModified != null) {
+		// If the timestamp we have from changing the dev status is more recent than
+		// the node's last modified time, we should use that value instead.
+		if (
+			getUpdateSequenceNumberFrom(devStatusLastModified) >
+			getUpdateSequenceNumberFrom(nodeLastModified)
+		) {
+			nodeLastModified = devStatusLastModified;
+		}
+	}
+
 	return {
 		id: designId.toAtlassianDesignId(),
 		displayName: `${fileName} - ${node.name}`,
 		url: buildDesignUrl({ fileKey, nodeId }).toString(),
 		liveEmbedUrl: buildLiveEmbedUrl({ fileKey, nodeId }).toString(),
 		inspectUrl: buildInspectUrl({ fileKey, nodeId }).toString(),
-		status: extra.devStatus
-			? mapNodeStatusToDevStatus(extra.devStatus)
-			: AtlassianDesignStatus.NONE,
+		status: nodeDevStatus,
 		type: mapNodeTypeToDesignType(node.type),
-		lastUpdated: extra.lastModified,
-		updateSequenceNumber: getUpdateSequenceNumberFrom(extra.lastModified),
+		lastUpdated: nodeLastModified,
+		updateSequenceNumber: getUpdateSequenceNumberFrom(nodeLastModified),
 	};
 };
 

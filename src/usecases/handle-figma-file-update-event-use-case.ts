@@ -45,7 +45,7 @@ export const handleFigmaFileUpdateEventUseCase = {
 
 		try {
 			designs = await figmaService.getAvailableDesignsFromSameFile(
-				associatedFigmaDesigns.map((design) => design.designId),
+				associatedFigmaDesigns,
 				figmaTeam.adminInfo,
 			);
 		} catch (e: unknown) {
@@ -60,9 +60,37 @@ export const handleFigmaFileUpdateEventUseCase = {
 
 		if (!designs.length) return;
 
-		await jiraService.submitDesigns(
-			designs.map((design) => ({ design })),
-			connectInstallation,
-		);
+		// Update the timestamp for all the designs that updated their dev status
+		await Promise.all([
+			await jiraService.submitDesigns(
+				designs.map((design) => ({ design })),
+				connectInstallation,
+			),
+			designs
+				.map((design) => {
+					const associatedFigmaDesign = associatedFigmaDesigns.find(
+						(associatedFigmaDesign) =>
+							// Find the matching associatedFigmaDesign
+							design.id ===
+								associatedFigmaDesign.designId.toAtlassianDesignId() &&
+							// Exclude associatedFigmaDesigns with no nodeId
+							associatedFigmaDesign.designId.nodeId != null &&
+							// Exclude associatedFigmaDesigns where the dev status didn't change
+							design.status !== associatedFigmaDesign.devStatus,
+					);
+					return { design, associatedFigmaDesign } as const;
+				})
+				.map(({ design, associatedFigmaDesign }) => {
+					if (!associatedFigmaDesign) {
+						return;
+					}
+
+					return associatedFigmaDesignRepository.upsert({
+						...associatedFigmaDesign,
+						devStatus: design.status,
+						devStatusLastModified: design.lastUpdated,
+					});
+				}),
+		]);
 	},
 };
