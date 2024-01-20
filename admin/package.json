@@ -39,6 +39,6 @@
 		"@vitejs/plugin-react": "^4.1.0",
 		"jest": "^29.6.2",
 		"typescript": "^5.2.2",
-		"vite": "^4.4.11"
+		"vite": "^4.5.2"
 	}
 }
