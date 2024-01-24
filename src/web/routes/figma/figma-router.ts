@@ -6,6 +6,7 @@ import {
 	FIGMA_OAUTH2_CALLBACK_REQUEST_SCHEMA,
 	FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA,
 } from './schemas';
+import { completePendingRouteExecutionForTests } from './testing';
 import type {
 	FigmaOAuth2CallbackRequest,
 	FigmaWebhookEventRequest,
@@ -49,6 +50,12 @@ figmaRouter.post(
 					})
 					.catch((e) => {
 						getLogger().error(e, 'Figma webhook callback failed');
+					})
+					.finally(() => {
+						// Since Jest does not have
+						if (process.env.NODE_ENV === 'test') {
+							completePendingRouteExecutionForTests();
+						}
 					});
 				// Immediately send a 200 back to figma, before doing any of our own
 				// async processing

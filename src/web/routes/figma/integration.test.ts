@@ -7,6 +7,7 @@ import { FAILURE_PAGE_URL, SUCCESS_PAGE_URL } from './figma-router';
 import {
 	generateFileUpdateWebhookEventRequestBody,
 	generatePingWebhookEventRequestBody,
+	getPendingRouteExecution,
 } from './testing';
 import type { FigmaWebhookEventRequestBody } from './types';
 
@@ -196,10 +197,14 @@ describe('/figma', () => {
 					),
 				});
 
+				const pendingRouteExecution = getPendingRouteExecution();
+
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
+
+				await pendingRouteExecution;
 			});
 
 			it('should ignore if no associated designs are found for the file key', async () => {
@@ -220,10 +225,14 @@ describe('/figma', () => {
 					}),
 				});
 
+				const pendingRouteExecution = getPendingRouteExecution();
+
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(otherFilewebhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
+
+				await pendingRouteExecution;
 			});
 
 			it('should ignore if Figma file is not found', async () => {
@@ -255,10 +264,14 @@ describe('/figma', () => {
 					status: HttpStatusCode.NotFound,
 				});
 
+				const pendingRouteExecution = getPendingRouteExecution();
+
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
+
+				await pendingRouteExecution;
 			});
 
 			it('should ingest designs for available Figma nodes and ignore deleted nodes', async () => {
@@ -313,10 +326,14 @@ describe('/figma', () => {
 					),
 				});
 
+				const pendingRouteExecution = getPendingRouteExecution();
+
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
+
+				await pendingRouteExecution;
 			});
 
 			it('should return a 200 if fetching Figma team name fails with non-auth error', async () => {
@@ -364,10 +381,14 @@ describe('/figma', () => {
 					),
 				});
 
+				const pendingRouteExecution = getPendingRouteExecution();
+
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
+
+				await pendingRouteExecution;
 			});
 
 			it("should set the FigmaTeam status to 'ERROR' and return a 200 if fetching Figma team name fails with auth error", async () => {
@@ -377,10 +398,14 @@ describe('/figma', () => {
 					status: HttpStatusCode.Forbidden,
 				});
 
+				const pendingRouteExecution = getPendingRouteExecution();
+
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
+
+				await pendingRouteExecution;
 
 				const updatedFigmaTeam = await figmaTeamRepository.findByWebhookId(
 					figmaTeam.webhookId,
@@ -388,41 +413,6 @@ describe('/figma', () => {
 				expect(updatedFigmaTeam?.authStatus).toStrictEqual(
 					FigmaTeamAuthStatus.ERROR,
 				);
-			});
-
-			it('should return error if fetching Figma designs fails with unexpected error', async () => {
-				const associatedFigmaDesigns =
-					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
-						fileKey,
-						connectInstallation.id,
-					);
-				const nodeIds = associatedFigmaDesigns
-					.map(({ designId }) => designId.nodeId!)
-					.filter(isString);
-
-				mockFigmaGetTeamProjectsEndpoint({
-					baseUrl: getConfig().figma.apiBaseUrl,
-					teamId: figmaTeam.teamId,
-					response: generateGetTeamProjectsResponse({
-						name: figmaTeam.teamName,
-					}),
-				});
-				mockFigmaGetFileEndpoint({
-					baseUrl: getConfig().figma.apiBaseUrl,
-					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
-					fileKey: fileKey,
-					query: {
-						ids: nodeIds.join(','),
-						depth: '0',
-						node_last_modified: 'true',
-					},
-					status: HttpStatusCode.InternalServerError,
-				});
-
-				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
-					.send(webhookEventRequestBody)
-					.expect(HttpStatusCode.InternalServerError);
 			});
 
 			it("should set the FigmaTeam status to 'ERROR' and return a 200 if fetching Figma designs fails with auth error", async () => {
@@ -454,10 +444,14 @@ describe('/figma', () => {
 					status: HttpStatusCode.Unauthorized,
 				});
 
+				const pendingRouteExecution = getPendingRouteExecution();
+
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
+
+				await pendingRouteExecution;
 
 				const updatedFigmaTeam = await figmaTeamRepository.findByWebhookId(
 					figmaTeam.webhookId,
@@ -480,41 +474,6 @@ describe('/figma', () => {
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.BadRequest);
-			});
-
-			it('should return a 500 if fetching designs from Figma fails', async () => {
-				const associatedFigmaDesigns =
-					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
-						fileKey,
-						connectInstallation.id,
-					);
-				const nodeIds = associatedFigmaDesigns
-					.map(({ designId }) => designId.nodeId!)
-					.filter(isString);
-
-				mockFigmaGetTeamProjectsEndpoint({
-					baseUrl: getConfig().figma.apiBaseUrl,
-					teamId: figmaTeam.teamId,
-					response: generateGetTeamProjectsResponse({
-						name: figmaTeam.teamName,
-					}),
-				});
-				mockFigmaGetFileEndpoint({
-					baseUrl: getConfig().figma.apiBaseUrl,
-					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
-					fileKey: fileKey,
-					query: {
-						ids: nodeIds.join(','),
-						depth: '0',
-						node_last_modified: 'true',
-					},
-					status: HttpStatusCode.InternalServerError,
-				});
-
-				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
-					.send(webhookEventRequestBody)
-					.expect(HttpStatusCode.InternalServerError);
 			});
 		});
 
