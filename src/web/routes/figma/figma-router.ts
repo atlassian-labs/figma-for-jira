@@ -52,7 +52,9 @@ figmaRouter.post(
 						getLogger().error(e, 'Figma webhook callback failed');
 					})
 					.finally(() => {
-						// Since Jest does not have
+						// Since Jest does not have the ability to wait on any pending
+						// promises, we need to manage this ourselves to signal that the
+						// async code has finished running
 						if (process.env.NODE_ENV === 'test') {
 							completePendingRouteExecutionForTests();
 						}
