@@ -37,6 +37,33 @@ export class AssociatedFigmaDesignRepository {
 		return this.mapToDomainModel(dbModel);
 	};
 
+	upsertMany = async (
+		createParams: AssociatedFigmaDesignCreateParams[],
+	): Promise<AssociatedFigmaDesign[]> => {
+		const createParamsDbModels = createParams.map((createParam) =>
+			this.mapCreateParamsToDbModel(createParam),
+		);
+
+		const dbModels = await prismaClient.get().$transaction(
+			createParamsDbModels.map((createParamsDbModel) =>
+				prismaClient.get().associatedFigmaDesign.upsert({
+					create: createParamsDbModel,
+					update: createParamsDbModel,
+					where: {
+						fileKey_nodeId_associatedWithAri_connectInstallationId: {
+							fileKey: createParamsDbModel.fileKey,
+							nodeId: createParamsDbModel.nodeId,
+							associatedWithAri: createParamsDbModel.associatedWithAri,
+							connectInstallationId: createParamsDbModel.connectInstallationId,
+						},
+					},
+				}),
+			),
+		);
+
+		return dbModels.map(this.mapToDomainModel);
+	};
+
 	/**
 	 * @internal
 	 * Required for tests only.
