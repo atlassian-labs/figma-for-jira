@@ -6,14 +6,13 @@ import {
 	FIGMA_OAUTH2_CALLBACK_REQUEST_SCHEMA,
 	FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA,
 } from './schemas';
-import { completePendingRouteExecutionForTests } from './testing';
 import type {
 	FigmaOAuth2CallbackRequest,
 	FigmaWebhookEventRequest,
 	FigmaWebhookEventResponse,
 } from './types';
 
-import { getLogger } from '../../../infrastructure';
+import { eventBus, getLogger } from '../../../infrastructure';
 import {
 	handleFigmaAuthorizationResponseUseCase,
 	handleFigmaFileUpdateEventUseCase,
@@ -35,34 +34,34 @@ figmaRouter.post(
 	requestSchemaValidationMiddleware(FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA),
 	figmaWebhookAuthMiddleware,
 	(req: FigmaWebhookEventRequest, res: FigmaWebhookEventResponse) => {
+		const webhookId = req.body.webhook_id;
 		const { figmaTeam } = res.locals;
 
 		switch (req.body.event_type) {
 			case 'FILE_UPDATE': {
 				const { file_key } = req.body;
 
-				handleFigmaFileUpdateEventUseCase
-					.execute(figmaTeam, file_key)
-					.then(() => {
-						getLogger().info(
-							'handleFigmaFileUpdateEventUseCase.execute completed successfully',
-						);
-					})
-					.catch((e) => {
-						getLogger().error(e, 'Figma webhook callback failed');
-					})
-					.finally(() => {
-						// Since Jest does not have the ability to wait on any pending
-						// promises, we need to manage this ourselves to signal that the
-						// async code has finished running
-						if (process.env.NODE_ENV === 'test') {
-							completePendingRouteExecutionForTests();
-						}
-					});
-				// Immediately send a 200 back to figma, before doing any of our own
+				void setImmediate(() => {
+					handleFigmaFileUpdateEventUseCase
+						.execute(figmaTeam, file_key)
+						.then(() => {
+							getLogger().info(
+								{ webhookId },
+								'Figma webhook callback succeeded.',
+							);
+							eventBus.emit('figma.webhook.succeeded', { webhookId });
+						})
+						.catch((e) => {
+							getLogger().error(e, 'Figma webhook callback failed.', {
+								webhookId,
+							});
+							eventBus.emit('figma.webhook.failed', { webhookId });
+						});
+				});
+
+				// Immediately send a 200 back to Figma, before doing any of our own
 				// async processing
-				res.sendStatus(HttpStatusCode.Ok);
-				return;
+				return res.sendStatus(HttpStatusCode.Ok);
 			}
 			default:
 				return res.sendStatus(HttpStatusCode.Ok);

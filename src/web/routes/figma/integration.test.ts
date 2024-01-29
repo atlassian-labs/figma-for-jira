@@ -7,7 +7,6 @@ import { FAILURE_PAGE_URL, SUCCESS_PAGE_URL } from './figma-router';
 import {
 	generateFileUpdateWebhookEventRequestBody,
 	generatePingWebhookEventRequestBody,
-	getPendingRouteExecution,
 } from './testing';
 import type { FigmaWebhookEventRequestBody } from './types';
 
@@ -55,6 +54,7 @@ import {
 	figmaOAuth2UserCredentialsRepository,
 	figmaTeamRepository,
 } from '../../../infrastructure/repositories';
+import { waitForEvent } from '../../../infrastructure/testing';
 import {
 	mockFigmaGetFileEndpoint,
 	mockFigmaGetTeamProjectsEndpoint,
@@ -197,14 +197,12 @@ describe('/figma', () => {
 					),
 				});
 
-				const pendingRouteExecution = getPendingRouteExecution();
-
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				await pendingRouteExecution;
+				await waitForEvent('figma.webhook.succeeded');
 			});
 
 			it('should ignore if no associated designs are found for the file key', async () => {
@@ -225,14 +223,12 @@ describe('/figma', () => {
 					}),
 				});
 
-				const pendingRouteExecution = getPendingRouteExecution();
-
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(otherFilewebhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				await pendingRouteExecution;
+				await waitForEvent('figma.webhook.succeeded');
 			});
 
 			it('should ignore if Figma file is not found', async () => {
@@ -264,14 +260,12 @@ describe('/figma', () => {
 					status: HttpStatusCode.NotFound,
 				});
 
-				const pendingRouteExecution = getPendingRouteExecution();
-
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				await pendingRouteExecution;
+				await waitForEvent('figma.webhook.succeeded');
 			});
 
 			it('should ingest designs for available Figma nodes and ignore deleted nodes', async () => {
@@ -326,14 +320,12 @@ describe('/figma', () => {
 					),
 				});
 
-				const pendingRouteExecution = getPendingRouteExecution();
-
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				await pendingRouteExecution;
+				await waitForEvent('figma.webhook.succeeded');
 			});
 
 			it('should return a 200 if fetching Figma team name fails with non-auth error', async () => {
@@ -381,14 +373,12 @@ describe('/figma', () => {
 					),
 				});
 
-				const pendingRouteExecution = getPendingRouteExecution();
-
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				await pendingRouteExecution;
+				await waitForEvent('figma.webhook.succeeded');
 			});
 
 			it("should set the FigmaTeam status to 'ERROR' and return a 200 if fetching Figma team name fails with auth error", async () => {
@@ -398,14 +388,12 @@ describe('/figma', () => {
 					status: HttpStatusCode.Forbidden,
 				});
 
-				const pendingRouteExecution = getPendingRouteExecution();
-
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				await pendingRouteExecution;
+				await waitForEvent('figma.webhook.succeeded');
 
 				const updatedFigmaTeam = await figmaTeamRepository.findByWebhookId(
 					figmaTeam.webhookId,
@@ -444,14 +432,12 @@ describe('/figma', () => {
 					status: HttpStatusCode.Unauthorized,
 				});
 
-				const pendingRouteExecution = getPendingRouteExecution();
-
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				await pendingRouteExecution;
+				await waitForEvent('figma.webhook.succeeded');
 
 				const updatedFigmaTeam = await figmaTeamRepository.findByWebhookId(
 					figmaTeam.webhookId,
