@@ -1,14 +1,13 @@
 import { HttpStatusCode } from 'axios';
 import type { Request, Response } from 'express';
-import { Router, static as Static } from 'express';
-
-import { join } from 'path';
+import { Router } from 'express';
 
 import { adminRouter } from './admin';
 import { authRouter } from './auth';
 import { entitiesRouter } from './entities';
 import { figmaRouter } from './figma';
 import { lifecycleEventsRouter } from './lifecycle-events';
+import { staticRouter } from './static';
 
 import { connectAppDescriptor } from '../../atlassian-connect';
 
@@ -25,8 +24,7 @@ rootRouter.get('/atlassian-connect.json', (_: Request, res: Response) => {
 });
 
 // Static resources
-rootRouter.use('/static/admin', Static(join(process.cwd(), 'admin/dist')));
-rootRouter.use('/static', Static(join(process.cwd(), 'static')));
+rootRouter.use('/static', staticRouter);
 
 // Connect lifecycle events
 rootRouter.use('/lifecycleEvents', lifecycleEventsRouter);
