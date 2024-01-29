@@ -14,7 +14,7 @@ import { UnauthorizedResponseStatusError } from '../../errors';
  * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#types-of-jwt-token
  * @see https://community.developer.atlassian.com/t/action-required-atlassian-connect-vulnerability-allows-bypass-of-app-qsh-verification-via-context-jwts/47072
  */
-export const jiraQuerySymmetricJwtAuthMiddleware: RequestHandler = (
+export const jiraContextSymmetricJwtFromQueryAuthMiddleware: RequestHandler = (
 	req: Request,
 	res: Response,
 	next: NextFunction,

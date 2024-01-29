@@ -4,20 +4,20 @@ import { join } from 'path';
 
 import {
 	jiraAdminOnlyAuthMiddleware,
-	jiraQuerySymmetricJwtAuthMiddleware,
+	jiraContextSymmetricJwtFromQueryAuthMiddleware,
 } from '../../middleware/jira';
 
 export const staticRouter = Router();
 
 staticRouter.use(
 	'/admin/index.html',
-	jiraQuerySymmetricJwtAuthMiddleware,
+	jiraContextSymmetricJwtFromQueryAuthMiddleware,
 	jiraAdminOnlyAuthMiddleware,
 );
 
 staticRouter.use(
 	'/issue-panel/issue-panel.html',
-	jiraQuerySymmetricJwtAuthMiddleware,
+	jiraContextSymmetricJwtFromQueryAuthMiddleware,
 );
 
 // Static resources
