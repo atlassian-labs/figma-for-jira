@@ -6,7 +6,6 @@ import {
 	FIGMA_OAUTH2_CALLBACK_REQUEST_SCHEMA,
 	FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA,
 } from './schemas';
-import { completePendingRouteExecutionForTests } from './testing';
 import type {
 	FigmaOAuth2CallbackRequest,
 	FigmaWebhookEventRequest,
@@ -14,10 +13,8 @@ import type {
 } from './types';
 
 import { getLogger } from '../../../infrastructure';
-import {
-	handleFigmaAuthorizationResponseUseCase,
-	handleFigmaFileUpdateEventUseCase,
-} from '../../../usecases';
+import { handleFigmaFileUpdateEvent } from '../../../jobs';
+import { handleFigmaAuthorizationResponseUseCase } from '../../../usecases';
 import { requestSchemaValidationMiddleware } from '../../middleware';
 import { figmaWebhookAuthMiddleware } from '../../middleware/figma/figma-webhook-auth-middleware';
 
@@ -39,30 +36,16 @@ figmaRouter.post(
 
 		switch (req.body.event_type) {
 			case 'FILE_UPDATE': {
-				const { file_key } = req.body;
+				// Making body its own variable so typescript is happy with the refinement
+				// we did on the discriminated union
+				const body = req.body;
+				void setImmediate(
+					() => void handleFigmaFileUpdateEvent(body, figmaTeam),
+				);
 
-				handleFigmaFileUpdateEventUseCase
-					.execute(figmaTeam, file_key)
-					.then(() => {
-						getLogger().info(
-							'handleFigmaFileUpdateEventUseCase.execute completed successfully',
-						);
-					})
-					.catch((e) => {
-						getLogger().error(e, 'Figma webhook callback failed');
-					})
-					.finally(() => {
-						// Since Jest does not have the ability to wait on any pending
-						// promises, we need to manage this ourselves to signal that the
-						// async code has finished running
-						if (process.env.NODE_ENV === 'test') {
-							completePendingRouteExecutionForTests();
-						}
-					});
 				// Immediately send a 200 back to figma, before doing any of our own
 				// async processing
-				res.sendStatus(HttpStatusCode.Ok);
-				return;
+				return res.sendStatus(HttpStatusCode.Ok);
 			}
 			default:
 				return res.sendStatus(HttpStatusCode.Ok);
