@@ -203,10 +203,14 @@ export const generateAssociatedFigmaDesignCreateParams = ({
 	designId = generateFigmaDesignIdentifier(),
 	associatedWithAri = generateJiraIssueAri(),
 	connectInstallationId = generateNumericStringId(),
+	devStatus = AtlassianDesignStatus.NONE,
+	lastUpdated = new Date().toISOString(),
 }: Partial<AssociatedFigmaDesignCreateParams> = {}): AssociatedFigmaDesignCreateParams => ({
 	designId,
 	associatedWithAri,
 	connectInstallationId,
+	devStatus,
+	lastUpdated,
 });
 
 export const generateAssociatedFigmaDesign = ({
@@ -215,12 +219,16 @@ export const generateAssociatedFigmaDesign = ({
 	associatedWithAri = generateJiraIssueAri(),
 	inputUrl = generateFigmaDesignUrl(designId).toString(),
 	connectInstallationId = generateNumericStringId(),
+	devStatus = AtlassianDesignStatus.NONE,
+	lastUpdated = new Date().toISOString(),
 }: Partial<AssociatedFigmaDesign> = {}): AssociatedFigmaDesign => ({
 	id,
 	designId,
 	associatedWithAri,
 	connectInstallationId,
 	inputUrl,
+	devStatus,
+	lastUpdated,
 });
 
 export const generateFigmaTeamCreateParams = ({

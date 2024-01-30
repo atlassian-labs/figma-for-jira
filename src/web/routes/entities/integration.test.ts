@@ -284,6 +284,8 @@ describe('/entities', () => {
 					associatedWithAri: issueAri,
 					connectInstallationId: connectInstallation.id,
 					inputUrl: inputFigmaDesignUrl.toString(),
+					devStatus: atlassianDesign.status,
+					lastUpdated: atlassianDesign.lastUpdated,
 				},
 			]);
 		});
@@ -423,6 +425,8 @@ describe('/entities', () => {
 					associatedWithAri: issueAri,
 					connectInstallationId: connectInstallation.id,
 					inputUrl: inputFigmaDesignUrl.toString(),
+					devStatus: atlassianDesign.status,
+					lastUpdated: atlassianDesign.lastUpdated,
 				},
 			]);
 		});
@@ -727,6 +731,8 @@ describe('/entities', () => {
 					associatedWithAri: issueAri,
 					connectInstallationId: connectInstallation.id,
 					inputUrl: inputFigmaDesignUrl.toString(),
+					devStatus: atlassianDesign.status,
+					lastUpdated: atlassianDesign.lastUpdated,
 				},
 			]);
 		});
@@ -866,6 +872,8 @@ describe('/entities', () => {
 					associatedWithAri: issueAri,
 					connectInstallationId: connectInstallation.id,
 					inputUrl: inputFigmaDesignUrl.toString(),
+					devStatus: atlassianDesign.status,
+					lastUpdated: atlassianDesign.lastUpdated,
 				},
 			]);
 		});
@@ -995,6 +1003,8 @@ describe('/entities', () => {
 					associatedWithAri: issueAri,
 					connectInstallationId: connectInstallation.id,
 					inputUrl: inputFigmaDesignUrl.toString(),
+					devStatus: atlassianDesign.status,
+					lastUpdated: atlassianDesign.lastUpdated,
 				},
 			]);
 		});
@@ -1047,6 +1057,8 @@ describe('/entities', () => {
 				designId,
 				associatedWithAri: issueAri,
 				connectInstallationId: connectInstallation.id,
+				devStatus: designStub.status,
+				lastUpdated: designStub.lastUpdated,
 			});
 
 			mockJiraGetIssueEndpoint({
@@ -1183,6 +1195,8 @@ describe('/entities', () => {
 				designId,
 				associatedWithAri: issueAri,
 				connectInstallationId: connectInstallation.id,
+				devStatus: designStub.status,
+				lastUpdated: designStub.lastUpdated,
 			});
 
 			mockJiraGetIssueEndpoint({

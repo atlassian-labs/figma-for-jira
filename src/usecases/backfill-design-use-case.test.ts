@@ -49,13 +49,23 @@ describe('backfillDesignUseCase', () => {
 		jest
 			.spyOn(associatedFigmaDesignRepository, 'upsert')
 			.mockResolvedValue({} as AssociatedFigmaDesign);
+		jest
+			.spyOn(
+				associatedFigmaDesignRepository,
+				'findByDesignIdAndAssociatedWithAriAndConnectInstallationId',
+			)
+			.mockResolvedValue(null);
 
 		await backfillDesignUseCase.execute(params);
 
-		expect(figmaService.getDesignOrParent).toHaveBeenCalledWith(designId, {
-			atlassianUserId: params.atlassianUserId,
-			connectInstallationId: params.connectInstallation.id,
-		});
+		expect(figmaService.getDesignOrParent).toHaveBeenCalledWith(
+			designId,
+			{
+				atlassianUserId: params.atlassianUserId,
+				connectInstallationId: params.connectInstallation.id,
+			},
+			null,
+		);
 		expect(jiraService.submitDesign).toHaveBeenCalledWith(
 			{
 				design: atlassianDesign,
@@ -90,6 +100,8 @@ describe('backfillDesignUseCase', () => {
 			associatedWithAri: params.associateWith.ari,
 			connectInstallationId: connectInstallation.id,
 			inputUrl: params.designUrl.toString(),
+			devStatus: atlassianDesign.status,
+			lastUpdated: atlassianDesign.lastUpdated,
 		});
 	});
 
@@ -124,10 +136,14 @@ describe('backfillDesignUseCase', () => {
 
 		await backfillDesignUseCase.execute(params);
 
-		expect(figmaService.getDesignOrParent).toHaveBeenCalledWith(designId, {
-			atlassianUserId: params.atlassianUserId,
-			connectInstallationId: params.connectInstallation.id,
-		});
+		expect(figmaService.getDesignOrParent).toHaveBeenCalledWith(
+			designId,
+			{
+				atlassianUserId: params.atlassianUserId,
+				connectInstallationId: params.connectInstallation.id,
+			},
+			null,
+		);
 		expect(jiraService.submitDesign).toHaveBeenCalledWith(
 			{
 				design: minimalAtlassianDesign,
@@ -162,6 +178,8 @@ describe('backfillDesignUseCase', () => {
 			associatedWithAri: params.associateWith.ari,
 			connectInstallationId: connectInstallation.id,
 			inputUrl: params.designUrl.toString(),
+			devStatus: minimalAtlassianDesign.status,
+			lastUpdated: minimalAtlassianDesign.lastUpdated,
 		});
 	});
 

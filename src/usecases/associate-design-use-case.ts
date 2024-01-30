@@ -46,11 +46,22 @@ export const associateDesignUseCase = {
 		}
 
 		try {
+			const existingAssociatedFigmaDesign =
+				await associatedFigmaDesignRepository.findByDesignIdAndAssociatedWithAriAndConnectInstallationId(
+					figmaDesignId,
+					associateWith.ari,
+					connectInstallation.id,
+				);
+
 			const [design, issue] = await Promise.all([
-				figmaService.getDesignOrParent(figmaDesignId, {
-					atlassianUserId,
-					connectInstallationId: connectInstallation.id,
-				}),
+				figmaService.getDesignOrParent(
+					figmaDesignId,
+					{
+						atlassianUserId,
+						connectInstallationId: connectInstallation.id,
+					},
+					existingAssociatedFigmaDesign,
+				),
 				jiraService.getIssue(associateWith.id, connectInstallation),
 			]);
 
@@ -92,6 +103,8 @@ export const associateDesignUseCase = {
 				associatedWithAri: associateWith.ari,
 				connectInstallationId: connectInstallation.id,
 				inputUrl: designUrl.toString(),
+				devStatus: design.status,
+				lastUpdated: design.lastUpdated,
 			});
 
 			return design;

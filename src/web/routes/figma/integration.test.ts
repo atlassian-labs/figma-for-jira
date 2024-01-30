@@ -15,13 +15,16 @@ import { isNotNullOrUndefined } from '../../../common/predicates';
 import { isString } from '../../../common/string-utils';
 import { getConfig } from '../../../config';
 import type {
+	AssociatedFigmaDesign,
 	AtlassianDesign,
 	ConnectInstallation,
-	FigmaDesignIdentifier,
 	FigmaOAuth2UserCredentials,
 	FigmaTeam,
 } from '../../../domain/entities';
-import { FigmaTeamAuthStatus } from '../../../domain/entities';
+import {
+	AtlassianDesignStatus,
+	FigmaTeamAuthStatus,
+} from '../../../domain/entities';
 import {
 	generateAssociatedFigmaDesignCreateParams,
 	generateConnectInstallation,
@@ -35,6 +38,7 @@ import {
 import type { GetFileResponse } from '../../../infrastructure/figma/figma-client';
 import {
 	generateChildNode,
+	generateFrameNode,
 	generateGetFileResponseWithNodes,
 	generateGetOAuth2TokenQueryParams,
 	generateGetOAuth2TokenResponse,
@@ -70,20 +74,22 @@ const FIGMA_OAUTH_TOKEN_ENDPOINT = '/api/oauth/token';
 const FIGMA_WEBHOOK_EVENT_ENDPOINT = '/figma/webhook';
 
 function generateAtlassianDesignFromDesignIdAndFileResponse(
-	designId: FigmaDesignIdentifier,
+	associatedFigmaDesign: AssociatedFigmaDesign,
 	fileResponse: GetFileResponse,
 ) {
 	let atlassianDesign: AtlassianDesign;
-	if (!designId.nodeId) {
+	if (!associatedFigmaDesign.designId.nodeId) {
 		atlassianDesign = transformFileToAtlassianDesign({
-			fileKey: designId.fileKey,
+			fileKey: associatedFigmaDesign.designId.fileKey,
 			fileResponse,
 		});
 	} else {
 		atlassianDesign = transformNodeToAtlassianDesign({
-			fileKey: designId.fileKey,
-			nodeId: designId.nodeId,
+			fileKey: associatedFigmaDesign.designId.fileKey,
+			nodeId: associatedFigmaDesign.designId.nodeId,
 			fileResponse,
+			prevDevStatus: associatedFigmaDesign.devStatus,
+			prevLastUpdated: associatedFigmaDesign.lastUpdated,
 		});
 	}
 
@@ -126,6 +132,7 @@ describe('/figma', () => {
 								nodeId: `1:${i}`,
 							}),
 							connectInstallationId: connectInstallation.id,
+							lastUpdated: currentDate.toISOString(),
 						});
 
 					await associatedFigmaDesignRepository.upsert(
@@ -164,7 +171,7 @@ describe('/figma', () => {
 				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
 					(design) =>
 						generateAtlassianDesignFromDesignIdAndFileResponse(
-							design.designId,
+							design,
 							fileResponse,
 						),
 				);
@@ -287,7 +294,7 @@ describe('/figma', () => {
 				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
 					(design) =>
 						generateAtlassianDesignFromDesignIdAndFileResponse(
-							design.designId,
+							design,
 							fileResponse,
 						),
 				);
@@ -343,7 +350,7 @@ describe('/figma', () => {
 				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
 					(design) =>
 						generateAtlassianDesignFromDesignIdAndFileResponse(
-							design.designId,
+							design,
 							fileResponse,
 						),
 				);
@@ -497,6 +504,80 @@ describe('/figma', () => {
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.BadRequest);
+			});
+
+			it('should set the devStatus and lastUpdated fields of the associated design', async () => {
+				const associatedFigmaDesigns =
+					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
+						fileKey,
+						connectInstallation.id,
+					);
+				const nodeIds = associatedFigmaDesigns
+					.map(({ designId }) => designId.nodeId!)
+					.filter(isString);
+				const lastModified = new Date();
+				const fileResponse = generateGetFileResponseWithNodes({
+					nodes: nodeIds.map((nodeId) =>
+						generateFrameNode({
+							id: nodeId,
+							devStatus: { type: 'READY_FOR_DEV' },
+							lastModified,
+						}),
+					),
+				});
+				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
+					(design) =>
+						generateAtlassianDesignFromDesignIdAndFileResponse(
+							design,
+							fileResponse,
+						),
+				);
+				mockFigmaGetTeamProjectsEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					teamId: figmaTeam.teamId,
+					status: HttpStatusCode.InternalServerError,
+				});
+				mockFigmaGetFileEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					query: {
+						ids: nodeIds.join(','),
+						depth: '0',
+						node_last_modified: 'true',
+					},
+					response: fileResponse,
+				});
+				mockJiraSubmitDesignsEndpoint({
+					baseUrl: connectInstallation.baseUrl,
+					request: generateSubmitDesignsRequest(associatedAtlassianDesigns),
+					response: generateSuccessfulSubmitDesignsResponse(
+						associatedAtlassianDesigns.map(
+							(atlassianDesign) => atlassianDesign.id,
+						),
+					),
+				});
+
+				await request(app)
+					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.send(webhookEventRequestBody)
+					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('figma.webhook.succeeded');
+
+				const updatedAssociatedFigmaDesigns =
+					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
+						fileKey,
+						connectInstallation.id,
+					);
+
+				expect(updatedAssociatedFigmaDesigns).toStrictEqual(
+					associatedFigmaDesigns.map((design) => ({
+						...design,
+						devStatus: AtlassianDesignStatus.READY_FOR_DEVELOPMENT,
+						lastUpdated: lastModified.toISOString(),
+					})),
+				);
 			});
 		});
 

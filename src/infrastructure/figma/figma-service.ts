@@ -17,6 +17,7 @@ import { isOfSchema } from '../../common/schema-validation';
 import { isString } from '../../common/string-utils';
 import { getConfig } from '../../config';
 import type {
+	AssociatedFigmaDesign,
 	AtlassianDesign,
 	ConnectUserInfo,
 	FigmaDesignIdentifier,
@@ -79,6 +80,7 @@ export class FigmaService {
 	getDesignOrParent = async (
 		designId: FigmaDesignIdentifier,
 		user: ConnectUserInfo,
+		associatedFigmaDesign: AssociatedFigmaDesign | null,
 	): Promise<AtlassianDesign | null> =>
 		this.withErrorTranslation(async () => {
 			const credentials = await figmaAuthService.getCredentials(user);
@@ -88,7 +90,12 @@ export class FigmaService {
 			if (!nodeId) {
 				return this.getDesignForFile(fileKey, credentials);
 			} else {
-				return this.getDesignForNodeOrFile(fileKey, nodeId, credentials);
+				return this.getDesignForNodeOrFile(
+					fileKey,
+					nodeId,
+					credentials,
+					associatedFigmaDesign,
+				);
 			}
 		});
 
@@ -108,16 +115,17 @@ export class FigmaService {
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 */
 	getAvailableDesignsFromSameFile = async (
-		designIds: FigmaDesignIdentifier[],
+		associatedFigmaDesigns: AssociatedFigmaDesign[],
 		user: ConnectUserInfo,
 	): Promise<AtlassianDesign[]> =>
 		this.withErrorTranslation(async () => {
-			if (!designIds.length) return [];
+			if (!associatedFigmaDesigns.length) return [];
 
 			// Ensure all design identifiers have the same file key
-			const fileKey = designIds[0].fileKey;
-			const sameFileKey = designIds.every(
-				(designId) => designId.fileKey === fileKey,
+			const fileKey = associatedFigmaDesigns[0].designId.fileKey;
+			const sameFileKey = associatedFigmaDesigns.every(
+				(associatedFigmaDesign) =>
+					associatedFigmaDesign.designId.fileKey === fileKey,
 			);
 
 			if (!sameFileKey) {
@@ -128,7 +136,9 @@ export class FigmaService {
 			let fileResponse: GetFileResponse;
 
 			try {
-				const nodeIds = designIds.map((id) => id.nodeId).filter(isString);
+				const nodeIds = associatedFigmaDesigns
+					.map((associatedFigmaDesign) => associatedFigmaDesign.designId.nodeId)
+					.filter(isString);
 				fileResponse = await figmaClient.getFile(
 					fileKey,
 					{
@@ -145,18 +155,20 @@ export class FigmaService {
 				throw e;
 			}
 
-			return designIds
-				.map((designId) => {
-					if (!designId.nodeId) {
+			return associatedFigmaDesigns
+				.map((associatedFigmaDesign) => {
+					if (!associatedFigmaDesign.designId.nodeId) {
 						return transformFileToAtlassianDesign({
-							fileKey: designId.fileKey,
+							fileKey: associatedFigmaDesign.designId.fileKey,
 							fileResponse,
 						});
 					} else {
 						return tryTransformNodeToAtlassianDesign({
-							fileKey: designId.fileKey,
-							nodeId: designId.nodeId,
+							fileKey: associatedFigmaDesign.designId.fileKey,
+							nodeId: associatedFigmaDesign.designId.nodeId,
 							fileResponse,
+							prevDevStatus: associatedFigmaDesign.devStatus,
+							prevLastUpdated: associatedFigmaDesign.lastUpdated,
 						});
 					}
 				})
@@ -434,6 +446,7 @@ export class FigmaService {
 		fileKey: string,
 		nodeId: string,
 		credentials: FigmaOAuth2UserCredentials,
+		associatedFigmaDesign: AssociatedFigmaDesign | null,
 	): Promise<AtlassianDesign | null> =>
 		this.withErrorTranslation(async () => {
 			try {
@@ -451,6 +464,8 @@ export class FigmaService {
 					fileKey,
 					nodeId,
 					fileResponse,
+					prevDevStatus: associatedFigmaDesign?.devStatus,
+					prevLastUpdated: associatedFigmaDesign?.lastUpdated,
 				});
 
 				design ??= transformFileToAtlassianDesign({ fileKey, fileResponse });

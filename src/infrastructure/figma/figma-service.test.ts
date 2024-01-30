@@ -27,11 +27,15 @@ import {
 import {
 	transformFileMetaToAtlassianDesign,
 	transformFileToAtlassianDesign,
+	transformNodeToAtlassianDesign,
 	tryTransformNodeToAtlassianDesign,
 } from './transformers';
+import { getUpdateSequenceNumberFrom } from './transformers/utils';
 
 import { getConfig } from '../../config';
+import { AtlassianDesignStatus } from '../../domain/entities';
 import {
+	generateAssociatedFigmaDesign,
 	generateConnectUserInfo,
 	generateFigmaDesignIdentifier,
 	generateFigmaFileKey,
@@ -222,6 +226,7 @@ describe('FigmaService', () => {
 			const result = await figmaService.getDesignOrParent(
 				designId,
 				MOCK_CONNECT_USER_INFO,
+				null,
 			);
 
 			const expectedEntity = transformFileMetaToAtlassianDesign({
@@ -249,6 +254,7 @@ describe('FigmaService', () => {
 			const result = await figmaService.getDesignOrParent(
 				designId,
 				MOCK_CONNECT_USER_INFO,
+				null,
 			);
 
 			const expectedEntity = tryTransformNodeToAtlassianDesign({
@@ -277,6 +283,7 @@ describe('FigmaService', () => {
 			const result = await figmaService.getDesignOrParent(
 				designId,
 				MOCK_CONNECT_USER_INFO,
+				null,
 			);
 
 			const expectedEntity = transformFileToAtlassianDesign({
@@ -305,6 +312,7 @@ describe('FigmaService', () => {
 			const design = await figmaService.getDesignOrParent(
 				designId,
 				MOCK_CONNECT_USER_INFO,
+				null,
 			);
 
 			expect(design).toBeNull();
@@ -321,7 +329,7 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'getFileMeta').mockRejectedValue(error);
 
 			await expect(
-				figmaService.getDesignOrParent(designId, MOCK_CONNECT_USER_INFO),
+				figmaService.getDesignOrParent(designId, MOCK_CONNECT_USER_INFO, null),
 			).rejects.toStrictEqual(error);
 		});
 	});
@@ -330,6 +338,9 @@ describe('FigmaService', () => {
 		it('should return designs for Figma file', async () => {
 			const fileKey = generateFigmaFileKey();
 			const designIdWithoutNode = generateFigmaDesignIdentifier({ fileKey });
+			const associatedFigmaDesign = generateAssociatedFigmaDesign({
+				designId: designIdWithoutNode,
+			});
 			const credentials = generateFigmaOAuth2UserCredentials();
 			const mockResponse = generateGetFileResponse();
 
@@ -339,7 +350,7 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
 
 			const result = await figmaService.getAvailableDesignsFromSameFile(
-				[designIdWithoutNode],
+				[associatedFigmaDesign],
 				MOCK_CONNECT_USER_INFO,
 			);
 
@@ -364,14 +375,20 @@ describe('FigmaService', () => {
 			const node1 = generateFrameNode({ id: '1:1' });
 			const node2 = generateFrameNode({ id: '1:2' });
 			const fileKey = generateFigmaFileKey();
-			const designIdWithoutNode = generateFigmaDesignIdentifier({ fileKey });
-			const designIdWithNode1 = generateFigmaDesignIdentifier({
-				fileKey,
-				nodeId: node1.id,
+			const designWithoutNode = generateAssociatedFigmaDesign({
+				designId: generateFigmaDesignIdentifier({ fileKey }),
 			});
-			const designIdWithNode2 = generateFigmaDesignIdentifier({
-				fileKey,
-				nodeId: node2.id,
+			const designWithNode1 = generateAssociatedFigmaDesign({
+				designId: generateFigmaDesignIdentifier({
+					fileKey,
+					nodeId: node1.id,
+				}),
+			});
+			const designWithNode2 = generateAssociatedFigmaDesign({
+				designId: generateFigmaDesignIdentifier({
+					fileKey,
+					nodeId: node2.id,
+				}),
 			});
 			const credentials = generateFigmaOAuth2UserCredentials();
 			const mockResponse = generateGetFileResponseWithNodes({
@@ -384,30 +401,33 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
 
 			const result = await figmaService.getAvailableDesignsFromSameFile(
-				[designIdWithoutNode, designIdWithNode1, designIdWithNode2],
+				[designWithoutNode, designWithNode1, designWithNode2],
 				MOCK_CONNECT_USER_INFO,
 			);
 
 			expect(result).toStrictEqual([
 				transformFileToAtlassianDesign({
-					fileKey: designIdWithoutNode.fileKey,
+					fileKey: designWithoutNode.designId.fileKey,
 					fileResponse: mockResponse,
 				}),
 				tryTransformNodeToAtlassianDesign({
-					fileKey: designIdWithNode1.fileKey,
-					nodeId: designIdWithNode1.nodeId!,
+					fileKey: designWithNode1.designId.fileKey,
+					nodeId: designWithNode1.designId.nodeId!,
 					fileResponse: mockResponse,
 				}),
 				tryTransformNodeToAtlassianDesign({
-					fileKey: designIdWithNode2.fileKey,
-					nodeId: designIdWithNode2.nodeId!,
+					fileKey: designWithNode2.designId.fileKey,
+					nodeId: designWithNode2.designId.nodeId!,
 					fileResponse: mockResponse,
 				}),
 			]);
 			expect(figmaClient.getFile).toHaveBeenCalledWith(
 				fileKey,
 				{
-					ids: [designIdWithNode1.nodeId, designIdWithNode2.nodeId],
+					ids: [
+						designWithNode1.designId.nodeId,
+						designWithNode2.designId.nodeId,
+					],
 					depth: 0,
 					node_last_modified: true,
 				},
@@ -416,7 +436,10 @@ describe('FigmaService', () => {
 		});
 
 		it('should return empty array if Figma file does not exist', async () => {
-			const designId = generateFigmaDesignIdentifier();
+			const associatedFigmaDesign = generateAssociatedFigmaDesign({
+				designId: generateFigmaDesignIdentifier(),
+			});
+
 			const credentials = generateFigmaOAuth2UserCredentials();
 			const error = new NotFoundHttpClientError('Figma API failed');
 
@@ -426,7 +449,7 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'getFile').mockRejectedValue(error);
 
 			const result = await figmaService.getAvailableDesignsFromSameFile(
-				[designId],
+				[associatedFigmaDesign],
 				MOCK_CONNECT_USER_INFO,
 			);
 
@@ -437,14 +460,20 @@ describe('FigmaService', () => {
 			const node1 = generateFrameNode({ id: '1:1' });
 			const node2 = generateFrameNode({ id: '1:2' });
 			const fileKey = generateFigmaFileKey();
-			const designIdWithoutNode = generateFigmaDesignIdentifier({ fileKey });
-			const designIdWithNode1 = generateFigmaDesignIdentifier({
-				fileKey,
-				nodeId: node1.id,
+			const designWithoutNode = generateAssociatedFigmaDesign({
+				designId: generateFigmaDesignIdentifier({ fileKey }),
 			});
-			const designIdWithNode2 = generateFigmaDesignIdentifier({
-				fileKey,
-				nodeId: node2.id,
+			const designWithNode1 = generateAssociatedFigmaDesign({
+				designId: generateFigmaDesignIdentifier({
+					fileKey,
+					nodeId: node1.id,
+				}),
+			});
+			const designWithNode2 = generateAssociatedFigmaDesign({
+				designId: generateFigmaDesignIdentifier({
+					fileKey,
+					nodeId: node2.id,
+				}),
 			});
 			const credentials = generateFigmaOAuth2UserCredentials();
 			const mockResponse = generateGetFileResponseWithNodes({
@@ -457,18 +486,18 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
 
 			const result = await figmaService.getAvailableDesignsFromSameFile(
-				[designIdWithoutNode, designIdWithNode1, designIdWithNode2],
+				[designWithoutNode, designWithNode1, designWithNode2],
 				MOCK_CONNECT_USER_INFO,
 			);
 
 			expect(result).toStrictEqual([
 				transformFileToAtlassianDesign({
-					fileKey: designIdWithoutNode.fileKey,
+					fileKey: designWithoutNode.designId.fileKey,
 					fileResponse: mockResponse,
 				}),
 				tryTransformNodeToAtlassianDesign({
-					fileKey: designIdWithNode1.fileKey,
-					nodeId: designIdWithNode1.nodeId!,
+					fileKey: designWithNode1.designId.fileKey,
+					nodeId: designWithNode1.designId.nodeId!,
 					fileResponse: mockResponse,
 				}),
 			]);
@@ -487,20 +516,316 @@ describe('FigmaService', () => {
 		});
 
 		it('should throw a FigmaServiceError if design ids have different file keys', async () => {
-			const designIds = [
-				generateFigmaDesignIdentifier(),
-				generateFigmaDesignIdentifier(),
-				generateFigmaDesignIdentifier(),
+			const designs = [
+				generateAssociatedFigmaDesign(),
+				generateAssociatedFigmaDesign(),
+				generateAssociatedFigmaDesign(),
 			];
 			jest.spyOn(figmaAuthService, 'getCredentials');
 
 			await expect(
 				figmaService.getAvailableDesignsFromSameFile(
-					designIds,
+					designs,
 					MOCK_CONNECT_USER_INFO,
 				),
 			).rejects.toThrow();
 			expect(figmaAuthService.getCredentials).not.toBeCalled();
+		});
+
+		it('should use the file lastModified time if the dev status changes for a node', async () => {
+			const nodeLastModified = new Date('2023-11-05T23:08:49.123Z');
+			const fileLastModified = new Date('2024-01-25T23:08:49.123Z');
+
+			const nodeDevToNoneId = '1:1';
+			const nodeNoneToDevId = '1:2';
+			const nodeDevToDevId = '1:3';
+			const nodeNoneToNoneId = '1:4';
+
+			const fileKey = generateFigmaFileKey();
+			const designWithoutNode = generateAssociatedFigmaDesign({
+				designId: generateFigmaDesignIdentifier({ fileKey }),
+				lastUpdated: nodeLastModified.toISOString(),
+			});
+			const designWithNodeDevToNone = generateAssociatedFigmaDesign({
+				designId: generateFigmaDesignIdentifier({
+					fileKey,
+					nodeId: nodeDevToNoneId,
+				}),
+				devStatus: AtlassianDesignStatus.READY_FOR_DEVELOPMENT,
+				lastUpdated: nodeLastModified.toISOString(),
+			});
+			const designWithNodeNoneToDev = generateAssociatedFigmaDesign({
+				designId: generateFigmaDesignIdentifier({
+					fileKey,
+					nodeId: nodeNoneToDevId,
+				}),
+				devStatus: AtlassianDesignStatus.NONE,
+				lastUpdated: nodeLastModified.toISOString(),
+			});
+			const designWithNodeDevToDev = generateAssociatedFigmaDesign({
+				designId: generateFigmaDesignIdentifier({
+					fileKey,
+					nodeId: nodeDevToDevId,
+				}),
+				devStatus: AtlassianDesignStatus.READY_FOR_DEVELOPMENT,
+				lastUpdated: nodeLastModified.toISOString(),
+			});
+			const designWithNodeNoneToNone = generateAssociatedFigmaDesign({
+				designId: generateFigmaDesignIdentifier({
+					fileKey,
+					nodeId: nodeNoneToNoneId,
+				}),
+				devStatus: AtlassianDesignStatus.NONE,
+				lastUpdated: nodeLastModified.toISOString(),
+			});
+
+			const credentials = generateFigmaOAuth2UserCredentials();
+
+			const nodeDevToNone = generateFrameNode({
+				id: nodeDevToNoneId,
+				lastModified: nodeLastModified,
+			});
+			const nodeNoneToDev = generateFrameNode({
+				id: nodeNoneToDevId,
+				devStatus: { type: 'READY_FOR_DEV' },
+				lastModified: nodeLastModified,
+			});
+			const nodeDevToDev = generateFrameNode({
+				id: nodeDevToDevId,
+				devStatus: { type: 'READY_FOR_DEV' },
+				lastModified: nodeLastModified,
+			});
+			const nodeNoneToNone = generateFrameNode({
+				id: nodeNoneToNoneId,
+				lastModified: nodeLastModified,
+			});
+
+			const mockResponse = generateGetFileResponseWithNodes({
+				nodes: [nodeDevToNone, nodeNoneToDev, nodeDevToDev, nodeNoneToNone],
+				lastModified: fileLastModified,
+			});
+
+			jest
+				.spyOn(figmaAuthService, 'getCredentials')
+				.mockResolvedValue(credentials);
+			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
+
+			const result = await figmaService.getAvailableDesignsFromSameFile(
+				[
+					designWithoutNode,
+					designWithNodeDevToNone,
+					designWithNodeNoneToDev,
+					designWithNodeDevToDev,
+					designWithNodeNoneToNone,
+				],
+				MOCK_CONNECT_USER_INFO,
+			);
+
+			expect(result).toStrictEqual([
+				transformFileToAtlassianDesign({
+					fileKey: designWithoutNode.designId.fileKey,
+					fileResponse: mockResponse,
+				}),
+				{
+					...transformNodeToAtlassianDesign({
+						fileKey: designWithoutNode.designId.fileKey,
+						nodeId: nodeDevToNoneId,
+						fileResponse: mockResponse,
+					}),
+					status: AtlassianDesignStatus.NONE,
+					lastUpdated: fileLastModified.toISOString(),
+					updateSequenceNumber: getUpdateSequenceNumberFrom(
+						fileLastModified.toISOString(),
+					),
+				},
+				{
+					...transformNodeToAtlassianDesign({
+						fileKey: designWithoutNode.designId.fileKey,
+						nodeId: nodeNoneToDevId,
+						fileResponse: mockResponse,
+					}),
+					status: AtlassianDesignStatus.READY_FOR_DEVELOPMENT,
+					lastUpdated: fileLastModified.toISOString(),
+					updateSequenceNumber: getUpdateSequenceNumberFrom(
+						fileLastModified.toISOString(),
+					),
+				},
+				transformNodeToAtlassianDesign({
+					fileKey: designWithoutNode.designId.fileKey,
+					nodeId: nodeDevToDevId,
+					fileResponse: mockResponse,
+				}),
+				transformNodeToAtlassianDesign({
+					fileKey: designWithoutNode.designId.fileKey,
+					nodeId: nodeNoneToNoneId,
+					fileResponse: mockResponse,
+				}),
+			]);
+		});
+
+		it('defaults to using the nodes lastModified time if the existing dev status is unknown', async () => {
+			const nodeLastModified = new Date('2023-11-05T23:08:49.123Z');
+			const fileLastModified = new Date('2024-01-25T23:08:49.123Z');
+
+			const node = generateFrameNode({
+				id: '1:1',
+				devStatus: { type: 'READY_FOR_DEV' },
+				lastModified: nodeLastModified,
+			});
+
+			const fileKey = generateFigmaFileKey();
+			const designWithoutNode = generateAssociatedFigmaDesign({
+				designId: generateFigmaDesignIdentifier({ fileKey }),
+				lastUpdated: nodeLastModified.toISOString(),
+			});
+			const designWithNode = generateAssociatedFigmaDesign({
+				designId: generateFigmaDesignIdentifier({
+					fileKey,
+					nodeId: node.id,
+				}),
+				devStatus: AtlassianDesignStatus.UNKNOWN,
+				lastUpdated: nodeLastModified.toISOString(),
+			});
+
+			const credentials = generateFigmaOAuth2UserCredentials();
+
+			const mockResponse = generateGetFileResponseWithNodes({
+				nodes: [node],
+				lastModified: fileLastModified,
+			});
+
+			jest
+				.spyOn(figmaAuthService, 'getCredentials')
+				.mockResolvedValue(credentials);
+			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
+
+			const result = await figmaService.getAvailableDesignsFromSameFile(
+				[designWithoutNode, designWithNode],
+				MOCK_CONNECT_USER_INFO,
+			);
+
+			expect(result).toStrictEqual([
+				transformFileToAtlassianDesign({
+					fileKey: designWithoutNode.designId.fileKey,
+					fileResponse: mockResponse,
+				}),
+				{
+					...transformNodeToAtlassianDesign({
+						fileKey: designWithoutNode.designId.fileKey,
+						nodeId: node.id,
+						fileResponse: mockResponse,
+					}),
+					// This spread isn't technically necessary but adding the dev status
+					// and lastUpdated values here for clarity
+					status: AtlassianDesignStatus.READY_FOR_DEVELOPMENT,
+					lastUpdated: nodeLastModified.toISOString(),
+					updateSequenceNumber: getUpdateSequenceNumberFrom(
+						nodeLastModified.toISOString(),
+					),
+				},
+			]);
+		});
+
+		it('will use the previous file lastModified time if a new file update came that did not modify the node', async () => {
+			const nodeLastModified = new Date('2023-11-05T23:08:49.123Z');
+			const fileLastModified1 = new Date('2024-01-01T23:08:49.123Z');
+			const fileLastModified2 = new Date('2024-01-25T23:08:49.123Z');
+
+			const node = generateFrameNode({
+				id: '1:1',
+				devStatus: { type: 'READY_FOR_DEV' },
+				lastModified: nodeLastModified,
+			});
+
+			const fileKey = generateFigmaFileKey();
+			const designWithoutNode = generateAssociatedFigmaDesign({
+				designId: generateFigmaDesignIdentifier({ fileKey }),
+				lastUpdated: nodeLastModified.toISOString(),
+			});
+			let designWithNode = generateAssociatedFigmaDesign({
+				designId: generateFigmaDesignIdentifier({
+					fileKey,
+					nodeId: node.id,
+				}),
+				devStatus: AtlassianDesignStatus.NONE,
+				lastUpdated: nodeLastModified.toISOString(),
+			});
+
+			const credentials = generateFigmaOAuth2UserCredentials();
+
+			const mockResponse1 = generateGetFileResponseWithNodes({
+				nodes: [node],
+				lastModified: fileLastModified1,
+			});
+
+			jest
+				.spyOn(figmaAuthService, 'getCredentials')
+				.mockResolvedValue(credentials);
+			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse1);
+
+			let result = await figmaService.getAvailableDesignsFromSameFile(
+				[designWithoutNode, designWithNode],
+				MOCK_CONNECT_USER_INFO,
+			);
+
+			expect(result).toStrictEqual([
+				transformFileToAtlassianDesign({
+					fileKey: designWithoutNode.designId.fileKey,
+					fileResponse: mockResponse1,
+				}),
+				{
+					...transformNodeToAtlassianDesign({
+						fileKey: designWithoutNode.designId.fileKey,
+						nodeId: node.id,
+						fileResponse: mockResponse1,
+					}),
+					status: AtlassianDesignStatus.READY_FOR_DEVELOPMENT,
+					lastUpdated: fileLastModified1.toISOString(),
+					updateSequenceNumber: getUpdateSequenceNumberFrom(
+						fileLastModified1.toISOString(),
+					),
+				},
+			]);
+
+			const mockResponse2 = generateGetFileResponseWithNodes({
+				nodes: [node],
+				lastModified: fileLastModified2,
+			});
+
+			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse2);
+
+			designWithNode = {
+				...designWithNode,
+				devStatus: AtlassianDesignStatus.READY_FOR_DEVELOPMENT,
+				lastUpdated: fileLastModified1.toISOString(),
+			};
+
+			result = await figmaService.getAvailableDesignsFromSameFile(
+				[designWithoutNode, designWithNode],
+				MOCK_CONNECT_USER_INFO,
+			);
+
+			expect(result).toStrictEqual([
+				{
+					...transformFileToAtlassianDesign({
+						fileKey: designWithoutNode.designId.fileKey,
+						fileResponse: mockResponse2,
+					}),
+					lastUpdated: fileLastModified2.toISOString(),
+				},
+				{
+					...transformNodeToAtlassianDesign({
+						fileKey: designWithoutNode.designId.fileKey,
+						nodeId: node.id,
+						fileResponse: mockResponse2,
+					}),
+					status: AtlassianDesignStatus.READY_FOR_DEVELOPMENT,
+					lastUpdated: fileLastModified1.toISOString(),
+					updateSequenceNumber: getUpdateSequenceNumberFrom(
+						fileLastModified1.toISOString(),
+					),
+				},
+			]);
 		});
 	});
 

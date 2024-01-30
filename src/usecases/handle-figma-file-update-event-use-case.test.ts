@@ -72,6 +72,9 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				)
 				.mockResolvedValue(associatedFigmaDesigns);
 			jest
+				.spyOn(associatedFigmaDesignRepository, 'upsertMany')
+				.mockResolvedValue([]);
+			jest
 				.spyOn(figmaService, 'getAvailableDesignsFromSameFile')
 				.mockResolvedValue(associatedAtlassianDesigns);
 			jest.spyOn(jiraService, 'submitDesigns').mockResolvedValue();
@@ -110,6 +113,9 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				)
 				.mockResolvedValue(associatedFigmaDesigns);
 			jest
+				.spyOn(associatedFigmaDesignRepository, 'upsertMany')
+				.mockResolvedValue([]);
+			jest
 				.spyOn(figmaService, 'getAvailableDesignsFromSameFile')
 				.mockResolvedValue(associatedAtlassianDesigns);
 			jest.spyOn(jiraService, 'submitDesigns').mockResolvedValue();
@@ -139,6 +145,9 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				)
 				.mockResolvedValue(associatedFigmaDesigns);
 			jest
+				.spyOn(associatedFigmaDesignRepository, 'upsertMany')
+				.mockResolvedValue([]);
+			jest
 				.spyOn(figmaService, 'getAvailableDesignsFromSameFile')
 				.mockRejectedValue(new UnauthorizedFigmaServiceError());
 			jest.spyOn(figmaTeamRepository, 'updateAuthStatus').mockResolvedValue();
@@ -162,6 +171,9 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 					'findManyByFileKeyAndConnectInstallationId',
 				)
 				.mockResolvedValue(associatedFigmaDesigns);
+			jest
+				.spyOn(associatedFigmaDesignRepository, 'upsertMany')
+				.mockResolvedValue([]);
 			jest
 				.spyOn(figmaService, 'getAvailableDesignsFromSameFile')
 				.mockRejectedValue(error);

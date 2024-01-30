@@ -7,6 +7,7 @@ import { prismaClient } from './prisma-client';
 import type {
 	AssociatedFigmaDesign,
 	AssociatedFigmaDesignCreateParams,
+	AtlassianDesignStatus,
 } from '../../domain/entities';
 import { FigmaDesignIdentifier } from '../../domain/entities';
 
@@ -36,6 +37,33 @@ export class AssociatedFigmaDesignRepository {
 		return this.mapToDomainModel(dbModel);
 	};
 
+	upsertMany = async (
+		createParams: AssociatedFigmaDesignCreateParams[],
+	): Promise<AssociatedFigmaDesign[]> => {
+		const createParamsDbModels = createParams.map((createParam) =>
+			this.mapCreateParamsToDbModel(createParam),
+		);
+
+		const dbModels = await prismaClient.get().$transaction(
+			createParamsDbModels.map((createParamsDbModel) =>
+				prismaClient.get().associatedFigmaDesign.upsert({
+					create: createParamsDbModel,
+					update: createParamsDbModel,
+					where: {
+						fileKey_nodeId_associatedWithAri_connectInstallationId: {
+							fileKey: createParamsDbModel.fileKey,
+							nodeId: createParamsDbModel.nodeId,
+							associatedWithAri: createParamsDbModel.associatedWithAri,
+							connectInstallationId: createParamsDbModel.connectInstallationId,
+						},
+					},
+				}),
+			),
+		);
+
+		return dbModels.map(this.mapToDomainModel);
+	};
+
 	/**
 	 * @internal
 	 * Required for tests only.
@@ -55,6 +83,29 @@ export class AssociatedFigmaDesignRepository {
 		});
 
 		return dbModels.map(this.mapToDomainModel);
+	};
+
+	findByDesignIdAndAssociatedWithAriAndConnectInstallationId = async (
+		designId: FigmaDesignIdentifier,
+		associatedWithAri: string,
+		connectInstallationId: string,
+	): Promise<AssociatedFigmaDesign | null> => {
+		const record = await prismaClient.get().associatedFigmaDesign.findUnique({
+			where: {
+				fileKey_nodeId_associatedWithAri_connectInstallationId: {
+					fileKey: designId.fileKey,
+					nodeId: designId.nodeId ?? '',
+					associatedWithAri: associatedWithAri,
+					connectInstallationId: BigInt(connectInstallationId),
+				},
+			},
+		});
+
+		if (!record) {
+			return null;
+		}
+
+		return this.mapToDomainModel(record);
 	};
 
 	deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId = async (
@@ -93,6 +144,8 @@ export class AssociatedFigmaDesignRepository {
 		associatedWithAri,
 		connectInstallationId,
 		inputUrl,
+		devStatus,
+		lastUpdated,
 	}: PrismaAssociatedFigmaDesign): AssociatedFigmaDesign => ({
 		id: id.toString(),
 		designId: new FigmaDesignIdentifier(
@@ -102,6 +155,8 @@ export class AssociatedFigmaDesignRepository {
 		associatedWithAri,
 		connectInstallationId: connectInstallationId.toString(),
 		inputUrl: inputUrl ?? undefined,
+		devStatus: devStatus as AtlassianDesignStatus,
+		lastUpdated,
 	});
 
 	private mapCreateParamsToDbModel = ({
@@ -109,12 +164,16 @@ export class AssociatedFigmaDesignRepository {
 		associatedWithAri,
 		connectInstallationId,
 		inputUrl,
+		devStatus,
+		lastUpdated,
 	}: AssociatedFigmaDesignCreateParams): PrismaAssociatedFigmaDesignCreateParams => ({
 		fileKey: designId.fileKey,
 		nodeId: designId.nodeId ?? '',
 		associatedWithAri,
 		connectInstallationId: BigInt(connectInstallationId),
 		inputUrl: inputUrl ?? null,
+		devStatus,
+		lastUpdated,
 	});
 }
 

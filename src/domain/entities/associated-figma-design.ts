@@ -1,3 +1,4 @@
+import type { AtlassianDesignStatus } from './atlassian-design';
 import type { FigmaDesignIdentifier } from './figma-design-identifier';
 
 /**
@@ -21,6 +22,9 @@ export type AssociatedFigmaDesign = {
 	 * to adjust the way how designs are constructed and re-submit these designs to Jira.
 	 */
 	readonly inputUrl?: string;
+
+	readonly devStatus: AtlassianDesignStatus;
+	readonly lastUpdated: string;
 };
 
 export type AssociatedFigmaDesignCreateParams = Omit<
