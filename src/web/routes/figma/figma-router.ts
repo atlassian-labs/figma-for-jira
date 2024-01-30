@@ -13,10 +13,8 @@ import type {
 } from './types';
 
 import { getLogger } from '../../../infrastructure';
-import {
-	handleFigmaAuthorizationResponseUseCase,
-	handleFigmaFileUpdateEventUseCase,
-} from '../../../usecases';
+import { handleFigmaFileUpdateEvent } from '../../../jobs';
+import { handleFigmaAuthorizationResponseUseCase } from '../../../usecases';
 import { requestSchemaValidationMiddleware } from '../../middleware';
 import { figmaWebhookAuthMiddleware } from '../../middleware/figma/figma-webhook-auth-middleware';
 
@@ -33,18 +31,21 @@ figmaRouter.post(
 	'/webhook',
 	requestSchemaValidationMiddleware(FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA),
 	figmaWebhookAuthMiddleware,
-	(req: FigmaWebhookEventRequest, res: FigmaWebhookEventResponse, next) => {
+	(req: FigmaWebhookEventRequest, res: FigmaWebhookEventResponse) => {
 		const { figmaTeam } = res.locals;
 
 		switch (req.body.event_type) {
 			case 'FILE_UPDATE': {
-				const { file_key } = req.body;
+				// Making body its own variable so typescript is happy with the refinement
+				// we did on the discriminated union
+				const body = req.body;
+				void setImmediate(
+					() => void handleFigmaFileUpdateEvent(body, figmaTeam),
+				);
 
-				handleFigmaFileUpdateEventUseCase
-					.execute(figmaTeam, file_key)
-					.then(() => res.sendStatus(HttpStatusCode.Ok))
-					.catch(next);
-				return;
+				// Immediately send a 200 back to figma, before doing any of our own
+				// async processing
+				return res.sendStatus(HttpStatusCode.Ok);
 			}
 			default:
 				return res.sendStatus(HttpStatusCode.Ok);

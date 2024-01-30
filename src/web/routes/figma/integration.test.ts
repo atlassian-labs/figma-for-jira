@@ -54,6 +54,7 @@ import {
 	figmaOAuth2UserCredentialsRepository,
 	figmaTeamRepository,
 } from '../../../infrastructure/repositories';
+import { waitForEvent } from '../../../infrastructure/testing';
 import {
 	mockFigmaGetFileEndpoint,
 	mockFigmaGetTeamProjectsEndpoint,
@@ -200,6 +201,8 @@ describe('/figma', () => {
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('figma.webhook.succeeded');
 			});
 
 			it('should ignore if no associated designs are found for the file key', async () => {
@@ -224,6 +227,8 @@ describe('/figma', () => {
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(otherFilewebhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('figma.webhook.succeeded');
 			});
 
 			it('should ignore if Figma file is not found', async () => {
@@ -259,6 +264,8 @@ describe('/figma', () => {
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('figma.webhook.succeeded');
 			});
 
 			it('should ingest designs for available Figma nodes and ignore deleted nodes', async () => {
@@ -317,6 +324,8 @@ describe('/figma', () => {
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('figma.webhook.succeeded');
 			});
 
 			it('should return a 200 if fetching Figma team name fails with non-auth error', async () => {
@@ -368,29 +377,11 @@ describe('/figma', () => {
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('figma.webhook.succeeded');
 			});
 
-			it("should set the FigmaTeam status to 'ERROR' and return a 200 if fetching Figma team name fails with auth error", async () => {
-				mockFigmaGetTeamProjectsEndpoint({
-					baseUrl: getConfig().figma.apiBaseUrl,
-					teamId: figmaTeam.teamId,
-					status: HttpStatusCode.Forbidden,
-				});
-
-				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
-					.send(webhookEventRequestBody)
-					.expect(HttpStatusCode.Ok);
-
-				const updatedFigmaTeam = await figmaTeamRepository.findByWebhookId(
-					figmaTeam.webhookId,
-				);
-				expect(updatedFigmaTeam?.authStatus).toStrictEqual(
-					FigmaTeamAuthStatus.ERROR,
-				);
-			});
-
-			it('should return error if fetching Figma designs fails with unexpected error', async () => {
+			it('should send an error event if fetching Figma designs fails with unexpected error', async () => {
 				const associatedFigmaDesigns =
 					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
 						fileKey,
@@ -422,7 +413,31 @@ describe('/figma', () => {
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
-					.expect(HttpStatusCode.InternalServerError);
+					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('figma.webhook.failed');
+			});
+
+			it("should set the FigmaTeam status to 'ERROR' and return a 200 if fetching Figma team name fails with auth error", async () => {
+				mockFigmaGetTeamProjectsEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					teamId: figmaTeam.teamId,
+					status: HttpStatusCode.Forbidden,
+				});
+
+				await request(app)
+					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.send(webhookEventRequestBody)
+					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('figma.webhook.succeeded');
+
+				const updatedFigmaTeam = await figmaTeamRepository.findByWebhookId(
+					figmaTeam.webhookId,
+				);
+				expect(updatedFigmaTeam?.authStatus).toStrictEqual(
+					FigmaTeamAuthStatus.ERROR,
+				);
 			});
 
 			it("should set the FigmaTeam status to 'ERROR' and return a 200 if fetching Figma designs fails with auth error", async () => {
@@ -459,6 +474,8 @@ describe('/figma', () => {
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
+				await waitForEvent('figma.webhook.succeeded');
+
 				const updatedFigmaTeam = await figmaTeamRepository.findByWebhookId(
 					figmaTeam.webhookId,
 				);
@@ -480,41 +497,6 @@ describe('/figma', () => {
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.BadRequest);
-			});
-
-			it('should return a 500 if fetching designs from Figma fails', async () => {
-				const associatedFigmaDesigns =
-					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
-						fileKey,
-						connectInstallation.id,
-					);
-				const nodeIds = associatedFigmaDesigns
-					.map(({ designId }) => designId.nodeId!)
-					.filter(isString);
-
-				mockFigmaGetTeamProjectsEndpoint({
-					baseUrl: getConfig().figma.apiBaseUrl,
-					teamId: figmaTeam.teamId,
-					response: generateGetTeamProjectsResponse({
-						name: figmaTeam.teamName,
-					}),
-				});
-				mockFigmaGetFileEndpoint({
-					baseUrl: getConfig().figma.apiBaseUrl,
-					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
-					fileKey: fileKey,
-					query: {
-						ids: nodeIds.join(','),
-						depth: '0',
-						node_last_modified: 'true',
-					},
-					status: HttpStatusCode.InternalServerError,
-				});
-
-				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
-					.send(webhookEventRequestBody)
-					.expect(HttpStatusCode.InternalServerError);
 			});
 		});
 
