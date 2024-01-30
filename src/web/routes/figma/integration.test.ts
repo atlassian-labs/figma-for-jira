@@ -558,14 +558,12 @@ describe('/figma', () => {
 					),
 				});
 
-				const pendingRouteExecution = getPendingRouteExecution();
-
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				await pendingRouteExecution;
+				await waitForEvent('figma.webhook.succeeded');
 
 				const updatedAssociatedFigmaDesigns =
 					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
