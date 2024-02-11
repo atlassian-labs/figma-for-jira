@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { jiraContextSymmetricJwtAuthMiddleware } from './jira-context-symmetric-jwt-auth-middleware';
 
-import { flushPromises } from '../../../common/testing/utils';
+import { flushMacrotaskQueue } from '../../../common/testing/utils';
 import { generateConnectInstallation } from '../../../domain/entities/testing';
 import { jiraContextSymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
 import { UnauthorizedResponseStatusError } from '../../errors';
@@ -28,7 +28,7 @@ describe('jiraContextSymmetricJwtAuthMiddleware', () => {
 			});
 
 		jiraContextSymmetricJwtAuthMiddleware(request, response, next);
-		await flushPromises();
+		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith();
 		expect(response.locals.connectInstallation).toBe(connectInstallation);
@@ -52,7 +52,7 @@ describe('jiraContextSymmetricJwtAuthMiddleware', () => {
 			.mockRejectedValue(error);
 
 		jiraContextSymmetricJwtAuthMiddleware(request, {} as Response, next);
-		await flushPromises();
+		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith(
 			new UnauthorizedResponseStatusError('Unauthorized.', undefined, error),
@@ -66,7 +66,7 @@ describe('jiraContextSymmetricJwtAuthMiddleware', () => {
 		const next = jest.fn();
 
 		jiraContextSymmetricJwtAuthMiddleware(request, {} as Response, next);
-		await flushPromises();
+		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith(
 			new UnauthorizedResponseStatusError('Missing JWT token.'),

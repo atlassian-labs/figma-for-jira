@@ -14,4 +14,4 @@ export function generateNumericStringId(): string {
 	return generateNumericId().toString();
 }
 
-export const flushPromises = () => new Promise(setImmediate);
+export const flushMacrotaskQueue = () => new Promise(setImmediate);

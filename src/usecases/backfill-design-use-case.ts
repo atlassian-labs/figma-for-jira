@@ -17,6 +17,7 @@ import {
 import { figmaBackfillService } from '../infrastructure/figma/figma-backfill-service';
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
+import { submitFullDesign } from '../jobs';
 
 export type BackfillDesignUseCaseParams = {
 	readonly designUrl: URL;
@@ -48,19 +49,11 @@ export const backfillDesignUseCase = {
 		}
 
 		try {
-			// eslint-disable-next-line prefer-const
-			let [design, issue] = await Promise.all([
-				figmaService.getDesignOrParent(figmaDesignId, {
-					atlassianUserId,
-					connectInstallationId: connectInstallation.id,
-				}),
-				jiraService.getIssue(associateWith.id, connectInstallation),
-			]);
-
-			// If a design is not found, it either has been deleted or a user does not have access to the design.
-			// In order to backfill deleted/unavailable designs, try to build the design from the URL as a fallback.
-			// Once the design is backfilled, a user can decide what to do with it (e.g., keep or unlink them).
-			design ??= figmaBackfillService.buildMinimalDesignFromUrl(designUrl);
+			const design = figmaBackfillService.buildMinimalDesignFromUrl(designUrl);
+			const issue = await jiraService.getIssue(
+				associateWith.id,
+				connectInstallation,
+			);
 
 			const designIssueAssociation =
 				AtlassianAssociation.createDesignIssueAssociation(associateWith.ari);
@@ -99,6 +92,17 @@ export const backfillDesignUseCase = {
 				connectInstallationId: connectInstallation.id,
 				inputUrl: designUrl.toString(),
 			});
+
+			// Asynchronously fetch the full design from Figma and backfill it.
+			void setImmediate(
+				() =>
+					void submitFullDesign({
+						figmaDesignId,
+						associateWith,
+						atlassianUserId,
+						connectInstallationId: connectInstallation.id,
+					}),
+			);
 
 			return design;
 		} catch (e) {

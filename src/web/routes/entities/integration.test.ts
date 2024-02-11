@@ -59,6 +59,7 @@ import {
 	connectInstallationRepository,
 	figmaOAuth2UserCredentialsRepository,
 } from '../../../infrastructure/repositories';
+import { waitForEvent } from '../../../infrastructure/testing';
 import {
 	generateJiraServerSymmetricJwtToken,
 	mockFigmaCreateDevResourcesEndpoint,
@@ -613,10 +614,8 @@ describe('/entities', () => {
 			const fileMetaResponse = generateGetFileMetaResponse({
 				name: fileName,
 			});
-			const atlassianDesign = transformFileMetaToAtlassianDesign({
-				fileKey,
-				fileMetaResponse,
-			});
+			const minimalAtlassianDesign =
+				figmaBackfillService.buildMinimalDesignFromUrl(inputFigmaDesignUrl);
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
@@ -628,12 +627,6 @@ describe('/entities', () => {
 					}),
 				);
 
-			mockFigmaGetFileMetaEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-				fileKey,
-				accessToken: figmaUserCredentials.accessToken,
-				response: fileMetaResponse,
-			});
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
@@ -643,7 +636,7 @@ describe('/entities', () => {
 				baseUrl: connectInstallation.baseUrl,
 				request: generateSubmitDesignsRequest([
 					{
-						...atlassianDesign,
+						...minimalAtlassianDesign,
 						addAssociations: [
 							// Nock does not correctly match a request body when provide an instance of a class
 							// (e.g., as `AtlassianAssociation`). Therefore, pass an object instead.
@@ -674,7 +667,7 @@ describe('/entities', () => {
 				issueId: issue.id,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				request: JSON.stringify(
-					JiraService.buildDesignUrlForIssueProperties(atlassianDesign),
+					JiraService.buildDesignUrlForIssueProperties(minimalAtlassianDesign),
 				),
 			});
 			mockJiraGetIssuePropertyEndpoint({
@@ -691,12 +684,38 @@ describe('/entities', () => {
 					JSON.stringify([
 						{
 							url: JiraService.buildDesignUrlForIssueProperties(
-								atlassianDesign,
+								minimalAtlassianDesign,
 							),
-							name: atlassianDesign.displayName,
+							name: minimalAtlassianDesign.displayName,
 						},
 					]),
 				),
+			});
+			// Mock endpoints called asynchronously in the background job.
+			const atlassianDesign = transformFileMetaToAtlassianDesign({
+				fileKey,
+				fileMetaResponse,
+			});
+			mockFigmaGetFileMetaEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey,
+				accessToken: figmaUserCredentials.accessToken,
+				response: fileMetaResponse,
+			});
+			mockJiraSubmitDesignsEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				request: generateSubmitDesignsRequest([
+					{
+						...atlassianDesign,
+						addAssociations: [
+							// Nock does not correctly match a request body when provide an instance of a class
+							// (e.g., as `AtlassianAssociation`). Therefore, pass an object instead.
+							{
+								...AtlassianAssociation.createDesignIssueAssociation(issueAri),
+							},
+						],
+					},
+				]),
 			});
 
 			await request(app)
@@ -719,7 +738,8 @@ describe('/entities', () => {
 				.set('Content-Type', 'application/json')
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
-				.expect(atlassianDesign);
+				.expect(minimalAtlassianDesign);
+			await waitForEvent('job.submit-full-design.succeeded');
 			expect(await associatedFigmaDesignRepository.getAll()).toStrictEqual([
 				{
 					id: expect.anything(),
@@ -744,18 +764,16 @@ describe('/entities', () => {
 				nodeId,
 				mode: 'dev',
 			});
-			const fileResponse = generateGetFileResponseWithNode({
-				name: fileName,
-				node,
-			});
-			const atlassianDesign = transformNodeToAtlassianDesign({
-				fileKey,
-				nodeId,
-				fileResponse,
-			});
+			inputFigmaDesignUrl.searchParams.set(
+				'com.atlassian.designs.backfill',
+				'true',
+			);
+
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
+			const minimalAtlassianDesign =
+				figmaBackfillService.buildMinimalDesignFromUrl(inputFigmaDesignUrl);
 			const figmaUserCredentials =
 				await figmaOAuth2UserCredentialsRepository.upsert(
 					generateFigmaOAuth2UserCredentialCreateParams({
@@ -764,17 +782,6 @@ describe('/entities', () => {
 					}),
 				);
 
-			mockFigmaGetFileEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-				fileKey,
-				accessToken: figmaUserCredentials.accessToken,
-				query: {
-					ids: nodeId,
-					depth: '0',
-					node_last_modified: 'true',
-				},
-				response: fileResponse,
-			});
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
@@ -784,7 +791,7 @@ describe('/entities', () => {
 				baseUrl: connectInstallation.baseUrl,
 				request: generateSubmitDesignsRequest([
 					{
-						...atlassianDesign,
+						...minimalAtlassianDesign,
 						addAssociations: [
 							{
 								...AtlassianAssociation.createDesignIssueAssociation(issueAri),
@@ -813,7 +820,7 @@ describe('/entities', () => {
 				issueId: issue.id,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				request: JSON.stringify(
-					JiraService.buildDesignUrlForIssueProperties(atlassianDesign),
+					JiraService.buildDesignUrlForIssueProperties(minimalAtlassianDesign),
 				),
 			});
 			mockJiraGetIssuePropertyEndpoint({
@@ -830,12 +837,46 @@ describe('/entities', () => {
 					JSON.stringify([
 						{
 							url: JiraService.buildDesignUrlForIssueProperties(
-								atlassianDesign,
+								minimalAtlassianDesign,
 							),
-							name: atlassianDesign.displayName,
+							name: minimalAtlassianDesign.displayName,
 						},
 					]),
 				),
+			});
+			// Mock endpoints called asynchronously in the background job.
+			const fileResponse = generateGetFileResponseWithNode({
+				name: fileName,
+				node,
+			});
+			const atlassianDesign = transformNodeToAtlassianDesign({
+				fileKey,
+				nodeId,
+				fileResponse,
+			});
+			mockFigmaGetFileEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey,
+				accessToken: figmaUserCredentials.accessToken,
+				query: {
+					ids: nodeId,
+					depth: '0',
+					node_last_modified: 'true',
+				},
+				response: fileResponse,
+			});
+			mockJiraSubmitDesignsEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				request: generateSubmitDesignsRequest([
+					{
+						...atlassianDesign,
+						addAssociations: [
+							{
+								...AtlassianAssociation.createDesignIssueAssociation(issueAri),
+							},
+						],
+					},
+				]),
 			});
 
 			await request(app)
@@ -858,7 +899,8 @@ describe('/entities', () => {
 				.set('Content-Type', 'application/json')
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
-				.expect(atlassianDesign);
+				.expect(minimalAtlassianDesign);
+			await waitForEvent('job.submit-full-design.succeeded');
 			expect(await associatedFigmaDesignRepository.getAll()).toStrictEqual([
 				{
 					id: expect.anything(),
@@ -870,7 +912,7 @@ describe('/entities', () => {
 			]);
 		});
 
-		it('should respond ingest minimal design if design is not found', async () => {
+		it('should ingest a minimal Figma file constructed from URL if Figma file is not found', async () => {
 			const atlassianUserId = uuidv4();
 			const fileKey = generateFigmaFileKey();
 			const issue = generateJiraIssue();
@@ -883,7 +925,7 @@ describe('/entities', () => {
 				'com.atlassian.designs.backfill',
 				'true',
 			);
-			const atlassianDesign =
+			const minimalAtlassianDesign =
 				figmaBackfillService.buildMinimalDesignFromUrl(inputFigmaDesignUrl);
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
@@ -896,12 +938,6 @@ describe('/entities', () => {
 					}),
 				);
 
-			mockFigmaGetFileMetaEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-				fileKey,
-				accessToken: figmaUserCredentials.accessToken,
-				status: HttpStatusCode.NotFound,
-			});
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
@@ -911,7 +947,7 @@ describe('/entities', () => {
 				baseUrl: connectInstallation.baseUrl,
 				request: generateSubmitDesignsRequest([
 					{
-						...atlassianDesign,
+						...minimalAtlassianDesign,
 						addAssociations: [
 							// Nock does not correctly match a request body when provide an instance of a class
 							// (e.g., as `AtlassianAssociation`). Therefore, pass an object instead.
@@ -942,7 +978,7 @@ describe('/entities', () => {
 				issueId: issue.id,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				request: JSON.stringify(
-					JiraService.buildDesignUrlForIssueProperties(atlassianDesign),
+					JiraService.buildDesignUrlForIssueProperties(minimalAtlassianDesign),
 				),
 			});
 			mockJiraGetIssuePropertyEndpoint({
@@ -959,12 +995,19 @@ describe('/entities', () => {
 					JSON.stringify([
 						{
 							url: JiraService.buildDesignUrlForIssueProperties(
-								atlassianDesign,
+								minimalAtlassianDesign,
 							),
-							name: atlassianDesign.displayName,
+							name: minimalAtlassianDesign.displayName,
 						},
 					]),
 				),
+			});
+			// Mock endpoints called asynchronously in the background job.
+			mockFigmaGetFileMetaEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey,
+				accessToken: figmaUserCredentials.accessToken,
+				status: HttpStatusCode.NotFound,
 			});
 
 			await request(app)
@@ -987,11 +1030,148 @@ describe('/entities', () => {
 				.set('Content-Type', 'application/json')
 				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.Ok)
-				.expect(atlassianDesign);
+				.expect(minimalAtlassianDesign);
+			await waitForEvent('job.submit-full-design.cancelled');
 			expect(await associatedFigmaDesignRepository.getAll()).toStrictEqual([
 				{
 					id: expect.anything(),
 					designId: new FigmaDesignIdentifier(fileKey),
+					associatedWithAri: issueAri,
+					connectInstallationId: connectInstallation.id,
+					inputUrl: inputFigmaDesignUrl.toString(),
+				},
+			]);
+		});
+
+		it('should ingest a minimal Figma node constructed from URL if Figma node is not found', async () => {
+			const atlassianUserId = uuidv4();
+			const fileKey = generateFigmaFileKey();
+			const nodeId = generateFigmaNodeId();
+			const issue = generateJiraIssue();
+			const issueAri = generateJiraIssueAri({ issueId: issue.id });
+			const inputFigmaDesignUrl = generateFigmaDesignUrl({
+				fileKey,
+				nodeId,
+				mode: 'dev',
+			});
+			inputFigmaDesignUrl.searchParams.set(
+				'com.atlassian.designs.backfill',
+				'true',
+			);
+			const minimalAtlassianDesign =
+				figmaBackfillService.buildMinimalDesignFromUrl(inputFigmaDesignUrl);
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const figmaUserCredentials =
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaOAuth2UserCredentialCreateParams({
+						atlassianUserId,
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
+
+			mockJiraGetIssueEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				response: issue,
+			});
+			mockJiraSubmitDesignsEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				request: generateSubmitDesignsRequest([
+					{
+						...minimalAtlassianDesign,
+						addAssociations: [
+							{
+								...AtlassianAssociation.createDesignIssueAssociation(issueAri),
+							},
+						],
+					},
+				]),
+			});
+			mockFigmaCreateDevResourcesEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				request: generateCreateDevResourcesRequest({
+					name: `[${issue.key}] ${issue.fields.summary}`,
+					url: buildJiraIssueUrl(connectInstallation.baseUrl, issue.key),
+					fileKey,
+					nodeId,
+				}),
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+				status: HttpStatusCode.NotFound,
+			});
+			mockJiraSetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+				request: JSON.stringify(
+					JiraService.buildDesignUrlForIssueProperties(minimalAtlassianDesign),
+				),
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				status: HttpStatusCode.NotFound,
+			});
+			mockJiraSetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				request: JSON.stringify(
+					JSON.stringify([
+						{
+							url: JiraService.buildDesignUrlForIssueProperties(
+								minimalAtlassianDesign,
+							),
+							name: minimalAtlassianDesign.displayName,
+						},
+					]),
+				),
+			});
+			// Mock endpoints called asynchronously in the background job.
+			const fileResponse = generateGetFileResponseWithNode();
+			mockFigmaGetFileEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey,
+				accessToken: figmaUserCredentials.accessToken,
+				query: {
+					ids: nodeId,
+					depth: '0',
+					node_last_modified: 'true',
+				},
+				response: fileResponse,
+			});
+			await request(app)
+				.post('/entities/associateEntity')
+				.query({ userId: atlassianUserId })
+				.send(
+					generateAssociateEntityRequest({
+						issueId: issue.id,
+						issueAri,
+						figmaDesignUrl: inputFigmaDesignUrl.toString(),
+					}),
+				)
+				.set(
+					'Authorization',
+					`JWT ${generateAssociateEntityJwt(
+						connectInstallation,
+						atlassianUserId,
+					)}`,
+				)
+				.set('Content-Type', 'application/json')
+				.set('User-Id', atlassianUserId)
+				.expect(HttpStatusCode.Ok)
+				.expect(minimalAtlassianDesign);
+			await waitForEvent('job.submit-full-design.cancelled');
+			expect(await associatedFigmaDesignRepository.getAll()).toStrictEqual([
+				{
+					id: expect.anything(),
+					designId: new FigmaDesignIdentifier(fileKey, nodeId),
 					associatedWithAri: issueAri,
 					connectInstallationId: connectInstallation.id,
 					inputUrl: inputFigmaDesignUrl.toString(),

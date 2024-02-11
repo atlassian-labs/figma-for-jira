@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { figmaWebhookAuthMiddleware } from './figma-webhook-auth-middleware';
 
-import { flushPromises } from '../../../common/testing/utils';
+import { flushMacrotaskQueue } from '../../../common/testing/utils';
 import { generateFigmaTeam } from '../../../domain/entities/testing';
 import { figmaTeamRepository } from '../../../infrastructure/repositories';
 import { BadRequestResponseStatusError } from '../../errors';
@@ -30,7 +30,7 @@ describe('figmaWebhookAuthMiddleware', () => {
 		const next = jest.fn();
 
 		figmaWebhookAuthMiddleware(request, response, next);
-		await flushPromises();
+		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith();
 		expect(response.locals.figmaTeam).toBe(figmaTeam);
@@ -42,7 +42,7 @@ describe('figmaWebhookAuthMiddleware', () => {
 		const next = jest.fn();
 
 		figmaWebhookAuthMiddleware(request, {} as Response, next);
-		await flushPromises();
+		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith(
 			expect.any(BadRequestResponseStatusError),
@@ -61,7 +61,7 @@ describe('figmaWebhookAuthMiddleware', () => {
 		const next = jest.fn();
 
 		figmaWebhookAuthMiddleware(request, {} as Response, next);
-		await flushPromises();
+		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith(
 			expect.any(BadRequestResponseStatusError),
@@ -84,7 +84,7 @@ describe('figmaWebhookAuthMiddleware', () => {
 		const next = jest.fn();
 
 		figmaWebhookAuthMiddleware(request, {} as Response, next);
-		await flushPromises();
+		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith(
 			expect.any(BadRequestResponseStatusError),
