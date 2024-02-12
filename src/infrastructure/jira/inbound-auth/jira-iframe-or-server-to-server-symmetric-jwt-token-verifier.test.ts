@@ -26,7 +26,7 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 	});
 
 	describe('verify', () => {
-		it('should verify token and return Connect Installation when sub claim is not available', async () => {
+		it('should verify token and return only Connect Installation when `sub` claim is not available', async () => {
 			const clientKey = uuidv4();
 			const connectInstallation = generateConnectInstallation({ clientKey });
 			jest
@@ -57,7 +57,7 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 			);
 		});
 
-		it('should verify token and return Connect Installation and Atlassian User ID when sub claim is available', async () => {
+		it('should verify token and return Connect Installation and Atlassian User ID when `sub` claim is available', async () => {
 			const atlassianUserId = uuidv4();
 			const clientKey = uuidv4();
 			const connectInstallation = generateConnectInstallation({ clientKey });
