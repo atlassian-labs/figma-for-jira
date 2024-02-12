@@ -7,11 +7,11 @@ import type { CheckAuthRequest, CheckAuthResponse } from './types';
 import { figmaAuthService } from '../../../infrastructure/figma';
 import { checkUserFigmaAuthUseCase } from '../../../usecases';
 import { requestSchemaValidationMiddleware } from '../../middleware';
-import { jiraServerSymmetricJwtAuthMiddleware } from '../../middleware/jira';
+import { jiraServerToServerSymmetricJwtAuthenticationMiddleware } from '../../middleware/jira';
 
 export const authRouter = Router();
 
-authRouter.use(jiraServerSymmetricJwtAuthMiddleware);
+authRouter.use(jiraServerToServerSymmetricJwtAuthenticationMiddleware);
 
 /**
  * Checks whether the given Atlassian user is authorized to call Figma API.

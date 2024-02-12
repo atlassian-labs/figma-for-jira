@@ -21,11 +21,11 @@ import {
 import { backfillDesignUseCase } from '../../../usecases/backfill-design-use-case';
 import { BadRequestResponseStatusError } from '../../errors';
 import { requestSchemaValidationMiddleware } from '../../middleware';
-import { jiraServerSymmetricJwtAuthMiddleware } from '../../middleware/jira';
+import { jiraServerToServerSymmetricJwtAuthenticationMiddleware } from '../../middleware/jira';
 
 export const entitiesRouter = Router();
 
-entitiesRouter.use(jiraServerSymmetricJwtAuthMiddleware);
+entitiesRouter.use(jiraServerToServerSymmetricJwtAuthenticationMiddleware);
 
 entitiesRouter.post(
 	'/associateEntity',

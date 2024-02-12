@@ -2,14 +2,14 @@ import { fromExpressRequest } from 'atlassian-jwt';
 import type { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
-import { jiraServerSymmetricJwtAuthMiddleware } from './jira-server-symmetric-jwt-auth-middleware';
+import { jiraServerToServerSymmetricJwtAuthenticationMiddleware } from './jira-server-to-server-symmetric-jwt-authentication-middleware';
 
 import { flushMacrotaskQueue } from '../../../common/testing/utils';
 import { generateConnectInstallation } from '../../../domain/entities/testing';
-import { jiraServerSymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
+import { jiraIframeOrServerToServerSymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
 import { UnauthorizedResponseStatusError } from '../../errors';
 
-describe('jiraServerSymmetricJwtAuthMiddleware', () => {
+describe('jiraServerToServerSymmetricJwtAuthenticationMiddleware', () => {
 	it('should authenticate request with valid token ', async () => {
 		const connectInstallation = generateConnectInstallation();
 		const token = uuidv4();
@@ -21,20 +21,23 @@ describe('jiraServerSymmetricJwtAuthMiddleware', () => {
 		const response = { locals: {} } as Response;
 		const next = jest.fn();
 		jest
-			.spyOn(jiraServerSymmetricJwtTokenVerifier, 'verify')
+			.spyOn(jiraIframeOrServerToServerSymmetricJwtTokenVerifier, 'verify')
 			.mockResolvedValue({
 				connectInstallation,
 			});
 
-		jiraServerSymmetricJwtAuthMiddleware(request, response, next);
+		jiraServerToServerSymmetricJwtAuthenticationMiddleware(
+			request,
+			response,
+			next,
+		);
 		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith();
 		expect(response.locals.connectInstallation).toBe(connectInstallation);
-		expect(jiraServerSymmetricJwtTokenVerifier.verify).toHaveBeenCalledWith(
-			token,
-			fromExpressRequest(request),
-		);
+		expect(
+			jiraIframeOrServerToServerSymmetricJwtTokenVerifier.verify,
+		).toHaveBeenCalledWith(token, fromExpressRequest(request));
 	});
 
 	it('should not authenticate request with invalid JWT token ', async () => {
@@ -47,10 +50,14 @@ describe('jiraServerSymmetricJwtAuthMiddleware', () => {
 		const next = jest.fn();
 		const error = new Error();
 		jest
-			.spyOn(jiraServerSymmetricJwtTokenVerifier, 'verify')
+			.spyOn(jiraIframeOrServerToServerSymmetricJwtTokenVerifier, 'verify')
 			.mockRejectedValue(error);
 
-		jiraServerSymmetricJwtAuthMiddleware(request, {} as Response, next);
+		jiraServerToServerSymmetricJwtAuthenticationMiddleware(
+			request,
+			{} as Response,
+			next,
+		);
 		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith(
@@ -64,7 +71,11 @@ describe('jiraServerSymmetricJwtAuthMiddleware', () => {
 		} as Request;
 		const next = jest.fn();
 
-		jiraServerSymmetricJwtAuthMiddleware(request, {} as Response, next);
+		jiraServerToServerSymmetricJwtAuthenticationMiddleware(
+			request,
+			{} as Response,
+			next,
+		);
 		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith(

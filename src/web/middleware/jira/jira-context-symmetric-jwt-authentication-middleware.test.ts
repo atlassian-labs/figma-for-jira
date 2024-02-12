@@ -1,31 +1,40 @@
-import { fromExpressRequest } from 'atlassian-jwt';
 import type { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
-import { jiraAsymmetricJwtAuthMiddleware } from './jira-asymmetric-jwt-auth-middleware';
+import { jiraContextSymmetricJwtAuthenticationMiddleware } from './jira-context-symmetric-jwt-authentication-middleware';
 
 import { flushMacrotaskQueue } from '../../../common/testing/utils';
-import { jiraAsymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
+import { generateConnectInstallation } from '../../../domain/entities/testing';
+import { jiraContextSymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
 import { UnauthorizedResponseStatusError } from '../../errors';
 
-describe('jiraAsymmetricJwtAuthMiddleware', () => {
+describe('jiraContextSymmetricJwtAuthenticationMiddleware', () => {
 	it('should authenticate request with valid token ', async () => {
+		const connectInstallation = generateConnectInstallation();
+		const atlassianUserId = uuidv4();
 		const token = uuidv4();
 		const request = {
 			headers: {
 				authorization: `JWT ${token}`,
 			},
 		} as Request;
+		const response = { locals: {} } as Response;
 		const next = jest.fn();
-		jest.spyOn(jiraAsymmetricJwtTokenVerifier, 'verify').mockResolvedValue();
+		jest
+			.spyOn(jiraContextSymmetricJwtTokenVerifier, 'verify')
+			.mockResolvedValue({
+				connectInstallation,
+				atlassianUserId,
+			});
 
-		jiraAsymmetricJwtAuthMiddleware(request, {} as Response, next);
+		jiraContextSymmetricJwtAuthenticationMiddleware(request, response, next);
 		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith();
-		expect(jiraAsymmetricJwtTokenVerifier.verify).toHaveBeenCalledWith(
+		expect(response.locals.connectInstallation).toBe(connectInstallation);
+		expect(response.locals.atlassianUserId).toBe(atlassianUserId);
+		expect(jiraContextSymmetricJwtTokenVerifier.verify).toHaveBeenCalledWith(
 			token,
-			fromExpressRequest(request),
 		);
 	});
 
@@ -39,10 +48,14 @@ describe('jiraAsymmetricJwtAuthMiddleware', () => {
 		const next = jest.fn();
 		const error = new Error();
 		jest
-			.spyOn(jiraAsymmetricJwtTokenVerifier, 'verify')
-			.mockRejectedValue(new Error());
+			.spyOn(jiraContextSymmetricJwtTokenVerifier, 'verify')
+			.mockRejectedValue(error);
 
-		jiraAsymmetricJwtAuthMiddleware(request, {} as Response, next);
+		jiraContextSymmetricJwtAuthenticationMiddleware(
+			request,
+			{} as Response,
+			next,
+		);
 		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith(
@@ -56,7 +69,11 @@ describe('jiraAsymmetricJwtAuthMiddleware', () => {
 		} as Request;
 		const next = jest.fn();
 
-		jiraAsymmetricJwtAuthMiddleware(request, {} as Response, next);
+		jiraContextSymmetricJwtAuthenticationMiddleware(
+			request,
+			{} as Response,
+			next,
+		);
 		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith(

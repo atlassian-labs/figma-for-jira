@@ -14,25 +14,24 @@ import { UnauthorizedResponseStatusError } from '../../errors';
  * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#types-of-jwt-token
  * @see https://community.developer.atlassian.com/t/action-required-atlassian-connect-vulnerability-allows-bypass-of-app-qsh-verification-via-context-jwts/47072
  */
-export const jiraContextSymmetricJwtFromQueryAuthMiddleware: RequestHandler = (
-	req: Request,
-	res: Response,
-	next: NextFunction,
-) => {
-	const token = req.params.jwt;
+export const jiraContextSymmetricJwtFromQueryAuthenticationMiddleware: RequestHandler =
+	(req: Request, res: Response, next: NextFunction) => {
+		const token = req.params.jwt;
 
-	if (!token) {
-		return next(new UnauthorizedResponseStatusError('Missing JWT token.'));
-	}
+		if (!token) {
+			return next(new UnauthorizedResponseStatusError('Missing JWT token.'));
+		}
 
-	void jiraContextSymmetricJwtTokenVerifier
-		.verify(token)
-		.then(({ connectInstallation, atlassianUserId }) => {
-			res.locals.connectInstallation = connectInstallation;
-			res.locals.atlassianUserId = atlassianUserId;
-			next();
-		})
-		.catch((e) =>
-			next(new UnauthorizedResponseStatusError('Unauthorized.', undefined, e)),
-		);
-};
+		void jiraContextSymmetricJwtTokenVerifier
+			.verify(token)
+			.then(({ connectInstallation, atlassianUserId }) => {
+				res.locals.connectInstallation = connectInstallation;
+				res.locals.atlassianUserId = atlassianUserId;
+				next();
+			})
+			.catch((e) =>
+				next(
+					new UnauthorizedResponseStatusError('Unauthorized.', undefined, e),
+				),
+			);
+	};

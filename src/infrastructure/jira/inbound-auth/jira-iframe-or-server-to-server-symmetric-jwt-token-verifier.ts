@@ -12,17 +12,18 @@ import { assertSchema } from '../../../common/schema-validation';
 import type { ConnectInstallation } from '../../../domain/entities';
 import { connectInstallationRepository } from '../../repositories';
 
-type JiraContextSymmetricJwtClaims = {
+type JiraIframeOrServerToServerSymmetricJwtClaims = {
 	readonly iss: string;
 	readonly iat: number;
 	readonly exp: number;
 	readonly qsh: string;
+	readonly sub?: string;
 };
 
 /**
  * https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#claims
  */
-const JIRA_SERVER_SYMMETRIC_JWT_CLAIMS_SCHEMA: JSONSchemaTypeWithId<JiraContextSymmetricJwtClaims> =
+const JIRA_SERVER_SYMMETRIC_JWT_CLAIMS_SCHEMA: JSONSchemaTypeWithId<JiraIframeOrServerToServerSymmetricJwtClaims> =
 	{
 		$id: 'jira-software-connect:jwt-server-symmetric-token-claims',
 		type: 'object',
@@ -31,12 +32,13 @@ const JIRA_SERVER_SYMMETRIC_JWT_CLAIMS_SCHEMA: JSONSchemaTypeWithId<JiraContextS
 			iat: { type: 'integer' },
 			exp: { type: 'integer' },
 			qsh: { type: 'string', minLength: 1 },
+			sub: { type: 'string', nullable: true },
 		},
 		required: ['iss', 'iat', 'exp', 'qsh'],
 	};
 
 /**
- * Verifier for server symmetric JWT tokens.
+ * Verifier for iframe or server-to-server symmetric JWT tokens.
  *
  * @remarks
  * An iframe or server-to-server symmetric JWT tokens are sent by Jira server.
@@ -46,7 +48,7 @@ const JIRA_SERVER_SYMMETRIC_JWT_CLAIMS_SCHEMA: JSONSchemaTypeWithId<JiraContextS
  *
  * @throws {Error} The token is invalid or cannot be verified.
  */
-export class JiraServerSymmetricJwtTokenVerifier {
+export class JiraIframeOrServerToServerSymmetricJwtTokenVerifier {
 	verify = async (
 		token: string,
 		request: {
@@ -56,6 +58,7 @@ export class JiraServerSymmetricJwtTokenVerifier {
 		},
 	): Promise<{
 		connectInstallation: ConnectInstallation;
+		atlassianUserId?: string;
 	}> => {
 		const tokenSigningAlgorithm = getAlgorithm(token) as unknown;
 
@@ -88,9 +91,10 @@ export class JiraServerSymmetricJwtTokenVerifier {
 
 		return {
 			connectInstallation,
+			atlassianUserId: verifiedClaims.sub,
 		};
 	};
 }
 
-export const jiraServerSymmetricJwtTokenVerifier =
-	new JiraServerSymmetricJwtTokenVerifier();
+export const jiraIframeOrServerToServerSymmetricJwtTokenVerifier =
+	new JiraIframeOrServerToServerSymmetricJwtTokenVerifier();
