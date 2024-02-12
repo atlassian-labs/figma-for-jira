@@ -37,7 +37,7 @@ export const submitFullDesign = async ({
 			connectInstallationId,
 		);
 
-		// Fetches a design strictly with the given ID (e.g., does not fallback to a Figma File when a Figma Node is not
+		// Fetch a design strictly with the given ID (e.g., does not fallback to a Figma File when a Figma Node is not
 		// found via `figmaService.getDesignOrParent`) to avoid submitting a new design and causing data inconsistencies.
 		const design = await figmaService.getDesign(figmaDesignId, {
 			atlassianUserId,
