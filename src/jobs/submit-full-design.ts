@@ -8,7 +8,7 @@ import type { AtlassianEntity } from '../usecases/types';
 
 const JOB_NAME = 'submitFullDesign';
 
-export type BackfillFullDesignJobParams = {
+export type SubmitFullDesignJobParams = {
 	readonly figmaDesignId: FigmaDesignIdentifier;
 	readonly associateWith: AtlassianEntity;
 	readonly atlassianUserId: string;
@@ -21,7 +21,7 @@ export type BackfillFullDesignJobParams = {
  * The job does not manage Jira Issue Properties or Figma Dev Resources. Therefore, it should only be used to enrich a
  * previously submitted design with more accurate data.
  *
- * Fetching a design from Figma can be a long-running operation dues to API latency. Therefore, consider running the job
+ * The job can take a significant amount of time for large designs. Therefore, consider running the job
  * asynchronously.
  */
 export const submitFullDesign = async ({
@@ -29,7 +29,7 @@ export const submitFullDesign = async ({
 	associateWith,
 	atlassianUserId,
 	connectInstallationId,
-}: BackfillFullDesignJobParams): Promise<void> => {
+}: SubmitFullDesignJobParams): Promise<void> => {
 	try {
 		getLogger().info({ job: JOB_NAME, figmaDesignId }, 'The job is started.');
 
@@ -37,7 +37,7 @@ export const submitFullDesign = async ({
 			connectInstallationId,
 		);
 
-		// Fetch a design strictly with the given ID (e.g., does not fallback to a Figma File when a Figma Node is not
+		// Fetch a design strictly with the given ID (e.g., does not fall back to a Figma File when a Figma Node is not
 		// found via `figmaService.getDesignOrParent`) to avoid submitting a new design and causing data inconsistencies.
 		const design = await figmaService.getDesign(figmaDesignId, {
 			atlassianUserId,
