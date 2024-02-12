@@ -7,7 +7,7 @@ import {
 } from '../../../infrastructure/jira';
 import { UnauthorizedResponseStatusError } from '../../errors';
 
-export const jiraAdminOnlyAuthMiddleware = (
+export const jiraAdminOnlyAuthorizationMiddleware = (
 	req: Request,
 	res: Response<
 		unknown,

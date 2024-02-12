@@ -3,21 +3,21 @@ import { Router, static as Static } from 'express';
 import { join } from 'path';
 
 import {
-	jiraAdminOnlyAuthMiddleware,
-	jiraContextSymmetricJwtFromQueryAuthMiddleware,
+	jiraAdminOnlyAuthorizationMiddleware,
+	jiraContextSymmetricJwtFromQueryAuthenticationMiddleware,
 } from '../../middleware/jira';
 
 export const staticRouter = Router();
 
 staticRouter.use(
 	'/admin/index.html',
-	jiraContextSymmetricJwtFromQueryAuthMiddleware,
-	jiraAdminOnlyAuthMiddleware,
+	jiraContextSymmetricJwtFromQueryAuthenticationMiddleware,
+	jiraAdminOnlyAuthorizationMiddleware,
 );
 
 staticRouter.use(
 	'/issue-panel/issue-panel.html',
-	jiraContextSymmetricJwtFromQueryAuthMiddleware,
+	jiraContextSymmetricJwtFromQueryAuthenticationMiddleware,
 );
 
 // Static resources

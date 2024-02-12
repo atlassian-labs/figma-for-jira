@@ -12,7 +12,7 @@ import { UnauthorizedResponseStatusError } from '../../errors';
  *
  * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#types-of-jwt-token
  */
-export const jiraAsymmetricJwtAuthMiddleware: RequestHandler = (
+export const jiraAsymmetricJwtAuthenticationMiddleware: RequestHandler = (
 	req: Request,
 	res: Response,
 	next: NextFunction,

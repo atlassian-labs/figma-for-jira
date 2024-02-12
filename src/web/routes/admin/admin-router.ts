@@ -4,15 +4,15 @@ import { authRouter } from './auth';
 import { teamsRouter } from './teams';
 
 import {
-	jiraAdminOnlyAuthMiddleware,
-	jiraContextSymmetricJwtAuthMiddleware,
+	jiraAdminOnlyAuthorizationMiddleware,
+	jiraContextSymmetricJwtAuthenticationMiddleware,
 } from '../../middleware/jira';
 
 export const adminRouter = Router();
 
 adminRouter.use(
-	jiraContextSymmetricJwtAuthMiddleware,
-	jiraAdminOnlyAuthMiddleware,
+	jiraContextSymmetricJwtAuthenticationMiddleware,
+	jiraAdminOnlyAuthorizationMiddleware,
 );
 
 adminRouter.use('/auth', authRouter);
