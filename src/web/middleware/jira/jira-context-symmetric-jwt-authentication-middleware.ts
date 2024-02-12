@@ -1,21 +1,20 @@
-import { fromExpressRequest } from 'atlassian-jwt';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
-import { jiraServerSymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
+import { jiraContextSymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
 import { UnauthorizedResponseStatusError } from '../../errors';
 
 /**
- * Authenticates requests using an iframe or server-to-server symmetric JWT token.
+ * Authenticates requests using a context symmetric JWT token.
  *
  * In case of successful authentication, `connectInstallation` and `atlassianUserId` are set in locals.
  *
  * @remarks
- * An iframe or server-to-server symmetric JWT tokens are sent by Jira server.
+ * Context JWT tokens are sent by Connect App UI embed in Jira via extension points.
  *
  * @see https://developer.atlassian.com/cloud/jira/platform/understanding-jwt-for-connect-apps/#types-of-jwt-token
  * @see https://community.developer.atlassian.com/t/action-required-atlassian-connect-vulnerability-allows-bypass-of-app-qsh-verification-via-context-jwts/47072
  */
-export const jiraServerSymmetricJwtAuthMiddleware: RequestHandler = (
+export const jiraContextSymmetricJwtAuthenticationMiddleware: RequestHandler = (
 	req: Request,
 	res: Response,
 	next: NextFunction,
@@ -26,10 +25,11 @@ export const jiraServerSymmetricJwtAuthMiddleware: RequestHandler = (
 		return next(new UnauthorizedResponseStatusError('Missing JWT token.'));
 	}
 
-	void jiraServerSymmetricJwtTokenVerifier
-		.verify(token, fromExpressRequest(req))
-		.then(({ connectInstallation }) => {
+	void jiraContextSymmetricJwtTokenVerifier
+		.verify(token)
+		.then(({ connectInstallation, atlassianUserId }) => {
 			res.locals.connectInstallation = connectInstallation;
+			res.locals.atlassianUserId = atlassianUserId;
 			next();
 		})
 		.catch((e) =>

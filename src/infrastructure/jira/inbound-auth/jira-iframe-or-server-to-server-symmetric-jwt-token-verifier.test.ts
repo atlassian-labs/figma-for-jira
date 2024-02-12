@@ -1,7 +1,7 @@
 import { createQueryStringHash, encodeSymmetric } from 'atlassian-jwt';
 import { v4 as uuidv4 } from 'uuid';
 
-import { jiraServerSymmetricJwtTokenVerifier } from './jira-server-symmetric-jwt-token-verifier';
+import { jiraIframeOrServerToServerSymmetricJwtTokenVerifier } from './jira-iframe-or-server-to-server-symmetric-jwt-token-verifier';
 
 import { Duration } from '../../../common/duration';
 import { generateConnectInstallation } from '../../../domain/entities/testing';
@@ -26,7 +26,7 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 	});
 
 	describe('verify', () => {
-		it('should verify token and return relevant Connect Installation', async () => {
+		it('should verify token and return Connect Installation when sub claim is not available', async () => {
 			const clientKey = uuidv4();
 			const connectInstallation = generateConnectInstallation({ clientKey });
 			jest
@@ -42,13 +42,48 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 				connectInstallation.sharedSecret,
 			);
 
-			const result = await jiraServerSymmetricJwtTokenVerifier.verify(
-				jwtToken,
-				REQUEST,
-			);
+			const result =
+				await jiraIframeOrServerToServerSymmetricJwtTokenVerifier.verify(
+					jwtToken,
+					REQUEST,
+				);
 
 			expect(result).toStrictEqual({
 				connectInstallation,
+				atlassianUserId: undefined,
+			});
+			expect(connectInstallationRepository.getByClientKey).toHaveBeenCalledWith(
+				clientKey,
+			);
+		});
+
+		it('should verify token and return Connect Installation and Atlassian User ID when sub claim is available', async () => {
+			const atlassianUserId = uuidv4();
+			const clientKey = uuidv4();
+			const connectInstallation = generateConnectInstallation({ clientKey });
+			jest
+				.spyOn(connectInstallationRepository, 'getByClientKey')
+				.mockResolvedValue(connectInstallation);
+			const jwtToken = encodeSymmetric(
+				{
+					iss: connectInstallation.clientKey,
+					iat: NOW_IN_SECONDS,
+					exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
+					qsh: createQueryStringHash(REQUEST),
+					sub: atlassianUserId,
+				},
+				connectInstallation.sharedSecret,
+			);
+
+			const result =
+				await jiraIframeOrServerToServerSymmetricJwtTokenVerifier.verify(
+					jwtToken,
+					REQUEST,
+				);
+
+			expect(result).toStrictEqual({
+				connectInstallation,
+				atlassianUserId,
 			});
 			expect(connectInstallationRepository.getByClientKey).toHaveBeenCalledWith(
 				clientKey,
@@ -70,7 +105,10 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 			);
 
 			await expect(
-				jiraServerSymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
+				jiraIframeOrServerToServerSymmetricJwtTokenVerifier.verify(
+					jwtToken,
+					REQUEST,
+				),
 			).rejects.toThrowError();
 		});
 
@@ -78,7 +116,10 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 			const jwtToken = uuidv4();
 
 			await expect(
-				jiraServerSymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
+				jiraIframeOrServerToServerSymmetricJwtTokenVerifier.verify(
+					jwtToken,
+					REQUEST,
+				),
 			).rejects.toThrowError();
 		});
 
@@ -98,7 +139,10 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 			);
 
 			await expect(
-				jiraServerSymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
+				jiraIframeOrServerToServerSymmetricJwtTokenVerifier.verify(
+					jwtToken,
+					REQUEST,
+				),
 			).rejects.toThrowError();
 		});
 
@@ -118,7 +162,10 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 			);
 
 			await expect(
-				jiraServerSymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
+				jiraIframeOrServerToServerSymmetricJwtTokenVerifier.verify(
+					jwtToken,
+					REQUEST,
+				),
 			).rejects.toThrowError();
 		});
 
@@ -141,7 +188,7 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 			);
 
 			await expect(
-				jiraServerSymmetricJwtTokenVerifier.verify(jwtToken, {
+				jiraIframeOrServerToServerSymmetricJwtTokenVerifier.verify(jwtToken, {
 					...REQUEST,
 					method: 'GET',
 				}),
@@ -164,7 +211,10 @@ describe('JiraServerSymmetricJwtTokenVerifier', () => {
 			);
 
 			await expect(
-				jiraServerSymmetricJwtTokenVerifier.verify(jwtToken, REQUEST),
+				jiraIframeOrServerToServerSymmetricJwtTokenVerifier.verify(
+					jwtToken,
+					REQUEST,
+				),
 			).rejects.toThrowError('The token is expired.');
 		});
 	});
