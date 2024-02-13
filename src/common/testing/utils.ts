@@ -14,4 +14,9 @@ export function generateNumericStringId(): string {
 	return generateNumericId().toString();
 }
 
-export const flushPromises = () => new Promise(setImmediate);
+/**
+ * Flushes a Macrotask queue by scheduling a new Macrotask and waiting for its immediate execution.
+ *
+ * @see https://javascript.info/event-loop
+ */
+export const flushMacrotaskQueue = () => new Promise(setImmediate);

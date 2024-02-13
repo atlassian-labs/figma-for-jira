@@ -202,7 +202,7 @@ describe('/figma', () => {
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				await waitForEvent('figma.webhook.succeeded');
+				await waitForEvent('job.handle-figma-file-update-event.succeeded');
 			});
 
 			it('should ignore if no associated designs are found for the file key', async () => {
@@ -228,7 +228,7 @@ describe('/figma', () => {
 					.send(otherFilewebhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				await waitForEvent('figma.webhook.succeeded');
+				await waitForEvent('job.handle-figma-file-update-event.succeeded');
 			});
 
 			it('should ignore if Figma file is not found', async () => {
@@ -265,7 +265,7 @@ describe('/figma', () => {
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				await waitForEvent('figma.webhook.succeeded');
+				await waitForEvent('job.handle-figma-file-update-event.succeeded');
 			});
 
 			it('should ingest designs for available Figma nodes and ignore deleted nodes', async () => {
@@ -325,7 +325,7 @@ describe('/figma', () => {
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				await waitForEvent('figma.webhook.succeeded');
+				await waitForEvent('job.handle-figma-file-update-event.succeeded');
 			});
 
 			it('should return a 200 if fetching Figma team name fails with non-auth error', async () => {
@@ -378,7 +378,7 @@ describe('/figma', () => {
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				await waitForEvent('figma.webhook.succeeded');
+				await waitForEvent('job.handle-figma-file-update-event.succeeded');
 			});
 
 			it('should send an error event if fetching Figma designs fails with unexpected error', async () => {
@@ -415,7 +415,7 @@ describe('/figma', () => {
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				await waitForEvent('figma.webhook.failed');
+				await waitForEvent('job.handle-figma-file-update-event.failed');
 			});
 
 			it("should set the FigmaTeam status to 'ERROR' and return a 200 if fetching Figma team name fails with auth error", async () => {
@@ -430,7 +430,7 @@ describe('/figma', () => {
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				await waitForEvent('figma.webhook.succeeded');
+				await waitForEvent('job.handle-figma-file-update-event.succeeded');
 
 				const updatedFigmaTeam = await figmaTeamRepository.findByWebhookId(
 					figmaTeam.webhookId,
@@ -474,7 +474,7 @@ describe('/figma', () => {
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
-				await waitForEvent('figma.webhook.succeeded');
+				await waitForEvent('job.handle-figma-file-update-event.succeeded');
 
 				const updatedFigmaTeam = await figmaTeamRepository.findByWebhookId(
 					figmaTeam.webhookId,

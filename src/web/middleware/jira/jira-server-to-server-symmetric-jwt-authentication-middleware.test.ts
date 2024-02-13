@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { jiraServerToServerSymmetricJwtAuthenticationMiddleware } from './jira-server-to-server-symmetric-jwt-authentication-middleware';
 
-import { flushPromises } from '../../../common/testing/utils';
+import { flushMacrotaskQueue } from '../../../common/testing/utils';
 import { generateConnectInstallation } from '../../../domain/entities/testing';
 import { jiraIframeOrServerToServerSymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
 import { UnauthorizedResponseStatusError } from '../../errors';
@@ -31,7 +31,7 @@ describe('jiraServerToServerSymmetricJwtAuthenticationMiddleware', () => {
 			response,
 			next,
 		);
-		await flushPromises();
+		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith();
 		expect(response.locals.connectInstallation).toBe(connectInstallation);
@@ -58,7 +58,7 @@ describe('jiraServerToServerSymmetricJwtAuthenticationMiddleware', () => {
 			{} as Response,
 			next,
 		);
-		await flushPromises();
+		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith(
 			new UnauthorizedResponseStatusError('Unauthorized.', undefined, error),
@@ -76,7 +76,7 @@ describe('jiraServerToServerSymmetricJwtAuthenticationMiddleware', () => {
 			{} as Response,
 			next,
 		);
-		await flushPromises();
+		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith(
 			new UnauthorizedResponseStatusError('Missing JWT token.'),

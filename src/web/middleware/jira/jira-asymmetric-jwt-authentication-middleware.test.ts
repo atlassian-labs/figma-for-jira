@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { jiraAsymmetricJwtAuthenticationMiddleware } from './jira-asymmetric-jwt-authentication-middleware';
 
-import { flushPromises } from '../../../common/testing/utils';
+import { flushMacrotaskQueue } from '../../../common/testing/utils';
 import { jiraAsymmetricJwtTokenVerifier } from '../../../infrastructure/jira/inbound-auth';
 import { UnauthorizedResponseStatusError } from '../../errors';
 
@@ -20,7 +20,7 @@ describe('jiraAsymmetricJwtAuthenticationMiddleware', () => {
 		jest.spyOn(jiraAsymmetricJwtTokenVerifier, 'verify').mockResolvedValue();
 
 		jiraAsymmetricJwtAuthenticationMiddleware(request, {} as Response, next);
-		await flushPromises();
+		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith();
 		expect(jiraAsymmetricJwtTokenVerifier.verify).toHaveBeenCalledWith(
@@ -43,7 +43,7 @@ describe('jiraAsymmetricJwtAuthenticationMiddleware', () => {
 			.mockRejectedValue(new Error());
 
 		jiraAsymmetricJwtAuthenticationMiddleware(request, {} as Response, next);
-		await flushPromises();
+		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith(
 			new UnauthorizedResponseStatusError('Unauthorized.', undefined, error),
@@ -57,7 +57,7 @@ describe('jiraAsymmetricJwtAuthenticationMiddleware', () => {
 		const next = jest.fn();
 
 		jiraAsymmetricJwtAuthenticationMiddleware(request, {} as Response, next);
-		await flushPromises();
+		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith(
 			new UnauthorizedResponseStatusError('Missing JWT token.'),
