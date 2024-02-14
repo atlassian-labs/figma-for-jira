@@ -99,7 +99,6 @@ describe('backfillDesignUseCase', () => {
 		await flushMacrotaskQueue();
 		expect(submitFullDesign).toHaveBeenCalledWith({
 			figmaDesignId: designId,
-			associateWith: params.associateWith,
 			atlassianUserId: params.atlassianUserId,
 			connectInstallationId: connectInstallation.id,
 		});

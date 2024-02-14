@@ -704,18 +704,7 @@ describe('/entities', () => {
 			});
 			mockJiraSubmitDesignsEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				request: generateSubmitDesignsRequest([
-					{
-						...atlassianDesign,
-						addAssociations: [
-							// Nock does not correctly match a request body when provide an instance of a class
-							// (e.g., as `AtlassianAssociation`). Therefore, pass an object instead.
-							{
-								...AtlassianAssociation.createDesignIssueAssociation(issueAri),
-							},
-						],
-					},
-				]),
+				request: generateSubmitDesignsRequest([atlassianDesign]),
 			});
 
 			await request(app)
@@ -867,16 +856,7 @@ describe('/entities', () => {
 			});
 			mockJiraSubmitDesignsEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				request: generateSubmitDesignsRequest([
-					{
-						...atlassianDesign,
-						addAssociations: [
-							{
-								...AtlassianAssociation.createDesignIssueAssociation(issueAri),
-							},
-						],
-					},
-				]),
+				request: generateSubmitDesignsRequest([atlassianDesign]),
 			});
 
 			await request(app)

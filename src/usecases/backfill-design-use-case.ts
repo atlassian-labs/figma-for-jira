@@ -98,7 +98,6 @@ export const backfillDesignUseCase = {
 				() =>
 					void submitFullDesign({
 						figmaDesignId,
-						associateWith,
 						atlassianUserId,
 						connectInstallationId: connectInstallation.id,
 					}),

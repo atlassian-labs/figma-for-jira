@@ -2,13 +2,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { submitFullDesign } from './submit-full-design';
 
-import { AtlassianAssociation, JIRA_ISSUE_ATI } from '../domain/entities';
 import {
 	generateAtlassianDesign,
 	generateConnectInstallation,
 	generateFigmaDesignIdentifier,
-	generateJiraIssue,
-	generateJiraIssueAri,
 } from '../domain/entities/testing';
 import { figmaService } from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
@@ -17,10 +14,7 @@ import { connectInstallationRepository } from '../infrastructure/repositories';
 describe('submitFullDesign', () => {
 	it('should submit design', async () => {
 		const connectInstallation = generateConnectInstallation();
-		const cloudId = uuidv4();
 		const atlassianUserId = uuidv4();
-		const issue = generateJiraIssue();
-		const issueAri = generateJiraIssueAri({ cloudId, issueId: issue.id });
 		const figmaDesignId = generateFigmaDesignIdentifier();
 		const atlassianDesign = generateAtlassianDesign({
 			id: figmaDesignId.toAtlassianDesignId(),
@@ -33,12 +27,6 @@ describe('submitFullDesign', () => {
 
 		await submitFullDesign({
 			figmaDesignId,
-			associateWith: {
-				ari: issueAri,
-				ati: JIRA_ISSUE_ATI,
-				id: issue.id,
-				cloudId,
-			},
 			atlassianUserId,
 			connectInstallationId: connectInstallation.id,
 		});
@@ -53,9 +41,6 @@ describe('submitFullDesign', () => {
 		expect(jiraService.submitDesign).toHaveBeenCalledWith(
 			{
 				design: atlassianDesign,
-				addAssociations: [
-					AtlassianAssociation.createDesignIssueAssociation(issueAri),
-				],
 			},
 			connectInstallation,
 		);
@@ -63,10 +48,7 @@ describe('submitFullDesign', () => {
 
 	it('should exit if design is not found', async () => {
 		const connectInstallation = generateConnectInstallation();
-		const cloudId = uuidv4();
 		const atlassianUserId = uuidv4();
-		const issue = generateJiraIssue();
-		const issueAri = generateJiraIssueAri({ cloudId, issueId: issue.id });
 		const figmaDesignId = generateFigmaDesignIdentifier();
 		jest
 			.spyOn(connectInstallationRepository, 'get')
@@ -76,12 +58,6 @@ describe('submitFullDesign', () => {
 
 		await submitFullDesign({
 			figmaDesignId,
-			associateWith: {
-				ari: issueAri,
-				ati: JIRA_ISSUE_ATI,
-				id: issue.id,
-				cloudId,
-			},
 			atlassianUserId,
 			connectInstallationId: connectInstallation.id,
 		});
