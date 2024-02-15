@@ -13,4 +13,4 @@ docker run --init \
   'ngrok/ngrok:latest' http \
     --log stdout \
     --domain=$NGROK_DOMAIN \
-    host.docker.internal:"$SERVER_PORT"
+    host.docker.internal:$SERVER_PORT
