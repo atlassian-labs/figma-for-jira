@@ -55,8 +55,12 @@ export const submitFullDesign = async ({
 		);
 
 		eventBus.emit('job.submit-full-design.succeeded');
+		getLogger().info(
+			{ job: JOB_NAME, figmaDesignId },
+			'The job was successfully completed.',
+		);
 	} catch (e) {
-		getLogger().error(e, 'Failed to submit a full design.', {
+		getLogger().error(e, 'The job failed.', {
 			job: JOB_NAME,
 			figmaDesignId,
 			atlassianUserId,
