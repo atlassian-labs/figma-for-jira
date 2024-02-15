@@ -1,16 +1,13 @@
 import type { FigmaDesignIdentifier } from '../domain/entities';
-import { AtlassianAssociation } from '../domain/entities';
 import { eventBus, getLogger } from '../infrastructure';
 import { figmaService } from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
 import { connectInstallationRepository } from '../infrastructure/repositories';
-import type { AtlassianEntity } from '../usecases/types';
 
 const JOB_NAME = 'submitFullDesign';
 
 export type SubmitFullDesignJobParams = {
 	readonly figmaDesignId: FigmaDesignIdentifier;
-	readonly associateWith: AtlassianEntity;
 	readonly atlassianUserId: string;
 	readonly connectInstallationId: string;
 };
@@ -26,7 +23,6 @@ export type SubmitFullDesignJobParams = {
  */
 export const submitFullDesign = async ({
 	figmaDesignId,
-	associateWith,
 	atlassianUserId,
 	connectInstallationId,
 }: SubmitFullDesignJobParams): Promise<void> => {
@@ -51,23 +47,22 @@ export const submitFullDesign = async ({
 			return;
 		}
 
-		const designIssueAssociation =
-			AtlassianAssociation.createDesignIssueAssociation(associateWith.ari);
-
 		await jiraService.submitDesign(
 			{
 				design,
-				addAssociations: [designIssueAssociation],
 			},
 			connectInstallation,
 		);
 
 		eventBus.emit('job.submit-full-design.succeeded');
+		getLogger().info(
+			{ job: JOB_NAME, figmaDesignId },
+			'The job was successfully completed.',
+		);
 	} catch (e) {
-		getLogger().error(e, 'Failed to submit a full design.', {
+		getLogger().error(e, 'The job failed.', {
 			job: JOB_NAME,
 			figmaDesignId,
-			associateWith,
 			atlassianUserId,
 		});
 		eventBus.emit('job.submit-full-design.failed');
