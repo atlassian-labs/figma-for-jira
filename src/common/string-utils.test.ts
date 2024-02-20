@@ -1,4 +1,5 @@
 import { ensureString, isString, truncate } from './string-utils';
+import utf16Str from './testing/utf16-str';
 
 describe('stringUtils', () => {
 	describe('isString', () => {
@@ -35,6 +36,11 @@ describe('stringUtils', () => {
 			const string = 'hello there yay!';
 			const result = truncate(string, 10);
 			expect(result).toBe('hello the…');
+		});
+
+		it('accounts for utf16 characters', () => {
+			const result = truncate(utf16Str as string, 10);
+			expect(result).toBe('你好你…');
 		});
 	});
 });

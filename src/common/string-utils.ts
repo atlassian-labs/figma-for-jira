@@ -12,8 +12,9 @@ export const ensureString = (value: unknown) => {
 	);
 };
 
-export const truncate = (str: string, maxLength: number) => {
-	if (str.length <= maxLength) return str;
+export const truncate = (str: string, maxLength: number): string => {
+	const utf8Str = Buffer.from(str, 'utf-8');
+	if (utf8Str.length <= maxLength) return utf8Str.toString();
 
-	return `${str.slice(0, maxLength - 1)}…`;
+	return `${utf8Str.subarray(0, maxLength - 1).toString()}…`;
 };
