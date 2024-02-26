@@ -10,21 +10,16 @@ export const handleFigmaFileUpdateEvent = async (
 	figmaTeam: FigmaTeam,
 ): Promise<void> => {
 	const { file_key: fileKey, webhook_id: webhookId } = requestBody;
+	const logger = getLogger().child({ job: JOB_NAME, webhookId });
 	try {
 		await handleFigmaFileUpdateEventUseCase.execute(figmaTeam, fileKey);
 
-		getLogger().info(
-			{ job: JOB_NAME, webhookId },
-			'Figma webhook callback succeeded.',
-		);
+		logger.info('Figma webhook callback succeeded.');
 		eventBus.emit('job.handle-figma-file-update-event.succeeded', {
 			webhookId,
 		});
 	} catch (e) {
-		getLogger().error(e, 'Figma webhook callback failed.', {
-			job: JOB_NAME,
-			webhookId,
-		});
+		logger.error(e, 'Figma webhook callback failed.');
 		eventBus.emit('job.handle-figma-file-update-event.failed', { webhookId });
 	}
 };

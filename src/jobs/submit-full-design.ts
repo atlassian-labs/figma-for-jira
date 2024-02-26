@@ -26,8 +26,9 @@ export const submitFullDesign = async ({
 	atlassianUserId,
 	connectInstallationId,
 }: SubmitFullDesignJobParams): Promise<void> => {
+	const logger = getLogger().child({ job: JOB_NAME, figmaDesignId });
 	try {
-		getLogger().info({ job: JOB_NAME, figmaDesignId }, 'The job is started.');
+		logger.info('The job is started.');
 
 		const connectInstallation = await connectInstallationRepository.get(
 			connectInstallationId,
@@ -55,14 +56,9 @@ export const submitFullDesign = async ({
 		);
 
 		eventBus.emit('job.submit-full-design.succeeded');
-		getLogger().info(
-			{ job: JOB_NAME, figmaDesignId },
-			'The job was successfully completed.',
-		);
+		logger.info('The job was successfully completed.');
 	} catch (e) {
-		getLogger().error(e, 'The job failed.', {
-			job: JOB_NAME,
-			figmaDesignId,
+		logger.error(e, 'The job failed.', {
 			atlassianUserId,
 		});
 		eventBus.emit('job.submit-full-design.failed');
