@@ -4,8 +4,6 @@ import { figmaService } from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
 import { connectInstallationRepository } from '../infrastructure/repositories';
 
-const JOB_NAME = 'submitFullDesign';
-
 export type SubmitFullDesignJobParams = {
 	readonly figmaDesignId: FigmaDesignIdentifier;
 	readonly atlassianUserId: string;
@@ -26,7 +24,7 @@ export const submitFullDesign = async ({
 	atlassianUserId,
 	connectInstallationId,
 }: SubmitFullDesignJobParams): Promise<void> => {
-	const logger = getLogger().child({ job: JOB_NAME, figmaDesignId });
+	const logger = getLogger().child({ job: 'submitFullDesign', figmaDesignId });
 	try {
 		logger.info('The job is started.');
 

@@ -3,14 +3,15 @@ import { eventBus, getLogger } from '../infrastructure';
 import { handleFigmaFileUpdateEventUseCase } from '../usecases';
 import type { FigmaFileUpdateWebhookEventRequestBody } from '../web/routes/figma';
 
-const JOB_NAME = 'handleFigmaFileUpdateEvent';
-
 export const handleFigmaFileUpdateEvent = async (
 	requestBody: FigmaFileUpdateWebhookEventRequestBody,
 	figmaTeam: FigmaTeam,
 ): Promise<void> => {
 	const { file_key: fileKey, webhook_id: webhookId } = requestBody;
-	const logger = getLogger().child({ job: JOB_NAME, webhookId });
+	const logger = getLogger().child({
+		job: 'handleFigmaFileUpdateEvent',
+		webhookId,
+	});
 	try {
 		await handleFigmaFileUpdateEventUseCase.execute(figmaTeam, fileKey);
 
