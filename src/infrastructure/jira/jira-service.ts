@@ -97,32 +97,54 @@ export class JiraService {
 		this.throwIfSubmitDesignResponseHasErrors(response);
 	};
 
+	/**
+	 * @throws {IssueNotFoundJiraServiceError} Issue does not exist or the app does not have permission to read it.
+	 */
 	getIssue = async (
 		issueIdOrKey: string,
 		connectInstallation: ConnectInstallation,
 	): Promise<JiraIssue> => {
-		return await jiraClient.getIssue(issueIdOrKey, connectInstallation);
+		try {
+			return await jiraClient.getIssue(issueIdOrKey, connectInstallation);
+		} catch (e) {
+			if (e instanceof NotFoundHttpClientError) {
+				throw new IssueNotFoundJiraServiceError('Issue is not found.', e);
+			}
+
+			throw e;
+		}
 	};
 
+	/**
+	 * @throws {ForbiddenByJiraServiceError} The app does not have permission to edit the issue.
+	 */
 	saveDesignUrlInIssueProperties = async (
 		issueIdOrKey: string,
 		figmaDesignIdToReplace: FigmaDesignIdentifier,
 		design: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
-		await Promise.all([
-			this.setAttachedDesignUrlInIssuePropertiesIfMissing(
-				issueIdOrKey,
-				design,
-				connectInstallation,
-			),
-			this.updateAttachedDesignUrlV2IssueProperty(
-				issueIdOrKey,
-				figmaDesignIdToReplace,
-				design,
-				connectInstallation,
-			),
-		]);
+		try {
+			await Promise.all([
+				this.setAttachedDesignUrlInIssuePropertiesIfMissing(
+					issueIdOrKey,
+					design,
+					connectInstallation,
+				),
+				this.updateAttachedDesignUrlV2IssueProperty(
+					issueIdOrKey,
+					figmaDesignIdToReplace,
+					design,
+					connectInstallation,
+				),
+			]);
+		} catch (e) {
+			if (e instanceof ForbiddenHttpClientError) {
+				throw new ForbiddenByJiraServiceError('Forbidden.', e);
+			}
+
+			throw e;
+		}
 	};
 
 	deleteDesignUrlInIssueProperties = async (
@@ -510,3 +532,5 @@ export class SubmitDesignJiraServiceError extends CauseAwareError {
 }
 
 export class ForbiddenByJiraServiceError extends CauseAwareError {}
+
+export class IssueNotFoundJiraServiceError extends CauseAwareError {}

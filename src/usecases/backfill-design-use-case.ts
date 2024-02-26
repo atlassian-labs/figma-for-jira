@@ -7,14 +7,11 @@ import type { AtlassianEntity } from './types';
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
 import {
 	AtlassianAssociation,
-	buildJiraIssueUrl,
 	FigmaDesignIdentifier,
 } from '../domain/entities';
-import {
-	figmaService,
-	UnauthorizedFigmaServiceError,
-} from '../infrastructure/figma';
+import { UnauthorizedFigmaServiceError } from '../infrastructure/figma';
 import { figmaBackfillService } from '../infrastructure/figma/figma-backfill-service';
+import { figmaAppBackwardIntegrationService } from '../infrastructure/figma-app-backward-integration-service';
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 import { submitFullDesign } from '../jobs';
@@ -50,41 +47,26 @@ export const backfillDesignUseCase = {
 
 		try {
 			const design = figmaBackfillService.buildMinimalDesignFromUrl(designUrl);
-			const issue = await jiraService.getIssue(
-				associateWith.id,
-				connectInstallation,
-			);
 
 			const designIssueAssociation =
 				AtlassianAssociation.createDesignIssueAssociation(associateWith.ari);
 
-			await Promise.all([
-				jiraService.submitDesign(
-					{
-						design,
-						addAssociations: [designIssueAssociation],
-					},
-					connectInstallation,
-				),
-				jiraService.saveDesignUrlInIssueProperties(
-					issue.id,
-					figmaDesignId,
+			// Makes the best effort to provide the backward integration with the "Jira" Widget and Plugin in Figma.
+			await figmaAppBackwardIntegrationService.tryHandleLinkedDesign({
+				originalFigmaDesignId: figmaDesignId,
+				design,
+				issueId: associateWith.id,
+				atlassianUserId,
+				connectInstallation,
+			});
+
+			await jiraService.submitDesign(
+				{
 					design,
-					connectInstallation,
-				),
-				figmaService.tryCreateDevResourceForJiraIssue({
-					designId: figmaDesignId,
-					issue: {
-						url: buildJiraIssueUrl(connectInstallation.baseUrl, issue.key),
-						key: issue.key,
-						title: issue.fields.summary,
-					},
-					user: {
-						atlassianUserId,
-						connectInstallationId: connectInstallation.id,
-					},
-				}),
-			]);
+					addAssociations: [designIssueAssociation],
+				},
+				connectInstallation,
+			);
 
 			await associatedFigmaDesignRepository.upsert({
 				designId: figmaDesignId,
