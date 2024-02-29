@@ -13,6 +13,7 @@ import {
 	generateFigmaDesignIdentifier,
 	generateJiraIssue,
 } from '../domain/entities/testing';
+import { figmaBackwardIntegrationService } from '../infrastructure';
 import { figmaService } from '../infrastructure/figma';
 import {
 	buildDesignUrl,
@@ -56,12 +57,13 @@ describe('disassociateDesignUseCase', () => {
 				issueId: issue.id,
 				connectInstallation,
 			});
-		jest.spyOn(jiraService, 'getIssue').mockResolvedValue(issue);
 		jest.spyOn(jiraService, 'submitDesign').mockResolvedValue();
 		jest
-			.spyOn(jiraService, 'deleteDesignUrlFromIssueProperties')
+			.spyOn(
+				figmaBackwardIntegrationService,
+				'tryNotifyFigmaOnRemovedIssueDesignAssociation',
+			)
 			.mockResolvedValue();
-		jest.spyOn(figmaService, 'tryDeleteDevResource').mockResolvedValue();
 		jest
 			.spyOn(
 				associatedFigmaDesignRepository,
@@ -82,18 +84,13 @@ describe('disassociateDesignUseCase', () => {
 			},
 			params.connectInstallation,
 		);
-		expect(jiraService.deleteDesignUrlFromIssueProperties).toHaveBeenCalledWith(
-			issue.id,
-			designStub,
-			params.connectInstallation,
-		);
-		expect(figmaService.tryDeleteDevResource).toHaveBeenCalledWith({
-			designId: designId,
-			devResourceUrl: `${connectInstallation.baseUrl}/browse/${issue.key}`,
-			user: {
-				atlassianUserId: params.atlassianUserId,
-				connectInstallationId: params.connectInstallation.id,
-			},
+		expect(
+			figmaBackwardIntegrationService.tryNotifyFigmaOnRemovedIssueDesignAssociation,
+		).toHaveBeenCalledWith({
+			design: designStub,
+			issueId: params.disassociateFrom.id,
+			atlassianUserId: params.atlassianUserId,
+			connectInstallation,
 		});
 		expect(
 			associatedFigmaDesignRepository.deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId,
@@ -115,12 +112,13 @@ describe('disassociateDesignUseCase', () => {
 				connectInstallation,
 			});
 		jest.spyOn(figmaService, 'getDesign').mockResolvedValue(atlassianDesign);
-		jest.spyOn(jiraService, 'getIssue').mockResolvedValue(issue);
 		jest.spyOn(jiraService, 'submitDesign').mockRejectedValue(new Error());
 		jest
-			.spyOn(jiraService, 'deleteDesignUrlFromIssueProperties')
+			.spyOn(
+				figmaBackwardIntegrationService,
+				'tryNotifyFigmaOnRemovedIssueDesignAssociation',
+			)
 			.mockResolvedValue();
-		jest.spyOn(figmaService, 'tryDeleteDevResource').mockResolvedValue();
 		jest.spyOn(
 			associatedFigmaDesignRepository,
 			'deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId',

@@ -46,55 +46,71 @@ const ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA: JSONSchemaTypeWithId<AttachedDesignUr
 	};
 
 export class JiraDesignIssuePropertyService {
-	/**
-	 * @throws {ForbiddenByJiraServiceError} The app does not have permission to edit the Issue.
-	 */
-	saveDesignUrlInIssueProperties = async (
+	trySaveDesignUrlInIssueProperties = async (
 		issueIdOrKey: string,
 		figmaDesignIdToReplace: FigmaDesignIdentifier,
 		design: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
-		await Promise.all([
-			this.setAttachedDesignUrlInIssuePropertiesIfMissing(
-				issueIdOrKey,
-				design,
-				connectInstallation,
-			),
-			this.updateAttachedDesignUrlV2IssueProperty(
-				issueIdOrKey,
-				figmaDesignIdToReplace,
-				design,
-				connectInstallation,
-			),
-		]);
+		try {
+			await Promise.all([
+				this.setAttachedDesignUrlInIssuePropertiesIfMissing(
+					issueIdOrKey,
+					design,
+					connectInstallation,
+				),
+				this.updateAttachedDesignUrlV2IssueProperty(
+					issueIdOrKey,
+					figmaDesignIdToReplace,
+					design,
+					connectInstallation,
+				),
+			]);
+		} catch (error) {
+			if (error instanceof ForbiddenByJiraServiceError) {
+				return getLogger().warn(
+					'The app does not have permission to edit the Issue.',
+					error,
+				);
+			}
+
+			throw error;
+		}
 	};
 
-	/**
-	 * @throws {ForbiddenByJiraServiceError} The app does not have permission to edit the Issue.
-	 */
-	deleteDesignUrlFromIssueProperties = async (
+	tryDeleteDesignUrlFromIssueProperties = async (
 		issueIdOrKey: string,
 		design: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
-		await Promise.all([
-			await this.deleteAttachedDesignUrlInIssuePropertiesIfPresent(
-				issueIdOrKey,
-				design,
-				connectInstallation,
-			),
-			await this.deleteFromAttachedDesignUrlV2IssueProperties(
-				issueIdOrKey,
-				design,
-				connectInstallation,
-			),
-		]);
+		try {
+			await Promise.all([
+				await this.deleteAttachedDesignUrlInIssuePropertiesIfPresent(
+					issueIdOrKey,
+					design,
+					connectInstallation,
+				),
+				await this.deleteFromAttachedDesignUrlV2IssueProperties(
+					issueIdOrKey,
+					design,
+					connectInstallation,
+				),
+			]);
+		} catch (error) {
+			if (error instanceof ForbiddenByJiraServiceError) {
+				return getLogger().warn(
+					'The app does not have permission to edit the Issue.',
+					error,
+				);
+			}
+
+			throw error;
+		}
 	};
 
 	/**
 	 * @internal
-	 * Only visible for testing. Please use {@link saveDesignUrlInIssueProperties}
+	 * Visible only for testing.
 	 *
 	 * @throws {ForbiddenByJiraServiceError} The app does not have permission to edit the Issue.
 	 */
@@ -136,7 +152,7 @@ export class JiraDesignIssuePropertyService {
 
 	/**
 	 * @internal
-	 * Only visible for testing. Please use {@link saveDesignUrlInIssueProperties}
+	 * Visible only for testing.
 	 *
 	 * @throws {ForbiddenByJiraServiceError} The app does not have permission to edit the Issue.
 	 */
@@ -180,7 +196,7 @@ export class JiraDesignIssuePropertyService {
 
 	/**
 	 * @internal
-	 * Only visible for testing. Please use {@link deleteDesignUrlInIssueProperties}
+	 * Visible only for testing.
 	 */
 	deleteAttachedDesignUrlInIssuePropertiesIfPresent = async (
 		issueIdOrKey: string,

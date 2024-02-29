@@ -30,19 +30,13 @@ export class JiraService {
 			jiraAppConfigurationService,
 		);
 
-	/**
-	 * @throws {ForbiddenByJiraServiceError} The app does not have permission to edit the Issue.
-	 */
-	saveDesignUrlInIssueProperties =
-		jiraDesignIssuePropertyService.saveDesignUrlInIssueProperties.bind(
+	trySaveDesignUrlInIssueProperties =
+		jiraDesignIssuePropertyService.trySaveDesignUrlInIssueProperties.bind(
 			jiraDesignIssuePropertyService,
 		);
 
-	/**
-	 * @throws {ForbiddenByJiraServiceError} The app does not have permission to edit the Issue.
-	 */
-	deleteDesignUrlFromIssueProperties =
-		jiraDesignIssuePropertyService.deleteDesignUrlFromIssueProperties.bind(
+	tryDeleteDesignUrlFromIssueProperties =
+		jiraDesignIssuePropertyService.tryDeleteDesignUrlFromIssueProperties.bind(
 			jiraDesignIssuePropertyService,
 		);
 

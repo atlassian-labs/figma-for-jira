@@ -9,9 +9,11 @@ import {
 	AtlassianAssociation,
 	FigmaDesignIdentifier,
 } from '../domain/entities';
-import { UnauthorizedFigmaServiceError } from '../infrastructure/figma';
-import { figmaBackfillService } from '../infrastructure/figma/figma-backfill-service';
-import { figmaAppBackwardIntegrationService } from '../infrastructure/figma-app-backward-integration-service';
+import { figmaBackwardIntegrationService } from '../infrastructure';
+import {
+	figmaBackfillService,
+	UnauthorizedFigmaServiceError,
+} from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 import { submitFullDesign } from '../jobs';
@@ -51,15 +53,6 @@ export const backfillDesignUseCase = {
 			const designIssueAssociation =
 				AtlassianAssociation.createDesignIssueAssociation(associateWith.ari);
 
-			// Makes the best effort to provide the backward integration with the "Jira" Widget and Plugin in Figma.
-			await figmaAppBackwardIntegrationService.tryHandleLinkedDesign({
-				originalFigmaDesignId: figmaDesignId,
-				design,
-				issueId: associateWith.id,
-				atlassianUserId,
-				connectInstallation,
-			});
-
 			await jiraService.submitDesign(
 				{
 					design,
@@ -68,12 +61,23 @@ export const backfillDesignUseCase = {
 				connectInstallation,
 			);
 
-			await associatedFigmaDesignRepository.upsert({
-				designId: figmaDesignId,
-				associatedWithAri: associateWith.ari,
-				connectInstallationId: connectInstallation.id,
-				inputUrl: designUrl.toString(),
-			});
+			await Promise.all([
+				await associatedFigmaDesignRepository.upsert({
+					designId: figmaDesignId,
+					associatedWithAri: associateWith.ari,
+					connectInstallationId: connectInstallation.id,
+					inputUrl: designUrl.toString(),
+				}),
+				await figmaBackwardIntegrationService.tryNotifyFigmaOnAddedIssueDesignAssociation(
+					{
+						originalFigmaDesignId: figmaDesignId,
+						design,
+						issueId: associateWith.id,
+						atlassianUserId,
+						connectInstallation,
+					},
+				),
+			]);
 
 			// Asynchronously fetch the full design from Figma and backfill it.
 			void setImmediate(

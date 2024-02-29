@@ -49,7 +49,7 @@ describe('JiraDesignIssuePropertyService', () => {
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockRejectedValue(new NotFoundHttpClientError());
-			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
+			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation();
 
 			await jiraDesignIssuePropertyService.setAttachedDesignUrlInIssuePropertiesIfMissing(
 				issueId,

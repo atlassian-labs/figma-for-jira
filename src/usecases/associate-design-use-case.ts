@@ -10,11 +10,11 @@ import {
 	AtlassianAssociation,
 	FigmaDesignIdentifier,
 } from '../domain/entities';
+import { figmaBackwardIntegrationService } from '../infrastructure';
 import {
 	figmaService,
 	UnauthorizedFigmaServiceError,
 } from '../infrastructure/figma';
-import { figmaAppBackwardIntegrationService } from '../infrastructure/figma-app-backward-integration-service';
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
@@ -56,15 +56,6 @@ export const associateDesignUseCase = {
 			const designIssueAssociation =
 				AtlassianAssociation.createDesignIssueAssociation(associateWith.ari);
 
-			// Makes the best effort to provide the backward integration with the "Jira" Widget and Plugin in Figma.
-			await figmaAppBackwardIntegrationService.tryHandleLinkedDesign({
-				originalFigmaDesignId: figmaDesignId,
-				design,
-				issueId: associateWith.id,
-				atlassianUserId,
-				connectInstallation,
-			});
-
 			await jiraService.submitDesign(
 				{
 					design,
@@ -73,12 +64,23 @@ export const associateDesignUseCase = {
 				connectInstallation,
 			);
 
-			await associatedFigmaDesignRepository.upsert({
-				designId: figmaDesignId,
-				associatedWithAri: associateWith.ari,
-				connectInstallationId: connectInstallation.id,
-				inputUrl: designUrl.toString(),
-			});
+			await Promise.all([
+				await associatedFigmaDesignRepository.upsert({
+					designId: figmaDesignId,
+					associatedWithAri: associateWith.ari,
+					connectInstallationId: connectInstallation.id,
+					inputUrl: designUrl.toString(),
+				}),
+				await figmaBackwardIntegrationService.tryNotifyFigmaOnAddedIssueDesignAssociation(
+					{
+						originalFigmaDesignId: figmaDesignId,
+						design,
+						issueId: associateWith.id,
+						atlassianUserId,
+						connectInstallation,
+					},
+				),
+			]);
 
 			return design;
 		} catch (e) {

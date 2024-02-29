@@ -9,14 +9,11 @@ import {
 	AtlassianAssociation,
 	AtlassianDesignStatus,
 	AtlassianDesignType,
-	buildJiraIssueUrl,
 	FigmaDesignIdentifier,
 	JIRA_ISSUE_ATI,
 } from '../domain/entities';
-import {
-	figmaService,
-	UnauthorizedFigmaServiceError,
-} from '../infrastructure/figma';
+import { figmaBackwardIntegrationService } from '../infrastructure';
+import { UnauthorizedFigmaServiceError } from '../infrastructure/figma';
 import {
 	buildDesignUrl,
 	buildInspectUrl,
@@ -69,47 +66,32 @@ export const disassociateDesignUseCase = {
 				updateSequenceNumber: 0,
 			};
 
-			const issue = await jiraService.getIssue(
-				disassociateFrom.id,
-				connectInstallation,
-			);
-
 			const designIssueAssociation =
 				AtlassianAssociation.createDesignIssueAssociation(disassociateFrom.ari);
 
-			const { key: issueKey, id: issueId } = issue;
+			await jiraService.submitDesign(
+				{
+					design: designStub,
+					removeAssociations: [designIssueAssociation],
+				},
+				connectInstallation,
+			);
 
 			await Promise.all([
-				jiraService.submitDesign(
+				await associatedFigmaDesignRepository.deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId(
+					figmaDesignId,
+					disassociateFrom.ari,
+					connectInstallation.id,
+				),
+				await figmaBackwardIntegrationService.tryNotifyFigmaOnRemovedIssueDesignAssociation(
 					{
 						design: designStub,
-						removeAssociations: [designIssueAssociation],
-					},
-					connectInstallation,
-				),
-				jiraService.deleteDesignUrlFromIssueProperties(
-					issueId,
-					designStub,
-					connectInstallation,
-				),
-				figmaService.tryDeleteDevResource({
-					designId: figmaDesignId,
-					devResourceUrl: buildJiraIssueUrl(
-						connectInstallation.baseUrl,
-						issueKey,
-					),
-					user: {
+						issueId: disassociateFrom.id,
 						atlassianUserId,
-						connectInstallationId: connectInstallation.id,
+						connectInstallation,
 					},
-				}),
+				),
 			]);
-
-			await associatedFigmaDesignRepository.deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId(
-				figmaDesignId,
-				disassociateFrom.ari,
-				connectInstallation.id,
-			);
 
 			return designStub;
 		} catch (e) {

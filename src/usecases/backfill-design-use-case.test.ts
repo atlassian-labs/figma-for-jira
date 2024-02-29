@@ -16,8 +16,8 @@ import {
 	generateFigmaFileKey,
 	generateJiraIssue,
 } from '../domain/entities/testing';
-import { figmaService } from '../infrastructure/figma';
-import { figmaBackfillService } from '../infrastructure/figma/figma-backfill-service';
+import { figmaBackwardIntegrationService } from '../infrastructure';
+import { figmaBackfillService, figmaService } from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 import { submitFullDesign } from '../jobs';
@@ -47,13 +47,12 @@ describe('backfillDesignUseCase', () => {
 				connectInstallation,
 			});
 		jest.spyOn(figmaService, 'getDesignOrParent').mockResolvedValue(null);
-		jest.spyOn(jiraService, 'getIssue').mockResolvedValue(issue);
 		jest.spyOn(jiraService, 'submitDesign').mockResolvedValue();
 		jest
-			.spyOn(jiraService, 'saveDesignUrlInIssueProperties')
-			.mockResolvedValue();
-		jest
-			.spyOn(figmaService, 'tryCreateDevResourceForJiraIssue')
+			.spyOn(
+				figmaBackwardIntegrationService,
+				'tryNotifyFigmaOnAddedIssueDesignAssociation',
+			)
 			.mockResolvedValue();
 		jest
 			.spyOn(associatedFigmaDesignRepository, 'upsert')
@@ -72,23 +71,14 @@ describe('backfillDesignUseCase', () => {
 			},
 			connectInstallation,
 		);
-		expect(jiraService.saveDesignUrlInIssueProperties).toHaveBeenCalledWith(
-			issue.id,
-			designId,
-			minimalAtlassianDesign,
+		expect(
+			figmaBackwardIntegrationService.tryNotifyFigmaOnAddedIssueDesignAssociation,
+		).toHaveBeenCalledWith({
+			originalFigmaDesignId: designId,
+			design: minimalAtlassianDesign,
+			issueId: params.associateWith.id,
+			atlassianUserId: params.atlassianUserId,
 			connectInstallation,
-		);
-		expect(figmaService.tryCreateDevResourceForJiraIssue).toHaveBeenCalledWith({
-			designId,
-			issue: {
-				key: issue.key,
-				title: issue.fields.summary,
-				url: `${connectInstallation.baseUrl}/browse/${issue.key}`,
-			},
-			user: {
-				atlassianUserId: params.atlassianUserId,
-				connectInstallationId: params.connectInstallation.id,
-			},
 		});
 		expect(associatedFigmaDesignRepository.upsert).toHaveBeenCalledWith({
 			designId,
@@ -121,13 +111,12 @@ describe('backfillDesignUseCase', () => {
 		jest
 			.spyOn(figmaService, 'getDesignOrParent')
 			.mockResolvedValue(atlassianDesign);
-		jest.spyOn(jiraService, 'getIssue').mockResolvedValue(issue);
 		jest.spyOn(jiraService, 'submitDesign').mockRejectedValue(new Error());
 		jest
-			.spyOn(jiraService, 'saveDesignUrlInIssueProperties')
-			.mockResolvedValue();
-		jest
-			.spyOn(figmaService, 'tryCreateDevResourceForJiraIssue')
+			.spyOn(
+				figmaBackwardIntegrationService,
+				'tryNotifyFigmaOnAddedIssueDesignAssociation',
+			)
 			.mockResolvedValue();
 		jest.spyOn(associatedFigmaDesignRepository, 'upsert');
 
