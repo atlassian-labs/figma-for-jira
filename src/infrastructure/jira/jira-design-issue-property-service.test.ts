@@ -22,7 +22,10 @@ import {
 	generateFigmaFileKey,
 	generateJiraIssueKey,
 } from '../../domain/entities/testing';
-import { NotFoundHttpClientError } from '../http-client-errors';
+import {
+	ForbiddenHttpClientError,
+	NotFoundHttpClientError,
+} from '../http-client-errors';
 
 const issuePropertyKeys = {
 	ATTACHED_DESIGN_URL: 'attached-design-url',
@@ -85,7 +88,7 @@ describe('JiraDesignIssuePropertyService', () => {
 				.mockRejectedValue(new NotFoundHttpClientError());
 			jest
 				.spyOn(jiraClient, 'setIssueProperty')
-				.mockRejectedValue(new ForbiddenByJiraServiceError());
+				.mockRejectedValue(new ForbiddenHttpClientError());
 
 			await expect(
 				jiraDesignIssuePropertyService.setAttachedDesignUrlInIssuePropertiesIfMissing(
@@ -410,7 +413,7 @@ describe('JiraDesignIssuePropertyService', () => {
 				.mockRejectedValue(new NotFoundHttpClientError());
 			jest
 				.spyOn(jiraClient, 'setIssueProperty')
-				.mockRejectedValue(new ForbiddenByJiraServiceError());
+				.mockRejectedValue(new ForbiddenHttpClientError());
 
 			await expect(
 				jiraDesignIssuePropertyService.updateAttachedDesignUrlV2IssueProperty(
@@ -703,7 +706,7 @@ describe('JiraDesignIssuePropertyService', () => {
 			);
 			jest
 				.spyOn(jiraClient, 'setIssueProperty')
-				.mockRejectedValue(new ForbiddenByJiraServiceError());
+				.mockRejectedValue(new ForbiddenHttpClientError());
 
 			await expect(
 				jiraDesignIssuePropertyService.deleteFromAttachedDesignUrlV2IssueProperties(
