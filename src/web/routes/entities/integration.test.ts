@@ -8,8 +8,12 @@ import type {
 } from './types';
 
 import app from '../../../app';
+import { appendToPathname } from '../../../common/url-utils';
 import { getConfig } from '../../../config';
-import type { ConnectInstallation } from '../../../domain/entities';
+import type {
+	AtlassianDesign,
+	ConnectInstallation,
+} from '../../../domain/entities';
 import {
 	AtlassianAssociation,
 	AtlassianDesignStatus,
@@ -48,8 +52,6 @@ import {
 	buildInspectUrl,
 	buildLiveEmbedUrl,
 } from '../../../infrastructure/figma/transformers/utils';
-import type { AttachedDesignUrlV2IssuePropertyValue } from '../../../infrastructure/jira';
-import { issuePropertyKeys, JiraService } from '../../../infrastructure/jira';
 import {
 	generateGetIssuePropertyResponse,
 	generateSubmitDesignsRequest,
@@ -73,6 +75,20 @@ import {
 	mockJiraSetIssuePropertyEndpoint,
 	mockJiraSubmitDesignsEndpoint,
 } from '../../testing';
+
+const issuePropertyKeys = {
+	ATTACHED_DESIGN_URL: 'attached-design-url',
+	ATTACHED_DESIGN_URL_V2: 'attached-design-url-v2',
+};
+
+const buildDesignUrlForIssueProperties = ({
+	url,
+	displayName,
+}: AtlassianDesign): string => {
+	const encodedName = encodeURIComponent(displayName).replaceAll('-', '%2D');
+	const urlWithFileName = appendToPathname(new URL(url), encodedName);
+	return urlWithFileName.toString();
+};
 
 const generateAssociateEntityJwt = (
 	connectInstallation: ConnectInstallation,
@@ -232,7 +248,7 @@ describe('/entities', () => {
 				issueId: issue.id,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				request: JSON.stringify(
-					JiraService.buildDesignUrlForIssueProperties(atlassianDesign),
+					buildDesignUrlForIssueProperties(atlassianDesign),
 				),
 			});
 			mockJiraGetIssuePropertyEndpoint({
@@ -248,9 +264,7 @@ describe('/entities', () => {
 				request: JSON.stringify(
 					JSON.stringify([
 						{
-							url: JiraService.buildDesignUrlForIssueProperties(
-								atlassianDesign,
-							),
+							url: buildDesignUrlForIssueProperties(atlassianDesign),
 							name: atlassianDesign.displayName,
 						},
 					]),
@@ -371,7 +385,7 @@ describe('/entities', () => {
 				issueId: issue.id,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				request: JSON.stringify(
-					JiraService.buildDesignUrlForIssueProperties(atlassianDesign),
+					buildDesignUrlForIssueProperties(atlassianDesign),
 				),
 			});
 			mockJiraGetIssuePropertyEndpoint({
@@ -387,9 +401,7 @@ describe('/entities', () => {
 				request: JSON.stringify(
 					JSON.stringify([
 						{
-							url: JiraService.buildDesignUrlForIssueProperties(
-								atlassianDesign,
-							),
+							url: buildDesignUrlForIssueProperties(atlassianDesign),
 							name: atlassianDesign.displayName,
 						},
 					]),
@@ -667,7 +679,7 @@ describe('/entities', () => {
 				issueId: issue.id,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				request: JSON.stringify(
-					JiraService.buildDesignUrlForIssueProperties(minimalAtlassianDesign),
+					buildDesignUrlForIssueProperties(minimalAtlassianDesign),
 				),
 			});
 			mockJiraGetIssuePropertyEndpoint({
@@ -683,9 +695,7 @@ describe('/entities', () => {
 				request: JSON.stringify(
 					JSON.stringify([
 						{
-							url: JiraService.buildDesignUrlForIssueProperties(
-								minimalAtlassianDesign,
-							),
+							url: buildDesignUrlForIssueProperties(minimalAtlassianDesign),
 							name: minimalAtlassianDesign.displayName,
 						},
 					]),
@@ -704,18 +714,7 @@ describe('/entities', () => {
 			});
 			mockJiraSubmitDesignsEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				request: generateSubmitDesignsRequest([
-					{
-						...atlassianDesign,
-						addAssociations: [
-							// Nock does not correctly match a request body when provide an instance of a class
-							// (e.g., as `AtlassianAssociation`). Therefore, pass an object instead.
-							{
-								...AtlassianAssociation.createDesignIssueAssociation(issueAri),
-							},
-						],
-					},
-				]),
+				request: generateSubmitDesignsRequest([atlassianDesign]),
 			});
 
 			await request(app)
@@ -820,7 +819,7 @@ describe('/entities', () => {
 				issueId: issue.id,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				request: JSON.stringify(
-					JiraService.buildDesignUrlForIssueProperties(minimalAtlassianDesign),
+					buildDesignUrlForIssueProperties(minimalAtlassianDesign),
 				),
 			});
 			mockJiraGetIssuePropertyEndpoint({
@@ -836,9 +835,7 @@ describe('/entities', () => {
 				request: JSON.stringify(
 					JSON.stringify([
 						{
-							url: JiraService.buildDesignUrlForIssueProperties(
-								minimalAtlassianDesign,
-							),
+							url: buildDesignUrlForIssueProperties(minimalAtlassianDesign),
 							name: minimalAtlassianDesign.displayName,
 						},
 					]),
@@ -867,16 +864,7 @@ describe('/entities', () => {
 			});
 			mockJiraSubmitDesignsEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				request: generateSubmitDesignsRequest([
-					{
-						...atlassianDesign,
-						addAssociations: [
-							{
-								...AtlassianAssociation.createDesignIssueAssociation(issueAri),
-							},
-						],
-					},
-				]),
+				request: generateSubmitDesignsRequest([atlassianDesign]),
 			});
 
 			await request(app)
@@ -978,7 +966,7 @@ describe('/entities', () => {
 				issueId: issue.id,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				request: JSON.stringify(
-					JiraService.buildDesignUrlForIssueProperties(minimalAtlassianDesign),
+					buildDesignUrlForIssueProperties(minimalAtlassianDesign),
 				),
 			});
 			mockJiraGetIssuePropertyEndpoint({
@@ -994,9 +982,7 @@ describe('/entities', () => {
 				request: JSON.stringify(
 					JSON.stringify([
 						{
-							url: JiraService.buildDesignUrlForIssueProperties(
-								minimalAtlassianDesign,
-							),
+							url: buildDesignUrlForIssueProperties(minimalAtlassianDesign),
 							name: minimalAtlassianDesign.displayName,
 						},
 					]),
@@ -1109,7 +1095,7 @@ describe('/entities', () => {
 				issueId: issue.id,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				request: JSON.stringify(
-					JiraService.buildDesignUrlForIssueProperties(minimalAtlassianDesign),
+					buildDesignUrlForIssueProperties(minimalAtlassianDesign),
 				),
 			});
 			mockJiraGetIssuePropertyEndpoint({
@@ -1125,9 +1111,7 @@ describe('/entities', () => {
 				request: JSON.stringify(
 					JSON.stringify([
 						{
-							url: JiraService.buildDesignUrlForIssueProperties(
-								minimalAtlassianDesign,
-							),
+							url: buildDesignUrlForIssueProperties(minimalAtlassianDesign),
 							name: minimalAtlassianDesign.displayName,
 						},
 					]),
@@ -1283,7 +1267,7 @@ describe('/entities', () => {
 				url: 'https://should-not-be-deleted.com',
 				name: 'should not be deleted',
 			};
-			const attachedDesignUrlV2Value: AttachedDesignUrlV2IssuePropertyValue = [
+			const attachedDesignUrlV2Value = [
 				{ url: figmaDesignUrl, name: designStub.displayName },
 				expectedDesignUrlV2ValueItem,
 			];
@@ -1419,7 +1403,7 @@ describe('/entities', () => {
 				url: 'https://should-not-be-deleted.com',
 				name: 'should not be deleted',
 			};
-			const attachedDesignUrlV2Value: AttachedDesignUrlV2IssuePropertyValue = [
+			const attachedDesignUrlV2Value = [
 				{ url: figmaDesignUrl, name: designStub.displayName },
 				expectedDesignUrlV2ValueItem,
 			];

@@ -7,4 +7,10 @@ set -o allexport
 source "$SCRIPT_DIR"/../.env set
 set +o allexport
 
-docker run --init --rm --publish='4040:4040' 'wernight/ngrok' ngrok http -log stdout -hostname=$NGROK_DOMAIN --authtoken "$NGROK_AUTHTOKEN" host.docker.internal:"$SERVER_PORT"
+docker run --init \
+  --rm \
+  -e NGROK_AUTHTOKEN=$NGROK_AUTHTOKEN \
+  'ngrok/ngrok:latest' http \
+    --log stdout \
+    --domain=$NGROK_DOMAIN \
+    host.docker.internal:$SERVER_PORT
