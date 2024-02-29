@@ -41,8 +41,8 @@ export class JiraService {
 	/**
 	 * @throws {ForbiddenByJiraServiceError} The app does not have permission to edit the Issue.
 	 */
-	deleteDesignUrlInIssueProperties =
-		jiraDesignIssuePropertyService.deleteDesignUrlInIssueProperties.bind(
+	deleteDesignUrlFromIssueProperties =
+		jiraDesignIssuePropertyService.deleteDesignUrlFromIssueProperties.bind(
 			jiraDesignIssuePropertyService,
 		);
 
