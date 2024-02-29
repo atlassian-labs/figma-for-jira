@@ -9,13 +9,15 @@ import type {
 } from '../domain/entities';
 import { buildJiraIssueUrl, FigmaDesignIdentifier } from '../domain/entities';
 
+/**
+ * A service to encapsulate logic for supporting the backward integration with Figma, in particular with
+ * the "Jira" Widget and Plugin in Figma.
+ */
 export class FigmaBackwardIntegrationService {
 	/**
 	 * Notifies Figma on the added Issue-Design association:
 	 * - Sets the Figma design URL to Jira Issue Properties
 	 * - Creates a Dev Resource for Jira Issue for the target Figma File/Node.
-	 *
-	 * Required for backward integration with the "Jira" Widget and Plugin in Figma.
 	 *
 	 * Makes the best effort to perform the operation: silently stops the operation in case of an expected error
 	 * (e.g., a lack of permissions to read Jira Issue) and throws only in case of an unexpected error.
@@ -74,8 +76,6 @@ export class FigmaBackwardIntegrationService {
 	 * Notifies Figma on the removed Issue-Design association.
 	 * - Removes the Figma design URL from Jira Issue Properties
 	 * - Deletes the Dev Resource for Jira Issue from the target Figma File/Node.
-	 *
-	 * Required for backward integration with the "Jira" Widget and Plugin in Figma.
 	 *
 	 * Makes the best effort to perform the operation: silently stops the operation in case of an expected error
 	 * (e.g., a lack of permissions to read Jira Issue) and throws only in case of an unexpected error.
