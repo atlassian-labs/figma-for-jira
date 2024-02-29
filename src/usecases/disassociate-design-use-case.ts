@@ -87,7 +87,7 @@ export const disassociateDesignUseCase = {
 					},
 					connectInstallation,
 				),
-				jiraService.deleteDesignUrlInIssueProperties(
+				jiraService.deleteDesignUrlFromIssueProperties(
 					issueId,
 					designStub,
 					connectInstallation,
