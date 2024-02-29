@@ -13,7 +13,7 @@ export class FigmaBackwardIntegrationService {
 	/**
 	 * Notifies Figma on the added Issue-Design association:
 	 * - Sets the Figma design URL to Jira Issue Properties
-	 * - Creates a Dev Resource for the Issue for the target Figma File/Node.
+	 * - Creates a Dev Resource for Jira Issue for the target Figma File/Node.
 	 *
 	 * Required for backward integration with the "Jira" Widget and Plugin in Figma.
 	 *
@@ -73,7 +73,7 @@ export class FigmaBackwardIntegrationService {
 	/**
 	 * Notifies Figma on the removed Issue-Design association.
 	 * - Removes the Figma design URL from Jira Issue Properties
-	 * - Deletes a Dev Resource for the Issue from the target Figma File/Node.
+	 * - Deletes the Dev Resource for Jira Issue from the target Figma File/Node.
 	 *
 	 * Required for backward integration with the "Jira" Widget and Plugin in Figma.
 	 *

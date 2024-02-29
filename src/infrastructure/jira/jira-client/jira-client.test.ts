@@ -26,14 +26,13 @@ jest.mock('./jwt-utils');
 
 describe('JiraClient', () => {
 	let connectInstallation: ConnectInstallation;
-	const createJwtTokenMock = jest.mocked(createJwtToken);
-	createJwtTokenMock.mockReturnValue(MOCK_JWT_TOKEN);
 
 	const defaultExpectedRequestHeaders = () => ({
 		headers: new AxiosHeaders().setAuthorization(`JWT ${MOCK_JWT_TOKEN}`),
 	});
 
 	beforeEach(() => {
+		jest.mocked(createJwtToken).mockReturnValue(MOCK_JWT_TOKEN);
 		connectInstallation = generateConnectInstallation();
 	});
 

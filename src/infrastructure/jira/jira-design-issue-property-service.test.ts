@@ -10,17 +10,14 @@ import {
 
 import { SchemaValidationError } from '../../common/schema-validation';
 import { appendToPathname } from '../../common/url-utils';
-import type {
-	AtlassianDesign,
-	ConnectInstallation,
-} from '../../domain/entities';
 import { FigmaDesignIdentifier } from '../../domain/entities';
 import {
 	generateAtlassianDesign,
 	generateConnectInstallation,
+	generateFigmaDesignIdentifier,
 	generateFigmaDesignUrl,
 	generateFigmaFileKey,
-	generateJiraIssueKey,
+	generateJiraIssueId,
 } from '../../domain/entities/testing';
 import {
 	ForbiddenHttpClientError,
@@ -33,19 +30,79 @@ const issuePropertyKeys = {
 };
 
 describe('JiraDesignIssuePropertyService', () => {
-	describe('setAttachedDesignUrlInIssuePropertiesIfMissing', () => {
-		const issueId = 'TEST-1';
-		let connectInstallation: ConnectInstallation;
-		let design: AtlassianDesign;
-
-		beforeEach(() => {
-			connectInstallation = generateConnectInstallation();
-			design = generateAtlassianDesign({
-				displayName: 'Test - Design 1',
-			});
+	describe('trySaveDesignUrlInIssueProperties', () => {
+		afterEach(() => {
+			jest.resetAllMocks();
 		});
 
+		it('should not throw when forbidden to edit Issue Properties', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const figmaDesignIdToReplace = generateFigmaDesignIdentifier();
+			const design = generateAtlassianDesign();
+			jest
+				.spyOn(
+					jiraDesignIssuePropertyService,
+					'setAttachedDesignUrlInIssuePropertiesIfMissing',
+				)
+				.mockRejectedValue(new ForbiddenByJiraServiceError());
+			jest
+				.spyOn(
+					jiraDesignIssuePropertyService,
+					'updateAttachedDesignUrlV2IssueProperty',
+				)
+				.mockRejectedValue(new ForbiddenByJiraServiceError());
+
+			await expect(
+				jiraDesignIssuePropertyService.trySaveDesignUrlInIssueProperties(
+					issueId,
+					figmaDesignIdToReplace,
+					design,
+					connectInstallation,
+				),
+			).resolves.toBeUndefined();
+		});
+	});
+
+	describe('tryDeleteDesignUrlFromIssueProperties', () => {
+		afterEach(() => {
+			jest.resetAllMocks();
+		});
+
+		it('should not throw when forbidden to edit Issue Properties', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign();
+			jest
+				.spyOn(
+					jiraDesignIssuePropertyService,
+					'deleteAttachedDesignUrlInIssuePropertiesIfPresent',
+				)
+				.mockRejectedValue(new ForbiddenByJiraServiceError());
+			jest
+				.spyOn(
+					jiraDesignIssuePropertyService,
+					'deleteFromAttachedDesignUrlV2IssueProperties',
+				)
+				.mockRejectedValue(new ForbiddenByJiraServiceError());
+
+			await expect(
+				jiraDesignIssuePropertyService.tryDeleteDesignUrlFromIssueProperties(
+					issueId,
+					design,
+					connectInstallation,
+				),
+			).resolves.toBeUndefined();
+		});
+	});
+
+	describe('setAttachedDesignUrlInIssuePropertiesIfMissing', () => {
 		it('should set the Issue Property if not present', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign({
+				displayName: 'Test - Design 1',
+			});
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockRejectedValue(new NotFoundHttpClientError());
@@ -66,6 +123,11 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 
 		it('should not overwrite the Issue Property if present', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign({
+				displayName: 'Test - Design 1',
+			});
 			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 				generateGetIssuePropertyResponse({
 					key: issuePropertyKeys.ATTACHED_DESIGN_URL,
@@ -83,6 +145,11 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 
 		it('should throw `ForbiddenByJiraServiceError` when forbidden to set Issue Property', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign({
+				displayName: 'Test - Design 1',
+			});
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockRejectedValue(new NotFoundHttpClientError());
@@ -100,6 +167,11 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 
 		it('should rethrow unknown errors', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign({
+				displayName: 'Test - Design 1',
+			});
 			const unexpectedError = new Error();
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
@@ -116,11 +188,12 @@ describe('JiraDesignIssuePropertyService', () => {
 	});
 
 	describe('updateAttachedDesignUrlV2IssueProperty', () => {
-		const issueId = generateJiraIssueKey();
-		const connectInstallation = generateConnectInstallation();
-		const design = generateAtlassianDesign({ displayName: 'Test / Design 1' });
-
 		it('should set Issue Property if not present', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign({
+				displayName: 'Test / Design 1',
+			});
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockRejectedValue(new NotFoundHttpClientError());
@@ -149,6 +222,11 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 
 		it('should update Issue Property with item if it does not contains target', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign({
+				displayName: 'Test / Design 1',
+			});
 			const issuePropertyValueItems = [
 				{
 					url: `https://www.figma.com/file/${uuidv4()}/Test-File`,
@@ -187,6 +265,11 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 
 		it('should update Issue Property if it contains target item with URL in different format', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign({
+				displayName: 'Test / Design 1',
+			});
 			const targetIssuePropertyValueItem = {
 				url: design.url,
 				name: design.displayName,
@@ -233,6 +316,11 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 
 		it('should update Issue Property if it contains target item with URL matching design ID to replace', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign({
+				displayName: 'Test / Design 1',
+			});
 			const designId = FigmaDesignIdentifier.fromAtlassianDesignId(design.id);
 			const parentDesign = generateAtlassianDesign({
 				id: designId.fileKey,
@@ -286,6 +374,11 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 
 		it('should update Issue Property if it contains multiple target items with URL matching design ID to replace', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign({
+				displayName: 'Test / Design 1',
+			});
 			const designId = FigmaDesignIdentifier.fromAtlassianDesignId(design.id);
 			const parentDesign = generateAtlassianDesign({
 				id: designId.fileKey,
@@ -348,6 +441,11 @@ describe('JiraDesignIssuePropertyService', () => {
 		])(
 			'should overwrite the existing value if the Issue Property value is not in the expected shape',
 			async (value) => {
+				const issueId = generateJiraIssueId();
+				const connectInstallation = generateConnectInstallation();
+				const design = generateAtlassianDesign({
+					displayName: 'Test / Design 1',
+				});
 				jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 					generateGetIssuePropertyResponse({
 						key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
@@ -380,6 +478,11 @@ describe('JiraDesignIssuePropertyService', () => {
 		);
 
 		it('should overwrite with the new value if the Issue Property value received from Jira is not a string', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign({
+				displayName: 'Test / Design 1',
+			});
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockResolvedValue(generateGetIssuePropertyResponse({ value: 1 }));
@@ -408,6 +511,11 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 
 		it('should throw `ForbiddenByJiraServiceError` when forbidden to set Issue Property', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign({
+				displayName: 'Test / Design 1',
+			});
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockRejectedValue(new NotFoundHttpClientError());
@@ -426,6 +534,11 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 
 		it('should rethrow unknown errors', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign({
+				displayName: 'Test / Design 1',
+			});
 			const unexpectedError = new Error();
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
@@ -443,17 +556,11 @@ describe('JiraDesignIssuePropertyService', () => {
 	});
 
 	describe('deleteAttachedDesignUrlInIssuePropertiesIfPresent', () => {
-		const issueId = 'TEST-1';
-		let connectInstallation: ConnectInstallation;
-		let design: AtlassianDesign;
-
-		beforeEach(() => {
-			connectInstallation = generateConnectInstallation();
-		});
-
 		it('should delete Issue Property if its value is URL of given design', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
 			const fileKey = generateFigmaFileKey();
-			design = generateAtlassianDesign({
+			const design = generateAtlassianDesign({
 				id: new FigmaDesignIdentifier(fileKey).toAtlassianDesignId(),
 				url: generateFigmaDesignUrl({ fileKey }).toString(),
 			});
@@ -483,7 +590,9 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 
 		it('should delete Issue Property if its value is not URL of given design', async () => {
-			design = generateAtlassianDesign();
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign();
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockResolvedValue(
@@ -503,6 +612,9 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 
 		it('should rethrow unknown errors', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign();
 			const unexpectedError = new Error();
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
@@ -518,6 +630,9 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 
 		it('should not rethrow NotFoundHttpClientError errors', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign();
 			const notFoundError = new NotFoundHttpClientError();
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
@@ -537,16 +652,10 @@ describe('JiraDesignIssuePropertyService', () => {
 	});
 
 	describe('deleteFromAttachedDesignUrlV2IssueProperties', () => {
-		const issueId = 'TEST-1';
-		let connectInstallation: ConnectInstallation;
-		let design: AtlassianDesign;
-
-		beforeEach(() => {
-			connectInstallation = generateConnectInstallation();
-			design = generateAtlassianDesign();
-		});
-
 		it('should delete the URL from the array stored in Issue Properties', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign();
 			const designToDelete = generateAtlassianDesign();
 			const designPropertyValue = {
 				url: design.url,
@@ -584,6 +693,9 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 
 		it('should delete the URL from the array stored in Issue Properties if in a different format', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign();
 			const designToDelete = generateAtlassianDesign();
 			const designPropertyValue = {
 				url: design.url,
@@ -622,6 +734,9 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 
 		it('should not set issue properties again if the array remained unchanged', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign();
 			const designToDelete = generateAtlassianDesign();
 			const designPropertyValue = {
 				url: design.url,
@@ -655,6 +770,9 @@ describe('JiraDesignIssuePropertyService', () => {
 		])(
 			'should throw a validation error if the Issue Property value is not in the expected shape',
 			async (value) => {
+				const issueId = generateJiraIssueId();
+				const connectInstallation = generateConnectInstallation();
+				const design = generateAtlassianDesign();
 				jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
 					generateGetIssuePropertyResponse({
 						key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
@@ -673,6 +791,9 @@ describe('JiraDesignIssuePropertyService', () => {
 		);
 
 		it('should throw if the Issue Property value received from Jira is not a string', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign();
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
 				.mockResolvedValue(generateGetIssuePropertyResponse({ value: 1 }));
@@ -692,6 +813,8 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 
 		it('should throw `ForbiddenByJiraServiceError` when forbidden to set Issue Property', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
 			const designToDelete = generateAtlassianDesign();
 			const designToDeletePropertyValue = {
 				url: designToDelete.url,
@@ -718,6 +841,9 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 
 		it('should rethrow unknown errors', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign();
 			const unexpectedError = new Error();
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
@@ -733,6 +859,9 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 
 		it('should not rethrow NotFoundHttpClientError errors', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign();
 			const notFoundError = new NotFoundHttpClientError();
 			jest
 				.spyOn(jiraClient, 'getIssueProperty')
