@@ -1,5 +1,4 @@
 import { ensureString, isString, truncate } from './string-utils';
-import utf16Str from './testing/utf16-str';
 
 describe('stringUtils', () => {
 	describe('isString', () => {
@@ -26,21 +25,37 @@ describe('stringUtils', () => {
 	});
 
 	describe('truncate', () => {
-		it('does nothing when the string is less than the max length', () => {
+		it('should do nothing if string is empty', () => {
+			const result = truncate('', 100);
+
+			expect(result).toBe('');
+		});
+
+		it('should do nothing when the string is less than the max length', () => {
 			const string = 'hello there yay!';
-			const result = truncate(string, 100);
+
+			const result = truncate('hello there yay!', 100);
+
 			expect(result).toBe(string);
 		});
 
-		it('truncates strings greater than the max length', () => {
-			const string = 'hello there yay!';
-			const result = truncate(string, 10);
+		it('should truncate strings greater than the given length', () => {
+			const result = truncate('hello there yay!', 10);
+
 			expect(result).toBe('hello the…');
 		});
 
-		it('accounts for utf16 characters', () => {
-			const result = truncate(utf16Str as string, 10);
-			expect(result).toBe('你好你…');
-		});
+		it.each([
+			{ input: '🐱🐱🐱🐱🐱', maxLength: 1, expected: '…' },
+			{ input: '🐱🐱🐱🐱🐱', maxLength: 2, expected: '…' },
+			{ input: '🐱🐱🐱🐱🐱', maxLength: 3, expected: '🐱…' },
+		])(
+			'should exclude a lone surrogate from the end of the string (%o)',
+			({ input, maxLength, expected }) => {
+				const result = truncate(input, maxLength);
+
+				expect(result).toBe(expected);
+			},
+		);
 	});
 });

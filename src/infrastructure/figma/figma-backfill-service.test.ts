@@ -3,6 +3,7 @@ import {
 	buildDesignUrl,
 	buildInspectUrl,
 	buildLiveEmbedUrl,
+	truncateDisplayName,
 } from './transformers/utils';
 
 import {
@@ -93,6 +94,17 @@ describe('FigmaBackfillService', () => {
 			);
 
 			expect(result.displayName).toStrictEqual('Test / Design 1');
+		});
+
+		it('should truncate `displayName` if it is too long', () => {
+			const fileKey = generateFigmaFileKey();
+			const fileName = 'a'.repeat(1000);
+
+			const result = figmaBackfillService.buildMinimalDesignFromUrl(
+				new URL(`https://www.figma.com/file/${fileKey}/${fileName}`),
+			);
+
+			expect(result?.displayName).toStrictEqual(truncateDisplayName(fileName));
 		});
 	});
 });

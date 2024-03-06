@@ -32,17 +32,19 @@ export const MOCK_DOCUMENT: Node = {
 
 export const generateFrameNode = ({
 	id = generateFigmaNodeId(),
+	name = `Test Frame ${id}`,
 	lastModified,
 	devStatus,
 	children = [],
 }: {
 	id?: string;
+	name?: string;
 	lastModified?: Date;
 	devStatus?: NodeDevStatus;
 	children?: Node[];
 } = {}): Node => ({
 	id,
-	name: `Test Frame ${id}`,
+	name,
 	type: 'FRAME',
 	devStatus: devStatus,
 	lastModified: lastModified?.toISOString(),
@@ -51,9 +53,10 @@ export const generateFrameNode = ({
 
 export const generateChildNode = ({
 	id = generateFigmaNodeId(),
+	name = `Test Rectangle ${id}`,
 } = {}): Node => ({
 	id,
-	name: `Test Rectangle ${id}`,
+	name,
 	type: 'RECTANGLE',
 });
 

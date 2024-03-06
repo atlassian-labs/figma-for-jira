@@ -12,9 +12,28 @@ export const ensureString = (value: unknown) => {
 	);
 };
 
-export const truncate = (str: string, maxLength: number): string => {
-	const utf8Str = Buffer.from(str, 'utf-8');
-	if (utf8Str.length <= maxLength) return utf8Str.toString();
+/**
+ * Returns a string truncates to the given length.
+ *
+ * When the string is truncated, the last character is replaced with "…".
+ *
+ * If the truncation causes the presence of a lone surrogate, it is excluded from a returned string.
+ */
+export const truncate = (str: string, maxLength: number) => {
+	if (str.length <= maxLength) return str;
 
-	return `${utf8Str.subarray(0, maxLength - 1).toString()}…`;
+	// TODO: The current version of TypeScript does not include the type definition
+	// 	for `String.prototype.isWellFormed` and `String.prototype.toWellFormed`, available in Node.js 20:
+	//  https://github.com/microsoft/TypeScript/issues/55543
+	//  Remove when the project is updated to TypeScript 5.3.
+	type Node20String = string & {
+		toWellFormed(): Node20String;
+		isWellFormed(): boolean;
+	};
+
+	const result = (str as Node20String).toWellFormed().slice(0, maxLength - 1);
+
+	if ((result as Node20String).isWellFormed()) return `${result}…`;
+
+	return `${result.slice(0, -1)}…`;
 };

@@ -59,37 +59,6 @@ describe('JiraDesignService', () => {
 			);
 		});
 
-		it('should truncate the display name if it is too long', async () => {
-			const connectInstallation = generateConnectInstallation();
-			const design = generateAtlassianDesign({
-				displayName: 'a'.repeat(256),
-			});
-			const submitDesignsResponse = generateSuccessfulSubmitDesignsResponse([
-				design.id,
-			]);
-			jest
-				.spyOn(jiraClient, 'submitDesigns')
-				.mockResolvedValue(submitDesignsResponse);
-
-			await jiraDesignService.submitDesigns([{ design }], connectInstallation);
-
-			expect(jiraClient.submitDesigns).toHaveBeenCalledWith(
-				{
-					designs: [
-						{
-							...design,
-							displayName: 'a'.repeat(254) + '…',
-							addAssociations: null,
-							removeAssociations: null,
-							associationsLastUpdated: currentDate.toISOString(),
-							associationsUpdateSequenceNumber: currentDate.valueOf(),
-						},
-					],
-				},
-				connectInstallation,
-			);
-		});
-
 		it('should submit design and add/remove associations', async () => {
 			const connectInstallation = generateConnectInstallation();
 			const design1 = generateAtlassianDesign();
