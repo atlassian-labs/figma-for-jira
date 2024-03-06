@@ -46,11 +46,11 @@ describe('stringUtils', () => {
 		});
 
 		it.each([
-			{ input: '🐱🐱🐱🐱🐱', maxLength: 1, expected: '…' },
-			{ input: '🐱🐱🐱🐱🐱', maxLength: 2, expected: '…' },
-			{ input: '🐱🐱🐱🐱🐱', maxLength: 3, expected: '🐱…' },
+			{ input: '🐱🐱🐱', maxLength: 1, expected: '…' },
+			{ input: '🐱🐱🐱', maxLength: 2, expected: '…' },
+			{ input: '🐱🐱🐱', maxLength: 3, expected: '🐱…' },
 		])(
-			'should exclude a lone surrogate from the end of the string (%o)',
+			'should return well-formed string with no lone surrogates (%p)',
 			({ input, maxLength, expected }) => {
 				const result = truncate(input, maxLength);
 
