@@ -4,6 +4,7 @@ import {
 	buildInspectUrl,
 	buildLiveEmbedUrl,
 	getUpdateSequenceNumberFrom,
+	truncateDisplayName,
 } from './utils';
 
 import {
@@ -36,5 +37,21 @@ describe('transformFileMetaToAtlassianDesign', () => {
 				fileMetaResponse.file.last_touched_at,
 			),
 		});
+	});
+
+	it('should truncate `displayName` if it is too long', () => {
+		const fileKey = generateFigmaFileKey();
+		const fileMetaResponse = generateGetFileMetaResponse({
+			name: 'a'.repeat(1000),
+		});
+
+		const result = transformFileMetaToAtlassianDesign({
+			fileKey,
+			fileMetaResponse,
+		});
+
+		expect(result.displayName).toStrictEqual(
+			truncateDisplayName(fileMetaResponse.file.name),
+		);
 	});
 });

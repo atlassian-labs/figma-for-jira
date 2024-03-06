@@ -3,6 +3,7 @@ import {
 	buildInspectUrl,
 	buildLiveEmbedUrl,
 	getUpdateSequenceNumberFrom,
+	truncateDisplayName,
 } from './utils';
 
 import { getConfig } from '../../../config';
@@ -87,6 +88,14 @@ describe('utils', () => {
 			const result = getUpdateSequenceNumberFrom('2023-11-05T23:08:49.123Z');
 
 			expect(result).toEqual(new Date('2023-11-05T23:08:49Z').getTime());
+		});
+	});
+
+	describe('truncateDisplayName', () => {
+		it('should truncate a string if it exceeds 255 characters', () => {
+			const result = truncateDisplayName(' Long Name '.repeat(256));
+
+			expect(result).toEqual(`${result.slice(0, 254)}…`);
 		});
 	});
 });

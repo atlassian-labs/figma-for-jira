@@ -2,7 +2,6 @@ import type { SubmitDesignsResponse } from './jira-client';
 import { jiraClient } from './jira-client';
 
 import { CauseAwareError } from '../../common/errors';
-import { truncate } from '../../common/string-utils';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
@@ -35,14 +34,11 @@ export class JiraDesignService {
 	): Promise<void> => {
 		const associationsLastUpdated = new Date();
 
-		// Jira does not allow display names longer than 255 characters.
-		const MAX_DISPLAY_NAME_LENGTH = 255;
 		const response = await jiraClient.submitDesigns(
 			{
 				designs: designs.map(
 					({ design, addAssociations, removeAssociations }) => ({
 						...design,
-						displayName: truncate(design.displayName, MAX_DISPLAY_NAME_LENGTH),
 						addAssociations: addAssociations ?? null,
 						removeAssociations: removeAssociations ?? null,
 						associationsLastUpdated: associationsLastUpdated.toISOString(),

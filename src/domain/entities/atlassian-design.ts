@@ -31,6 +31,10 @@ export class AtlassianAssociation {
  */
 export type AtlassianDesign = {
 	readonly id: string;
+	/**
+	 * The name of the design.
+	 * Should not exceed 255 characters.
+	 */
 	readonly displayName: string;
 	readonly url: string;
 	readonly liveEmbedUrl: string;

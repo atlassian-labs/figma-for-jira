@@ -10,6 +10,7 @@ import {
 	buildInspectUrl,
 	buildLiveEmbedUrl,
 	getUpdateSequenceNumberFrom,
+	truncateDisplayName,
 } from './utils';
 
 import {
@@ -116,6 +117,28 @@ describe('tryTransformNodeToAtlassianDesign', () => {
 		});
 
 		expect(result).toBeNull();
+	});
+
+	it('should truncate `displayName` if it is too long', () => {
+		const fileKey = generateFigmaFileKey();
+		const node = generateChildNode({ id: '100:1', name: 'b'.repeat(250) });
+		const fileResponse = generateGetFileResponse({
+			name: 'a'.repeat(250),
+			document: {
+				...MOCK_DOCUMENT,
+				children: [node],
+			},
+		});
+
+		const result = tryTransformNodeToAtlassianDesign({
+			fileKey,
+			nodeId: node.id,
+			fileResponse,
+		});
+
+		expect(result?.displayName).toStrictEqual(
+			truncateDisplayName(`${fileResponse.name} - ${node.name}`),
+		);
 	});
 });
 

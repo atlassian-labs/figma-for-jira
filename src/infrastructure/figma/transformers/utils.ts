@@ -1,5 +1,8 @@
 import { truncateToMillis } from '../../../common/date-utils';
+import { truncate } from '../../../common/string-utils';
 import { getConfig } from '../../../config';
+
+const MAX_DISPLAY_NAME_LENGTH = 255;
 
 /**
  * Builds a URL to a Figma design given Figma file/node metadata.
@@ -79,4 +82,8 @@ export const getUpdateSequenceNumberFrom = (dateIsoString: string): number => {
 	const lastUpdated = truncateToMillis(new Date(dateIsoString));
 
 	return lastUpdated.getTime();
+};
+
+export const truncateDisplayName = (displayName: string): string => {
+	return truncate(displayName, MAX_DISPLAY_NAME_LENGTH);
 };

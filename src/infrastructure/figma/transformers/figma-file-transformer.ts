@@ -3,6 +3,7 @@ import {
 	buildInspectUrl,
 	buildLiveEmbedUrl,
 	getUpdateSequenceNumberFrom,
+	truncateDisplayName,
 } from './utils';
 
 import type { AtlassianDesign } from '../../../domain/entities';
@@ -29,7 +30,7 @@ export const transformFileToAtlassianDesign = ({
 
 	return {
 		id: designId.toAtlassianDesignId(),
-		displayName: fileResponse.name,
+		displayName: truncateDisplayName(fileResponse.name),
 		url: buildDesignUrl({ fileKey }).toString(),
 		liveEmbedUrl: buildLiveEmbedUrl({ fileKey }).toString(),
 		inspectUrl: buildInspectUrl({ fileKey }).toString(),

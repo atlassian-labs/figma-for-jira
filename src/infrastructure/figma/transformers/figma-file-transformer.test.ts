@@ -4,6 +4,7 @@ import {
 	buildInspectUrl,
 	buildLiveEmbedUrl,
 	getUpdateSequenceNumberFrom,
+	truncateDisplayName,
 } from './utils';
 
 import {
@@ -42,5 +43,19 @@ describe('transformFileToAtlassianDesign', () => {
 				fileResponse.lastModified,
 			),
 		});
+	});
+
+	it('should truncate `displayName` if it is too long', () => {
+		const fileKey = generateFigmaFileKey();
+		const fileResponse = generateGetFileResponse({ name: 'a'.repeat(1000) });
+
+		const result = transformFileToAtlassianDesign({
+			fileKey,
+			fileResponse,
+		});
+
+		expect(result.displayName).toStrictEqual(
+			truncateDisplayName(fileResponse.name),
+		);
 	});
 });

@@ -2,6 +2,7 @@ import {
 	buildDesignUrl,
 	buildInspectUrl,
 	buildLiveEmbedUrl,
+	truncateDisplayName,
 } from './transformers/utils';
 
 import type { AtlassianDesign } from '../../domain/entities';
@@ -37,7 +38,7 @@ export class FigmaBackfillService {
 
 		return {
 			id: designId.toAtlassianDesignId(),
-			displayName,
+			displayName: truncateDisplayName(displayName),
 			url: buildDesignUrl(designId).toString(),
 			liveEmbedUrl: buildLiveEmbedUrl(designId).toString(),
 			inspectUrl: buildInspectUrl(designId).toString(),
