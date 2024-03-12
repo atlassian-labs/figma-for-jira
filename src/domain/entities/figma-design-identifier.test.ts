@@ -112,6 +112,30 @@ describe('FigmaDesignIdentifier', () => {
 			expect(result).toStrictEqual(new FigmaDesignIdentifier(fileKey, nodeId));
 		});
 
+		it('should return an identifier when URL is a design link', () => {
+			const fileKey = generateFigmaFileKey();
+			const nodeId = '42:1';
+			const designUrl = new URL(
+				`https://www.figma.com/design/${fileKey}?node-id=42%3A1`,
+			);
+
+			const result = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
+
+			expect(result).toStrictEqual(new FigmaDesignIdentifier(fileKey, nodeId));
+		});
+
+		it('should return an identifier when URL is a board link', () => {
+			const fileKey = generateFigmaFileKey();
+			const nodeId = '42:1';
+			const designUrl = new URL(
+				`https://www.figma.com/board/${fileKey}?node-id=42%3A1`,
+			);
+
+			const result = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
+
+			expect(result).toStrictEqual(new FigmaDesignIdentifier(fileKey, nodeId));
+		});
+
 		it.each([
 			new URL(`https://www.figma.com`),
 			new URL(`https://www.figma.com/file`),

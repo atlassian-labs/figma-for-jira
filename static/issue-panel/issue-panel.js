@@ -540,7 +540,7 @@ function getUrlParam(paramKey) {
 }
 var urlToDiv = {};
 var validURLChecker =
-	/^https:\/\/([\w\.-]+\.)?figma[.](?:com|engineering)\/(file|proto)\/([0-9a-zA-Z]{22,128})(?:\/([^\\?]*))?\\?.*$/;
+	/^https:\/\/([\w\.-]+\.)?figma[.](?:com|engineering)\/(file|proto|board|design)\/([0-9a-zA-Z]{22,128})(?:\/([^\\?]*))?\\?.*$/;
 function isValidFigmaFileURL(url) {
 	return validURLChecker.exec(url) != null;
 }
