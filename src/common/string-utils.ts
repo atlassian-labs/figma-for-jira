@@ -1,3 +1,6 @@
+// eslint-disable-next-line import/no-unassigned-import
+import 'core-js/proposals/well-formed-unicode-strings';
+
 export function isString(value: unknown): value is string {
 	return typeof value === 'string';
 }
