@@ -5,13 +5,23 @@ import { getConfig } from '../config';
 
 let logger: Logger | undefined;
 
-const redactedPaths = [
-	'headers.Authorization',
-	'*.headers.Authorization',
-	'*.*.headers.Authorization',
-	'*.*.*.headers.Authorization',
-	'err.config.data',
-];
+export const redactOptions = {
+	paths: [
+		'headers.Authorization',
+		'*.headers.Authorization',
+		'*.*.headers.Authorization',
+		'*.*.*.headers.Authorization',
+		'err.config.data',
+		'err.config.url',
+	],
+	censor: (value: unknown, path: string[]) => {
+		if (path.includes('url')) {
+			return (value as string).replace(/(=).*?(&|$)/g, '=[REDACTED]$2');
+		}
+
+		return '[REDACTED]';
+	},
+};
 
 export function getLogger(): Logger {
 	if (!logger) {
@@ -24,7 +34,7 @@ export function getLogger(): Logger {
 		if (isProduction) {
 			logger = pino({
 				level: defaultLogLevel,
-				redact: redactedPaths,
+				redact: redactOptions,
 			});
 		} else {
 			/* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-call */
@@ -39,7 +49,7 @@ export function getLogger(): Logger {
 			logger = pino(
 				{
 					level: isTest ? 'silent' : defaultLogLevel,
-					redact: redactedPaths,
+					redact: redactOptions,
 				},
 				prettyStream as DestinationStream,
 			);
