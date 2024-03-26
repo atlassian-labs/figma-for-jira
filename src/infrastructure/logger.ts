@@ -5,6 +5,14 @@ import { getConfig } from '../config';
 
 let logger: Logger | undefined;
 
+const redactedPaths = [
+	'headers.Authorization',
+	'*.headers.Authorization',
+	'*.*.headers.Authorization',
+	'*.*.*.headers.Authorization',
+	'err.config.data',
+];
+
 export function getLogger(): Logger {
 	if (!logger) {
 		const env = process.env.NODE_ENV;
@@ -16,6 +24,7 @@ export function getLogger(): Logger {
 		if (isProduction) {
 			logger = pino({
 				level: defaultLogLevel,
+				redact: redactedPaths,
 			});
 		} else {
 			/* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-call */
@@ -28,7 +37,10 @@ export function getLogger(): Logger {
 			/* eslint-enable */
 
 			logger = pino(
-				{ level: isTest ? 'silent' : defaultLogLevel },
+				{
+					level: isTest ? 'silent' : defaultLogLevel,
+					redact: redactedPaths,
+				},
 				prettyStream as DestinationStream,
 			);
 		}
