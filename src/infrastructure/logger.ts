@@ -16,7 +16,7 @@ export const redactOptions = {
 	],
 	censor: (value: unknown, path: string[]) => {
 		if (path.includes('url')) {
-			return (value as string).replace(/\?.*/, '?[REDACTED]');
+			return (value as string).replace(/(=).*?(&|$)/g, '=[REDACTED]$2');
 		}
 
 		return '[REDACTED]';
