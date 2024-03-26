@@ -5,7 +5,7 @@ import { getConfig } from '../config';
 
 let logger: Logger | undefined;
 
-const redactOptions = {
+export const redactOptions = {
 	paths: [
 		'headers.Authorization',
 		'*.headers.Authorization',
