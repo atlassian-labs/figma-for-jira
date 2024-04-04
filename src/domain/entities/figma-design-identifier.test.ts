@@ -136,6 +136,33 @@ describe('FigmaDesignIdentifier', () => {
 			expect(result).toStrictEqual(new FigmaDesignIdentifier(fileKey, nodeId));
 		});
 
+		it('should use the branch file key when using a branch url', () => {
+			const fileKey = generateFigmaFileKey();
+			const nodeId = '42:1';
+			const branchFileKey = generateFigmaFileKey();
+			const designUrl = new URL(
+				`https://www.figma.com/file/${fileKey}/branch/${branchFileKey}/FileName?node-id=42%3A1`,
+			);
+
+			const result = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
+
+			expect(result).toStrictEqual(
+				new FigmaDesignIdentifier(branchFileKey, nodeId),
+			);
+		});
+
+		it('should ignore the resulting query params if there is no branch but the file name is branch', () => {
+			const fileKey = generateFigmaFileKey();
+			const nodeId = '42:1';
+			const designUrl = new URL(
+				`https://www.figma.com/file/${fileKey}/branch?node-id=42%3A1`,
+			);
+
+			const result = FigmaDesignIdentifier.fromFigmaDesignUrl(designUrl);
+
+			expect(result).toStrictEqual(new FigmaDesignIdentifier(fileKey, nodeId));
+		});
+
 		it.each([
 			new URL(`https://www.figma.com`),
 			new URL(`https://www.figma.com/file`),
@@ -145,6 +172,7 @@ describe('FigmaDesignIdentifier', () => {
 			new URL(
 				`https://www.figma.com/files/project/176167247/Team-project?fuid=1166427116484924636`,
 			),
+			new URL(`https://www.figma.com/file/176167247/branch/`),
 		])('should throw when URL has an unexpected format', (input: URL) => {
 			expect(() => FigmaDesignIdentifier.fromFigmaDesignUrl(input)).toThrow();
 		});
