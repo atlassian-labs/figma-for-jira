@@ -1,3 +1,4 @@
+// TODO: Remove the import and `core-js` dependency once the local dev environment is updated to Node.js 20+.
 // eslint-disable-next-line import/no-unassigned-import
 import 'core-js/proposals/well-formed-unicode-strings';
 
