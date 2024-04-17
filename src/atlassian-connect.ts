@@ -89,14 +89,6 @@ export const connectAppDescriptor = {
 					value: APP_NAME,
 				},
 				location: 'admin_plugins_menu',
-				conditions: [
-					{
-						condition: 'feature_flag_service_flag',
-						params: {
-							featureKey: 'issue-view-designs-panel',
-						},
-					},
-				],
 			},
 		],
 		adminPages: [
@@ -110,37 +102,6 @@ export const connectAppDescriptor = {
 				conditions: [
 					{
 						condition: 'user_is_admin',
-					},
-					{
-						condition: 'feature_flag_service_flag',
-						params: {
-							featureKey: 'issue-view-designs-panel',
-						},
-					},
-				],
-			},
-		],
-		/**
-		 * This module renders the old "Figma for JIRA Cloud" Connect app web panel.
-		 * This will only be required temporarily while the feature is being
-		 * rolled out. Rollout will be managed the feature flag condition.
-		 */
-		webPanels: [
-			{
-				url: '/static/issue-panel/issue-panel.html?issueId={issue.id}&issueKey={issue.key}',
-				location: 'atl.jira.view.issue.left.context',
-				weight: 250,
-				key: 'figma-web-panel-jira-issue',
-				name: {
-					value: 'Designs',
-				},
-				conditions: [
-					{
-						condition: 'feature_flag_service_flag',
-						invert: true,
-						params: {
-							featureKey: 'issue-view-designs-panel',
-						},
 					},
 				],
 			},
