@@ -6,7 +6,7 @@ import {
 	truncateDisplayName,
 } from './utils';
 
-import type { AtlassianDesign } from '../../../domain/entities';
+import type { AtlassianDesign, FigmaUser } from '../../../domain/entities';
 import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
@@ -37,6 +37,7 @@ export const transformFileMetaToAtlassianDesign = ({
 		status: AtlassianDesignStatus.NONE,
 		type: AtlassianDesignType.FILE,
 		lastUpdated: fileMetaResponse.file.last_touched_at,
+		lastUpdatedBy: fileMetaResponse.file.last_touched_by as FigmaUser,
 		updateSequenceNumber: getUpdateSequenceNumberFrom(
 			fileMetaResponse.file.last_touched_at,
 		),
