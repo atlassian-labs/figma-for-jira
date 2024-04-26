@@ -1,3 +1,4 @@
+import type { FigmaUser } from './figma-user';
 import { JIRA_ISSUE_ATI } from './jira-issue';
 
 export enum AtlassianDesignStatus {
@@ -42,5 +43,6 @@ export type AtlassianDesign = {
 	readonly status: AtlassianDesignStatus;
 	readonly type: AtlassianDesignType;
 	readonly lastUpdated: string;
+	readonly lastUpdatedBy?: FigmaUser;
 	readonly updateSequenceNumber: number;
 };
