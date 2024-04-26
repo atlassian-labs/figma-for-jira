@@ -106,5 +106,32 @@ describe('FigmaBackfillService', () => {
 
 			expect(result?.displayName).toStrictEqual(truncateDisplayName(fileName));
 		});
+
+		it('should parse Figma file urls pointing to a branch', () => {
+			const fileKey = generateFigmaFileKey();
+			const nodeId = generateFigmaNodeId();
+			const branchFileKey = generateFigmaFileKey();
+
+			const fileName = 'Design1';
+			const designId = new FigmaDesignIdentifier(branchFileKey, nodeId);
+
+			const result = figmaBackfillService.buildMinimalDesignFromUrl(
+				new URL(
+					`https://www.figma.com/file/${fileKey}/branch/${branchFileKey}/${fileName}?node-id=${nodeId}`,
+				),
+			);
+
+			expect(result).toStrictEqual({
+				id: designId.toAtlassianDesignId(),
+				displayName: fileName,
+				url: buildDesignUrl(designId).toString(),
+				liveEmbedUrl: buildLiveEmbedUrl(designId).toString(),
+				inspectUrl: buildInspectUrl(designId).toString(),
+				status: AtlassianDesignStatus.UNKNOWN,
+				type: AtlassianDesignType.NODE,
+				lastUpdated: new Date(0).toISOString(),
+				updateSequenceNumber: 0,
+			});
+		});
 	});
 });

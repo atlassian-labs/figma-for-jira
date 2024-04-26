@@ -20,7 +20,7 @@ type TransformFileMetaToAtlassianDesignParams = {
 };
 
 /**
- * Transforms a Figma file medata to {@link AtlassianDesign}.
+ * Transforms a Figma file metadata to {@link AtlassianDesign}.
  */
 export const transformFileMetaToAtlassianDesign = ({
 	fileKey,

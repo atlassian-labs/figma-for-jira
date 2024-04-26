@@ -30,7 +30,16 @@ export class FigmaBackfillService {
 	 */
 	buildMinimalDesignFromUrl(url: URL): AtlassianDesign {
 		const designId = FigmaDesignIdentifier.fromFigmaDesignUrl(url);
-		const [, , , name] = url.pathname.split('/');
+		const pathComponents = url.pathname.split('/');
+		const keyComponentIndex = pathComponents.indexOf(designId.fileKey);
+
+		// `name` goes after the `key` component (which can be a File Key or Branch File Key).
+		// In theory, the keyComponentIndex should always be found, but let's be defensive
+		// and treat the name as if it's not found if we're not able to match the fileKey
+		const name =
+			keyComponentIndex === -1
+				? undefined
+				: pathComponents[keyComponentIndex + 1];
 
 		const displayName = name
 			? decodeURIComponent(name).replaceAll('-', ' ')

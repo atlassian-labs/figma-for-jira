@@ -40,12 +40,16 @@ export class FigmaDesignIdentifier {
 		);
 
 		const fileKey = pathComponents[filePathComponentId + 1];
+		const branchFileKey =
+			pathComponents[filePathComponentId + 2] === 'branch'
+				? pathComponents[filePathComponentId + 3]
+				: undefined;
 		const nodeId = url.searchParams.get('node-id')?.replace('-', ':');
 
 		if (!fileKey)
 			throw new Error(`Received invalid Figma URL: ${url.toString()}`);
 
-		return new FigmaDesignIdentifier(fileKey, nodeId);
+		return new FigmaDesignIdentifier(branchFileKey ?? fileKey, nodeId);
 	};
 
 	/**
