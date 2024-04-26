@@ -3,6 +3,7 @@ import {
 	buildDesignUrl,
 	buildInspectUrl,
 	buildLiveEmbedUrl,
+	getResourceIconUrl,
 	truncateDisplayName,
 } from './transformers/utils';
 
@@ -22,6 +23,7 @@ describe('FigmaBackfillService', () => {
 			const fileKey = generateFigmaFileKey();
 			const fileName = 'Design1';
 			const designId = new FigmaDesignIdentifier(fileKey);
+			const resourceIconUrl = getResourceIconUrl();
 
 			const result = figmaBackfillService.buildMinimalDesignFromUrl(
 				new URL(`https://www.figma.com/file/${fileKey}/${fileName}`),
@@ -37,6 +39,7 @@ describe('FigmaBackfillService', () => {
 				type: AtlassianDesignType.FILE,
 				lastUpdated: new Date(0).toISOString(),
 				lastUpdatedBy: undefined,
+				iconUrl: resourceIconUrl,
 				updateSequenceNumber: 0,
 			});
 		});
@@ -46,6 +49,7 @@ describe('FigmaBackfillService', () => {
 			const nodeId = generateFigmaNodeId();
 			const fileName = 'Design1';
 			const designId = new FigmaDesignIdentifier(fileKey, nodeId);
+			const resourceIconUrl = getResourceIconUrl();
 
 			const result = figmaBackfillService.buildMinimalDesignFromUrl(
 				new URL(
@@ -63,6 +67,7 @@ describe('FigmaBackfillService', () => {
 				type: AtlassianDesignType.NODE,
 				lastUpdated: new Date(0).toISOString(),
 				lastUpdatedBy: undefined,
+				iconUrl: resourceIconUrl,
 				updateSequenceNumber: 0,
 			});
 		});
@@ -70,6 +75,7 @@ describe('FigmaBackfillService', () => {
 		it('should return design for Figma URL with minimal information', () => {
 			const fileKey = generateFigmaFileKey();
 			const designId = new FigmaDesignIdentifier(fileKey);
+			const resourceIconUrl = getResourceIconUrl();
 
 			const result = figmaBackfillService.buildMinimalDesignFromUrl(
 				new URL(`https://www.figma.com/file/${fileKey}`),
@@ -85,6 +91,7 @@ describe('FigmaBackfillService', () => {
 				type: AtlassianDesignType.FILE,
 				lastUpdated: new Date(0).toISOString(),
 				lastUpdatedBy: undefined,
+				iconUrl: resourceIconUrl,
 				updateSequenceNumber: 0,
 			});
 		});

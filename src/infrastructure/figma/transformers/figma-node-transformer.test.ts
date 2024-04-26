@@ -9,6 +9,7 @@ import {
 	buildDesignUrl,
 	buildInspectUrl,
 	buildLiveEmbedUrl,
+	getResourceIconUrl,
 	getUpdateSequenceNumberFrom,
 	truncateDisplayName,
 } from './utils';
@@ -57,6 +58,7 @@ describe('tryTransformNodeToAtlassianDesign', () => {
 		const nodeLastModified = new Date('2023-11-05T23:08:49.123Z');
 		const irrelevantLastModified = new Date('2023-11-05T23:10:00.123Z');
 		const lastModifiedBy = generateFigmaUser();
+		const resourceIconUrl = getResourceIconUrl();
 
 		const fileResponse = generateGetFileResponse({
 			document: {
@@ -110,6 +112,7 @@ describe('tryTransformNodeToAtlassianDesign', () => {
 			type: AtlassianDesignType.OTHER,
 			lastUpdated: nodeLastModified.toISOString(),
 			lastUpdatedBy: lastModifiedBy,
+			iconUrl: resourceIconUrl,
 			updateSequenceNumber: getUpdateSequenceNumberFrom(
 				nodeLastModified.toISOString(),
 			),
