@@ -2,7 +2,11 @@ import {
 	figmaAuthService,
 	MissingOrInvalidCredentialsFigmaAuthServiceError,
 } from './figma-auth-service';
-import type { CreateWebhookRequest, GetFileResponse } from './figma-client';
+import type {
+	CreateWebhookRequest,
+	GetFileMetaResponse,
+	GetFileResponse,
+} from './figma-client';
 import { figmaClient } from './figma-client';
 import { ERROR_RESPONSE_SCHEMA } from './figma-client/schemas';
 import {
@@ -40,7 +44,10 @@ export class FigmaService {
 			return await this.withErrorTranslation(async () => {
 				const credentials = await figmaAuthService.getCredentials(user);
 				const meResponse = await figmaClient.me(credentials.accessToken);
-				return { email: meResponse.email };
+				return {
+					id: meResponse.id,
+					email: meResponse.email,
+				};
 			});
 		} catch (e) {
 			if (e instanceof UnauthorizedFigmaServiceError) return null;
@@ -126,6 +133,7 @@ export class FigmaService {
 
 			const { accessToken } = await figmaAuthService.getCredentials(user);
 			let fileResponse: GetFileResponse;
+			let fileMetaResponse: GetFileMetaResponse;
 
 			try {
 				const nodeIds = designIds.map((id) => id.nodeId).filter(isString);
@@ -140,6 +148,7 @@ export class FigmaService {
 					},
 					accessToken,
 				);
+				fileMetaResponse = await figmaClient.getFileMeta(fileKey, accessToken);
 			} catch (e) {
 				if (e instanceof NotFoundHttpClientError) return [];
 				throw e;
@@ -151,12 +160,14 @@ export class FigmaService {
 						return transformFileToAtlassianDesign({
 							fileKey: designId.fileKey,
 							fileResponse,
+							fileMetaResponse,
 						});
 					} else {
 						return tryTransformNodeToAtlassianDesign({
 							fileKey: designId.fileKey,
 							nodeId: designId.nodeId,
 							fileResponse,
+							fileMetaResponse,
 						});
 					}
 				})
@@ -413,10 +424,16 @@ export class FigmaService {
 					credentials.accessToken,
 				);
 
+				const fileMetaResponse = await figmaClient.getFileMeta(
+					fileKey,
+					credentials.accessToken,
+				);
+
 				return tryTransformNodeToAtlassianDesign({
 					fileKey,
 					nodeId,
 					fileResponse,
+					fileMetaResponse,
 				});
 			} catch (e) {
 				if (e instanceof NotFoundHttpClientError) return null;
@@ -446,14 +463,23 @@ export class FigmaService {
 					},
 					credentials.accessToken,
 				);
+				const fileMetaResponse = await figmaClient.getFileMeta(
+					fileKey,
+					credentials.accessToken,
+				);
 
 				let design = tryTransformNodeToAtlassianDesign({
 					fileKey,
 					nodeId,
 					fileResponse,
+					fileMetaResponse,
 				});
 
-				design ??= transformFileToAtlassianDesign({ fileKey, fileResponse });
+				design ??= transformFileToAtlassianDesign({
+					fileKey,
+					fileResponse,
+					fileMetaResponse,
+				});
 
 				return design;
 			} catch (e) {
