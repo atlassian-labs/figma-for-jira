@@ -2,6 +2,7 @@ import {
 	buildDesignUrl,
 	buildInspectUrl,
 	buildLiveEmbedUrl,
+	getResourceIconUrl,
 	getUpdateSequenceNumberFrom,
 	truncateDisplayName,
 } from './utils';
@@ -82,6 +83,7 @@ export const tryTransformNodeToAtlassianDesign = ({
 		type: mapNodeTypeToDesignType(node.type),
 		lastUpdated: extra.lastModified,
 		lastUpdatedBy: fileMetaResponse.file.last_touched_by,
+		iconUrl: getResourceIconUrl(),
 		updateSequenceNumber: getUpdateSequenceNumberFrom(extra.lastModified),
 	};
 };
