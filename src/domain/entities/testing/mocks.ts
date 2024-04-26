@@ -10,6 +10,7 @@ import type {
 	FigmaOAuth2UserCredentialsCreateParams,
 	FigmaTeamCreateParams,
 	FigmaTeamSummary,
+	FigmaUser,
 	JiraIssue,
 } from '..';
 import {
@@ -270,4 +271,12 @@ export const generateFigmaTeamSummary = ({
 	teamId,
 	teamName,
 	authStatus: status,
+});
+
+export const generateFigmaUser = ({
+	id = uuidv4(),
+	email = `${uuidv4()}@example.com`,
+}: Partial<FigmaUser> = {}): FigmaUser => ({
+	id,
+	email,
 });
