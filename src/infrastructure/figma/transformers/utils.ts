@@ -87,3 +87,14 @@ export const getUpdateSequenceNumberFrom = (dateIsoString: string): number => {
 export const truncateDisplayName = (displayName: string): string => {
 	return truncate(displayName, MAX_DISPLAY_NAME_LENGTH);
 };
+
+/**
+ * Returns the URL to the resource icon.
+ *
+ * As it stands, the icon is the same as the figma logo.
+ * If different icons are introduced for different file/ editor types,
+ * this implementation should be updated.
+ */
+export const getResourceIconUrl = (): string => {
+	return `${getConfig().app.baseUrl}/static/figma-logo.svg`;
+};
