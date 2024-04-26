@@ -44,5 +44,6 @@ export type AtlassianDesign = {
 	readonly type: AtlassianDesignType;
 	readonly lastUpdated: string;
 	readonly lastUpdatedBy?: FigmaUser;
+	readonly iconUrl?: string;
 	readonly updateSequenceNumber: number;
 };
