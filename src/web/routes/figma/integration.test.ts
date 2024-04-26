@@ -61,6 +61,7 @@ import {
 import { waitForEvent } from '../../../infrastructure/testing';
 import {
 	mockFigmaGetFileEndpoint,
+	mockFigmaGetFileMetaEndpoint,
 	mockFigmaGetTeamProjectsEndpoint,
 	mockJiraSubmitDesignsEndpoint,
 } from '../../testing';
@@ -196,6 +197,12 @@ describe('/figma', () => {
 					},
 					response: fileResponse,
 				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					response: fileMetaResponse,
+				});
 				mockJiraSubmitDesignsEndpoint({
 					baseUrl: connectInstallation.baseUrl,
 					request: generateSubmitDesignsRequest(associatedAtlassianDesigns),
@@ -321,6 +328,12 @@ describe('/figma', () => {
 					},
 					response: fileResponse,
 				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					response: fileMetaResponse,
+				});
 				mockJiraSubmitDesignsEndpoint({
 					baseUrl: connectInstallation.baseUrl,
 					request: generateSubmitDesignsRequest(associatedAtlassianDesigns),
@@ -375,6 +388,12 @@ describe('/figma', () => {
 						node_last_modified: 'true',
 					},
 					response: fileResponse,
+				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					response: fileMetaResponse,
 				});
 				mockJiraSubmitDesignsEndpoint({
 					baseUrl: connectInstallation.baseUrl,

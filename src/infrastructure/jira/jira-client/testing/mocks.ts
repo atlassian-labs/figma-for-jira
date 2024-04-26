@@ -1,13 +1,16 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { Duration } from '../../../../common/duration';
+import type { FigmaUser } from '../../../../domain/entities';
 import {
 	generateFigmaFileKey,
 	generateFigmaNodeId,
+	generateFigmaUser,
 	generateJiraIssueId,
 	generateJiraIssueKey,
 	generateJiraIssueUrl,
 } from '../../../../domain/entities/testing';
+import { getResourceIconUrl } from '../../../figma/transformers/utils';
 import type { JwtTokenParams } from '../jwt-utils';
 import type {
 	Association,
@@ -44,6 +47,8 @@ export const generateSubmitDesignsRequest = (
 		status?: string;
 		type?: string;
 		lastUpdated?: string;
+		lastUpdatedBy?: FigmaUser;
+		iconUrl?: string;
 		updateSequenceNumber?: number;
 		addAssociations?: Association[] | null;
 		removeAssociations?: Association[] | null;
@@ -61,6 +66,8 @@ export const generateSubmitDesignsRequest = (
 			status = 'UNKNOWN',
 			type = 'FILE',
 			lastUpdated = new Date().toISOString(),
+			lastUpdatedBy = generateFigmaUser(),
+			iconUrl = getResourceIconUrl(),
 			updateSequenceNumber = Date.now(),
 			addAssociations = null,
 			removeAssociations = null,
@@ -75,6 +82,8 @@ export const generateSubmitDesignsRequest = (
 			status,
 			type,
 			lastUpdated,
+			lastUpdatedBy,
+			iconUrl,
 			updateSequenceNumber,
 			addAssociations,
 			removeAssociations,
