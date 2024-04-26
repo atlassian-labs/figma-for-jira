@@ -37,6 +37,7 @@ import {
 	generateFigmaFileKey,
 	generateFigmaNodeId,
 	generateFigmaOAuth2UserCredentials,
+	generateFigmaUser,
 	generateJiraIssueKey,
 	generateJiraIssueUrl,
 } from '../../domain/entities/testing';
@@ -67,7 +68,7 @@ describe('FigmaService', () => {
 
 			const result = await figmaService.getCurrentUser(MOCK_CONNECT_USER_INFO);
 
-			expect(result).toEqual({ email: 'me@foo.com' });
+			expect(result).toEqual({ id: '1234', email: 'me@foo.com' });
 			expect(figmaAuthService.getCredentials).toHaveBeenCalledWith(
 				MOCK_CONNECT_USER_INFO,
 			);
@@ -146,13 +147,18 @@ describe('FigmaService', () => {
 			const node = generateChildNode({ id: nodeId });
 			const designId = generateFigmaDesignIdentifier({ nodeId });
 			const credentials = generateFigmaOAuth2UserCredentials();
+			const figmaUser = generateFigmaUser();
 			const fileResponse = generateGetFileResponseWithNode({ node });
-
+			const fileMetaResponse = generateGetFileMetaResponse({
+				lastModifiedBy: figmaUser,
+			});
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(fileResponse);
-
+			jest
+				.spyOn(figmaClient, 'getFileMeta')
+				.mockResolvedValue(fileMetaResponse);
 			const result = await figmaService.getDesign(
 				designId,
 				MOCK_CONNECT_USER_INFO,
@@ -162,10 +168,12 @@ describe('FigmaService', () => {
 				fileKey: designId.fileKey,
 				nodeId: designId.nodeId!,
 				fileResponse,
+				fileMetaResponse,
 			});
 			expect(result).toStrictEqual({
 				...expectedEntity,
 				lastUpdated: expect.anything(),
+				lastUpdatedBy: figmaUser,
 			});
 		});
 
@@ -239,12 +247,18 @@ describe('FigmaService', () => {
 			const node = generateChildNode({ id: nodeId });
 			const designId = generateFigmaDesignIdentifier({ nodeId });
 			const credentials = generateFigmaOAuth2UserCredentials();
+			const figmaUser = generateFigmaUser();
 			const fileResponse = generateGetFileResponseWithNode({ node });
-
+			const fileMetaResponse = generateGetFileMetaResponse({
+				lastModifiedBy: figmaUser,
+			});
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(fileResponse);
+			jest
+				.spyOn(figmaClient, 'getFileMeta')
+				.mockResolvedValue(fileMetaResponse);
 
 			const result = await figmaService.getDesignOrParent(
 				designId,
@@ -255,10 +269,12 @@ describe('FigmaService', () => {
 				fileKey: designId.fileKey,
 				nodeId: designId.nodeId!,
 				fileResponse,
+				fileMetaResponse,
 			});
 			expect(result).toStrictEqual({
 				...expectedEntity,
 				lastUpdated: expect.anything(),
+				lastUpdatedBy: figmaUser,
 			});
 		});
 
@@ -268,11 +284,15 @@ describe('FigmaService', () => {
 			});
 			const credentials = generateFigmaOAuth2UserCredentials();
 			const fileResponse = generateGetFileResponse();
+			const fileMetaResponse = generateGetFileMetaResponse();
 
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(fileResponse);
+			jest
+				.spyOn(figmaClient, 'getFileMeta')
+				.mockResolvedValue(fileMetaResponse);
 
 			const result = await figmaService.getDesignOrParent(
 				designId,
@@ -282,6 +302,7 @@ describe('FigmaService', () => {
 			const expectedEntity = transformFileToAtlassianDesign({
 				fileKey: designId.fileKey,
 				fileResponse,
+				fileMetaResponse,
 			});
 			expect(result).toStrictEqual({
 				...expectedEntity,
@@ -332,11 +353,15 @@ describe('FigmaService', () => {
 			const designIdWithoutNode = generateFigmaDesignIdentifier({ fileKey });
 			const credentials = generateFigmaOAuth2UserCredentials();
 			const mockResponse = generateGetFileResponse();
+			const mockFileMetaResponse = generateGetFileMetaResponse();
 
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
+			jest
+				.spyOn(figmaClient, 'getFileMeta')
+				.mockResolvedValue(mockFileMetaResponse);
 
 			const result = await figmaService.getAvailableDesignsFromSameFile(
 				[designIdWithoutNode],
@@ -347,6 +372,7 @@ describe('FigmaService', () => {
 				transformFileToAtlassianDesign({
 					fileKey: designIdWithoutNode.fileKey,
 					fileResponse: mockResponse,
+					fileMetaResponse: mockFileMetaResponse,
 				}),
 			]);
 			expect(figmaClient.getFile).toHaveBeenCalledWith(
@@ -377,11 +403,15 @@ describe('FigmaService', () => {
 			const mockResponse = generateGetFileResponseWithNodes({
 				nodes: [node1, node2],
 			});
+			const mockFileMetaResponse = generateGetFileMetaResponse();
 
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
+			jest
+				.spyOn(figmaClient, 'getFileMeta')
+				.mockResolvedValue(mockFileMetaResponse);
 
 			const result = await figmaService.getAvailableDesignsFromSameFile(
 				[designIdWithoutNode, designIdWithNode1, designIdWithNode2],
@@ -392,16 +422,19 @@ describe('FigmaService', () => {
 				transformFileToAtlassianDesign({
 					fileKey: designIdWithoutNode.fileKey,
 					fileResponse: mockResponse,
+					fileMetaResponse: mockFileMetaResponse,
 				}),
 				tryTransformNodeToAtlassianDesign({
 					fileKey: designIdWithNode1.fileKey,
 					nodeId: designIdWithNode1.nodeId!,
 					fileResponse: mockResponse,
+					fileMetaResponse: mockFileMetaResponse,
 				}),
 				tryTransformNodeToAtlassianDesign({
 					fileKey: designIdWithNode2.fileKey,
 					nodeId: designIdWithNode2.nodeId!,
 					fileResponse: mockResponse,
+					fileMetaResponse: mockFileMetaResponse,
 				}),
 			]);
 			expect(figmaClient.getFile).toHaveBeenCalledWith(
@@ -450,11 +483,15 @@ describe('FigmaService', () => {
 			const mockResponse = generateGetFileResponseWithNodes({
 				nodes: [node1],
 			});
+			const mockFileMetaResponse = generateGetFileMetaResponse();
 
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
 			jest.spyOn(figmaClient, 'getFile').mockResolvedValue(mockResponse);
+			jest
+				.spyOn(figmaClient, 'getFileMeta')
+				.mockResolvedValue(mockFileMetaResponse);
 
 			const result = await figmaService.getAvailableDesignsFromSameFile(
 				[designIdWithoutNode, designIdWithNode1, designIdWithNode2],
@@ -465,11 +502,13 @@ describe('FigmaService', () => {
 				transformFileToAtlassianDesign({
 					fileKey: designIdWithoutNode.fileKey,
 					fileResponse: mockResponse,
+					fileMetaResponse: mockFileMetaResponse,
 				}),
 				tryTransformNodeToAtlassianDesign({
 					fileKey: designIdWithNode1.fileKey,
 					nodeId: designIdWithNode1.nodeId!,
 					fileResponse: mockResponse,
+					fileMetaResponse: mockFileMetaResponse,
 				}),
 			]);
 		});

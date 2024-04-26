@@ -320,10 +320,12 @@ describe('/entities', () => {
 				name: fileName,
 				node,
 			});
+			const fileMetaResponse = generateGetFileMetaResponse();
 			const atlassianDesign = transformNodeToAtlassianDesign({
 				fileKey,
 				nodeId,
 				fileResponse,
+				fileMetaResponse,
 			});
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
@@ -846,10 +848,12 @@ describe('/entities', () => {
 				name: fileName,
 				node,
 			});
+			const fileMetaResponse = generateGetFileMetaResponse();
 			const atlassianDesign = transformNodeToAtlassianDesign({
 				fileKey,
 				nodeId,
 				fileResponse,
+				fileMetaResponse,
 			});
 			mockFigmaGetFileEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,

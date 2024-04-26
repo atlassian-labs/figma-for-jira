@@ -17,10 +17,14 @@ import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
 } from '../../../domain/entities';
-import { generateFigmaFileKey } from '../../../domain/entities/testing';
+import {
+	generateFigmaFileKey,
+	generateFigmaUser,
+} from '../../../domain/entities/testing';
 import {
 	generateChildNode,
 	generateFrameNode,
+	generateGetFileMetaResponse,
 	generateGetFileResponse,
 	MOCK_DOCUMENT,
 } from '../figma-client/testing';
@@ -33,12 +37,14 @@ describe('transformNodeToAtlassianDesign', () => {
 				...MOCK_DOCUMENT,
 			},
 		});
+		const fileMetaResponse = generateGetFileMetaResponse();
 
 		expect(() =>
 			transformNodeToAtlassianDesign({
 				fileKey,
 				nodeId: '100:1',
 				fileResponse,
+				fileMetaResponse,
 			}),
 		).toThrow();
 	});
@@ -50,6 +56,8 @@ describe('tryTransformNodeToAtlassianDesign', () => {
 		const node = generateChildNode({ id: '100:1' });
 		const nodeLastModified = new Date('2023-11-05T23:08:49.123Z');
 		const irrelevantLastModified = new Date('2023-11-05T23:10:00.123Z');
+		const lastModifiedBy = generateFigmaUser();
+
 		const fileResponse = generateGetFileResponse({
 			document: {
 				...MOCK_DOCUMENT,
@@ -72,10 +80,15 @@ describe('tryTransformNodeToAtlassianDesign', () => {
 			lastModified: irrelevantLastModified,
 		});
 
+		const fileMetaResponse = generateGetFileMetaResponse({
+			lastModifiedBy: lastModifiedBy,
+		});
+
 		const result = tryTransformNodeToAtlassianDesign({
 			fileKey,
 			nodeId: node.id,
 			fileResponse,
+			fileMetaResponse,
 		});
 
 		expect(result).toStrictEqual({
@@ -96,6 +109,7 @@ describe('tryTransformNodeToAtlassianDesign', () => {
 			status: AtlassianDesignStatus.NONE,
 			type: AtlassianDesignType.OTHER,
 			lastUpdated: nodeLastModified.toISOString(),
+			lastUpdatedBy: lastModifiedBy,
 			updateSequenceNumber: getUpdateSequenceNumberFrom(
 				nodeLastModified.toISOString(),
 			),
@@ -109,11 +123,13 @@ describe('tryTransformNodeToAtlassianDesign', () => {
 				...MOCK_DOCUMENT,
 			},
 		});
+		const fileMetaResponse = generateGetFileMetaResponse();
 
 		const result = tryTransformNodeToAtlassianDesign({
 			fileKey,
 			nodeId: '100:1',
 			fileResponse,
+			fileMetaResponse,
 		});
 
 		expect(result).toBeNull();
@@ -129,11 +145,13 @@ describe('tryTransformNodeToAtlassianDesign', () => {
 				children: [node],
 			},
 		});
+		const fileMetaResponse = generateGetFileMetaResponse();
 
 		const result = tryTransformNodeToAtlassianDesign({
 			fileKey,
 			nodeId: node.id,
 			fileResponse,
+			fileMetaResponse,
 		});
 
 		expect(result?.displayName).toStrictEqual(

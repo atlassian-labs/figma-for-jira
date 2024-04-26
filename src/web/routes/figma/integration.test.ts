@@ -32,9 +32,13 @@ import {
 	generateFigmaOAuth2UserCredentialCreateParams,
 	generateFigmaTeamCreateParams,
 } from '../../../domain/entities/testing';
-import type { GetFileResponse } from '../../../infrastructure/figma/figma-client';
+import type {
+	GetFileMetaResponse,
+	GetFileResponse,
+} from '../../../infrastructure/figma/figma-client';
 import {
 	generateChildNode,
+	generateGetFileMetaResponse,
 	generateGetFileResponseWithNodes,
 	generateGetOAuth2TokenQueryParams,
 	generateGetOAuth2TokenResponse,
@@ -72,18 +76,21 @@ const FIGMA_WEBHOOK_EVENT_ENDPOINT = '/figma/webhook';
 function generateAtlassianDesignFromDesignIdAndFileResponse(
 	designId: FigmaDesignIdentifier,
 	fileResponse: GetFileResponse,
+	fileMetaResponse: GetFileMetaResponse,
 ) {
 	let atlassianDesign: AtlassianDesign;
 	if (!designId.nodeId) {
 		atlassianDesign = transformFileToAtlassianDesign({
 			fileKey: designId.fileKey,
 			fileResponse,
+			fileMetaResponse,
 		});
 	} else {
 		atlassianDesign = transformNodeToAtlassianDesign({
 			fileKey: designId.fileKey,
 			nodeId: designId.nodeId,
 			fileResponse,
+			fileMetaResponse,
 		});
 	}
 
@@ -161,11 +168,13 @@ describe('/figma', () => {
 				const fileResponse = generateGetFileResponseWithNodes({
 					nodes: nodeIds.map((nodeId) => generateChildNode({ id: nodeId })),
 				});
+				const fileMetaResponse = generateGetFileMetaResponse();
 				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
 					(design) =>
 						generateAtlassianDesignFromDesignIdAndFileResponse(
 							design.designId,
 							fileResponse,
+							fileMetaResponse,
 						),
 				);
 
@@ -284,11 +293,13 @@ describe('/figma', () => {
 						generateChildNode({ id: `9999:2` }),
 					],
 				});
+				const fileMetaResponse = generateGetFileMetaResponse();
 				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
 					(design) =>
 						generateAtlassianDesignFromDesignIdAndFileResponse(
 							design.designId,
 							fileResponse,
+							fileMetaResponse,
 						),
 				);
 
@@ -340,11 +351,13 @@ describe('/figma', () => {
 				const fileResponse = generateGetFileResponseWithNodes({
 					nodes: nodeIds.map((nodeId) => generateChildNode({ id: nodeId })),
 				});
+				const fileMetaResponse = generateGetFileMetaResponse();
 				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
 					(design) =>
 						generateAtlassianDesignFromDesignIdAndFileResponse(
 							design.designId,
 							fileResponse,
+							fileMetaResponse,
 						),
 				);
 				mockFigmaGetTeamProjectsEndpoint({

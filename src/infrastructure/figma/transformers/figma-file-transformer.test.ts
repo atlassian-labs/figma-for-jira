@@ -12,16 +12,21 @@ import {
 	AtlassianDesignType,
 } from '../../../domain/entities';
 import { generateFigmaFileKey } from '../../../domain/entities/testing';
-import { generateGetFileResponse } from '../figma-client/testing';
+import {
+	generateGetFileMetaResponse,
+	generateGetFileResponse,
+} from '../figma-client/testing';
 
 describe('transformFileToAtlassianDesign', () => {
 	it('should correctly map to atlassian design', () => {
 		const fileKey = generateFigmaFileKey();
 		const fileResponse = generateGetFileResponse();
+		const fileMetaResponse = generateGetFileMetaResponse();
 
 		const result = transformFileToAtlassianDesign({
 			fileKey,
 			fileResponse,
+			fileMetaResponse,
 		});
 
 		expect(result).toStrictEqual({
@@ -39,6 +44,7 @@ describe('transformFileToAtlassianDesign', () => {
 			status: AtlassianDesignStatus.NONE,
 			type: AtlassianDesignType.FILE,
 			lastUpdated: fileResponse.lastModified,
+			lastUpdatedBy: fileMetaResponse.file.last_touched_by,
 			updateSequenceNumber: getUpdateSequenceNumberFrom(
 				fileResponse.lastModified,
 			),
@@ -48,10 +54,12 @@ describe('transformFileToAtlassianDesign', () => {
 	it('should truncate `displayName` if it is too long', () => {
 		const fileKey = generateFigmaFileKey();
 		const fileResponse = generateGetFileResponse({ name: 'a'.repeat(1000) });
+		const fileMetaResponse = generateGetFileMetaResponse();
 
 		const result = transformFileToAtlassianDesign({
 			fileKey,
 			fileResponse,
+			fileMetaResponse,
 		});
 
 		expect(result.displayName).toStrictEqual(
