@@ -5,7 +5,6 @@ import type { FigmaUser } from '../../../../domain/entities';
 import {
 	generateFigmaFileKey,
 	generateFigmaNodeId,
-	generateFigmaUser,
 	generateJiraIssueId,
 	generateJiraIssueKey,
 	generateJiraIssueUrl,
@@ -66,7 +65,7 @@ export const generateSubmitDesignsRequest = (
 			status = 'UNKNOWN',
 			type = 'FILE',
 			lastUpdated = new Date().toISOString(),
-			lastUpdatedBy = generateFigmaUser(),
+			lastUpdatedBy,
 			iconUrl = getResourceIconUrl(),
 			updateSequenceNumber = Date.now(),
 			addAssociations = null,

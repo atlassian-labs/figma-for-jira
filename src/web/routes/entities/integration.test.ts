@@ -51,6 +51,7 @@ import {
 	buildDesignUrl,
 	buildInspectUrl,
 	buildLiveEmbedUrl,
+	getResourceIconUrl,
 } from '../../../infrastructure/figma/transformers/utils';
 import {
 	generateGetIssuePropertyResponse,
@@ -348,6 +349,12 @@ describe('/entities', () => {
 					node_last_modified: 'true',
 				},
 				response: fileResponse,
+			});
+			mockFigmaGetFileMetaEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey,
+				accessToken: figmaUserCredentials.accessToken,
+				response: fileMetaResponse,
 			});
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
@@ -866,6 +873,12 @@ describe('/entities', () => {
 				},
 				response: fileResponse,
 			});
+			mockFigmaGetFileMetaEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey,
+				accessToken: figmaUserCredentials.accessToken,
+				response: fileMetaResponse,
+			});
 			mockJiraSubmitDesignsEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				request: generateSubmitDesignsRequest([atlassianDesign]),
@@ -1134,6 +1147,13 @@ describe('/entities', () => {
 				},
 				response: fileResponse,
 			});
+			const fileMetaResponse = generateGetFileMetaResponse();
+			mockFigmaGetFileMetaEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey,
+				accessToken: figmaUserCredentials.accessToken,
+				response: fileMetaResponse,
+			});
 			await request(app)
 				.post('/entities/associateEntity')
 				.query({ userId: atlassianUserId })
@@ -1201,6 +1221,7 @@ describe('/entities', () => {
 				type: AtlassianDesignType.OTHER,
 				lastUpdated: new Date().toISOString(),
 				updateSequenceNumber: 0,
+				iconUrl: getResourceIconUrl(),
 			};
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
@@ -1222,18 +1243,19 @@ describe('/entities', () => {
 				issueId: issue.id,
 				response: issue,
 			});
+			const mockRequest = generateSubmitDesignsRequest([
+				{
+					...designStub,
+					removeAssociations: [
+						{
+							...AtlassianAssociation.createDesignIssueAssociation(issueAri),
+						},
+					],
+				},
+			]);
 			mockJiraSubmitDesignsEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				request: generateSubmitDesignsRequest([
-					{
-						...designStub,
-						removeAssociations: [
-							{
-								...AtlassianAssociation.createDesignIssueAssociation(issueAri),
-							},
-						],
-					},
-				]),
+				request: mockRequest,
 			});
 			mockFigmaGetDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
@@ -1337,6 +1359,7 @@ describe('/entities', () => {
 				type: AtlassianDesignType.OTHER,
 				lastUpdated: new Date().toISOString(),
 				updateSequenceNumber: 0,
+				iconUrl: getResourceIconUrl(),
 			};
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),

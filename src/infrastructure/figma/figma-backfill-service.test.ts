@@ -38,7 +38,6 @@ describe('FigmaBackfillService', () => {
 				status: AtlassianDesignStatus.UNKNOWN,
 				type: AtlassianDesignType.FILE,
 				lastUpdated: new Date(0).toISOString(),
-				lastUpdatedBy: undefined,
 				iconUrl: resourceIconUrl,
 				updateSequenceNumber: 0,
 			});
@@ -66,7 +65,6 @@ describe('FigmaBackfillService', () => {
 				status: AtlassianDesignStatus.UNKNOWN,
 				type: AtlassianDesignType.NODE,
 				lastUpdated: new Date(0).toISOString(),
-				lastUpdatedBy: undefined,
 				iconUrl: resourceIconUrl,
 				updateSequenceNumber: 0,
 			});
@@ -90,7 +88,6 @@ describe('FigmaBackfillService', () => {
 				status: AtlassianDesignStatus.UNKNOWN,
 				type: AtlassianDesignType.FILE,
 				lastUpdated: new Date(0).toISOString(),
-				lastUpdatedBy: undefined,
 				iconUrl: resourceIconUrl,
 				updateSequenceNumber: 0,
 			});

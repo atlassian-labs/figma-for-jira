@@ -57,7 +57,6 @@ export class FigmaBackfillService {
 				? AtlassianDesignType.NODE
 				: AtlassianDesignType.FILE,
 			lastUpdated: new Date(0).toISOString(), // Cannot be derived from the URL. Use the default value.,
-			lastUpdatedBy: undefined,
 			iconUrl: getResourceIconUrl(),
 			updateSequenceNumber: 0,
 		};
