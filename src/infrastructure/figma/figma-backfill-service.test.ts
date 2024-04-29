@@ -138,6 +138,7 @@ describe('FigmaBackfillService', () => {
 				type: AtlassianDesignType.NODE,
 				lastUpdated: new Date(0).toISOString(),
 				updateSequenceNumber: 0,
+				iconUrl: getResourceIconUrl(),
 			});
 		});
 	});
