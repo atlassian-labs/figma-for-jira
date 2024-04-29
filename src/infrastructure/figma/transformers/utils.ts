@@ -96,5 +96,5 @@ export const truncateDisplayName = (displayName: string): string => {
  * this implementation should be updated.
  */
 export const getResourceIconUrl = (): string => {
-	return `${getConfig().app.baseUrl}/static/figma-logo.svg`;
+	return `${getConfig().app.baseUrl}/static/figma-design-resource-icon.svg`;
 };
