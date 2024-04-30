@@ -275,6 +275,12 @@ describe('/figma', () => {
 					},
 					status: HttpStatusCode.NotFound,
 				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					status: HttpStatusCode.NotFound,
+				});
 
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
@@ -441,6 +447,12 @@ describe('/figma', () => {
 					},
 					status: HttpStatusCode.InternalServerError,
 				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					status: HttpStatusCode.InternalServerError,
+				});
 
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
@@ -498,6 +510,12 @@ describe('/figma', () => {
 						depth: '0',
 						node_last_modified: 'true',
 					},
+					status: HttpStatusCode.Unauthorized,
+				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
 					status: HttpStatusCode.Unauthorized,
 				});
 

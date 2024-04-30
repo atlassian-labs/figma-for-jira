@@ -137,18 +137,20 @@ export class FigmaService {
 
 			try {
 				const nodeIds = designIds.map((id) => id.nodeId).filter(isString);
-				fileResponse = await figmaClient.getFile(
-					fileKey,
-					{
-						ids: nodeIds,
-						// If there is at least 1 node, use `depth=0` to exclude children and, therefore, avoid a massive response payload and high network latency.
-						// If there is no node, `depth=0` is considered invalid -- use `depth=1` instead.
-						depth: nodeIds.length ? 0 : 1,
-						node_last_modified: true,
-					},
-					accessToken,
-				);
-				fileMetaResponse = await figmaClient.getFileMeta(fileKey, accessToken);
+				[fileResponse, fileMetaResponse] = await Promise.all([
+					figmaClient.getFile(
+						fileKey,
+						{
+							ids: nodeIds,
+							// If there is at least 1 node, use `depth=0` to exclude children and, therefore, avoid a massive response payload and high network latency.
+							// If there is no node, `depth=0` is considered invalid -- use `depth=1` instead.
+							depth: nodeIds.length ? 0 : 1,
+							node_last_modified: true,
+						},
+						accessToken,
+					),
+					figmaClient.getFileMeta(fileKey, accessToken),
+				]);
 			} catch (e) {
 				if (e instanceof NotFoundHttpClientError) return [];
 				throw e;
@@ -414,20 +416,18 @@ export class FigmaService {
 	): Promise<AtlassianDesign | null> =>
 		this.withErrorTranslation(async () => {
 			try {
-				const fileResponse = await figmaClient.getFile(
-					fileKey,
-					{
-						ids: [nodeId],
-						depth: 0, // Exclude children of the target node to avoid a massive response payload and high network latency.
-						node_last_modified: true,
-					},
-					credentials.accessToken,
-				);
-
-				const fileMetaResponse = await figmaClient.getFileMeta(
-					fileKey,
-					credentials.accessToken,
-				);
+				const [fileResponse, fileMetaResponse] = await Promise.all([
+					figmaClient.getFile(
+						fileKey,
+						{
+							ids: [nodeId],
+							depth: 0, // Exclude children of the target node to avoid a massive response payload and high network latency.
+							node_last_modified: true,
+						},
+						credentials.accessToken,
+					),
+					figmaClient.getFileMeta(fileKey, credentials.accessToken),
+				]);
 
 				return tryTransformNodeToAtlassianDesign({
 					fileKey,
@@ -454,19 +454,18 @@ export class FigmaService {
 	): Promise<AtlassianDesign | null> =>
 		this.withErrorTranslation(async () => {
 			try {
-				const fileResponse = await figmaClient.getFile(
-					fileKey,
-					{
-						ids: [nodeId],
-						depth: 0, // Exclude children of the target node to avoid a massive response payload and high network latency.
-						node_last_modified: true,
-					},
-					credentials.accessToken,
-				);
-				const fileMetaResponse = await figmaClient.getFileMeta(
-					fileKey,
-					credentials.accessToken,
-				);
+				const [fileResponse, fileMetaResponse] = await Promise.all([
+					figmaClient.getFile(
+						fileKey,
+						{
+							ids: [nodeId],
+							depth: 0, // Exclude children of the target node to avoid a massive response payload and high network latency.
+							node_last_modified: true,
+						},
+						credentials.accessToken,
+					),
+					figmaClient.getFileMeta(fileKey, credentials.accessToken),
+				]);
 
 				let design = tryTransformNodeToAtlassianDesign({
 					fileKey,
