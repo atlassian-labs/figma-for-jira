@@ -3,7 +3,6 @@ import {
 	buildDesignUrl,
 	buildInspectUrl,
 	buildLiveEmbedUrl,
-	getResourceIconUrl,
 	getUpdateSequenceNumberFrom,
 	truncateDisplayName,
 } from './utils';
@@ -23,7 +22,6 @@ describe('transformFileToAtlassianDesign', () => {
 		const fileKey = generateFigmaFileKey();
 		const fileResponse = generateGetFileResponse();
 		const fileMetaResponse = generateGetFileMetaResponse();
-		const resourceIconUrl = getResourceIconUrl();
 
 		const result = transformFileToAtlassianDesign({
 			fileKey,
@@ -47,7 +45,6 @@ describe('transformFileToAtlassianDesign', () => {
 			type: AtlassianDesignType.FILE,
 			lastUpdated: fileResponse.lastModified,
 			lastUpdatedBy: fileMetaResponse.file.last_touched_by,
-			iconUrl: resourceIconUrl,
 			updateSequenceNumber: getUpdateSequenceNumberFrom(
 				fileResponse.lastModified,
 			),

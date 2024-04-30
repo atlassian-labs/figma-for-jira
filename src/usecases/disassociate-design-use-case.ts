@@ -18,7 +18,6 @@ import {
 	buildDesignUrl,
 	buildInspectUrl,
 	buildLiveEmbedUrl,
-	getResourceIconUrl,
 } from '../infrastructure/figma/transformers/utils';
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
@@ -65,7 +64,6 @@ export const disassociateDesignUseCase = {
 				type: AtlassianDesignType.OTHER,
 				lastUpdated: new Date().toISOString(),
 				updateSequenceNumber: 0,
-				iconUrl: getResourceIconUrl(),
 			};
 
 			const designIssueAssociation =

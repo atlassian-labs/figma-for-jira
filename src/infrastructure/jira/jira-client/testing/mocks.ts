@@ -9,7 +9,6 @@ import {
 	generateJiraIssueKey,
 	generateJiraIssueUrl,
 } from '../../../../domain/entities/testing';
-import { getResourceIconUrl } from '../../../figma/transformers/utils';
 import type { JwtTokenParams } from '../jwt-utils';
 import type {
 	Association,
@@ -66,7 +65,6 @@ export const generateSubmitDesignsRequest = (
 			type = 'FILE',
 			lastUpdated = new Date().toISOString(),
 			lastUpdatedBy,
-			iconUrl = getResourceIconUrl(),
 			updateSequenceNumber = Date.now(),
 			addAssociations = null,
 			removeAssociations = null,
@@ -82,7 +80,6 @@ export const generateSubmitDesignsRequest = (
 			type,
 			lastUpdated,
 			lastUpdatedBy,
-			iconUrl,
 			updateSequenceNumber,
 			addAssociations,
 			removeAssociations,

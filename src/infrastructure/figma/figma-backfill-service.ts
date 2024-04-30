@@ -2,7 +2,6 @@ import {
 	buildDesignUrl,
 	buildInspectUrl,
 	buildLiveEmbedUrl,
-	getResourceIconUrl,
 	truncateDisplayName,
 } from './transformers/utils';
 
@@ -57,7 +56,6 @@ export class FigmaBackfillService {
 				? AtlassianDesignType.NODE
 				: AtlassianDesignType.FILE,
 			lastUpdated: new Date(0).toISOString(), // Cannot be derived from the URL. Use the default value.,
-			iconUrl: getResourceIconUrl(),
 			updateSequenceNumber: 0,
 		};
 	}

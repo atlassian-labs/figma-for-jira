@@ -2,7 +2,6 @@ import {
 	buildDesignUrl,
 	buildInspectUrl,
 	buildLiveEmbedUrl,
-	getResourceIconUrl,
 	getUpdateSequenceNumberFrom,
 	truncateDisplayName,
 } from './utils';
@@ -28,7 +27,6 @@ export const transformFileMetaToAtlassianDesign = ({
 	fileMetaResponse,
 }: TransformFileMetaToAtlassianDesignParams): AtlassianDesign => {
 	const designId = new FigmaDesignIdentifier(fileKey);
-	const resourceIconUrl = getResourceIconUrl();
 
 	return {
 		id: designId.toAtlassianDesignId(),
@@ -40,7 +38,6 @@ export const transformFileMetaToAtlassianDesign = ({
 		type: AtlassianDesignType.FILE,
 		lastUpdated: fileMetaResponse.file.last_touched_at,
 		lastUpdatedBy: fileMetaResponse.file.last_touched_by as FigmaUser,
-		iconUrl: resourceIconUrl,
 		updateSequenceNumber: getUpdateSequenceNumberFrom(
 			fileMetaResponse.file.last_touched_at,
 		),

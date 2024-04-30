@@ -51,7 +51,6 @@ import {
 	buildDesignUrl,
 	buildInspectUrl,
 	buildLiveEmbedUrl,
-	getResourceIconUrl,
 } from '../../../infrastructure/figma/transformers/utils';
 import {
 	generateGetIssuePropertyResponse,
@@ -1221,7 +1220,6 @@ describe('/entities', () => {
 				type: AtlassianDesignType.OTHER,
 				lastUpdated: new Date().toISOString(),
 				updateSequenceNumber: 0,
-				iconUrl: getResourceIconUrl(),
 			};
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
@@ -1359,7 +1357,6 @@ describe('/entities', () => {
 				type: AtlassianDesignType.OTHER,
 				lastUpdated: new Date().toISOString(),
 				updateSequenceNumber: 0,
-				iconUrl: getResourceIconUrl(),
 			};
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
