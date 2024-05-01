@@ -173,7 +173,7 @@ describe('FigmaService', () => {
 			expect(result).toStrictEqual({
 				...expectedEntity,
 				lastUpdated: expect.anything(),
-				lastUpdatedBy: figmaUser,
+				lastUpdatedBy: { id: figmaUser.id },
 			});
 		});
 
@@ -274,7 +274,7 @@ describe('FigmaService', () => {
 			expect(result).toStrictEqual({
 				...expectedEntity,
 				lastUpdated: expect.anything(),
-				lastUpdatedBy: figmaUser,
+				lastUpdatedBy: { id: figmaUser.id },
 			});
 		});
 

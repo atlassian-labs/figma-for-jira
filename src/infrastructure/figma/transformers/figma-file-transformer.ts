@@ -1,3 +1,4 @@
+import { transformFigmaUserToAtlassianProviderUser } from './figma-user-transformer';
 import {
 	buildDesignUrl,
 	buildInspectUrl,
@@ -39,7 +40,9 @@ export const transformFileToAtlassianDesign = ({
 		status: AtlassianDesignStatus.NONE,
 		type: AtlassianDesignType.FILE,
 		lastUpdated: fileResponse.lastModified,
-		lastUpdatedBy: fileMetaResponse.file.last_touched_by,
+		lastUpdatedBy: transformFigmaUserToAtlassianProviderUser({
+			figmaUser: fileMetaResponse.file.last_touched_by,
+		}),
 		updateSequenceNumber: getUpdateSequenceNumberFrom(
 			fileResponse.lastModified,
 		),

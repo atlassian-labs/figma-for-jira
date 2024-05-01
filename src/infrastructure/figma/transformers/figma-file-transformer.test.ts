@@ -44,7 +44,7 @@ describe('transformFileToAtlassianDesign', () => {
 			status: AtlassianDesignStatus.NONE,
 			type: AtlassianDesignType.FILE,
 			lastUpdated: fileResponse.lastModified,
-			lastUpdatedBy: fileMetaResponse.file.last_touched_by,
+			lastUpdatedBy: { id: fileMetaResponse.file.last_touched_by.id },
 			updateSequenceNumber: getUpdateSequenceNumberFrom(
 				fileResponse.lastModified,
 			),
