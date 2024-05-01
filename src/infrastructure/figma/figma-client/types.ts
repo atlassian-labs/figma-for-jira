@@ -40,7 +40,6 @@ export type GetFileMetaResponse = {
 		readonly last_touched_at: string;
 		readonly last_touched_by: {
 			readonly id: string;
-			readonly email: string;
 		};
 		readonly editorType: string;
 	};

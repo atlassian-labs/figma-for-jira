@@ -1,4 +1,3 @@
-import { transformFigmaUserToAtlassianProviderUser } from './figma-user-transformer';
 import {
 	buildDesignUrl,
 	buildInspectUrl,
@@ -82,9 +81,7 @@ export const tryTransformNodeToAtlassianDesign = ({
 			: AtlassianDesignStatus.NONE,
 		type: mapNodeTypeToDesignType(node.type),
 		lastUpdated: extra.lastModified,
-		lastUpdatedBy: transformFigmaUserToAtlassianProviderUser({
-			figmaUser: fileMetaResponse.file.last_touched_by,
-		}),
+		lastUpdatedBy: { id: fileMetaResponse.file.last_touched_by.id },
 		updateSequenceNumber: getUpdateSequenceNumberFrom(extra.lastModified),
 	};
 };
