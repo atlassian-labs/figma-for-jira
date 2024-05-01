@@ -6,7 +6,11 @@ import {
 	truncateDisplayName,
 } from './utils';
 
-import type { AtlassianDesign, FigmaUser } from '../../../domain/entities';
+import type {
+	AtlassianDesign,
+	AtlassianProviderUser,
+	FigmaUser,
+} from '../../../domain/entities';
 import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
@@ -17,6 +21,14 @@ import type { GetFileMetaResponse } from '../figma-client';
 type TransformFileMetaToAtlassianDesignParams = {
 	readonly fileKey: string;
 	readonly fileMetaResponse: GetFileMetaResponse;
+};
+
+const transformFigmaUserToAtlassianProviderUser = (
+	figmaUser: FigmaUser,
+): AtlassianProviderUser => {
+	return {
+		id: figmaUser.id,
+	};
 };
 
 /**
@@ -37,7 +49,9 @@ export const transformFileMetaToAtlassianDesign = ({
 		status: AtlassianDesignStatus.NONE,
 		type: AtlassianDesignType.FILE,
 		lastUpdated: fileMetaResponse.file.last_touched_at,
-		lastUpdatedBy: fileMetaResponse.file.last_touched_by as FigmaUser,
+		lastUpdatedBy: transformFigmaUserToAtlassianProviderUser(
+			fileMetaResponse.file.last_touched_by,
+		),
 		updateSequenceNumber: getUpdateSequenceNumberFrom(
 			fileMetaResponse.file.last_touched_at,
 		),

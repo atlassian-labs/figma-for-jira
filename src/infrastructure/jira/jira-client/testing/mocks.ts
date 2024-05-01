@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { Duration } from '../../../../common/duration';
-import type { FigmaUser } from '../../../../domain/entities';
+import type { AtlassianProviderUser } from '../../../../domain/entities';
 import {
 	generateFigmaFileKey,
 	generateFigmaNodeId,
@@ -45,7 +45,7 @@ export const generateSubmitDesignsRequest = (
 		status?: string;
 		type?: string;
 		lastUpdated?: string;
-		lastUpdatedBy?: FigmaUser;
+		lastUpdatedBy?: AtlassianProviderUser;
 		iconUrl?: string;
 		updateSequenceNumber?: number;
 		addAssociations?: Association[] | null;
