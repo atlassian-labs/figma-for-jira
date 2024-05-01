@@ -86,7 +86,6 @@ export const GET_FILE_META_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetFileMetaResp
 						type: 'object',
 						properties: {
 							id: { type: 'string' },
-							email: { type: 'string' },
 						},
 						required: ['id'],
 					},
