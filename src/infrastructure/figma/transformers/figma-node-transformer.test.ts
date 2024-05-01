@@ -17,10 +17,7 @@ import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
 } from '../../../domain/entities';
-import {
-	generateFigmaFileKey,
-	generateFigmaUser,
-} from '../../../domain/entities/testing';
+import { generateFigmaFileKey } from '../../../domain/entities/testing';
 import {
 	generateChildNode,
 	generateFrameNode,
@@ -56,7 +53,6 @@ describe('tryTransformNodeToAtlassianDesign', () => {
 		const node = generateChildNode({ id: '100:1' });
 		const nodeLastModified = new Date('2023-11-05T23:08:49.123Z');
 		const irrelevantLastModified = new Date('2023-11-05T23:10:00.123Z');
-		const lastModifiedBy = generateFigmaUser();
 
 		const fileResponse = generateGetFileResponse({
 			document: {
@@ -80,9 +76,7 @@ describe('tryTransformNodeToAtlassianDesign', () => {
 			lastModified: irrelevantLastModified,
 		});
 
-		const fileMetaResponse = generateGetFileMetaResponse({
-			lastModifiedBy: lastModifiedBy,
-		});
+		const fileMetaResponse = generateGetFileMetaResponse();
 
 		const result = tryTransformNodeToAtlassianDesign({
 			fileKey,
@@ -109,7 +103,7 @@ describe('tryTransformNodeToAtlassianDesign', () => {
 			status: AtlassianDesignStatus.NONE,
 			type: AtlassianDesignType.OTHER,
 			lastUpdated: nodeLastModified.toISOString(),
-			lastUpdatedBy: { id: lastModifiedBy.id },
+			lastUpdatedBy: { id: fileMetaResponse.file.last_touched_by.id },
 			updateSequenceNumber: getUpdateSequenceNumberFrom(
 				nodeLastModified.toISOString(),
 			),

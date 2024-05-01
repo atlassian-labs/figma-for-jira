@@ -37,7 +37,6 @@ import {
 	generateFigmaFileKey,
 	generateFigmaNodeId,
 	generateFigmaOAuth2UserCredentials,
-	generateFigmaUser,
 	generateJiraIssueKey,
 	generateJiraIssueUrl,
 } from '../../domain/entities/testing';
@@ -147,11 +146,8 @@ describe('FigmaService', () => {
 			const node = generateChildNode({ id: nodeId });
 			const designId = generateFigmaDesignIdentifier({ nodeId });
 			const credentials = generateFigmaOAuth2UserCredentials();
-			const figmaUser = generateFigmaUser();
 			const fileResponse = generateGetFileResponseWithNode({ node });
-			const fileMetaResponse = generateGetFileMetaResponse({
-				lastModifiedBy: figmaUser,
-			});
+			const fileMetaResponse = generateGetFileMetaResponse();
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
@@ -173,7 +169,7 @@ describe('FigmaService', () => {
 			expect(result).toStrictEqual({
 				...expectedEntity,
 				lastUpdated: expect.anything(),
-				lastUpdatedBy: { id: figmaUser.id },
+				lastUpdatedBy: { id: fileMetaResponse.file.last_touched_by.id },
 			});
 		});
 
@@ -247,11 +243,8 @@ describe('FigmaService', () => {
 			const node = generateChildNode({ id: nodeId });
 			const designId = generateFigmaDesignIdentifier({ nodeId });
 			const credentials = generateFigmaOAuth2UserCredentials();
-			const figmaUser = generateFigmaUser();
 			const fileResponse = generateGetFileResponseWithNode({ node });
-			const fileMetaResponse = generateGetFileMetaResponse({
-				lastModifiedBy: figmaUser,
-			});
+			const fileMetaResponse = generateGetFileMetaResponse();
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(credentials);
@@ -274,7 +267,7 @@ describe('FigmaService', () => {
 			expect(result).toStrictEqual({
 				...expectedEntity,
 				lastUpdated: expect.anything(),
-				lastUpdatedBy: { id: figmaUser.id },
+				lastUpdatedBy: { id: fileMetaResponse.file.last_touched_by.id },
 			});
 		});
 

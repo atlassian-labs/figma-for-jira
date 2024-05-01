@@ -21,7 +21,6 @@ import {
 	generateFigmaFileKey,
 	generateFigmaFileName,
 	generateFigmaNodeId,
-	generateFigmaUser,
 	generateJiraIssueUrl,
 } from '../../../../domain/entities/testing';
 
@@ -114,12 +113,12 @@ export const generateGetMeResponse = ({
 export const generateGetFileMetaResponse = ({
 	name = generateFigmaFileName(),
 	lastModified = new Date(),
-	lastModifiedBy = generateFigmaUser(),
+	lastTouchedBy = { id: uuidv4() },
 } = {}): GetFileMetaResponse => ({
 	file: {
 		name,
 		last_touched_at: lastModified.toISOString(),
-		last_touched_by: lastModifiedBy,
+		last_touched_by: lastTouchedBy,
 		editorType: 'figma',
 	},
 });
