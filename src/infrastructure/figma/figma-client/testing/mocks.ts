@@ -113,10 +113,12 @@ export const generateGetMeResponse = ({
 export const generateGetFileMetaResponse = ({
 	name = generateFigmaFileName(),
 	lastModified = new Date(),
+	lastTouchedBy = { id: uuidv4() },
 } = {}): GetFileMetaResponse => ({
 	file: {
 		name,
 		last_touched_at: lastModified.toISOString(),
+		last_touched_by: lastTouchedBy,
 		editorType: 'figma',
 	},
 });

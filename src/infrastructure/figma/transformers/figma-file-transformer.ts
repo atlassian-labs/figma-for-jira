@@ -12,11 +12,12 @@ import {
 	AtlassianDesignType,
 	FigmaDesignIdentifier,
 } from '../../../domain/entities';
-import type { GetFileResponse } from '../figma-client';
+import type { GetFileMetaResponse, GetFileResponse } from '../figma-client';
 
 type TransformFileToAtlassianDesignParams = {
 	readonly fileKey: string;
 	readonly fileResponse: GetFileResponse;
+	readonly fileMetaResponse: GetFileMetaResponse;
 };
 
 /**
@@ -25,6 +26,7 @@ type TransformFileToAtlassianDesignParams = {
 export const transformFileToAtlassianDesign = ({
 	fileKey,
 	fileResponse,
+	fileMetaResponse,
 }: TransformFileToAtlassianDesignParams): AtlassianDesign => {
 	const designId = new FigmaDesignIdentifier(fileKey);
 
@@ -37,6 +39,7 @@ export const transformFileToAtlassianDesign = ({
 		status: AtlassianDesignStatus.NONE,
 		type: AtlassianDesignType.FILE,
 		lastUpdated: fileResponse.lastModified,
+		lastUpdatedBy: { id: fileMetaResponse.file.last_touched_by.id },
 		updateSequenceNumber: getUpdateSequenceNumberFrom(
 			fileResponse.lastModified,
 		),

@@ -82,6 +82,13 @@ export const GET_FILE_META_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetFileMetaResp
 				properties: {
 					name: { type: 'string' },
 					last_touched_at: { type: 'string' },
+					last_touched_by: {
+						type: 'object',
+						properties: {
+							id: { type: 'string' },
+						},
+						required: ['id'],
+					},
 					editorType: { type: 'string' },
 				},
 				required: ['name', 'editorType', 'last_touched_at'],

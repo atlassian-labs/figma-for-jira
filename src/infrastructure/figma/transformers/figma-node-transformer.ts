@@ -12,12 +12,18 @@ import {
 	AtlassianDesignType,
 	FigmaDesignIdentifier,
 } from '../../../domain/entities';
-import type { GetFileResponse, Node, NodeDevStatus } from '../figma-client';
+import type {
+	GetFileMetaResponse,
+	GetFileResponse,
+	Node,
+	NodeDevStatus,
+} from '../figma-client';
 
 type TransformNodeToAtlassianDesignParams = {
 	readonly fileKey: string;
 	readonly nodeId: string;
 	readonly fileResponse: GetFileResponse;
+	readonly fileMetaResponse: GetFileMetaResponse;
 };
 
 /**
@@ -32,11 +38,13 @@ export const transformNodeToAtlassianDesign = ({
 	fileKey,
 	nodeId,
 	fileResponse,
+	fileMetaResponse,
 }: TransformNodeToAtlassianDesignParams): AtlassianDesign => {
 	const result = tryTransformNodeToAtlassianDesign({
 		fileKey,
 		nodeId,
 		fileResponse,
+		fileMetaResponse,
 	});
 
 	if (result === null) throw new Error('Node is not found in the given File.');
@@ -52,6 +60,7 @@ export const tryTransformNodeToAtlassianDesign = ({
 	fileKey,
 	nodeId,
 	fileResponse,
+	fileMetaResponse,
 }: TransformNodeToAtlassianDesignParams): AtlassianDesign | null => {
 	const designId = new FigmaDesignIdentifier(fileKey, nodeId);
 	const nodeData = findNodeDataInFile(fileResponse, nodeId);
@@ -72,6 +81,7 @@ export const tryTransformNodeToAtlassianDesign = ({
 			: AtlassianDesignStatus.NONE,
 		type: mapNodeTypeToDesignType(node.type),
 		lastUpdated: extra.lastModified,
+		lastUpdatedBy: { id: fileMetaResponse.file.last_touched_by.id },
 		updateSequenceNumber: getUpdateSequenceNumberFrom(extra.lastModified),
 	};
 };

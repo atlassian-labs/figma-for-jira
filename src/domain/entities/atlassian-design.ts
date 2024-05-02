@@ -15,6 +15,10 @@ export enum AtlassianDesignType {
 	OTHER = 'OTHER',
 }
 
+export interface AtlassianProviderUser {
+	readonly id: string;
+}
+
 export class AtlassianAssociation {
 	constructor(
 		readonly associationType: string,
@@ -42,5 +46,7 @@ export type AtlassianDesign = {
 	readonly status: AtlassianDesignStatus;
 	readonly type: AtlassianDesignType;
 	readonly lastUpdated: string;
+	readonly lastUpdatedBy?: AtlassianProviderUser;
+	readonly iconUrl?: string;
 	readonly updateSequenceNumber: number;
 };

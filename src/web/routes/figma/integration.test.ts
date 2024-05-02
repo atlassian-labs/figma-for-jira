@@ -32,9 +32,13 @@ import {
 	generateFigmaOAuth2UserCredentialCreateParams,
 	generateFigmaTeamCreateParams,
 } from '../../../domain/entities/testing';
-import type { GetFileResponse } from '../../../infrastructure/figma/figma-client';
+import type {
+	GetFileMetaResponse,
+	GetFileResponse,
+} from '../../../infrastructure/figma/figma-client';
 import {
 	generateChildNode,
+	generateGetFileMetaResponse,
 	generateGetFileResponseWithNodes,
 	generateGetOAuth2TokenQueryParams,
 	generateGetOAuth2TokenResponse,
@@ -57,6 +61,7 @@ import {
 import { waitForEvent } from '../../../infrastructure/testing';
 import {
 	mockFigmaGetFileEndpoint,
+	mockFigmaGetFileMetaEndpoint,
 	mockFigmaGetTeamProjectsEndpoint,
 	mockJiraSubmitDesignsEndpoint,
 } from '../../testing';
@@ -72,18 +77,21 @@ const FIGMA_WEBHOOK_EVENT_ENDPOINT = '/figma/webhook';
 function generateAtlassianDesignFromDesignIdAndFileResponse(
 	designId: FigmaDesignIdentifier,
 	fileResponse: GetFileResponse,
+	fileMetaResponse: GetFileMetaResponse,
 ) {
 	let atlassianDesign: AtlassianDesign;
 	if (!designId.nodeId) {
 		atlassianDesign = transformFileToAtlassianDesign({
 			fileKey: designId.fileKey,
 			fileResponse,
+			fileMetaResponse,
 		});
 	} else {
 		atlassianDesign = transformNodeToAtlassianDesign({
 			fileKey: designId.fileKey,
 			nodeId: designId.nodeId,
 			fileResponse,
+			fileMetaResponse,
 		});
 	}
 
@@ -161,11 +169,13 @@ describe('/figma', () => {
 				const fileResponse = generateGetFileResponseWithNodes({
 					nodes: nodeIds.map((nodeId) => generateChildNode({ id: nodeId })),
 				});
+				const fileMetaResponse = generateGetFileMetaResponse();
 				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
 					(design) =>
 						generateAtlassianDesignFromDesignIdAndFileResponse(
 							design.designId,
 							fileResponse,
+							fileMetaResponse,
 						),
 				);
 
@@ -186,6 +196,12 @@ describe('/figma', () => {
 						node_last_modified: 'true',
 					},
 					response: fileResponse,
+				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					response: fileMetaResponse,
 				});
 				mockJiraSubmitDesignsEndpoint({
 					baseUrl: connectInstallation.baseUrl,
@@ -259,6 +275,12 @@ describe('/figma', () => {
 					},
 					status: HttpStatusCode.NotFound,
 				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					status: HttpStatusCode.NotFound,
+				});
 
 				await request(app)
 					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
@@ -284,11 +306,13 @@ describe('/figma', () => {
 						generateChildNode({ id: `9999:2` }),
 					],
 				});
+				const fileMetaResponse = generateGetFileMetaResponse();
 				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
 					(design) =>
 						generateAtlassianDesignFromDesignIdAndFileResponse(
 							design.designId,
 							fileResponse,
+							fileMetaResponse,
 						),
 				);
 
@@ -309,6 +333,12 @@ describe('/figma', () => {
 						node_last_modified: 'true',
 					},
 					response: fileResponse,
+				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					response: fileMetaResponse,
 				});
 				mockJiraSubmitDesignsEndpoint({
 					baseUrl: connectInstallation.baseUrl,
@@ -340,11 +370,13 @@ describe('/figma', () => {
 				const fileResponse = generateGetFileResponseWithNodes({
 					nodes: nodeIds.map((nodeId) => generateChildNode({ id: nodeId })),
 				});
+				const fileMetaResponse = generateGetFileMetaResponse();
 				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
 					(design) =>
 						generateAtlassianDesignFromDesignIdAndFileResponse(
 							design.designId,
 							fileResponse,
+							fileMetaResponse,
 						),
 				);
 				mockFigmaGetTeamProjectsEndpoint({
@@ -362,6 +394,12 @@ describe('/figma', () => {
 						node_last_modified: 'true',
 					},
 					response: fileResponse,
+				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					response: fileMetaResponse,
 				});
 				mockJiraSubmitDesignsEndpoint({
 					baseUrl: connectInstallation.baseUrl,
@@ -407,6 +445,12 @@ describe('/figma', () => {
 						depth: '0',
 						node_last_modified: 'true',
 					},
+					status: HttpStatusCode.InternalServerError,
+				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
 					status: HttpStatusCode.InternalServerError,
 				});
 
@@ -466,6 +510,12 @@ describe('/figma', () => {
 						depth: '0',
 						node_last_modified: 'true',
 					},
+					status: HttpStatusCode.Unauthorized,
+				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
 					status: HttpStatusCode.Unauthorized,
 				});
 

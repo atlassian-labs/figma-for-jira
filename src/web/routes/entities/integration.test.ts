@@ -320,10 +320,12 @@ describe('/entities', () => {
 				name: fileName,
 				node,
 			});
+			const fileMetaResponse = generateGetFileMetaResponse();
 			const atlassianDesign = transformNodeToAtlassianDesign({
 				fileKey,
 				nodeId,
 				fileResponse,
+				fileMetaResponse,
 			});
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
@@ -346,6 +348,12 @@ describe('/entities', () => {
 					node_last_modified: 'true',
 				},
 				response: fileResponse,
+			});
+			mockFigmaGetFileMetaEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey,
+				accessToken: figmaUserCredentials.accessToken,
+				response: fileMetaResponse,
 			});
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
@@ -846,10 +854,12 @@ describe('/entities', () => {
 				name: fileName,
 				node,
 			});
+			const fileMetaResponse = generateGetFileMetaResponse();
 			const atlassianDesign = transformNodeToAtlassianDesign({
 				fileKey,
 				nodeId,
 				fileResponse,
+				fileMetaResponse,
 			});
 			mockFigmaGetFileEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
@@ -861,6 +871,12 @@ describe('/entities', () => {
 					node_last_modified: 'true',
 				},
 				response: fileResponse,
+			});
+			mockFigmaGetFileMetaEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey,
+				accessToken: figmaUserCredentials.accessToken,
+				response: fileMetaResponse,
 			});
 			mockJiraSubmitDesignsEndpoint({
 				baseUrl: connectInstallation.baseUrl,
@@ -1130,6 +1146,13 @@ describe('/entities', () => {
 				},
 				response: fileResponse,
 			});
+			const fileMetaResponse = generateGetFileMetaResponse();
+			mockFigmaGetFileMetaEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey,
+				accessToken: figmaUserCredentials.accessToken,
+				response: fileMetaResponse,
+			});
 			await request(app)
 				.post('/entities/associateEntity')
 				.query({ userId: atlassianUserId })
@@ -1218,18 +1241,19 @@ describe('/entities', () => {
 				issueId: issue.id,
 				response: issue,
 			});
+			const mockRequest = generateSubmitDesignsRequest([
+				{
+					...designStub,
+					removeAssociations: [
+						{
+							...AtlassianAssociation.createDesignIssueAssociation(issueAri),
+						},
+					],
+				},
+			]);
 			mockJiraSubmitDesignsEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				request: generateSubmitDesignsRequest([
-					{
-						...designStub,
-						removeAssociations: [
-							{
-								...AtlassianAssociation.createDesignIssueAssociation(issueAri),
-							},
-						],
-					},
-				]),
+				request: mockRequest,
 			});
 			mockFigmaGetDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,

@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { Duration } from '../../../../common/duration';
+import type { AtlassianProviderUser } from '../../../../domain/entities';
 import {
 	generateFigmaFileKey,
 	generateFigmaNodeId,
@@ -44,6 +45,8 @@ export const generateSubmitDesignsRequest = (
 		status?: string;
 		type?: string;
 		lastUpdated?: string;
+		lastUpdatedBy?: AtlassianProviderUser;
+		iconUrl?: string;
 		updateSequenceNumber?: number;
 		addAssociations?: Association[] | null;
 		removeAssociations?: Association[] | null;
@@ -61,6 +64,7 @@ export const generateSubmitDesignsRequest = (
 			status = 'UNKNOWN',
 			type = 'FILE',
 			lastUpdated = new Date().toISOString(),
+			lastUpdatedBy,
 			updateSequenceNumber = Date.now(),
 			addAssociations = null,
 			removeAssociations = null,
@@ -75,6 +79,7 @@ export const generateSubmitDesignsRequest = (
 			status,
 			type,
 			lastUpdated,
+			lastUpdatedBy,
 			updateSequenceNumber,
 			addAssociations,
 			removeAssociations,
