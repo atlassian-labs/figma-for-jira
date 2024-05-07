@@ -69,6 +69,7 @@ export const tryTransformNodeToAtlassianDesign = ({
 
 	const { node, extra } = nodeData;
 	const fileName = fileResponse.name;
+	const lastUpdatedBy = fileMetaResponse.file.last_touched_by;
 
 	return {
 		id: designId.toAtlassianDesignId(),
@@ -81,7 +82,7 @@ export const tryTransformNodeToAtlassianDesign = ({
 			: AtlassianDesignStatus.NONE,
 		type: mapNodeTypeToDesignType(node.type),
 		lastUpdated: extra.lastModified,
-		lastUpdatedBy: { id: fileMetaResponse.file.last_touched_by.id },
+		...(lastUpdatedBy ? { lastUpdatedBy: { id: lastUpdatedBy.id } } : {}),
 		updateSequenceNumber: getUpdateSequenceNumberFrom(extra.lastModified),
 	};
 };

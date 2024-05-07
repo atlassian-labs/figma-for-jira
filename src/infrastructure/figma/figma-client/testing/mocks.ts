@@ -114,6 +114,10 @@ export const generateGetFileMetaResponse = ({
 	name = generateFigmaFileName(),
 	lastModified = new Date(),
 	lastTouchedBy = { id: uuidv4() },
+}: {
+	name?: string;
+	lastModified?: Date;
+	lastTouchedBy?: { id: string } | null;
 } = {}): GetFileMetaResponse => ({
 	file: {
 		name,

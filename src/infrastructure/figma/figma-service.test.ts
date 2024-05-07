@@ -169,7 +169,7 @@ describe('FigmaService', () => {
 			expect(result).toStrictEqual({
 				...expectedEntity,
 				lastUpdated: expect.anything(),
-				lastUpdatedBy: { id: fileMetaResponse.file.last_touched_by.id },
+				lastUpdatedBy: { id: fileMetaResponse.file.last_touched_by!.id },
 			});
 		});
 
@@ -267,7 +267,7 @@ describe('FigmaService', () => {
 			expect(result).toStrictEqual({
 				...expectedEntity,
 				lastUpdated: expect.anything(),
-				lastUpdatedBy: { id: fileMetaResponse.file.last_touched_by.id },
+				lastUpdatedBy: { id: fileMetaResponse.file.last_touched_by!.id },
 			});
 		});
 

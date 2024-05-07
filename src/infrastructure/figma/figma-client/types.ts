@@ -38,9 +38,9 @@ export type GetFileMetaResponse = {
 	readonly file: {
 		readonly name: string;
 		readonly last_touched_at: string;
-		readonly last_touched_by: {
+		readonly last_touched_by?: {
 			readonly id: string;
-		};
+		} | null;
 		readonly editorType: string;
 	};
 };
