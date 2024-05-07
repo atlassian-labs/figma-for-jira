@@ -103,7 +103,7 @@ describe('tryTransformNodeToAtlassianDesign', () => {
 			status: AtlassianDesignStatus.NONE,
 			type: AtlassianDesignType.OTHER,
 			lastUpdated: nodeLastModified.toISOString(),
-			lastUpdatedBy: { id: fileMetaResponse.file.last_touched_by.id },
+			lastUpdatedBy: { id: fileMetaResponse.file.last_touched_by!.id },
 			updateSequenceNumber: getUpdateSequenceNumberFrom(
 				nodeLastModified.toISOString(),
 			),

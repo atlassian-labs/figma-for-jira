@@ -447,6 +447,136 @@ describe('/entities', () => {
 				},
 			]);
 		});
+		it('should handle when the last touched by is not available', async () => {
+			const atlassianUserId = uuidv4();
+			const fileName = generateFigmaFileName();
+			const fileKey = generateFigmaFileKey();
+			const issue = generateJiraIssue();
+			const issueAri = generateJiraIssueAri({ issueId: issue.id });
+			const inputFigmaDesignUrl = generateFigmaDesignUrl({
+				fileKey,
+				mode: 'dev',
+			});
+			const fileMetaResponse = generateGetFileMetaResponse({
+				name: fileName,
+				lastTouchedBy: null,
+			});
+			const atlassianDesign = transformFileMetaToAtlassianDesign({
+				fileKey,
+				fileMetaResponse,
+			});
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const figmaUserCredentials =
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaOAuth2UserCredentialCreateParams({
+						atlassianUserId,
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
+
+			mockFigmaGetFileMetaEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey,
+				accessToken: figmaUserCredentials.accessToken,
+				response: fileMetaResponse,
+			});
+			mockJiraGetIssueEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				response: issue,
+			});
+			mockJiraSubmitDesignsEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				request: generateSubmitDesignsRequest([
+					{
+						...atlassianDesign,
+						addAssociations: [
+							// Nock does not correctly match a request body when provide an instance of a class
+							// (e.g., as `AtlassianAssociation`). Therefore, pass an object instead.
+							{
+								...AtlassianAssociation.createDesignIssueAssociation(issueAri),
+							},
+						],
+					},
+				]),
+			});
+			mockFigmaCreateDevResourcesEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				request: generateCreateDevResourcesRequest({
+					name: `[${issue.key}] ${issue.fields.summary}`,
+					url: buildJiraIssueUrl(connectInstallation.baseUrl, issue.key),
+					fileKey,
+					nodeId: '0:0',
+				}),
+			});
+
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+				status: HttpStatusCode.NotFound,
+			});
+			mockJiraSetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+				request: JSON.stringify(
+					buildDesignUrlForIssueProperties(atlassianDesign),
+				),
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				status: HttpStatusCode.NotFound,
+			});
+			mockJiraSetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				request: JSON.stringify(
+					JSON.stringify([
+						{
+							url: buildDesignUrlForIssueProperties(atlassianDesign),
+							name: atlassianDesign.displayName,
+						},
+					]),
+				),
+			});
+
+			await request(app)
+				.post('/entities/associateEntity')
+				.query({ userId: atlassianUserId })
+				.send(
+					generateAssociateEntityRequest({
+						issueId: issue.id,
+						issueAri,
+						figmaDesignUrl: inputFigmaDesignUrl.toString(),
+					}),
+				)
+				.set(
+					'Authorization',
+					`JWT ${generateAssociateEntityJwt(
+						connectInstallation,
+						atlassianUserId,
+					)}`,
+				)
+				.set('Content-Type', 'application/json')
+				.set('User-Id', atlassianUserId)
+				.expect(HttpStatusCode.Ok)
+				.expect(atlassianDesign);
+			expect(await associatedFigmaDesignRepository.getAll()).toEqual([
+				{
+					id: expect.anything(),
+					designId: new FigmaDesignIdentifier(fileKey),
+					associatedWithAri: issueAri,
+					connectInstallationId: connectInstallation.id,
+					inputUrl: inputFigmaDesignUrl.toString(),
+				},
+			]);
+		});
 
 		it('should respond with 400 "userId" query parameter is missing', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
