@@ -19,7 +19,10 @@ import {
 	generateJiraIssue,
 } from '../domain/entities/testing';
 import { figmaBackwardIntegrationService } from '../infrastructure';
-import { figmaService } from '../infrastructure/figma';
+import {
+	figmaService,
+	InvalidInputFigmaServiceError,
+} from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
@@ -117,6 +120,30 @@ describe('associateDesignUseCase', () => {
 				connectInstallation,
 			});
 		jest.spyOn(figmaService, 'getDesignOrParent').mockResolvedValue(null);
+		jest.spyOn(jiraService, 'getIssue').mockResolvedValue(issue);
+
+		await expect(() =>
+			associateDesignUseCase.execute(params),
+		).rejects.toBeInstanceOf(InvalidInputUseCaseResultError);
+	});
+
+	it('should throw InvalidInputUseCaseResultError when the node ids are not valid', async () => {
+		const connectInstallation = generateConnectInstallation();
+		const issue = generateJiraIssue();
+		const params: AssociateDesignUseCaseParams =
+			generateAssociateDesignUseCaseParams({
+				// This URL is not valid because it does not contain a file key.
+				designUrl: new URL(
+					'https://www.figma.com/file/176167247/Team-project?node-id=0-a',
+				),
+				issueId: issue.id,
+				connectInstallation,
+			});
+		jest
+			.spyOn(figmaService, 'getDesignOrParent')
+			.mockRejectedValue(
+				new InvalidInputFigmaServiceError('ID 0:a is not a valid node_id'),
+			);
 		jest.spyOn(jiraService, 'getIssue').mockResolvedValue(issue);
 
 		await expect(() =>
