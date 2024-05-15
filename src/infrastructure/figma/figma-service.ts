@@ -58,6 +58,7 @@ export class FigmaService {
 	/**
 	 * Returns Atlassian design for the Figma design with the given ID if it exists; otherwise -- `null`.
 	 *
+	 * @throws {InvalidInputFigmaServiceError} Invalid node ids specified.
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 */
 	getDesign = async (
@@ -81,6 +82,7 @@ export class FigmaService {
 	 * for the given ID doesn't exist, returns the parent design identified by the
 	 * fileKey part of the design ID. If the parent design does not exist, returns `null`.
 	 *
+	 * @throws {InvalidInputFigmaServiceError} Invalid node ids specified.
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 */
 	getDesignOrParent = async (
@@ -112,6 +114,7 @@ export class FigmaService {
 	 *
 	 * @param designIds IDs of designs within the same Figma file.
 	 *
+	 * @throws {InvalidInputFigmaServiceError} Invalid node ids specified.
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 */
 	getAvailableDesignsFromSameFile = async (
@@ -407,6 +410,7 @@ export class FigmaService {
 	/**
 	 * Returns Atlassian design representation for the given Figma Node if it exists; otherwise -- `null`.
 	 *
+	 * @throws {InvalidInputFigmaServiceError} Invalid node ids specified.
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 */
 	private getDesignForNode = async (
@@ -445,6 +449,7 @@ export class FigmaService {
 	 * Returns Atlassian design representation for the given Figma Node if it exists; Figma File if Node does not exist;
 	 * otherwise -- `null`.
 	 *
+	 * @throws {InvalidInputFigmaServiceError} Invalid node ids specified.
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 */
 	private getDesignForNodeOrFile = async (
@@ -503,6 +508,18 @@ export class FigmaService {
 					'Not allowed to perform the operation.',
 					e,
 				);
+			}
+
+			if (e instanceof BadRequestHttpClientError) {
+				const response = e.response;
+				if (
+					typeof response === 'object' &&
+					response != null &&
+					'err' in response &&
+					typeof response.err === 'string'
+				) {
+					throw new InvalidInputFigmaServiceError(response.err, e);
+				}
 			}
 
 			throw e;
