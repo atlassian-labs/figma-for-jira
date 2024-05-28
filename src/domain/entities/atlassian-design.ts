@@ -1,5 +1,3 @@
-import { JIRA_ISSUE_ATI } from './jira-issue';
-
 export enum AtlassianDesignStatus {
 	READY_FOR_DEVELOPMENT = 'READY_FOR_DEVELOPMENT',
 	UNKNOWN = 'UNKNOWN',
@@ -22,7 +20,7 @@ export class AtlassianAssociation {
 	) {}
 
 	static createDesignIssueAssociation(issueAri: string): AtlassianAssociation {
-		return new AtlassianAssociation(JIRA_ISSUE_ATI, [issueAri]);
+		return new AtlassianAssociation('ati:cloud:jira:issue', [issueAri]);
 	}
 }
 

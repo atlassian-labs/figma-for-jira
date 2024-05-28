@@ -4,7 +4,6 @@ import type {
 } from './types';
 
 import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
-import { ATLASSIAN_ENTITY_SCHEMA } from '../../../usecases/schemas';
 
 export const ASSOCIATE_ENTITY_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 	body: AssociateEntityRequestBody;
@@ -22,7 +21,16 @@ export const ASSOCIATE_ENTITY_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 					},
 					required: ['url'],
 				},
-				associateWith: ATLASSIAN_ENTITY_SCHEMA,
+				associateWith: {
+					type: 'object',
+					properties: {
+						ati: { type: 'string', pattern: 'ati:cloud:jira:issue' }, // Handle only associations with a Jira Issue.
+						ari: { type: 'string' },
+						cloudId: { type: 'string' },
+						id: { type: 'string' },
+					},
+					required: ['ati', 'ari', 'cloudId', 'id'],
+				},
 			},
 			required: ['entity', 'associateWith'],
 		},
@@ -54,7 +62,16 @@ export const DISASSOCIATE_ENTITY_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 					},
 					required: ['ari', 'id'],
 				},
-				disassociateFrom: ATLASSIAN_ENTITY_SCHEMA,
+				disassociateFrom: {
+					type: 'object',
+					properties: {
+						ati: { type: 'string', pattern: 'ati:cloud:jira:issue' }, // Handle only associations with a Jira Issue.
+						ari: { type: 'string' },
+						cloudId: { type: 'string' },
+						id: { type: 'string' },
+					},
+					required: ['ati', 'ari', 'cloudId', 'id'],
+				},
 			},
 			required: ['entity', 'disassociateFrom'],
 		},

@@ -1,5 +1,4 @@
 import { AtlassianAssociation } from './atlassian-design';
-import { JIRA_ISSUE_ATI } from './jira-issue';
 import { generateJiraIssueAri } from './testing';
 
 describe('AtlassianDesign', () => {
@@ -11,7 +10,7 @@ describe('AtlassianDesign', () => {
 				AtlassianAssociation.createDesignIssueAssociation(issueAri);
 
 			expect(association).toEqual({
-				associationType: JIRA_ISSUE_ATI,
+				associationType: 'ati:cloud:jira:issue',
 				values: [issueAri],
 			});
 		});

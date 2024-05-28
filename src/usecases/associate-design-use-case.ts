@@ -3,7 +3,6 @@ import {
 	ForbiddenByFigmaUseCaseResultError,
 	InvalidInputUseCaseResultError,
 } from './errors';
-import type { AtlassianEntity } from './types';
 
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
 import {
@@ -20,7 +19,10 @@ import { associatedFigmaDesignRepository } from '../infrastructure/repositories'
 
 export type AssociateDesignUseCaseParams = {
 	readonly designUrl: URL;
-	readonly associateWith: AtlassianEntity;
+	readonly associateWithIssue: {
+		readonly ari: string;
+		readonly id: string;
+	};
 	readonly atlassianUserId: string;
 	readonly connectInstallation: ConnectInstallation;
 };
@@ -32,7 +34,7 @@ export const associateDesignUseCase = {
 	 */
 	execute: async ({
 		designUrl,
-		associateWith,
+		associateWithIssue,
 		atlassianUserId,
 		connectInstallation,
 	}: AssociateDesignUseCaseParams): Promise<AtlassianDesign> => {
@@ -54,7 +56,9 @@ export const associateDesignUseCase = {
 			if (!design) throw new FigmaDesignNotFoundUseCaseResultError();
 
 			const designIssueAssociation =
-				AtlassianAssociation.createDesignIssueAssociation(associateWith.ari);
+				AtlassianAssociation.createDesignIssueAssociation(
+					associateWithIssue.ari,
+				);
 
 			await jiraService.submitDesign(
 				{
@@ -67,7 +71,7 @@ export const associateDesignUseCase = {
 			await Promise.all([
 				await associatedFigmaDesignRepository.upsert({
 					designId: figmaDesignId,
-					associatedWithAri: associateWith.ari,
+					associatedWithAri: associateWithIssue.ari,
 					connectInstallationId: connectInstallation.id,
 					inputUrl: designUrl.toString(),
 				}),
@@ -75,7 +79,7 @@ export const associateDesignUseCase = {
 					{
 						originalFigmaDesignId: figmaDesignId,
 						design,
-						issueId: associateWith.id,
+						issueId: associateWithIssue.id,
 						atlassianUserId,
 						connectInstallation,
 					},

@@ -161,6 +161,9 @@ describe('FigmaBackwardIntegrationService', () => {
 			const atlassianUserId = uuidv4();
 			const issue = generateJiraIssue();
 			const atlassianDesign = generateAtlassianDesign();
+			const figmaDesignId = FigmaDesignIdentifier.fromAtlassianDesignId(
+				atlassianDesign.id,
+			);
 			jest.spyOn(jiraService, 'getIssue').mockResolvedValue(issue);
 
 			jest
@@ -179,11 +182,9 @@ describe('FigmaBackwardIntegrationService', () => {
 
 			expect(
 				jiraService.tryDeleteDesignUrlFromIssueProperties,
-			).toHaveBeenCalledWith(issue.id, atlassianDesign, connectInstallation);
+			).toHaveBeenCalledWith(issue.id, figmaDesignId, connectInstallation);
 			expect(figmaService.tryDeleteDevResource).toHaveBeenCalledWith({
-				designId: FigmaDesignIdentifier.fromAtlassianDesignId(
-					atlassianDesign.id,
-				),
+				designId: figmaDesignId,
 				devResourceUrl: `${connectInstallation.baseUrl}/browse/${issue.key}`,
 				user: {
 					atlassianUserId: atlassianUserId,

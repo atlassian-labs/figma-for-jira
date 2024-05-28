@@ -63,7 +63,7 @@ describe('associateDesignUseCase', () => {
 				design: atlassianDesign,
 				addAssociations: [
 					AtlassianAssociation.createDesignIssueAssociation(
-						params.associateWith.ari,
+						params.associateWithIssue.ari,
 					),
 				],
 			},
@@ -74,13 +74,13 @@ describe('associateDesignUseCase', () => {
 		).toHaveBeenCalledWith({
 			originalFigmaDesignId: designId,
 			design: atlassianDesign,
-			issueId: params.associateWith.id,
+			issueId: params.associateWithIssue.id,
 			atlassianUserId: params.atlassianUserId,
 			connectInstallation,
 		});
 		expect(associatedFigmaDesignRepository.upsert).toHaveBeenCalledWith({
 			designId,
-			associatedWithAri: params.associateWith.ari,
+			associatedWithAri: params.associateWithIssue.ari,
 			connectInstallationId: connectInstallation.id,
 			inputUrl: params.designUrl.toString(),
 		});
