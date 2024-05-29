@@ -5,7 +5,7 @@ import { FigmaDesignIdentifier } from '../domain/entities';
 import { figmaBackwardIntegrationServiceV2 } from '../infrastructure';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
-type OnDesignAssociatedWithIssueUseCaseParams = {
+export type OnDesignAssociatedWithIssueUseCaseParams = {
 	readonly design: {
 		readonly ari: string;
 		readonly id: string;

@@ -32,7 +32,7 @@ describe('getDesignByUrlUseCase', () => {
 			id: figmaDesignId.toAtlassianDesignId(),
 		});
 		const params = generateGetDesignByUrlUseCaseParams({
-			designUrl: generateFigmaDesignUrl(figmaDesignId),
+			designUrl: generateFigmaDesignUrl({ ...figmaDesignId, mode: 'dev' }),
 		});
 		jest.spyOn(figmaService, 'getDesignOrParent').mockResolvedValue(design);
 
@@ -45,7 +45,7 @@ describe('getDesignByUrlUseCase', () => {
 		});
 	});
 
-	it('should throw InvalidInputUseCaseResultError when design URL is not valid', async () => {
+	it('should throw `InvalidInputUseCaseResultError` when design URL is not valid', async () => {
 		const params = generateGetDesignByUrlUseCaseParams({
 			designUrl: new URL('https://www.figma.com/files'),
 		});
@@ -55,7 +55,7 @@ describe('getDesignByUrlUseCase', () => {
 		);
 	});
 
-	it('should throw FigmaDesignNotFoundUseCaseResultError when Design is not found', async () => {
+	it('should throw `FigmaDesignNotFoundUseCaseResultError` when Design is not found', async () => {
 		const figmaDesignId = generateFigmaDesignIdentifier();
 		const params = generateGetDesignByUrlUseCaseParams({
 			designUrl: generateFigmaDesignUrl(figmaDesignId),

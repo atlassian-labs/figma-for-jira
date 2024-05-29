@@ -5,7 +5,7 @@ import { FigmaDesignIdentifier } from '../domain/entities';
 import { figmaBackwardIntegrationServiceV2 } from '../infrastructure';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
-type OnDesignDisassociatedUseCaseParams = {
+export type OnDesignDisassociatedFromIssueUseCaseParams = {
 	readonly design: {
 		readonly ari: string;
 		readonly id: string;
@@ -23,7 +23,7 @@ export const onDesignDisassociatedFromIssueUseCase = {
 	 * @throws {InvalidInputUseCaseResultError} The given design ID has the unexpected format.
 	 */
 	execute: async (
-		params: OnDesignDisassociatedUseCaseParams,
+		params: OnDesignDisassociatedFromIssueUseCaseParams,
 	): Promise<void> => {
 		let figmaDesignId: FigmaDesignIdentifier;
 		try {

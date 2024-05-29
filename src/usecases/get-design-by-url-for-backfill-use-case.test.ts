@@ -50,7 +50,7 @@ describe('getDesignByUrlForBackfillUseCase', () => {
 		});
 	});
 
-	it('should throw InvalidInputUseCaseResultError when design URL is not valid', async () => {
+	it('should throw `InvalidInputUseCaseResultError` when design URL is not valid', async () => {
 		const params = generateGetDesignByUrlForBackfillUseCaseParams({
 			designUrl: new URL('https://www.figma.com/files'),
 		});
