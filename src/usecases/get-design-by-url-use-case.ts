@@ -11,7 +11,7 @@ import {
 	UnauthorizedFigmaServiceError,
 } from '../infrastructure/figma';
 
-type GetDesignByUrlUseCaseParams = {
+export type GetDesignByUrlUseCaseParams = {
 	readonly designUrl: URL;
 	readonly atlassianUserId: string;
 	readonly connectInstallation: ConnectInstallation;
@@ -19,7 +19,7 @@ type GetDesignByUrlUseCaseParams = {
 
 export const getDesignByUrlUseCase = {
 	/**
-	 * Returns `AtlassianDesign` for the given Figma URL.
+	 * Returns {@link AtlassianDesign} for the given Figma URL.
 	 *
 	 * @throws {ForbiddenByFigmaUseCaseResultError} Not authorized to access Figma.
 	 * @throws {InvalidInputUseCaseResultError} The given design URL is invalid.

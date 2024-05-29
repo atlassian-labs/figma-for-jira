@@ -81,16 +81,15 @@ describe('FigmaBackwardIntegrationServiceV2', () => {
 				.spyOn(figmaService, 'tryCreateDevResourceForJiraIssue')
 				.mockResolvedValue();
 
-			await expect(
-				figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignAssociatedWithIssue(
-					{
-						figmaDesignId,
-						issueId: issue.id,
-						atlassianUserId: undefined,
-						connectInstallation,
-					},
-				),
-			).resolves.toBeUndefined();
+			await figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignAssociatedWithIssue(
+				{
+					figmaDesignId,
+					issueId: issue.id,
+					atlassianUserId: undefined,
+					connectInstallation,
+				},
+			);
+
 			expect(jiraService.trySaveDesignInIssueProperties).toHaveBeenCalled();
 			expect(
 				figmaService.tryCreateDevResourceForJiraIssue,
@@ -111,16 +110,15 @@ describe('FigmaBackwardIntegrationServiceV2', () => {
 				.spyOn(figmaService, 'tryCreateDevResourceForJiraIssue')
 				.mockResolvedValue();
 
-			await expect(
-				figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignAssociatedWithIssue(
-					{
-						figmaDesignId,
-						issueId: issue.id,
-						atlassianUserId,
-						connectInstallation,
-					},
-				),
-			).resolves.toBeUndefined();
+			await figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignAssociatedWithIssue(
+				{
+					figmaDesignId,
+					issueId: issue.id,
+					atlassianUserId,
+					connectInstallation,
+				},
+			);
+
 			expect(jiraService.trySaveDesignInIssueProperties).toHaveBeenCalledWith(
 				issue.id,
 				figmaDesignId,
@@ -149,16 +147,15 @@ describe('FigmaBackwardIntegrationServiceV2', () => {
 				.spyOn(figmaService, 'tryCreateDevResourceForJiraIssue')
 				.mockResolvedValue();
 
-			await expect(
-				figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignAssociatedWithIssue(
-					{
-						figmaDesignId,
-						issueId: issue.id,
-						atlassianUserId,
-						connectInstallation,
-					},
-				),
-			).resolves.toBeUndefined();
+			await figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignAssociatedWithIssue(
+				{
+					figmaDesignId,
+					issueId: issue.id,
+					atlassianUserId,
+					connectInstallation,
+				},
+			);
+
 			expect(jiraService.trySaveDesignInIssueProperties).toHaveBeenCalledWith(
 				issue.id,
 				figmaDesignId,
@@ -186,16 +183,15 @@ describe('FigmaBackwardIntegrationServiceV2', () => {
 				.mockResolvedValue();
 			jest.spyOn(figmaService, 'tryCreateDevResourceForJiraIssue');
 
-			await expect(
-				figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignAssociatedWithIssue(
-					{
-						figmaDesignId,
-						issueId,
-						atlassianUserId,
-						connectInstallation,
-					},
-				),
-			).resolves.toBeUndefined();
+			await figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignAssociatedWithIssue(
+				{
+					figmaDesignId,
+					issueId,
+					atlassianUserId,
+					connectInstallation,
+				},
+			);
+
 			expect(jiraService.trySaveDesignInIssueProperties).toHaveBeenCalled();
 			expect(
 				figmaService.tryCreateDevResourceForJiraIssue,
@@ -228,7 +224,7 @@ describe('FigmaBackwardIntegrationServiceV2', () => {
 						connectInstallation,
 					},
 				),
-			).resolves.toBeUndefined();
+			).resolves.not.toThrow();
 		});
 	});
 
@@ -276,16 +272,15 @@ describe('FigmaBackwardIntegrationServiceV2', () => {
 				.mockResolvedValue();
 			jest.spyOn(figmaService, 'tryDeleteDevResource');
 
-			await expect(
-				figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignDisassociatedFromIssue(
-					{
-						figmaDesignId,
-						issueId: issue.id,
-						atlassianUserId: undefined,
-						connectInstallation,
-					},
-				),
-			).resolves.toBeUndefined();
+			await figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignDisassociatedFromIssue(
+				{
+					figmaDesignId,
+					issueId: issue.id,
+					atlassianUserId: undefined,
+					connectInstallation,
+				},
+			);
+
 			expect(
 				jiraService.tryDeleteDesignFromIssueProperties,
 			).toHaveBeenCalledWith(issue.id, figmaDesignId, connectInstallation);
@@ -300,16 +295,15 @@ describe('FigmaBackwardIntegrationServiceV2', () => {
 			jest.spyOn(jiraService, 'getIssue').mockResolvedValue(null);
 			jest.spyOn(figmaService, 'tryDeleteDevResource');
 
-			await expect(
-				figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignDisassociatedFromIssue(
-					{
-						figmaDesignId,
-						issueId,
-						atlassianUserId,
-						connectInstallation,
-					},
-				),
-			).resolves.toBeUndefined();
+			await figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignDisassociatedFromIssue(
+				{
+					figmaDesignId,
+					issueId,
+					atlassianUserId,
+					connectInstallation,
+				},
+			);
+
 			expect(figmaService.tryDeleteDevResource).not.toHaveBeenCalled();
 		});
 
@@ -332,7 +326,7 @@ describe('FigmaBackwardIntegrationServiceV2', () => {
 						connectInstallation,
 					},
 				),
-			).resolves.toBeUndefined();
+			).resolves.not.toThrow();
 		});
 	});
 });

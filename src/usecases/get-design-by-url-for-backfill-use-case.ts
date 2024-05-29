@@ -13,7 +13,7 @@ export type GetDesignByUrlForBackfillUseCaseParams = {
 
 export const getDesignByUrlForBackfillUseCase = {
 	/**
-	 * Returns `AtlassianDesign` for the given Figma URL within the backfill process.
+	 * Returns {@link AtlassianDesign} for the given Figma URL within the backfill process.
 	 *
 	 * The backfill is required for designs linked to a Jira Issue via the old "Figma for Jira" experience
 	 * or the "Jira" widget in Figma. It can be triggered from a Jira Issue view.
@@ -23,7 +23,7 @@ export const getDesignByUrlForBackfillUseCase = {
 	 *
 	 * @throws {InvalidInputUseCaseResultError} The given design URL is invalid.
 	 */
-	execute: ({
+	execute: async ({
 		designUrl,
 		atlassianUserId,
 		connectInstallation,
