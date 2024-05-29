@@ -41,9 +41,9 @@ export const onDesignAssociatedWithIssueUseCaseParams = {
 			associatedWithAri: params.issue.ari,
 			connectInstallationId: params.connectInstallation.id,
 			// Consider stop writing to this column.
-			// This code is called within the `onEntityAssociated` action, which is called when a Design is associated with an Issue.
+			// This code is called within the `onEntityAssociated` action, which is asynchronously called when a Design has been associated with an Issue.
 			// Therefore, the original input URL is not available in this context.
-			// If we need to keep writing to this column, we will need to change the database schema and handle it partially
+			// If we need to keep writing to this column, we will need to change the database schema and handle writes partially
 			// in the `getEntityByUrl` action and partially in the `onEntityAssociated` action, which can be unnecessary complexity.
 			inputUrl: undefined,
 		});
