@@ -120,6 +120,8 @@ export const connectAppDescriptor = {
 			documentationUrl:
 				'https://help.figma.com/hc/en-us/articles/360039827834-Jira-and-Figma',
 			actions: {
+				// TODO: MDTZ-1751: Remove the `associateEntity` and `disassociateEntity` Actions,
+				// 	when the migration to the new specification is completed.
 				associateEntity: {
 					templateUrl: `${
 						getConfig().app.baseUrl
@@ -129,6 +131,21 @@ export const connectAppDescriptor = {
 					templateUrl: `${
 						getConfig().app.baseUrl
 					}/entities/disassociateEntity?userId={userId}`,
+				},
+				getEntityByUrl: {
+					templateUrl: `${
+						getConfig().app.baseUrl
+					}/entities/getEntityByUrl?userId={userId}`,
+				},
+				onEntityAssociated: {
+					templateUrl: `${
+						getConfig().app.baseUrl
+					}/entities/onEntityAssociated?userId={userId}`,
+				},
+				onEntityDisassociated: {
+					templateUrl: `${
+						getConfig().app.baseUrl
+					}/entities/onEntityDisassociated?userId={userId}`,
 				},
 				checkAuth: {
 					templateUrl: `${
