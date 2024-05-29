@@ -106,14 +106,18 @@ export class FigmaBackwardIntegrationService {
 			throw e;
 		}
 
+		const figmaDesignId = FigmaDesignIdentifier.fromAtlassianDesignId(
+			design.id,
+		);
+
 		await Promise.all([
 			jiraService.tryDeleteDesignUrlFromIssueProperties(
 				issueId,
-				design,
+				figmaDesignId,
 				connectInstallation,
 			),
 			figmaService.tryDeleteDevResource({
-				designId: FigmaDesignIdentifier.fromAtlassianDesignId(design.id),
+				designId: figmaDesignId,
 				devResourceUrl: buildJiraIssueUrl(
 					connectInstallation.baseUrl,
 					issue.key,

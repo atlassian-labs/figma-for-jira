@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { JIRA_ISSUE_ATI } from '../../domain/entities';
 import {
 	generateConnectInstallation,
 	generateFigmaDesignIdentifier,
@@ -18,11 +17,9 @@ export const generateAssociateDesignUseCaseParams = ({
 	connectInstallation = generateConnectInstallation(),
 } = {}): AssociateDesignUseCaseParams => ({
 	designUrl,
-	associateWith: {
+	associateWithIssue: {
 		ari: generateJiraIssueAri({ issueId }),
-		ati: JIRA_ISSUE_ATI,
 		id: issueId,
-		cloudId: uuidv4(),
 	},
 	atlassianUserId,
 	connectInstallation,
@@ -35,11 +32,9 @@ export const generateBackfillDesignUseCaseParams = ({
 	connectInstallation = generateConnectInstallation(),
 } = {}): AssociateDesignUseCaseParams => ({
 	designUrl,
-	associateWith: {
+	associateWithIssue: {
 		ari: generateJiraIssueAri({ issueId }),
-		ati: JIRA_ISSUE_ATI,
 		id: issueId,
-		cloudId: uuidv4(),
 	},
 	atlassianUserId,
 	connectInstallation,
@@ -51,15 +46,13 @@ export const generateDisassociateDesignUseCaseParams = ({
 	atlassianUserId = uuidv4(),
 	connectInstallation = generateConnectInstallation(),
 } = {}): DisassociateDesignUseCaseParams => ({
-	entity: {
+	design: {
 		ari: 'NOT_USED',
 		id: entityId,
 	},
-	disassociateFrom: {
+	disassociateFromIssue: {
 		ari: generateJiraIssueAri({ issueId }),
-		ati: JIRA_ISSUE_ATI,
 		id: issueId,
-		cloudId: uuidv4(),
 	},
 	atlassianUserId,
 	connectInstallation,

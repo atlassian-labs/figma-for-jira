@@ -78,7 +78,7 @@ describe('disassociateDesignUseCase', () => {
 				design: designStub,
 				removeAssociations: [
 					AtlassianAssociation.createDesignIssueAssociation(
-						params.disassociateFrom.ari,
+						params.disassociateFromIssue.ari,
 					),
 				],
 			},
@@ -88,7 +88,7 @@ describe('disassociateDesignUseCase', () => {
 			figmaBackwardIntegrationService.tryNotifyFigmaOnRemovedIssueDesignAssociation,
 		).toHaveBeenCalledWith({
 			design: designStub,
-			issueId: params.disassociateFrom.id,
+			issueId: params.disassociateFromIssue.id,
 			atlassianUserId: params.atlassianUserId,
 			connectInstallation,
 		});
@@ -96,7 +96,7 @@ describe('disassociateDesignUseCase', () => {
 			associatedFigmaDesignRepository.deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId,
 		).toHaveBeenCalledWith(
 			designId,
-			params.disassociateFrom.ari,
+			params.disassociateFromIssue.ari,
 			params.connectInstallation.id,
 		);
 	});

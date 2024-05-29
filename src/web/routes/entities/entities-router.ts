@@ -58,7 +58,7 @@ entitiesRouter.post(
 			backfillDesignUseCase
 				.execute({
 					designUrl,
-					associateWith: req.body.associateWith,
+					associateWithIssue: req.body.associateWith,
 					atlassianUserId,
 					connectInstallation,
 				})
@@ -68,7 +68,7 @@ entitiesRouter.post(
 			associateDesignUseCase
 				.execute({
 					designUrl,
-					associateWith: req.body.associateWith,
+					associateWithIssue: req.body.associateWith,
 					atlassianUserId,
 					connectInstallation,
 				})
@@ -91,7 +91,8 @@ entitiesRouter.post(
 
 		disassociateDesignUseCase
 			.execute({
-				...req.body,
+				design: req.body.entity,
+				disassociateFromIssue: req.body.disassociateFrom,
 				atlassianUserId,
 				connectInstallation,
 			})

@@ -80,19 +80,19 @@ export class JiraDesignIssuePropertyService {
 
 	tryDeleteDesignUrlFromIssueProperties = async (
 		issueIdOrKey: string,
-		design: AtlassianDesign,
+		figmaDesignId: FigmaDesignIdentifier,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		try {
 			await Promise.all([
 				await this.deleteAttachedDesignUrlInIssuePropertiesIfPresent(
 					issueIdOrKey,
-					design,
+					figmaDesignId,
 					connectInstallation,
 				),
 				await this.deleteFromAttachedDesignUrlV2IssueProperties(
 					issueIdOrKey,
-					design,
+					figmaDesignId,
 					connectInstallation,
 				),
 			]);
@@ -200,7 +200,7 @@ export class JiraDesignIssuePropertyService {
 	 */
 	deleteAttachedDesignUrlInIssuePropertiesIfPresent = async (
 		issueIdOrKey: string,
-		design: AtlassianDesign,
+		figmaDesignId: FigmaDesignIdentifier,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> =>
 		this.withErrorTranslation(async () => {
@@ -214,7 +214,7 @@ export class JiraDesignIssuePropertyService {
 				const storedUrl = response.value;
 
 				if (!isString(storedUrl)) return;
-				if (!this.areUrlsOfSameDesign(storedUrl, design.url)) return;
+				if (!this.isUrlForDesign(storedUrl, figmaDesignId)) return;
 
 				await jiraClient.deleteIssueProperty(
 					issueIdOrKey,
@@ -231,13 +231,13 @@ export class JiraDesignIssuePropertyService {
 
 	/**
 	 * @internal
-	 * Only visible for testing. Please use {@link saveDesignUrlInIssueProperties}
+	 * Only visible for testing.
 	 *
 	 * @throws {ForbiddenByJiraServiceError} The app does not have permission to edit the Issue.
 	 */
 	deleteFromAttachedDesignUrlV2IssueProperties = async (
 		issueIdOrKey: string,
-		{ url }: AtlassianDesign,
+		figmaDesignId: FigmaDesignIdentifier,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> =>
 		this.withErrorTranslation(async () => {
@@ -266,7 +266,7 @@ export class JiraDesignIssuePropertyService {
 
 			const newAttachedDesignUrlIssuePropertyValue =
 				storedAttachedDesignUrlIssuePropertyValue.filter(
-					(storedValue) => !this.areUrlsOfSameDesign(storedValue.url, url),
+					(storedValue) => !this.isUrlForDesign(storedValue.url, figmaDesignId),
 				);
 
 			if (
@@ -282,7 +282,7 @@ export class JiraDesignIssuePropertyService {
 				);
 			} else {
 				getLogger().warn(
-					`Design with url: ${url} that was requested to be deleted was not removed from the 'attached-design-v2' issue property array`,
+					`Design with ID: ${figmaDesignId.toAtlassianDesignId()} that was requested to be deleted was not removed from the 'attached-design-v2' issue property array`,
 				);
 			}
 		});
@@ -318,17 +318,6 @@ export class JiraDesignIssuePropertyService {
 	) => {
 		try {
 			return figmaDesignId.equals(
-				FigmaDesignIdentifier.fromFigmaDesignUrl(new URL(storedUrl)),
-			);
-		} catch (error) {
-			// For existing designs that were previously stored in the issue property, we may not be able to parse the URL.
-			return false;
-		}
-	};
-
-	private areUrlsOfSameDesign = (storedUrl: string, url: string) => {
-		try {
-			return FigmaDesignIdentifier.fromFigmaDesignUrl(new URL(url)).equals(
 				FigmaDesignIdentifier.fromFigmaDesignUrl(new URL(storedUrl)),
 			);
 		} catch (error) {

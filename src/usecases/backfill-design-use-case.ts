@@ -2,7 +2,6 @@ import {
 	ForbiddenByFigmaUseCaseResultError,
 	InvalidInputUseCaseResultError,
 } from './errors';
-import type { AtlassianEntity } from './types';
 
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
 import {
@@ -20,7 +19,10 @@ import { submitFullDesign } from '../jobs';
 
 export type BackfillDesignUseCaseParams = {
 	readonly designUrl: URL;
-	readonly associateWith: AtlassianEntity;
+	readonly associateWithIssue: {
+		readonly ari: string;
+		readonly id: string;
+	};
 	readonly atlassianUserId: string;
 	readonly connectInstallation: ConnectInstallation;
 };
@@ -34,7 +36,7 @@ export const backfillDesignUseCase = {
 	 */
 	execute: async ({
 		designUrl,
-		associateWith,
+		associateWithIssue,
 		atlassianUserId,
 		connectInstallation,
 	}: BackfillDesignUseCaseParams): Promise<AtlassianDesign> => {
@@ -51,7 +53,9 @@ export const backfillDesignUseCase = {
 			const design = figmaBackfillService.buildMinimalDesignFromUrl(designUrl);
 
 			const designIssueAssociation =
-				AtlassianAssociation.createDesignIssueAssociation(associateWith.ari);
+				AtlassianAssociation.createDesignIssueAssociation(
+					associateWithIssue.ari,
+				);
 
 			await jiraService.submitDesign(
 				{
@@ -64,7 +68,7 @@ export const backfillDesignUseCase = {
 			await Promise.all([
 				await associatedFigmaDesignRepository.upsert({
 					designId: figmaDesignId,
-					associatedWithAri: associateWith.ari,
+					associatedWithAri: associateWithIssue.ari,
 					connectInstallationId: connectInstallation.id,
 					inputUrl: designUrl.toString(),
 				}),
@@ -72,7 +76,7 @@ export const backfillDesignUseCase = {
 					{
 						originalFigmaDesignId: figmaDesignId,
 						design,
-						issueId: associateWith.id,
+						issueId: associateWithIssue.id,
 						atlassianUserId,
 						connectInstallation,
 					},

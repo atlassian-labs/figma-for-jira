@@ -1,8 +1,4 @@
-import {
-	ForbiddenByFigmaUseCaseResultError,
-	InvalidInputUseCaseResultError,
-} from './errors';
-import type { AtlassianEntity } from './types';
+import { ForbiddenByFigmaUseCaseResultError } from './errors';
 
 import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
 import {
@@ -10,7 +6,6 @@ import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
 	FigmaDesignIdentifier,
-	JIRA_ISSUE_ATI,
 } from '../domain/entities';
 import { figmaBackwardIntegrationService } from '../infrastructure';
 import { UnauthorizedFigmaServiceError } from '../infrastructure/figma';
@@ -23,11 +18,14 @@ import { jiraService } from '../infrastructure/jira';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
 
 export type DisassociateDesignUseCaseParams = {
-	readonly entity: {
+	readonly design: {
 		readonly ari: string;
 		readonly id: string;
 	};
-	readonly disassociateFrom: AtlassianEntity;
+	readonly disassociateFromIssue: {
+		readonly ari: string;
+		readonly id: string;
+	};
 	readonly atlassianUserId: string;
 	readonly connectInstallation: ConnectInstallation;
 };
@@ -38,18 +36,14 @@ export const disassociateDesignUseCase = {
 	 * @throws {ForbiddenByFigmaUseCaseResultError} Not authorized to access Figma.
 	 */
 	execute: async ({
-		entity,
-		disassociateFrom,
+		design,
+		disassociateFromIssue,
 		atlassianUserId,
 		connectInstallation,
 	}: DisassociateDesignUseCaseParams): Promise<AtlassianDesign> => {
 		try {
-			if (disassociateFrom.ati !== JIRA_ISSUE_ATI) {
-				throw new InvalidInputUseCaseResultError('Unrecognised ATI');
-			}
-
 			const figmaDesignId = FigmaDesignIdentifier.fromAtlassianDesignId(
-				entity.id,
+				design.id,
 			);
 
 			// By setting updateSequenceNumber to 0 the design will not be updated,
@@ -67,7 +61,9 @@ export const disassociateDesignUseCase = {
 			};
 
 			const designIssueAssociation =
-				AtlassianAssociation.createDesignIssueAssociation(disassociateFrom.ari);
+				AtlassianAssociation.createDesignIssueAssociation(
+					disassociateFromIssue.ari,
+				);
 
 			await jiraService.submitDesign(
 				{
@@ -80,13 +76,13 @@ export const disassociateDesignUseCase = {
 			await Promise.all([
 				await associatedFigmaDesignRepository.deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId(
 					figmaDesignId,
-					disassociateFrom.ari,
+					disassociateFromIssue.ari,
 					connectInstallation.id,
 				),
 				await figmaBackwardIntegrationService.tryNotifyFigmaOnRemovedIssueDesignAssociation(
 					{
 						design: designStub,
-						issueId: disassociateFrom.id,
+						issueId: disassociateFromIssue.id,
 						atlassianUserId,
 						connectInstallation,
 					},

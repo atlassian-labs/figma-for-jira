@@ -20,7 +20,6 @@ import {
 	AtlassianDesignType,
 	buildJiraIssueUrl,
 	FigmaDesignIdentifier,
-	JIRA_ISSUE_ATI,
 } from '../../../domain/entities';
 import {
 	generateConnectInstallationCreateParams,
@@ -34,7 +33,7 @@ import {
 	generateJiraIssueId,
 	generateJiraIssueUrl,
 } from '../../../domain/entities/testing';
-import { figmaBackfillService } from '../../../infrastructure/figma/figma-backfill-service';
+import { figmaBackfillService } from '../../../infrastructure/figma';
 import {
 	generateChildNode,
 	generateCreateDevResourcesRequest,
@@ -131,7 +130,7 @@ const generateAssociateEntityRequest = ({
 		url: figmaDesignUrl,
 	},
 	associateWith: {
-		ati: JIRA_ISSUE_ATI,
+		ati: 'ati:cloud:jira:issue',
 		ari: issueAri,
 		cloudId: uuidv4(),
 		id: issueId,
@@ -152,7 +151,7 @@ const generateDisassociateEntityRequest = ({
 		id: entityId,
 	},
 	disassociateFrom: {
-		ati: JIRA_ISSUE_ATI,
+		ati: 'ati:cloud:jira:issue',
 		ari: issueAri,
 		cloudId: uuidv4(),
 		id: issueId,
@@ -595,6 +594,37 @@ describe('/entities', () => {
 				.send(generateAssociateEntityRequest())
 				.set('Authorization', `JWT ${jwt}`)
 				.set('Content-Type', 'application/json')
+				.expect(HttpStatusCode.BadRequest);
+		});
+
+		it('should respond with 400 if request is not related to association with Jira Issue', async () => {
+			const atlassianUserId = uuidv4();
+			const cloudId = uuidv4();
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const jwt = generateJiraServerSymmetricJwtToken({
+				request: {
+					method: 'POST',
+					pathname: '/entities/associateEntity',
+				},
+				connectInstallation,
+			});
+
+			return request(app)
+				.post('/entities/associateEntity')
+				.send({
+					...generateAssociateEntityRequest(),
+					associateWith: {
+						ati: 'ati:cloud:jira:project',
+						ari: `ari:cloud:jira:${cloudId}:project/1000`,
+						cloudId,
+						id: '1000',
+					},
+				})
+				.set('Authorization', `JWT ${jwt}`)
+				.set('Content-Type', 'application/json')
+				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.BadRequest);
 		});
 
@@ -1672,7 +1702,7 @@ describe('/entities', () => {
 				.expect(HttpStatusCode.Ok);
 		});
 
-		it('should respond with 400 "userId" query parameter is missing', async () => {
+		it('should respond with 400 if "userId" query parameter is missing', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
@@ -1689,6 +1719,37 @@ describe('/entities', () => {
 				.send(generateDisassociateEntityRequest())
 				.set('Authorization', `JWT ${jwt}`)
 				.set('Content-Type', 'application/json')
+				.expect(HttpStatusCode.BadRequest);
+		});
+
+		it('should respond with 400 if request is not related to association with Jira Issue', async () => {
+			const atlassianUserId = uuidv4();
+			const cloudId = uuidv4();
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const jwt = generateJiraServerSymmetricJwtToken({
+				request: {
+					method: 'POST',
+					pathname: '/entities/disassociateEntity',
+				},
+				connectInstallation,
+			});
+
+			return request(app)
+				.post('/entities/disassociateEntity')
+				.send({
+					...generateDisassociateEntityRequest(),
+					disassociateFrom: {
+						ati: 'ati:cloud:jira:project',
+						ari: `ari:cloud:jira:${cloudId}:project/1000`,
+						cloudId,
+						id: '1000',
+					},
+				})
+				.set('Authorization', `JWT ${jwt}`)
+				.set('Content-Type', 'application/json')
+				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.BadRequest);
 		});
 	});
