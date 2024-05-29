@@ -51,7 +51,7 @@ export class FigmaBackwardIntegrationService {
 		}
 
 		await Promise.all([
-			jiraService.trySaveDesignUrlInIssueProperties(
+			jiraService.trySaveDesignInIssueProperties(
 				issueId,
 				originalFigmaDesignId,
 				design,
@@ -111,7 +111,7 @@ export class FigmaBackwardIntegrationService {
 		);
 
 		await Promise.all([
-			jiraService.tryDeleteDesignUrlFromIssueProperties(
+			jiraService.tryDeleteDesignFromIssueProperties(
 				issueId,
 				figmaDesignId,
 				connectInstallation,

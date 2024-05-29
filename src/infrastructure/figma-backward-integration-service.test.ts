@@ -28,7 +28,7 @@ describe('FigmaBackwardIntegrationService', () => {
 			jest.spyOn(jiraService, 'getIssue').mockResolvedValue(issue);
 
 			jest
-				.spyOn(jiraService, 'trySaveDesignUrlInIssueProperties')
+				.spyOn(jiraService, 'trySaveDesignInIssueProperties')
 				.mockResolvedValue();
 			jest
 				.spyOn(figmaService, 'tryCreateDevResourceForJiraIssue')
@@ -44,9 +44,7 @@ describe('FigmaBackwardIntegrationService', () => {
 				},
 			);
 
-			expect(
-				jiraService.trySaveDesignUrlInIssueProperties,
-			).toHaveBeenCalledWith(
+			expect(jiraService.trySaveDesignInIssueProperties).toHaveBeenCalledWith(
 				issue.id,
 				originalFigmaDesignId,
 				atlassianDesign,
@@ -85,7 +83,7 @@ describe('FigmaBackwardIntegrationService', () => {
 			jest.spyOn(jiraService, 'getIssue').mockResolvedValue(issue);
 
 			jest
-				.spyOn(jiraService, 'trySaveDesignUrlInIssueProperties')
+				.spyOn(jiraService, 'trySaveDesignInIssueProperties')
 				.mockResolvedValue();
 			jest
 				.spyOn(figmaService, 'tryCreateDevResourceForJiraIssue')
@@ -101,9 +99,7 @@ describe('FigmaBackwardIntegrationService', () => {
 				},
 			);
 
-			expect(
-				jiraService.trySaveDesignUrlInIssueProperties,
-			).toHaveBeenCalledWith(
+			expect(jiraService.trySaveDesignInIssueProperties).toHaveBeenCalledWith(
 				issue.id,
 				originalFigmaDesignId,
 				atlassianDesign,
@@ -167,7 +163,7 @@ describe('FigmaBackwardIntegrationService', () => {
 			jest.spyOn(jiraService, 'getIssue').mockResolvedValue(issue);
 
 			jest
-				.spyOn(jiraService, 'tryDeleteDesignUrlFromIssueProperties')
+				.spyOn(jiraService, 'tryDeleteDesignFromIssueProperties')
 				.mockResolvedValue();
 			jest.spyOn(figmaService, 'tryDeleteDevResource').mockResolvedValue();
 
@@ -181,7 +177,7 @@ describe('FigmaBackwardIntegrationService', () => {
 			);
 
 			expect(
-				jiraService.tryDeleteDesignUrlFromIssueProperties,
+				jiraService.tryDeleteDesignFromIssueProperties,
 			).toHaveBeenCalledWith(issue.id, figmaDesignId, connectInstallation);
 			expect(figmaService.tryDeleteDevResource).toHaveBeenCalledWith({
 				designId: figmaDesignId,

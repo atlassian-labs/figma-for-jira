@@ -30,13 +30,13 @@ export class JiraService {
 			jiraAppConfigurationService,
 		);
 
-	trySaveDesignUrlInIssueProperties =
-		jiraDesignIssuePropertyService.trySaveDesignUrlInIssueProperties.bind(
+	trySaveDesignInIssueProperties =
+		jiraDesignIssuePropertyService.trySaveDesignInIssueProperties.bind(
 			jiraDesignIssuePropertyService,
 		);
 
-	tryDeleteDesignUrlFromIssueProperties =
-		jiraDesignIssuePropertyService.tryDeleteDesignUrlFromIssueProperties.bind(
+	tryDeleteDesignFromIssueProperties =
+		jiraDesignIssuePropertyService.tryDeleteDesignFromIssueProperties.bind(
 			jiraDesignIssuePropertyService,
 		);
 

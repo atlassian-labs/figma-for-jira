@@ -30,7 +30,7 @@ const issuePropertyKeys = {
 };
 
 describe('JiraDesignIssuePropertyService', () => {
-	describe('trySaveDesignUrlInIssueProperties', () => {
+	describe('trySaveDesignInIssueProperties', () => {
 		afterEach(() => {
 			jest.resetAllMocks();
 		});
@@ -43,18 +43,18 @@ describe('JiraDesignIssuePropertyService', () => {
 			jest
 				.spyOn(
 					jiraDesignIssuePropertyService,
-					'setAttachedDesignUrlInIssuePropertiesIfMissing',
+					'setAttachedDesignInIssuePropertiesIfMissing',
 				)
 				.mockRejectedValue(new ForbiddenByJiraServiceError());
 			jest
 				.spyOn(
 					jiraDesignIssuePropertyService,
-					'updateAttachedDesignUrlV2IssueProperty',
+					'updateAttachedDesignV2IssueProperty',
 				)
 				.mockRejectedValue(new ForbiddenByJiraServiceError());
 
 			await expect(
-				jiraDesignIssuePropertyService.trySaveDesignUrlInIssueProperties(
+				jiraDesignIssuePropertyService.trySaveDesignInIssueProperties(
 					issueId,
 					figmaDesignIdToReplace,
 					design,
@@ -64,7 +64,7 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 	});
 
-	describe('tryDeleteDesignUrlFromIssueProperties', () => {
+	describe('tryDeleteDesignFromIssueProperties', () => {
 		afterEach(() => {
 			jest.resetAllMocks();
 		});
@@ -76,18 +76,18 @@ describe('JiraDesignIssuePropertyService', () => {
 			jest
 				.spyOn(
 					jiraDesignIssuePropertyService,
-					'deleteAttachedDesignUrlInIssuePropertiesIfPresent',
+					'deleteAttachedDesignInIssuePropertiesIfPresent',
 				)
 				.mockRejectedValue(new ForbiddenByJiraServiceError());
 			jest
 				.spyOn(
 					jiraDesignIssuePropertyService,
-					'deleteFromAttachedDesignUrlV2IssueProperties',
+					'deleteFromAttachedDesignV2IssueProperties',
 				)
 				.mockRejectedValue(new ForbiddenByJiraServiceError());
 
 			await expect(
-				jiraDesignIssuePropertyService.tryDeleteDesignUrlFromIssueProperties(
+				jiraDesignIssuePropertyService.tryDeleteDesignFromIssueProperties(
 					issueId,
 					figmaDesignId,
 					connectInstallation,
@@ -96,7 +96,7 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 	});
 
-	describe('setAttachedDesignUrlInIssuePropertiesIfMissing', () => {
+	describe('setAttachedDesignInIssuePropertiesIfMissing', () => {
 		it('should set the Issue Property if not present', async () => {
 			const issueId = generateJiraIssueId();
 			const connectInstallation = generateConnectInstallation();
@@ -108,7 +108,7 @@ describe('JiraDesignIssuePropertyService', () => {
 				.mockRejectedValue(new NotFoundHttpClientError());
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation();
 
-			await jiraDesignIssuePropertyService.setAttachedDesignUrlInIssuePropertiesIfMissing(
+			await jiraDesignIssuePropertyService.setAttachedDesignInIssuePropertiesIfMissing(
 				issueId,
 				design,
 				connectInstallation,
@@ -135,7 +135,7 @@ describe('JiraDesignIssuePropertyService', () => {
 			);
 			jest.spyOn(jiraClient, 'setIssueProperty');
 
-			await jiraDesignIssuePropertyService.setAttachedDesignUrlInIssuePropertiesIfMissing(
+			await jiraDesignIssuePropertyService.setAttachedDesignInIssuePropertiesIfMissing(
 				issueId,
 				design,
 				connectInstallation,
@@ -158,7 +158,7 @@ describe('JiraDesignIssuePropertyService', () => {
 				.mockRejectedValue(new ForbiddenHttpClientError());
 
 			await expect(
-				jiraDesignIssuePropertyService.setAttachedDesignUrlInIssuePropertiesIfMissing(
+				jiraDesignIssuePropertyService.setAttachedDesignInIssuePropertiesIfMissing(
 					issueId,
 					design,
 					connectInstallation,
@@ -178,7 +178,7 @@ describe('JiraDesignIssuePropertyService', () => {
 				.mockRejectedValue(unexpectedError);
 
 			await expect(
-				jiraDesignIssuePropertyService.setAttachedDesignUrlInIssuePropertiesIfMissing(
+				jiraDesignIssuePropertyService.setAttachedDesignInIssuePropertiesIfMissing(
 					issueId,
 					design,
 					connectInstallation,
@@ -187,7 +187,7 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 	});
 
-	describe('updateAttachedDesignUrlV2IssueProperty', () => {
+	describe('updateAttachedDesignV2IssueProperty', () => {
 		it('should set Issue Property if not present', async () => {
 			const issueId = generateJiraIssueId();
 			const connectInstallation = generateConnectInstallation();
@@ -199,7 +199,7 @@ describe('JiraDesignIssuePropertyService', () => {
 				.mockRejectedValue(new NotFoundHttpClientError());
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
-			await jiraDesignIssuePropertyService.updateAttachedDesignUrlV2IssueProperty(
+			await jiraDesignIssuePropertyService.updateAttachedDesignV2IssueProperty(
 				issueId,
 				FigmaDesignIdentifier.fromAtlassianDesignId(design.id),
 				design,
@@ -241,7 +241,7 @@ describe('JiraDesignIssuePropertyService', () => {
 			);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
-			await jiraDesignIssuePropertyService.updateAttachedDesignUrlV2IssueProperty(
+			await jiraDesignIssuePropertyService.updateAttachedDesignV2IssueProperty(
 				issueId,
 				FigmaDesignIdentifier.fromAtlassianDesignId(design.id),
 				design,
@@ -292,7 +292,7 @@ describe('JiraDesignIssuePropertyService', () => {
 			);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
-			await jiraDesignIssuePropertyService.updateAttachedDesignUrlV2IssueProperty(
+			await jiraDesignIssuePropertyService.updateAttachedDesignV2IssueProperty(
 				issueId,
 				FigmaDesignIdentifier.fromAtlassianDesignId(design.id),
 				design,
@@ -350,7 +350,7 @@ describe('JiraDesignIssuePropertyService', () => {
 			);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
-			await jiraDesignIssuePropertyService.updateAttachedDesignUrlV2IssueProperty(
+			await jiraDesignIssuePropertyService.updateAttachedDesignV2IssueProperty(
 				issueId,
 				designId,
 				parentDesign,
@@ -409,7 +409,7 @@ describe('JiraDesignIssuePropertyService', () => {
 			);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
-			await jiraDesignIssuePropertyService.updateAttachedDesignUrlV2IssueProperty(
+			await jiraDesignIssuePropertyService.updateAttachedDesignV2IssueProperty(
 				issueId,
 				designId,
 				parentDesign,
@@ -454,7 +454,7 @@ describe('JiraDesignIssuePropertyService', () => {
 				);
 				jest.spyOn(jiraClient, 'setIssueProperty').mockResolvedValue();
 
-				await jiraDesignIssuePropertyService.updateAttachedDesignUrlV2IssueProperty(
+				await jiraDesignIssuePropertyService.updateAttachedDesignV2IssueProperty(
 					issueId,
 					FigmaDesignIdentifier.fromAtlassianDesignId(design.id),
 					design,
@@ -488,7 +488,7 @@ describe('JiraDesignIssuePropertyService', () => {
 				.mockResolvedValue(generateGetIssuePropertyResponse({ value: 1 }));
 			jest.spyOn(jiraClient, 'setIssueProperty').mockResolvedValue();
 
-			await jiraDesignIssuePropertyService.updateAttachedDesignUrlV2IssueProperty(
+			await jiraDesignIssuePropertyService.updateAttachedDesignV2IssueProperty(
 				issueId,
 				FigmaDesignIdentifier.fromAtlassianDesignId(design.id),
 				design,
@@ -524,7 +524,7 @@ describe('JiraDesignIssuePropertyService', () => {
 				.mockRejectedValue(new ForbiddenHttpClientError());
 
 			await expect(
-				jiraDesignIssuePropertyService.updateAttachedDesignUrlV2IssueProperty(
+				jiraDesignIssuePropertyService.updateAttachedDesignV2IssueProperty(
 					issueId,
 					FigmaDesignIdentifier.fromAtlassianDesignId(design.id),
 					design,
@@ -545,7 +545,7 @@ describe('JiraDesignIssuePropertyService', () => {
 				.mockRejectedValue(unexpectedError);
 
 			await expect(
-				jiraDesignIssuePropertyService.updateAttachedDesignUrlV2IssueProperty(
+				jiraDesignIssuePropertyService.updateAttachedDesignV2IssueProperty(
 					issueId,
 					FigmaDesignIdentifier.fromAtlassianDesignId(design.id),
 					design,
@@ -555,7 +555,7 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 	});
 
-	describe('deleteAttachedDesignUrlInIssuePropertiesIfPresent', () => {
+	describe('deleteAttachedDesignInIssuePropertiesIfPresent', () => {
 		it('should delete Issue Property if its value is URL of given design', async () => {
 			const issueId = generateJiraIssueId();
 			const connectInstallation = generateConnectInstallation();
@@ -572,7 +572,7 @@ describe('JiraDesignIssuePropertyService', () => {
 				.spyOn(jiraClient, 'deleteIssueProperty')
 				.mockImplementation(jest.fn());
 
-			await jiraDesignIssuePropertyService.deleteAttachedDesignUrlInIssuePropertiesIfPresent(
+			await jiraDesignIssuePropertyService.deleteAttachedDesignInIssuePropertiesIfPresent(
 				issueId,
 				figmaDesignId,
 				connectInstallation,
@@ -598,7 +598,7 @@ describe('JiraDesignIssuePropertyService', () => {
 				.spyOn(jiraClient, 'deleteIssueProperty')
 				.mockImplementation(jest.fn());
 
-			await jiraDesignIssuePropertyService.deleteAttachedDesignUrlInIssuePropertiesIfPresent(
+			await jiraDesignIssuePropertyService.deleteAttachedDesignInIssuePropertiesIfPresent(
 				issueId,
 				figmaDesignId,
 				connectInstallation,
@@ -617,7 +617,7 @@ describe('JiraDesignIssuePropertyService', () => {
 				.mockRejectedValue(unexpectedError);
 
 			await expect(
-				jiraDesignIssuePropertyService.deleteAttachedDesignUrlInIssuePropertiesIfPresent(
+				jiraDesignIssuePropertyService.deleteAttachedDesignInIssuePropertiesIfPresent(
 					issueId,
 					figmaDesignId,
 					connectInstallation,
@@ -636,7 +636,7 @@ describe('JiraDesignIssuePropertyService', () => {
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
 			await expect(
-				jiraDesignIssuePropertyService.deleteAttachedDesignUrlInIssuePropertiesIfPresent(
+				jiraDesignIssuePropertyService.deleteAttachedDesignInIssuePropertiesIfPresent(
 					issueId,
 					figmaDesignId,
 					connectInstallation,
@@ -647,7 +647,7 @@ describe('JiraDesignIssuePropertyService', () => {
 		});
 	});
 
-	describe('deleteFromAttachedDesignUrlV2IssueProperties', () => {
+	describe('deleteFromAttachedDesignV2IssueProperties', () => {
 		it('should delete the URL from the array stored in Issue Properties', async () => {
 			const issueId = generateJiraIssueId();
 			const connectInstallation = generateConnectInstallation();
@@ -674,7 +674,7 @@ describe('JiraDesignIssuePropertyService', () => {
 			);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
-			await jiraDesignIssuePropertyService.deleteFromAttachedDesignUrlV2IssueProperties(
+			await jiraDesignIssuePropertyService.deleteFromAttachedDesignV2IssueProperties(
 				issueId,
 				targetFigmaDesignId,
 				connectInstallation,
@@ -706,7 +706,7 @@ describe('JiraDesignIssuePropertyService', () => {
 			);
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
-			await jiraDesignIssuePropertyService.deleteFromAttachedDesignUrlV2IssueProperties(
+			await jiraDesignIssuePropertyService.deleteFromAttachedDesignV2IssueProperties(
 				issueId,
 				targetFigmaDesignId,
 				connectInstallation,
@@ -735,7 +735,7 @@ describe('JiraDesignIssuePropertyService', () => {
 				);
 
 				await expect(
-					jiraDesignIssuePropertyService.deleteFromAttachedDesignUrlV2IssueProperties(
+					jiraDesignIssuePropertyService.deleteFromAttachedDesignV2IssueProperties(
 						issueId,
 						figmaDesignId,
 						connectInstallation,
@@ -754,7 +754,7 @@ describe('JiraDesignIssuePropertyService', () => {
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
 			await expect(
-				jiraDesignIssuePropertyService.deleteFromAttachedDesignUrlV2IssueProperties(
+				jiraDesignIssuePropertyService.deleteFromAttachedDesignV2IssueProperties(
 					issueId,
 					figmaDesignId,
 					connectInstallation,
@@ -786,7 +786,7 @@ describe('JiraDesignIssuePropertyService', () => {
 				.mockRejectedValue(new ForbiddenHttpClientError());
 
 			await expect(
-				jiraDesignIssuePropertyService.deleteFromAttachedDesignUrlV2IssueProperties(
+				jiraDesignIssuePropertyService.deleteFromAttachedDesignV2IssueProperties(
 					issueId,
 					figmaDesignId,
 					connectInstallation,
@@ -804,7 +804,7 @@ describe('JiraDesignIssuePropertyService', () => {
 				.mockRejectedValue(unexpectedError);
 
 			await expect(
-				jiraDesignIssuePropertyService.deleteFromAttachedDesignUrlV2IssueProperties(
+				jiraDesignIssuePropertyService.deleteFromAttachedDesignV2IssueProperties(
 					issueId,
 					figmaDesignId,
 					connectInstallation,
@@ -823,7 +823,7 @@ describe('JiraDesignIssuePropertyService', () => {
 			jest.spyOn(jiraClient, 'setIssueProperty').mockImplementation(jest.fn());
 
 			await expect(
-				jiraDesignIssuePropertyService.deleteFromAttachedDesignUrlV2IssueProperties(
+				jiraDesignIssuePropertyService.deleteFromAttachedDesignV2IssueProperties(
 					issueId,
 					figmaDesignId,
 					connectInstallation,
