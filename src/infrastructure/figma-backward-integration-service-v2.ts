@@ -23,8 +23,7 @@ export class FigmaBackwardIntegrationServiceV2 {
 	 * Makes the best effort to perform the operation: silently stops the operation in case of an expected error
 	 * (e.g., a lack of permissions to read Jira Issue) and throws only in case of an unexpected error.
 	 */
-	tryNotifyFigmaOnAddedIssueDesignAssociation = async (params: {
-		readonly originalFigmaDesignId: FigmaDesignIdentifier;
+	tryNotifyFigmaOnDesignAssociatedWithIssue = async (params: {
 		readonly figmaDesignId: FigmaDesignIdentifier;
 		readonly issueId: string;
 		readonly atlassianUserId?: string;
@@ -32,7 +31,7 @@ export class FigmaBackwardIntegrationServiceV2 {
 	}): Promise<void> => {
 		await jiraService.trySaveDesignInIssueProperties(
 			params.issueId,
-			params.originalFigmaDesignId,
+			params.figmaDesignId,
 			await this.getIssuePropertyInputDesignData(params),
 			params.connectInstallation,
 		);
@@ -89,7 +88,7 @@ export class FigmaBackwardIntegrationServiceV2 {
 	 * Makes the best effort to perform the operation: silently stops the operation in case of an expected error
 	 * (e.g., a lack of permissions to read Jira Issue) and throws only in case of an unexpected error.
 	 */
-	tryNotifyFigmaOnRemovedIssueDesignAssociation = async (params: {
+	tryNotifyFigmaOnDesignDisassociatedFromIssue = async (params: {
 		readonly figmaDesignId: FigmaDesignIdentifier;
 		readonly issueId: string;
 		readonly atlassianUserId?: string;

@@ -42,7 +42,7 @@ export const onDesignDisassociatedFromIssueUseCase = {
 			params.connectInstallation.id,
 		);
 
-		await figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnRemovedIssueDesignAssociation(
+		await figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignDisassociatedFromIssue(
 			{
 				figmaDesignId,
 				issueId: params.issue.id,

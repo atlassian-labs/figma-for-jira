@@ -43,9 +43,8 @@ export const onDesignAssociatedWithIssueUseCaseParams = {
 			inputUrl: undefined, // Stop writing to this column. Consider dropping it when the data is not required anymore.
 		});
 
-		await figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnAddedIssueDesignAssociation(
+		await figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignAssociatedWithIssue(
 			{
-				originalFigmaDesignId: figmaDesignId,
 				figmaDesignId,
 				issueId: params.issue.id,
 				atlassianUserId: params.atlassianUserId,
