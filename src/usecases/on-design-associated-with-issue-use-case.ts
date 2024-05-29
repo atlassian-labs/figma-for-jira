@@ -40,7 +40,12 @@ export const onDesignAssociatedWithIssueUseCaseParams = {
 			designId: figmaDesignId,
 			associatedWithAri: params.issue.ari,
 			connectInstallationId: params.connectInstallation.id,
-			inputUrl: undefined, // Stop writing to this column. Consider dropping it when the data is not required anymore.
+			// Consider stop writing to this column.
+			// This code is called within the `onEntityAssociated` action, which is called when a Design is associated with an Issue.
+			// Therefore, the original input URL is not available in this context.
+			// If we need to keep writing to this column, we will need to change the database schema and handle it partially
+			// in the `getEntityByUrl` action and partially in the `onEntityAssociated` action, which can be unnecessary complexity.
+			inputUrl: undefined,
 		});
 
 		await figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignAssociatedWithIssue(
