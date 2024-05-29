@@ -1,12 +1,8 @@
 import { figmaService } from './figma';
-import { jiraService, NotFoundInJiraServiceError } from './jira';
+import { jiraService } from './jira';
 import { getLogger } from './logger';
 
-import type {
-	AtlassianDesign,
-	ConnectInstallation,
-	JiraIssue,
-} from '../domain/entities';
+import type { AtlassianDesign, ConnectInstallation } from '../domain/entities';
 import { buildJiraIssueUrl, FigmaDesignIdentifier } from '../domain/entities';
 
 /**
@@ -35,19 +31,12 @@ export class FigmaBackwardIntegrationService {
 		readonly atlassianUserId: string;
 		readonly connectInstallation: ConnectInstallation;
 	}): Promise<void> => {
-		let issue: JiraIssue;
+		const issue = await jiraService.getIssue(issueId, connectInstallation);
 
-		try {
-			issue = await jiraService.getIssue(issueId, connectInstallation);
-		} catch (e) {
-			if (e instanceof NotFoundInJiraServiceError) {
-				return getLogger().warn(
-					'Skipping handling backward integration as the Issue has been deleted or the app does not have permission to read it.',
-					e,
-				);
-			}
-
-			throw e;
+		if (!issue) {
+			return getLogger().warn(
+				'Skipping handling backward integration as the Issue is not found: it has been deleted or the app does not have permission to read it.',
+			);
 		}
 
 		await Promise.all([
@@ -91,19 +80,12 @@ export class FigmaBackwardIntegrationService {
 		readonly atlassianUserId: string;
 		readonly connectInstallation: ConnectInstallation;
 	}): Promise<void> => {
-		let issue: JiraIssue;
+		const issue = await jiraService.getIssue(issueId, connectInstallation);
 
-		try {
-			issue = await jiraService.getIssue(issueId, connectInstallation);
-		} catch (e) {
-			if (e instanceof NotFoundInJiraServiceError) {
-				return getLogger().warn(
-					'Skipping handling backward integration as the Issue has been deleted or the app does not have permission to read it.',
-					e,
-				);
-			}
-
-			throw e;
+		if (!issue) {
+			return getLogger().warn(
+				'Skipping handling backward integration as the Issue is not found: it has been deleted or the app does not have permission to read it.',
+			);
 		}
 
 		const figmaDesignId = FigmaDesignIdentifier.fromAtlassianDesignId(

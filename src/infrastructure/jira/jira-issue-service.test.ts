@@ -1,4 +1,3 @@
-import { NotFoundInJiraServiceError } from './errors';
 import { jiraClient } from './jira-client';
 import { jiraService } from './jira-service';
 
@@ -28,16 +27,16 @@ describe('JiraIssueService', () => {
 			);
 		});
 
-		it('should throw `NotFoundInJiraServiceError` when issue is not found', async () => {
+		it('should return `null` when issue is not found', async () => {
 			const connectInstallation = generateConnectInstallation();
 			const issueKey = generateJiraIssueKey();
 			jest
 				.spyOn(jiraClient, 'getIssue')
 				.mockRejectedValue(new NotFoundHttpClientError());
 
-			await expect(() =>
-				jiraService.getIssue(issueKey, connectInstallation),
-			).rejects.toThrow(NotFoundInJiraServiceError);
+			const result = await jiraService.getIssue(issueKey, connectInstallation);
+
+			expect(result).toBeNull();
 		});
 	});
 });

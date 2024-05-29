@@ -15,9 +15,6 @@ export class JiraService {
 	 */
 	submitDesigns = jiraDesignService.submitDesigns.bind(jiraDesignService);
 
-	/**
-	 * @throws {NotFoundInJiraServiceError} Issue does not exist or the app does not have permission to read it.
-	 */
 	getIssue = jiraIssueService.getIssue.bind(jiraIssueService);
 
 	setAppConfigurationState =

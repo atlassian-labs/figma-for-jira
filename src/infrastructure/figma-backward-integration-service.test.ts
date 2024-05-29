@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { figmaService } from './figma';
 import { figmaBackwardIntegrationService } from './figma-backward-integration-service';
-import { jiraService, NotFoundInJiraServiceError } from './jira';
+import { jiraService } from './jira';
 
 import { FigmaDesignIdentifier } from '../domain/entities';
 import {
@@ -11,6 +11,7 @@ import {
 	generateFigmaFileKey,
 	generateFigmaNodeId,
 	generateJiraIssue,
+	generateJiraIssueId,
 } from '../domain/entities/testing';
 
 describe('FigmaBackwardIntegrationService', () => {
@@ -126,23 +127,21 @@ describe('FigmaBackwardIntegrationService', () => {
 		it('should not throw when Jira Issue is not found', async () => {
 			const connectInstallation = generateConnectInstallation();
 			const atlassianUserId = uuidv4();
-			const issue = generateJiraIssue();
+			const issueId = generateJiraIssueId();
 			const originalFigmaDesignId = new FigmaDesignIdentifier(
 				generateFigmaFileKey(),
 			);
 			const atlassianDesign = generateAtlassianDesign({
 				id: originalFigmaDesignId.toAtlassianDesignId(),
 			});
-			jest
-				.spyOn(jiraService, 'getIssue')
-				.mockRejectedValue(new NotFoundInJiraServiceError());
+			jest.spyOn(jiraService, 'getIssue').mockResolvedValue(null);
 
 			await expect(
 				figmaBackwardIntegrationService.tryNotifyFigmaOnAddedIssueDesignAssociation(
 					{
 						originalFigmaDesignId,
 						design: atlassianDesign,
-						issueId: issue.id,
+						issueId,
 						atlassianUserId,
 						connectInstallation,
 					},
@@ -192,17 +191,15 @@ describe('FigmaBackwardIntegrationService', () => {
 		it('should not throw when Jira Issue is not found', async () => {
 			const connectInstallation = generateConnectInstallation();
 			const atlassianUserId = uuidv4();
-			const issue = generateJiraIssue();
+			const issueId = generateJiraIssueId();
 			const atlassianDesign = generateAtlassianDesign();
-			jest
-				.spyOn(jiraService, 'getIssue')
-				.mockRejectedValue(new NotFoundInJiraServiceError());
+			jest.spyOn(jiraService, 'getIssue').mockResolvedValue(null);
 
 			await expect(
 				figmaBackwardIntegrationService.tryNotifyFigmaOnRemovedIssueDesignAssociation(
 					{
 						design: atlassianDesign,
-						issueId: issue.id,
+						issueId,
 						atlassianUserId,
 						connectInstallation,
 					},
