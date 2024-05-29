@@ -33,7 +33,7 @@ export class FigmaBackwardIntegrationServiceV2 {
 		await jiraService.trySaveDesignInIssueProperties(
 			params.issueId,
 			params.originalFigmaDesignId,
-			await this.getInputDesignDataForIssueProperties(params),
+			await this.getIssuePropertyInputDesignData(params),
 			params.connectInstallation,
 		);
 
@@ -144,29 +144,30 @@ export class FigmaBackwardIntegrationServiceV2 {
 		}
 	};
 
-	private getInputDesignDataForIssueProperties = async (params: {
+	private getIssuePropertyInputDesignData = async (params: {
 		readonly figmaDesignId: FigmaDesignIdentifier;
 		readonly atlassianUserId?: string;
 		readonly connectInstallation: ConnectInstallation;
 	}): Promise<IssuePropertyInputDesignData> => {
-		const inputDesignData = {
+		const fallbackValue = {
 			url: buildDesignUrl(params.figmaDesignId).toString(),
 			displayName: 'Untitled',
 		};
 
-		if (!params.atlassianUserId) return inputDesignData;
+		if (!params.atlassianUserId) return fallbackValue;
 
-		const design = await figmaService.getDesignOrParent(params.figmaDesignId, {
-			atlassianUserId: params.atlassianUserId,
-			connectInstallationId: params.connectInstallation.id,
-		});
+		try {
+			const design = await figmaService.getDesign(params.figmaDesignId, {
+				atlassianUserId: params.atlassianUserId,
+				connectInstallationId: params.connectInstallation.id,
+			});
 
-		if (!design) return inputDesignData;
+			return design ?? fallbackValue;
+		} catch (e) {
+			if (e instanceof UnauthorizedFigmaServiceError) return fallbackValue;
 
-		return {
-			...inputDesignData,
-			displayName: design?.displayName,
-		};
+			throw e;
+		}
 	};
 }
 

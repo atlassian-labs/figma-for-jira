@@ -40,13 +40,13 @@ export const onDesignAssociatedWithIssueUseCaseParams = {
 			designId: figmaDesignId,
 			associatedWithAri: params.issue.ari,
 			connectInstallationId: params.connectInstallation.id,
-			inputUrl: undefined, // TODO: Confirm with Figma whether we can drop storing this data.
+			inputUrl: undefined, // Stop writing to this column. Consider dropping it when the data is not required anymore.
 		});
 
 		await figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnAddedIssueDesignAssociation(
 			{
 				originalFigmaDesignId: figmaDesignId,
-				figmaDesignId, // TODO: Consider adding an entity to a `onEntityAssociated` request, so we don't need to fetch it inside.
+				figmaDesignId,
 				issueId: params.issue.id,
 				atlassianUserId: params.atlassianUserId,
 				connectInstallation: params.connectInstallation,
