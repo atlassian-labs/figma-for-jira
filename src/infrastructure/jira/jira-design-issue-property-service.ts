@@ -50,7 +50,7 @@ const ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA: JSONSchemaTypeWithId<AttachedDesignUr
 export class JiraDesignIssuePropertyService {
 	trySaveDesignInIssueProperties = async (
 		issueIdOrKey: string,
-		figmaDesignIdToReplace: FigmaDesignIdentifier,
+		figmaDesignId: FigmaDesignIdentifier,
 		designData: IssuePropertyInputDesignData,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
@@ -63,7 +63,7 @@ export class JiraDesignIssuePropertyService {
 				),
 				this.updateAttachedDesignV2IssueProperty(
 					issueIdOrKey,
-					figmaDesignIdToReplace,
+					figmaDesignId,
 					designData,
 					connectInstallation,
 				),
@@ -160,7 +160,7 @@ export class JiraDesignIssuePropertyService {
 	 */
 	updateAttachedDesignV2IssueProperty = async (
 		issueIdOrKey: string,
-		figmaDesignIdToReplace: FigmaDesignIdentifier,
+		figmaDesignId: FigmaDesignIdentifier,
 		designData: IssuePropertyInputDesignData,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> =>
@@ -182,7 +182,7 @@ export class JiraDesignIssuePropertyService {
 
 			const newValue =
 				storedValue?.filter(
-					(item) => !this.isUrlForDesign(item.url, figmaDesignIdToReplace),
+					(item) => !this.isUrlForDesign(item.url, figmaDesignId),
 				) || [];
 
 			newValue.push(newItem);
