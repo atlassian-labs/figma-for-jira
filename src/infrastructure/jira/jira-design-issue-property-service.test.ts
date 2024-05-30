@@ -31,10 +31,6 @@ const issuePropertyKeys = {
 
 describe('JiraDesignIssuePropertyService', () => {
 	describe('trySaveDesignInIssueProperties', () => {
-		afterEach(() => {
-			jest.resetAllMocks();
-		});
-
 		it('should not throw when forbidden to edit Issue Properties', async () => {
 			const issueId = generateJiraIssueId();
 			const connectInstallation = generateConnectInstallation();
@@ -65,10 +61,6 @@ describe('JiraDesignIssuePropertyService', () => {
 	});
 
 	describe('tryDeleteDesignFromIssueProperties', () => {
-		afterEach(() => {
-			jest.resetAllMocks();
-		});
-
 		it('should not throw when forbidden to edit Issue Properties', async () => {
 			const issueId = generateJiraIssueId();
 			const connectInstallation = generateConnectInstallation();
