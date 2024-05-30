@@ -10,16 +10,18 @@ import {
 } from '../../common/schema-validation';
 import { ensureString, isString } from '../../common/string-utils';
 import { appendToPathname } from '../../common/url-utils';
-import type {
-	AtlassianDesign,
-	ConnectInstallation,
-} from '../../domain/entities';
+import type { ConnectInstallation } from '../../domain/entities';
 import { FigmaDesignIdentifier } from '../../domain/entities';
 import {
 	ForbiddenHttpClientError,
 	NotFoundHttpClientError,
 } from '../http-client-errors';
 import { getLogger } from '../logger';
+
+export type IssuePropertyInputDesignData = {
+	readonly displayName: string;
+	readonly url: string;
+};
 
 type AttachedDesignUrlV2IssuePropertyValue = {
 	readonly url: string;
@@ -46,23 +48,23 @@ const ATTACHED_DESIGN_URL_V2_VALUE_SCHEMA: JSONSchemaTypeWithId<AttachedDesignUr
 	};
 
 export class JiraDesignIssuePropertyService {
-	trySaveDesignUrlInIssueProperties = async (
+	trySaveDesignInIssueProperties = async (
 		issueIdOrKey: string,
-		figmaDesignIdToReplace: FigmaDesignIdentifier,
-		design: AtlassianDesign,
+		figmaDesignId: FigmaDesignIdentifier,
+		designData: IssuePropertyInputDesignData,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		try {
 			await Promise.all([
-				this.setAttachedDesignUrlInIssuePropertiesIfMissing(
+				this.setAttachedDesignInIssuePropertiesIfMissing(
 					issueIdOrKey,
-					design,
+					designData,
 					connectInstallation,
 				),
-				this.updateAttachedDesignUrlV2IssueProperty(
+				this.updateAttachedDesignV2IssueProperty(
 					issueIdOrKey,
-					figmaDesignIdToReplace,
-					design,
+					figmaDesignId,
+					designData,
 					connectInstallation,
 				),
 			]);
@@ -78,19 +80,19 @@ export class JiraDesignIssuePropertyService {
 		}
 	};
 
-	tryDeleteDesignUrlFromIssueProperties = async (
+	tryDeleteDesignFromIssueProperties = async (
 		issueIdOrKey: string,
 		figmaDesignId: FigmaDesignIdentifier,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
 		try {
 			await Promise.all([
-				await this.deleteAttachedDesignUrlInIssuePropertiesIfPresent(
+				await this.deleteAttachedDesignInIssuePropertiesIfPresent(
 					issueIdOrKey,
 					figmaDesignId,
 					connectInstallation,
 				),
-				await this.deleteFromAttachedDesignUrlV2IssueProperties(
+				await this.deleteFromAttachedDesignV2IssueProperties(
 					issueIdOrKey,
 					figmaDesignId,
 					connectInstallation,
@@ -119,9 +121,9 @@ export class JiraDesignIssuePropertyService {
 	//  It should be safe to do so since:
 	//  - The "Jira" widget reads from `attached-design-url-v2`
 	//  - The previous version of the "Figma for Jira" did not set `attached-design-url` anyway
-	setAttachedDesignUrlInIssuePropertiesIfMissing = async (
+	setAttachedDesignInIssuePropertiesIfMissing = async (
 		issueIdOrKey: string,
-		design: AtlassianDesign,
+		designData: IssuePropertyInputDesignData,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> =>
 		this.withErrorTranslation(async () => {
@@ -135,7 +137,7 @@ export class JiraDesignIssuePropertyService {
 				if (error instanceof NotFoundHttpClientError) {
 					const value =
 						JiraDesignIssuePropertyService.buildDesignUrlForIssueProperties(
-							design,
+							designData,
 						);
 
 					await jiraClient.setIssueProperty(
@@ -156,10 +158,10 @@ export class JiraDesignIssuePropertyService {
 	 *
 	 * @throws {ForbiddenByJiraServiceError} The app does not have permission to edit the Issue.
 	 */
-	updateAttachedDesignUrlV2IssueProperty = async (
+	updateAttachedDesignV2IssueProperty = async (
 		issueIdOrKey: string,
-		figmaDesignIdToReplace: FigmaDesignIdentifier,
-		design: AtlassianDesign,
+		figmaDesignId: FigmaDesignIdentifier,
+		designData: IssuePropertyInputDesignData,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> =>
 		this.withErrorTranslation(async () => {
@@ -173,14 +175,14 @@ export class JiraDesignIssuePropertyService {
 
 			const newItem = {
 				url: JiraDesignIssuePropertyService.buildDesignUrlForIssueProperties(
-					design,
+					designData,
 				),
-				name: design.displayName,
+				name: designData.displayName,
 			};
 
 			const newValue =
 				storedValue?.filter(
-					(item) => !this.isUrlForDesign(item.url, figmaDesignIdToReplace),
+					(item) => !this.isUrlForDesign(item.url, figmaDesignId),
 				) || [];
 
 			newValue.push(newItem);
@@ -198,7 +200,7 @@ export class JiraDesignIssuePropertyService {
 	 * @internal
 	 * Visible only for testing.
 	 */
-	deleteAttachedDesignUrlInIssuePropertiesIfPresent = async (
+	deleteAttachedDesignInIssuePropertiesIfPresent = async (
 		issueIdOrKey: string,
 		figmaDesignId: FigmaDesignIdentifier,
 		connectInstallation: ConnectInstallation,
@@ -235,7 +237,7 @@ export class JiraDesignIssuePropertyService {
 	 *
 	 * @throws {ForbiddenByJiraServiceError} The app does not have permission to edit the Issue.
 	 */
-	deleteFromAttachedDesignUrlV2IssueProperties = async (
+	deleteFromAttachedDesignV2IssueProperties = async (
 		issueIdOrKey: string,
 		figmaDesignId: FigmaDesignIdentifier,
 		connectInstallation: ConnectInstallation,
@@ -354,7 +356,7 @@ export class JiraDesignIssuePropertyService {
 	static buildDesignUrlForIssueProperties({
 		url,
 		displayName,
-	}: AtlassianDesign): string {
+	}: IssuePropertyInputDesignData): string {
 		// In addition to standard encoding, encodes the "-" character, which is treated by the "Jira" widget
 		// as space.
 		const encodedName = encodeURIComponent(displayName).replaceAll('-', '%2D');
