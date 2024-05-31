@@ -34,8 +34,6 @@ entitiesRouterV2.use(jiraServerToServerSymmetricJwtAuthenticationMiddleware);
 /**
  * Returns Figma design details for the given URL.
  * Invoked when an entity is being associated with an Atlassian resource (e.g. a Jira Issue).
- *
- * @see https://developer.atlassian.com/cloud/devops-provider-actions/specifications/current/#get-entity-by-url
  */
 entitiesRouterV2.post(
 	'/getEntityByUrl',
@@ -89,8 +87,6 @@ entitiesRouterV2.post(
 
 /**
  * Handles an event indicating that an entity has been associated with an Atlassian resource (e.g. a Jira Issue).
- *
- * @see https://developer.atlassian.com/cloud/devops-provider-actions/specifications/current/#on-entity-associated
  */
 entitiesRouterV2.put(
 	'/onEntityAssociated',
@@ -117,8 +113,6 @@ entitiesRouterV2.put(
 
 /**
  * Handles an event indicating that an entity has been disassociated from an Atlassian resource (e.g. a Jira Issue).
- *
- * @see https://developer.atlassian.com/cloud/devops-provider-actions/specifications/current/#on-entity-disassociated
  */
 entitiesRouterV2.put(
 	'/onEntityDisassociated',
