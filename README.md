@@ -132,7 +132,7 @@ If needed, you could test these APIs directly by mimicking Jira backend.
     --clientKey "${CLIENT_KEY}" \
     --sharedSecret "${SHARED_SECRET}" \
     --method "POST" \
-    --endpoint "/entities/associateEntity?userId=${ATLASSIAN_USER_ID}"
+    --endpoint "/entities/getEntityByUrl?userId=${ATLASSIAN_USER_ID}"
    ```
 
 4. Use `cURL` or any other tool to call endpoints. Replace placeholders with real values in the commands below, e.g.:
@@ -167,7 +167,7 @@ If needed, you could test these APIs directly by mimicking Jira backend.
         },
         "associateWith": {
             "ati": "ati:cloud:jira:issue",
-            "ari": "ari:cloud:jira:${ATLASSIAN_CLOUD_ID}:issue/10002",
+            "ari": "ari:cloud:jira:${ATLASSIAN_CLOUD_ID}:issue/${JIRA_ISSUE_ID}",
             "cloudId": "${ATLASSIAN_CLOUD_ID}",
             "id": "${JIRA_ISSUE_ID}"
         }
@@ -186,7 +186,7 @@ If needed, you could test these APIs directly by mimicking Jira backend.
         },
         "disassociateFrom": {
             "ati": "ati:cloud:jira:issue",
-            "ari": "ari:cloud:jira:${ATLASSIAN_CLOUD_ID}:issue/10002",
+            "ari": "ari:cloud:jira:${ATLASSIAN_CLOUD_ID}:issue/${JIRA_ISSUE_ID}",
             "cloudId": "${ATLASSIAN_CLOUD_ID}",
             "id": "${JIRA_ISSUE_ID}"
         }
