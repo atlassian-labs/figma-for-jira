@@ -37,7 +37,7 @@ entitiesRouterV2.use(jiraServerToServerSymmetricJwtAuthenticationMiddleware);
  *
  * @see https://developer.atlassian.com/cloud/devops-provider-actions/specifications/current/#get-entity-by-url
  */
-entitiesRouterV2.put(
+entitiesRouterV2.post(
 	'/getEntityByUrl',
 	requestSchemaValidationMiddleware(GET_ENTITY_BY_URL_REQUEST_SCHEMA),
 	(

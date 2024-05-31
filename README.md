@@ -144,7 +144,7 @@ If needed, you could test these APIs directly by mimicking Jira backend.
    ```
 
    ```shell
-   curl --request PUT \
+   curl --request POST \
      --url '${APP_URL}/entities/getEntityByUrl?userId=${ATLASSIAN_USER_ID}' \
      --header 'Authorization: JWT ${TOKEN}' \
      --header 'Content-Type: application/json' \
