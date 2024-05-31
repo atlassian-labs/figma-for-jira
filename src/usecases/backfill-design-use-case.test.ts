@@ -129,6 +129,7 @@ describe('backfillDesignUseCase', () => {
 	it('should throw InvalidInputUseCaseResultError when the file is not valid', async () => {
 		const connectInstallation = generateConnectInstallation();
 		const issue = generateJiraIssue();
+		jest.spyOn(associatedFigmaDesignRepository, 'upsert');
 
 		const params: BackfillDesignUseCaseParams =
 			generateBackfillDesignUseCaseParams({

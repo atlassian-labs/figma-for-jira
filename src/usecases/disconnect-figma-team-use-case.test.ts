@@ -33,16 +33,16 @@ describe('disconnectFigmaTeamUseCase', () => {
 
 		expect(
 			figmaTeamRepository.getByTeamIdAndConnectInstallationId,
-		).toBeCalledWith(figmaTeam.teamId, figmaTeam.connectInstallationId);
-		expect(figmaService.tryDeleteWebhook).toBeCalledWith(
+		).toHaveBeenCalledWith(figmaTeam.teamId, figmaTeam.connectInstallationId);
+		expect(figmaService.tryDeleteWebhook).toHaveBeenCalledWith(
 			figmaTeam.webhookId,
 			figmaTeam.adminInfo,
 		);
-		expect(figmaTeamRepository.delete).toBeCalledWith(figmaTeam.id);
-		expect(figmaTeamRepository.findManyByConnectInstallationId).toBeCalledWith(
-			connectInstallation.id,
-		);
-		expect(jiraService.setAppConfigurationState).toBeCalledWith(
+		expect(figmaTeamRepository.delete).toHaveBeenCalledWith(figmaTeam.id);
+		expect(
+			figmaTeamRepository.findManyByConnectInstallationId,
+		).toHaveBeenCalledWith(connectInstallation.id);
+		expect(jiraService.setAppConfigurationState).toHaveBeenCalledWith(
 			ConfigurationState.NOT_CONFIGURED,
 			connectInstallation,
 		);
@@ -65,6 +65,7 @@ describe('disconnectFigmaTeamUseCase', () => {
 					connectInstallationId: connectInstallation.id,
 				}),
 			]);
+		jest.spyOn(jiraService, 'setAppConfigurationState');
 
 		await disconnectFigmaTeamUseCase.execute(
 			figmaTeam.teamId,
@@ -73,15 +74,15 @@ describe('disconnectFigmaTeamUseCase', () => {
 
 		expect(
 			figmaTeamRepository.getByTeamIdAndConnectInstallationId,
-		).toBeCalledWith(figmaTeam.teamId, figmaTeam.connectInstallationId);
-		expect(figmaService.tryDeleteWebhook).toBeCalledWith(
+		).toHaveBeenCalledWith(figmaTeam.teamId, figmaTeam.connectInstallationId);
+		expect(figmaService.tryDeleteWebhook).toHaveBeenCalledWith(
 			figmaTeam.webhookId,
 			figmaTeam.adminInfo,
 		);
-		expect(figmaTeamRepository.delete).toBeCalledWith(figmaTeam.id);
-		expect(figmaTeamRepository.findManyByConnectInstallationId).toBeCalledWith(
-			connectInstallation.id,
-		);
+		expect(figmaTeamRepository.delete).toHaveBeenCalledWith(figmaTeam.id);
+		expect(
+			figmaTeamRepository.findManyByConnectInstallationId,
+		).toHaveBeenCalledWith(connectInstallation.id);
 		expect(jiraService.setAppConfigurationState).not.toHaveBeenCalled();
 	});
 });

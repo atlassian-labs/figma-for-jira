@@ -48,7 +48,7 @@ describe('connectFigmaTeamUseCase', () => {
 			teamName: figmaTeam.teamName,
 			authStatus: figmaTeam.authStatus,
 		});
-		expect(figmaService.createFileUpdateWebhook).toBeCalledWith(
+		expect(figmaService.createFileUpdateWebhook).toHaveBeenCalledWith(
 			teamId,
 			expect.anything(),
 			{ atlassianUserId, connectInstallationId: connectInstallation.id },

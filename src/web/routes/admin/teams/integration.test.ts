@@ -423,7 +423,7 @@ describe('/admin/teams', () => {
 			expect(
 				await figmaTeamRepository.findByWebhookId(figmaTeam.webhookId),
 			).toBeNull();
-			expect(figmaClient.deleteWebhook).toBeCalledWith(
+			expect(figmaClient.deleteWebhook).toHaveBeenCalledWith(
 				figmaTeam.webhookId,
 				figmaOAuth2UserCredentials.accessToken,
 			);

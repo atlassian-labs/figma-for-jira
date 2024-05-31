@@ -515,7 +515,7 @@ describe('FigmaService', () => {
 			);
 
 			expect(result).toStrictEqual([]);
-			expect(figmaAuthService.getCredentials).not.toBeCalled();
+			expect(figmaAuthService.getCredentials).not.toHaveBeenCalled();
 		});
 
 		it('should throw a FigmaServiceError if design ids have different file keys', async () => {
@@ -532,7 +532,7 @@ describe('FigmaService', () => {
 					MOCK_CONNECT_USER_INFO,
 				),
 			).rejects.toThrow();
-			expect(figmaAuthService.getCredentials).not.toBeCalled();
+			expect(figmaAuthService.getCredentials).not.toHaveBeenCalled();
 		});
 	});
 

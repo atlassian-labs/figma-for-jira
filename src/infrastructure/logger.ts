@@ -1,4 +1,4 @@
-import type { DestinationStream, Logger } from 'pino';
+import type { Logger } from 'pino';
 import { pino } from 'pino';
 
 import { getConfig } from '../config';
@@ -26,33 +26,19 @@ export const redactOptions = {
 export function getLogger(): Logger {
 	if (!logger) {
 		const env = process.env.NODE_ENV;
-		const isProduction = env === 'production';
 		const isTest = env === 'test';
-		const defaultLogLevel =
-			getConfig().logging.level || (isProduction ? 'info' : 'debug');
 
-		if (isProduction) {
+		if (isTest) {
 			logger = pino({
-				level: defaultLogLevel,
+				level: 'silent',
 				redact: redactOptions,
-			});
-		} else {
-			/* eslint-disable @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-call */
-			// This needs to be lazily required since 'pino-pretty' won't be available in production builds
-			const pretty = require('pino-pretty');
-			const prettyStream = pretty({
-				colorize: true,
 				sync: true,
 			});
-			/* eslint-enable */
-
-			logger = pino(
-				{
-					level: isTest ? 'silent' : defaultLogLevel,
-					redact: redactOptions,
-				},
-				prettyStream as DestinationStream,
-			);
+		} else {
+			logger = pino({
+				level: getConfig().logging.level || 'info',
+				redact: redactOptions,
+			});
 		}
 	}
 
