@@ -71,7 +71,6 @@ export const ON_ENTITY_ASSOCIATED_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 			properties: {
 				userId: { type: 'string' },
 			},
-			required: ['userId'],
 		},
 	},
 	required: ['body'],
@@ -112,7 +111,6 @@ export const ON_ENTITY_DISASSOCIATED_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 			properties: {
 				userId: { type: 'string' },
 			},
-			required: ['userId'],
 		},
 	},
 	required: ['body'],
