@@ -7,6 +7,8 @@ import {
 	generateGetEntityByUrlRequestBody,
 	generateOnEntityAssociatedAuthorisationHeader,
 	generateOnEntityAssociatedRequestBody,
+	generateOnEntityDisassociatedAuthorisationHeader,
+	generateOnEntityDisassociatedRequestBody,
 } from './testing';
 
 import app from '../../../app';
@@ -23,11 +25,15 @@ import {
 	generateFigmaOAuth2UserCredentialCreateParams,
 	generateJiraIssue,
 	generateJiraIssueAri,
+	generateJiraIssueId,
+	generateJiraIssueUrl,
 } from '../../../domain/entities/testing';
 import { figmaBackfillService } from '../../../infrastructure/figma';
 import {
 	generateChildNode,
 	generateCreateDevResourcesRequest,
+	generateEmptyDevResourcesResponse,
+	generateGetDevResourcesResponse,
 	generateGetFileMetaResponse,
 	generateGetFileResponseWithNode,
 } from '../../../infrastructure/figma/figma-client/testing';
@@ -36,7 +42,10 @@ import {
 	transformNodeToAtlassianDesign,
 } from '../../../infrastructure/figma/transformers';
 import { buildDesignUrl } from '../../../infrastructure/figma/transformers/utils';
-import { generateSubmitDesignsRequest } from '../../../infrastructure/jira/jira-client/testing';
+import {
+	generateGetIssuePropertyResponse,
+	generateSubmitDesignsRequest,
+} from '../../../infrastructure/jira/jira-client/testing';
 import type { IssuePropertyInputDesignData } from '../../../infrastructure/jira/jira-design-issue-property-service';
 import {
 	associatedFigmaDesignRepository,
@@ -47,8 +56,11 @@ import { waitForEvent } from '../../../infrastructure/testing';
 import {
 	generateJiraServerSymmetricJwtToken,
 	mockFigmaCreateDevResourcesEndpoint,
+	mockFigmaDeleteDevResourcesEndpoint,
+	mockFigmaGetDevResourcesEndpoint,
 	mockFigmaGetFileEndpoint,
 	mockFigmaGetFileMetaEndpoint,
+	mockJiraDeleteIssuePropertyEndpoint,
 	mockJiraGetIssueEndpoint,
 	mockJiraGetIssuePropertyEndpoint,
 	mockJiraSetIssuePropertyEndpoint,
@@ -242,6 +254,15 @@ describe('/entities', () => {
 				.expect(HttpStatusCode.BadRequest);
 		});
 
+		it('should respond with `HTTP 401` when given JWT token is not valid', async () => {
+			return request(app)
+				.post('/entities/getEntityByUrl')
+				.send(generateGetEntityByUrlRequestBody())
+				.set('Authorization', `JWT INVALID_TOKEN`)
+				.set('Content-Type', 'application/json')
+				.expect(HttpStatusCode.Unauthorized);
+		});
+
 		it('should respond with `HTTP 403` when app is authorized to access Figma on behalf of user', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
@@ -303,7 +324,6 @@ describe('/entities', () => {
 					}),
 				)
 				.set('Content-Type', 'application/json')
-				.set('User-Id', atlassianUserId)
 				.expect(HttpStatusCode.NotFound);
 		});
 
@@ -516,13 +536,7 @@ describe('/entities', () => {
 				)
 				.set('Content-Type', 'application/json')
 				.expect(HttpStatusCode.Ok);
-			expect(
-				await associatedFigmaDesignRepository.deleteByDesignIdAndAssociatedWithAriAndConnectInstallationId(
-					figmaDesignId,
-					issueAri,
-					connectInstallation.id,
-				),
-			).toEqual({
+			expect(await associatedFigmaDesignRepository.getAll()).toContainEqual({
 				id: expect.anything(),
 				designId: figmaDesignId,
 				associatedWithAri: issueAri,
@@ -543,7 +557,8 @@ describe('/entities', () => {
 						connectInstallationId: connectInstallation.id,
 					}),
 				);
-			const issue = generateJiraIssue();
+			const issueId = generateJiraIssueId();
+			const issueAri = generateJiraIssueAri({ issueId });
 			const figmaDesignId = generateFigmaDesignIdentifier({
 				nodeId: undefined,
 			});
@@ -563,30 +578,30 @@ describe('/entities', () => {
 			});
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
+				issueId,
 				status: HttpStatusCode.NotFound,
 			});
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
+				issueId,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				status: HttpStatusCode.NotFound,
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
+				issueId,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
 				request: JSON.stringify(expectedIssuePropertyDesignUrl),
 			});
 			mockJiraGetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
+				issueId,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				status: HttpStatusCode.NotFound,
 			});
 			mockJiraSetIssuePropertyEndpoint({
 				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
+				issueId,
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				request: JSON.stringify(
 					JSON.stringify([
@@ -603,7 +618,8 @@ describe('/entities', () => {
 				.query({ userId: atlassianUserId })
 				.send(
 					generateOnEntityAssociatedRequestBody({
-						issueId: issue.id,
+						issueId,
+						issueAri,
 						entityId: figmaDesignId.toAtlassianDesignId(),
 					}),
 				)
@@ -616,6 +632,13 @@ describe('/entities', () => {
 				)
 				.set('Content-Type', 'application/json')
 				.expect(HttpStatusCode.Ok);
+			expect(await associatedFigmaDesignRepository.getAll()).toContainEqual({
+				id: expect.anything(),
+				designId: figmaDesignId,
+				associatedWithAri: issueAri,
+				connectInstallationId: connectInstallation.id,
+				inputUrl: undefined,
+			});
 		});
 
 		it('should skip creating Figma Dev Resource when `user` query parameter is not given', async () => {
@@ -623,6 +646,7 @@ describe('/entities', () => {
 				generateConnectInstallationCreateParams(),
 			);
 			const issue = generateJiraIssue();
+			const issueAri = generateJiraIssueAri({ issueId: issue.id });
 			const figmaDesignId = generateFigmaDesignIdentifier({
 				nodeId: undefined,
 			});
@@ -673,28 +697,33 @@ describe('/entities', () => {
 				.send(
 					generateOnEntityAssociatedRequestBody({
 						issueId: issue.id,
+						issueAri,
 						entityId: figmaDesignId.toAtlassianDesignId(),
 					}),
 				)
 				.set(
 					'Authorization',
-					`JWT ${generateJiraServerSymmetricJwtToken({
-						request: {
-							method: 'PUT',
-							pathname: '/entities/onEntityAssociated',
-						},
+					generateOnEntityAssociatedAuthorisationHeader({
 						connectInstallation,
-					})}`,
+					}),
 				)
 				.set('Content-Type', 'application/json')
 				.expect(HttpStatusCode.Ok);
+			expect(await associatedFigmaDesignRepository.getAll()).toContainEqual({
+				id: expect.anything(),
+				designId: figmaDesignId,
+				associatedWithAri: issueAri,
+				connectInstallationId: connectInstallation.id,
+				inputUrl: undefined,
+			});
 		});
 
-		it('should not fail when app is not authorised to access Issue Properties', async () => {
+		it('should handle when app is not authorised to update Issue Properties', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
 			const issue = generateJiraIssue();
+			const issueAri = generateJiraIssueAri({ issueId: issue.id });
 			const figmaDesignId = generateFigmaDesignIdentifier({
 				nodeId: undefined,
 			});
@@ -747,6 +776,7 @@ describe('/entities', () => {
 				.send(
 					generateOnEntityAssociatedRequestBody({
 						issueId: issue.id,
+						issueAri,
 						entityId: figmaDesignId.toAtlassianDesignId(),
 					}),
 				)
@@ -762,9 +792,16 @@ describe('/entities', () => {
 				)
 				.set('Content-Type', 'application/json')
 				.expect(HttpStatusCode.Ok);
+			expect(await associatedFigmaDesignRepository.getAll()).toContainEqual({
+				id: expect.anything(),
+				designId: figmaDesignId,
+				associatedWithAri: issueAri,
+				connectInstallationId: connectInstallation.id,
+				inputUrl: undefined,
+			});
 		});
 
-		it('should not fail when app is not authorised to access Figma on behalf of user', async () => {
+		it('should handle when app is not authorised to access Figma on behalf of user', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
@@ -858,9 +895,16 @@ describe('/entities', () => {
 				)
 				.set('Content-Type', 'application/json')
 				.expect(HttpStatusCode.Ok);
+			expect(await associatedFigmaDesignRepository.getAll()).toContainEqual({
+				id: expect.anything(),
+				designId: figmaDesignId,
+				associatedWithAri: issueAri,
+				connectInstallationId: connectInstallation.id,
+				inputUrl: undefined,
+			});
 		});
 
-		it('should return `HTTP 400` when design ID has unexpected format', async () => {
+		it('should respond with `HTTP 400` when design ID has unexpected format', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
@@ -883,6 +927,586 @@ describe('/entities', () => {
 				)
 				.set('Content-Type', 'application/json')
 				.expect(HttpStatusCode.BadRequest);
+		});
+
+		it('should respond with `HTTP 401` when given JWT token is not valid', async () => {
+			return request(app)
+				.put('/entities/onEntityAssociated')
+				.set('Authorization', `JWT INVALID_TOKEN`)
+				.set('Content-Type', 'application/json')
+				.expect(HttpStatusCode.Unauthorized);
+		});
+	});
+
+	describe('/onEntityDisassociated', () => {
+		it('should update Jira Issue Properties, delete Figma Dev Resource and associated Design data', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const atlassianUserId = uuidv4();
+			await figmaOAuth2UserCredentialsRepository.upsert(
+				generateFigmaOAuth2UserCredentialCreateParams({
+					atlassianUserId,
+					connectInstallationId: connectInstallation.id,
+				}),
+			);
+			const issue = generateJiraIssue();
+			const issueAri = generateJiraIssueAri({ issueId: issue.id });
+			const devResourceId = uuidv4();
+			const figmaDesignId = generateFigmaDesignIdentifier({
+				nodeId: undefined,
+			});
+			const associatedFigmaDesign =
+				await associatedFigmaDesignRepository.upsert({
+					designId: figmaDesignId,
+					associatedWithAri: issueAri,
+					connectInstallationId: connectInstallation.id,
+				});
+
+			mockJiraGetIssueEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				response: issue,
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+				response: generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL,
+					value: buildDesignUrl(figmaDesignId),
+				}),
+			});
+			mockJiraDeleteIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				response: generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify([
+						{ url: buildDesignUrl(figmaDesignId), name: 'Test Design' },
+					]),
+				}),
+			});
+			mockJiraSetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				request: JSON.stringify(JSON.stringify([])),
+			});
+			mockFigmaGetDevResourcesEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey: figmaDesignId.fileKey,
+				nodeId: '0:0',
+				response: generateGetDevResourcesResponse({
+					id: devResourceId,
+					url: generateJiraIssueUrl({
+						baseUrl: connectInstallation.baseUrl,
+						key: issue.key,
+					}),
+				}),
+			});
+			mockFigmaDeleteDevResourcesEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey: figmaDesignId.fileKey,
+				devResourceId,
+			});
+
+			await request(app)
+				.put('/entities/onEntityDisassociated')
+				.query({ userId: atlassianUserId })
+				.send(
+					generateOnEntityDisassociatedRequestBody({
+						issueId: issue.id,
+						issueAri,
+						entityId: figmaDesignId.toAtlassianDesignId(),
+					}),
+				)
+				.set(
+					'Authorization',
+					generateOnEntityDisassociatedAuthorisationHeader({
+						connectInstallation,
+						userId: atlassianUserId,
+					}),
+				)
+				.set('Content-Type', 'application/json')
+				.expect(HttpStatusCode.Ok);
+			expect(await associatedFigmaDesignRepository.getAll()).not.toContainEqual(
+				associatedFigmaDesign,
+			);
+		});
+
+		it('should skip deleting Figma Dev Resource when Issue with given ID is not found', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const atlassianUserId = uuidv4();
+			await figmaOAuth2UserCredentialsRepository.upsert(
+				generateFigmaOAuth2UserCredentialCreateParams({
+					atlassianUserId,
+					connectInstallationId: connectInstallation.id,
+				}),
+			);
+			const issueId = generateJiraIssueId();
+			const issueAri = generateJiraIssueAri({ issueId });
+			const figmaDesignId = generateFigmaDesignIdentifier({
+				nodeId: undefined,
+			});
+			const associatedFigmaDesign =
+				await associatedFigmaDesignRepository.upsert({
+					designId: figmaDesignId,
+					associatedWithAri: issueAri,
+					connectInstallationId: connectInstallation.id,
+				});
+
+			mockJiraGetIssueEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId,
+				status: HttpStatusCode.NotFound,
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+				response: generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL,
+					value: buildDesignUrl(figmaDesignId),
+				}),
+			});
+			mockJiraDeleteIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				response: generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify([
+						{ url: buildDesignUrl(figmaDesignId), name: 'Test Design' },
+					]),
+				}),
+			});
+			mockJiraSetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				request: JSON.stringify(JSON.stringify([])),
+			});
+
+			await request(app)
+				.put('/entities/onEntityDisassociated')
+				.query({ userId: atlassianUserId })
+				.send(
+					generateOnEntityDisassociatedRequestBody({
+						issueId,
+						issueAri,
+						entityId: figmaDesignId.toAtlassianDesignId(),
+					}),
+				)
+				.set(
+					'Authorization',
+					generateOnEntityDisassociatedAuthorisationHeader({
+						connectInstallation,
+						userId: atlassianUserId,
+					}),
+				)
+				.set('Content-Type', 'application/json')
+				.expect(HttpStatusCode.Ok);
+			expect(await associatedFigmaDesignRepository.getAll()).not.toContainEqual(
+				associatedFigmaDesign,
+			);
+		});
+
+		it('should skip creating Figma Dev Resource when `user` query parameter is not given', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const atlassianUserId = uuidv4();
+			await figmaOAuth2UserCredentialsRepository.upsert(
+				generateFigmaOAuth2UserCredentialCreateParams({
+					atlassianUserId,
+					connectInstallationId: connectInstallation.id,
+				}),
+			);
+			const issue = generateJiraIssue();
+			const issueAri = generateJiraIssueAri({ issueId: issue.id });
+			const figmaDesignId = generateFigmaDesignIdentifier({
+				nodeId: undefined,
+			});
+			const associatedFigmaDesign =
+				await associatedFigmaDesignRepository.upsert({
+					designId: figmaDesignId,
+					associatedWithAri: issueAri,
+					connectInstallationId: connectInstallation.id,
+				});
+
+			mockJiraGetIssueEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				response: issue,
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+				response: generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL,
+					value: buildDesignUrl(figmaDesignId),
+				}),
+			});
+			mockJiraDeleteIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				response: generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify([
+						{ url: buildDesignUrl(figmaDesignId), name: 'Test Design' },
+					]),
+				}),
+			});
+			mockJiraSetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				request: JSON.stringify(JSON.stringify([])),
+			});
+
+			await request(app)
+				.put('/entities/onEntityDisassociated')
+				.send(
+					generateOnEntityDisassociatedRequestBody({
+						issueId: issue.id,
+						issueAri,
+						entityId: figmaDesignId.toAtlassianDesignId(),
+					}),
+				)
+				.set(
+					'Authorization',
+					generateOnEntityDisassociatedAuthorisationHeader({
+						connectInstallation,
+					}),
+				)
+				.set('Content-Type', 'application/json')
+				.expect(HttpStatusCode.Ok);
+			expect(await associatedFigmaDesignRepository.getAll()).not.toContainEqual(
+				associatedFigmaDesign,
+			);
+		});
+
+		it('should handle when app is not authorised to update Issue Properties', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const atlassianUserId = uuidv4();
+			await figmaOAuth2UserCredentialsRepository.upsert(
+				generateFigmaOAuth2UserCredentialCreateParams({
+					atlassianUserId,
+					connectInstallationId: connectInstallation.id,
+				}),
+			);
+			const issue = generateJiraIssue();
+			const issueAri = generateJiraIssueAri({ issueId: issue.id });
+			const devResourceId = uuidv4();
+			const figmaDesignId = generateFigmaDesignIdentifier({
+				nodeId: undefined,
+			});
+			const associatedFigmaDesign =
+				await associatedFigmaDesignRepository.upsert({
+					designId: figmaDesignId,
+					associatedWithAri: issueAri,
+					connectInstallationId: connectInstallation.id,
+				});
+
+			mockJiraGetIssueEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				response: issue,
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+				response: generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL,
+					value: buildDesignUrl(figmaDesignId),
+				}),
+			});
+			mockJiraDeleteIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+				status: HttpStatusCode.Forbidden,
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				response: generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify([
+						{ url: buildDesignUrl(figmaDesignId), name: 'Test Design' },
+					]),
+				}),
+			});
+			mockJiraSetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				request: JSON.stringify(JSON.stringify([])),
+				status: HttpStatusCode.Forbidden,
+			});
+			mockFigmaGetDevResourcesEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey: figmaDesignId.fileKey,
+				nodeId: '0:0',
+				response: generateGetDevResourcesResponse({
+					id: devResourceId,
+					url: generateJiraIssueUrl({
+						baseUrl: connectInstallation.baseUrl,
+						key: issue.key,
+					}),
+				}),
+			});
+			mockFigmaDeleteDevResourcesEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey: figmaDesignId.fileKey,
+				devResourceId,
+			});
+
+			await request(app)
+				.put('/entities/onEntityDisassociated')
+				.query({ userId: atlassianUserId })
+				.send(
+					generateOnEntityDisassociatedRequestBody({
+						issueId: issue.id,
+						issueAri,
+						entityId: figmaDesignId.toAtlassianDesignId(),
+					}),
+				)
+				.set(
+					'Authorization',
+					generateOnEntityDisassociatedAuthorisationHeader({
+						connectInstallation,
+						userId: atlassianUserId,
+					}),
+				)
+				.set('Content-Type', 'application/json')
+				.expect(HttpStatusCode.Ok);
+			expect(await associatedFigmaDesignRepository.getAll()).not.toContainEqual(
+				associatedFigmaDesign,
+			);
+		});
+
+		it('should handle when app is not authorised to access Figma on behalf of user', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const atlassianUserId = uuidv4();
+			await figmaOAuth2UserCredentialsRepository.upsert(
+				generateFigmaOAuth2UserCredentialCreateParams({
+					atlassianUserId,
+					connectInstallationId: connectInstallation.id,
+				}),
+			);
+			const issue = generateJiraIssue();
+			const issueAri = generateJiraIssueAri({ issueId: issue.id });
+			const devResourceId = uuidv4();
+			const figmaDesignId = generateFigmaDesignIdentifier({
+				nodeId: undefined,
+			});
+			const associatedFigmaDesign =
+				await associatedFigmaDesignRepository.upsert({
+					designId: figmaDesignId,
+					associatedWithAri: issueAri,
+					connectInstallationId: connectInstallation.id,
+				});
+
+			mockJiraGetIssueEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				response: issue,
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+				response: generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL,
+					value: buildDesignUrl(figmaDesignId),
+				}),
+			});
+			mockJiraDeleteIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				response: generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify([
+						{ url: buildDesignUrl(figmaDesignId), name: 'Test Design' },
+					]),
+				}),
+			});
+			mockJiraSetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				request: JSON.stringify(JSON.stringify([])),
+			});
+			mockFigmaGetDevResourcesEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey: figmaDesignId.fileKey,
+				nodeId: '0:0',
+				response: generateGetDevResourcesResponse({
+					id: devResourceId,
+					url: generateJiraIssueUrl({
+						baseUrl: connectInstallation.baseUrl,
+						key: issue.key,
+					}),
+				}),
+			});
+			mockFigmaDeleteDevResourcesEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey: figmaDesignId.fileKey,
+				devResourceId,
+				status: HttpStatusCode.Forbidden,
+			});
+
+			await request(app)
+				.put('/entities/onEntityDisassociated')
+				.query({ userId: atlassianUserId })
+				.send(
+					generateOnEntityDisassociatedRequestBody({
+						issueId: issue.id,
+						issueAri,
+						entityId: figmaDesignId.toAtlassianDesignId(),
+					}),
+				)
+				.set(
+					'Authorization',
+					generateOnEntityDisassociatedAuthorisationHeader({
+						connectInstallation,
+						userId: atlassianUserId,
+					}),
+				)
+				.set('Content-Type', 'application/json')
+				.expect(HttpStatusCode.Ok);
+			expect(await associatedFigmaDesignRepository.getAll()).not.toContainEqual(
+				associatedFigmaDesign,
+			);
+		});
+
+		it('should handle when there is Jira Issue Properties, Figma Dev Resource and associated Design data do not exist', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const atlassianUserId = uuidv4();
+			await figmaOAuth2UserCredentialsRepository.upsert(
+				generateFigmaOAuth2UserCredentialCreateParams({
+					atlassianUserId,
+					connectInstallationId: connectInstallation.id,
+				}),
+			);
+			const issue = generateJiraIssue();
+			const issueAri = generateJiraIssueAri({ issueId: issue.id });
+			const figmaDesignId = generateFigmaDesignIdentifier({
+				nodeId: undefined,
+			});
+
+			mockJiraGetIssueEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				response: issue,
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+				status: HttpStatusCode.NotFound,
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				status: HttpStatusCode.NotFound,
+			});
+			mockFigmaGetDevResourcesEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey: figmaDesignId.fileKey,
+				nodeId: '0:0',
+				response: generateEmptyDevResourcesResponse(),
+			});
+
+			await request(app)
+				.put('/entities/onEntityDisassociated')
+				.query({ userId: atlassianUserId })
+				.send(
+					generateOnEntityDisassociatedRequestBody({
+						issueId: issue.id,
+						issueAri,
+						entityId: figmaDesignId.toAtlassianDesignId(),
+					}),
+				)
+				.set(
+					'Authorization',
+					generateOnEntityDisassociatedAuthorisationHeader({
+						connectInstallation,
+						userId: atlassianUserId,
+					}),
+				)
+				.set('Content-Type', 'application/json')
+				.expect(HttpStatusCode.Ok);
+		});
+
+		it('should respond with `HTTP 400` when design ID has unexpected format', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const atlassianUserId = uuidv4();
+
+			await request(app)
+				.put('/entities/onEntityDisassociated')
+				.query({ userId: atlassianUserId })
+				.send(
+					generateOnEntityDisassociatedRequestBody({
+						entityId: '',
+					}),
+				)
+				.set(
+					'Authorization',
+					generateOnEntityDisassociatedAuthorisationHeader({
+						connectInstallation,
+						userId: atlassianUserId,
+					}),
+				)
+				.set('Content-Type', 'application/json')
+				.expect(HttpStatusCode.BadRequest);
+		});
+
+		it('should respond with `HTTP 401` when given JWT token is not valid', async () => {
+			return request(app)
+				.put('/entities/onEntityDisassociated')
+				.set('Authorization', `JWT INVALID_TOKEN`)
+				.set('Content-Type', 'application/json')
+				.expect(HttpStatusCode.Unauthorized);
 		});
 	});
 });

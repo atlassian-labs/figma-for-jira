@@ -11,6 +11,7 @@ import { generateJiraServerSymmetricJwtToken } from '../../../testing';
 import type {
 	GetEntityByUrlRequestBody,
 	OnEntityAssociatedRequestBody,
+	OnEntityDisassociatedRequestBody,
 } from '../types';
 
 export const generateGetEntityByUrlAuthorisationHeader = ({
@@ -47,13 +48,13 @@ export const generateOnEntityAssociatedAuthorisationHeader = ({
 	userId,
 }: {
 	readonly connectInstallation: ConnectInstallation;
-	readonly userId: string;
+	readonly userId?: string;
 }): string => {
 	return generateJiraServerSymmetricJwtToken({
 		request: {
 			method: 'PUT',
 			pathname: '/entities/onEntityAssociated',
-			query: { userId },
+			query: userId ? { userId } : undefined,
 		},
 		connectInstallation,
 	});
@@ -73,6 +74,44 @@ export const generateOnEntityAssociatedRequestBody = ({
 		id: entityId,
 	},
 	associateWith: {
+		ati: 'ati:cloud:jira:issue',
+		ari: issueAri,
+		cloudId: uuidv4(),
+		id: issueId,
+	},
+});
+
+export const generateOnEntityDisassociatedAuthorisationHeader = ({
+	connectInstallation,
+	userId,
+}: {
+	readonly connectInstallation: ConnectInstallation;
+	readonly userId?: string;
+}): string => {
+	return generateJiraServerSymmetricJwtToken({
+		request: {
+			method: 'PUT',
+			pathname: '/entities/onEntityDisassociated',
+			query: userId ? { userId } : undefined,
+		},
+		connectInstallation,
+	});
+};
+
+export const generateOnEntityDisassociatedRequestBody = ({
+	entityId = generateFigmaDesignIdentifier().toAtlassianDesignId(),
+	issueId = generateJiraIssueId(),
+	issueAri = generateJiraIssueAri({ issueId }),
+}: {
+	readonly entityId?: string;
+	readonly issueId?: string;
+	readonly issueAri?: string;
+} = {}): OnEntityDisassociatedRequestBody => ({
+	entity: {
+		ari: 'NOT_USED',
+		id: entityId,
+	},
+	disassociateFrom: {
 		ati: 'ati:cloud:jira:issue',
 		ari: issueAri,
 		cloudId: uuidv4(),
