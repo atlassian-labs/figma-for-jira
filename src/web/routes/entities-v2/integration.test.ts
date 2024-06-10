@@ -904,6 +904,118 @@ describe('/entities', () => {
 			});
 		});
 
+		it('should handle when Jira Issue Properties, Figma Dev Resource and associated Design data exist', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const atlassianUserId = uuidv4();
+			const figmaUserCredentials =
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaOAuth2UserCredentialCreateParams({
+						atlassianUserId,
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
+			const issue = generateJiraIssue();
+			const issueAri = generateJiraIssueAri({ issueId: issue.id });
+			const figmaDesignId = generateFigmaDesignIdentifier({
+				nodeId: undefined,
+			});
+			const associatedFigmaDesign =
+				await associatedFigmaDesignRepository.upsert({
+					designId: figmaDesignId,
+					associatedWithAri: issueAri,
+					connectInstallationId: connectInstallation.id,
+				});
+			const figmaFileMetaResponse = generateGetFileMetaResponse();
+			const design = transformFileMetaToAtlassianDesign({
+				fileKey: figmaDesignId.fileKey,
+				fileMetaResponse: figmaFileMetaResponse,
+			});
+			const expectedIssuePropertyDesignUrl =
+				buildDesignUrlForIssueProperties(design);
+
+			mockFigmaGetFileMetaEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey: figmaDesignId.fileKey,
+				accessToken: figmaUserCredentials.accessToken,
+				response: figmaFileMetaResponse,
+			});
+			mockJiraGetIssueEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				response: issue,
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+				response: generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL,
+					value: JSON.stringify(expectedIssuePropertyDesignUrl),
+				}),
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				response: generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify([
+						{
+							url: expectedIssuePropertyDesignUrl,
+							name: design.displayName,
+						},
+					]),
+				}),
+			});
+			mockJiraSetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				request: JSON.stringify(
+					JSON.stringify([
+						{
+							url: expectedIssuePropertyDesignUrl,
+							name: design.displayName,
+						},
+					]),
+				),
+			});
+			mockFigmaCreateDevResourcesEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				request: generateCreateDevResourcesRequest({
+					name: `[${issue.key}] ${issue.fields.summary}`,
+					url: buildJiraIssueUrl(connectInstallation.baseUrl, issue.key),
+					fileKey: figmaDesignId.fileKey,
+					nodeId: '0:0',
+				}),
+			});
+
+			await request(app)
+				.put('/entities/onEntityAssociated')
+				.query({ userId: atlassianUserId })
+				.send(
+					generateOnEntityAssociatedRequestBody({
+						issueId: issue.id,
+						issueAri,
+						entityId: figmaDesignId.toAtlassianDesignId(),
+					}),
+				)
+				.set(
+					'Authorization',
+					generateOnEntityAssociatedAuthorisationHeader({
+						connectInstallation,
+						userId: atlassianUserId,
+					}),
+				)
+				.set('Content-Type', 'application/json')
+				.expect(HttpStatusCode.Ok);
+			expect(await associatedFigmaDesignRepository.getAll()).toContainEqual(
+				associatedFigmaDesign,
+			);
+		});
+
 		it('should respond with `HTTP 400` when design ID has unexpected format', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
@@ -1414,7 +1526,7 @@ describe('/entities', () => {
 			);
 		});
 
-		it('should handle when there is Jira Issue Properties, Figma Dev Resource and associated Design data do not exist', async () => {
+		it('should handle when Jira Issue Properties, Figma Dev Resource and associated Design data do not exist', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
