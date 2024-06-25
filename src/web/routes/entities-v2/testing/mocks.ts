@@ -73,7 +73,7 @@ export const generateOnEntityAssociatedRequestBody = ({
 		ari: 'NOT_USED',
 		id: entityId,
 	},
-	associateWith: {
+	associatedWith: {
 		ati: 'ati:cloud:jira:issue',
 		ari: issueAri,
 		cloudId: uuidv4(),
@@ -111,7 +111,7 @@ export const generateOnEntityDisassociatedRequestBody = ({
 		ari: 'NOT_USED',
 		id: entityId,
 	},
-	disassociateFrom: {
+	disassociatedFrom: {
 		ati: 'ati:cloud:jira:issue',
 		ari: issueAri,
 		cloudId: uuidv4(),

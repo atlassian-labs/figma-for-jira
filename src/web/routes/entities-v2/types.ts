@@ -49,7 +49,7 @@ export type OnEntityAssociatedRequestBody = {
 		readonly ari: string;
 		readonly id: string;
 	};
-	readonly associateWith: {
+	readonly associatedWith: {
 		readonly ati: string;
 		readonly ari: string;
 		readonly cloudId: string;
@@ -80,7 +80,7 @@ export type OnEntityDisassociatedRequestBody = {
 		readonly ari: string;
 		readonly id: string;
 	};
-	readonly disassociateFrom: {
+	readonly disassociatedFrom: {
 		readonly ati: string;
 		readonly ari: string;
 		readonly cloudId: string;

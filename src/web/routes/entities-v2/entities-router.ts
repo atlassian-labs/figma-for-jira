@@ -102,7 +102,7 @@ entitiesRouterV2.put(
 		onDesignAssociatedWithIssueUseCaseParams
 			.execute({
 				design: req.body.entity,
-				issue: req.body.associateWith,
+				issue: req.body.associatedWith,
 				atlassianUserId,
 				connectInstallation,
 			})
@@ -128,7 +128,7 @@ entitiesRouterV2.put(
 		onDesignDisassociatedFromIssueUseCase
 			.execute({
 				design: req.body.entity,
-				issue: req.body.disassociateFrom,
+				issue: req.body.disassociatedFrom,
 				atlassianUserId,
 				connectInstallation,
 			})

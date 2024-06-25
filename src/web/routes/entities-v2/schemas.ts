@@ -53,7 +53,7 @@ export const ON_ENTITY_ASSOCIATED_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 					},
 					required: ['ari', 'id'],
 				},
-				associateWith: {
+				associatedWith: {
 					type: 'object',
 					properties: {
 						ati: { type: 'string', pattern: 'ati:cloud:jira:issue' }, // Handle only associations with a Jira Issue.
@@ -64,7 +64,7 @@ export const ON_ENTITY_ASSOCIATED_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 					required: ['ati', 'ari', 'cloudId', 'id'],
 				},
 			},
-			required: ['entity', 'associateWith'],
+			required: ['entity', 'associatedWith'],
 		},
 		query: {
 			type: 'object',
@@ -93,7 +93,7 @@ export const ON_ENTITY_DISASSOCIATED_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 					},
 					required: ['ari', 'id'],
 				},
-				disassociateFrom: {
+				disassociatedFrom: {
 					type: 'object',
 					properties: {
 						ati: { type: 'string', pattern: 'ati:cloud:jira:issue' }, // Handle only associations with a Jira Issue.
@@ -104,7 +104,7 @@ export const ON_ENTITY_DISASSOCIATED_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 					required: ['ati', 'ari', 'cloudId', 'id'],
 				},
 			},
-			required: ['entity', 'disassociateFrom'],
+			required: ['entity', 'disassociatedFrom'],
 		},
 		query: {
 			type: 'object',
