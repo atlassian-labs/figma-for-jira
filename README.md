@@ -132,7 +132,7 @@ If needed, you could test these APIs directly by mimicking Jira backend.
     --clientKey "${CLIENT_KEY}" \
     --sharedSecret "${SHARED_SECRET}" \
     --method "POST" \
-    --endpoint "/entities/associateEntity?userId=${ATLASSIAN_USER_ID}"
+    --endpoint "/entities/getEntityByUrl?userId=${ATLASSIAN_USER_ID}"
    ```
 
 4. Use `cURL` or any other tool to call endpoints. Replace placeholders with real values in the commands below, e.g.:
@@ -145,25 +145,38 @@ If needed, you could test these APIs directly by mimicking Jira backend.
 
    ```shell
    curl --request POST \
-     --url '${APP_URL}/entities/associateEntity?userId=${ATLASSIAN_USER_ID}' \
+     --url '${APP_URL}/entities/getEntityByUrl?userId=${ATLASSIAN_USER_ID}' \
      --header 'Authorization: JWT ${TOKEN}' \
      --header 'Content-Type: application/json' \
      --data '{
        "entity": {
            "url": "https://www.figma.com/file/${FILE_KEY}"
-       },
-       "associateWith": {
-           "ati": "ati:cloud:jira:issue",
-           "ari": "ari:cloud:jira:${ATLASSIAN_CLOUD_ID}:issue/10002",
-           "cloudId": "${ATLASSIAN_CLOUD_ID}",
-           "id": "${JIRA_ISSUE_ID}"
        }
    }'
    ```
 
    ```shell
-    curl --request POST \
-      --url '${APP_URL}/entities/disassociateEntity?userId=${ATLASSIAN_USER_ID}' \
+    curl --request PUT \
+      --url '${APP_URL}/entities/onEntityAssociated?userId=${ATLASSIAN_USER_ID}' \
+      --header 'Authorization: JWT ${TOKEN}' \
+      --header 'Content-Type: application/json' \
+      --data '{
+        "entity": {
+            "id": "${FILE_KEY}",
+            "ari": "NOT_USED"
+        },
+        "associateWith": {
+            "ati": "ati:cloud:jira:issue",
+            "ari": "ari:cloud:jira:${ATLASSIAN_CLOUD_ID}:issue/${JIRA_ISSUE_ID}",
+            "cloudId": "${ATLASSIAN_CLOUD_ID}",
+            "id": "${JIRA_ISSUE_ID}"
+        }
+    }'
+   ```
+
+   ```shell
+    curl --request PUT \
+      --url '${APP_URL}/entities/onEntityDisassociated?userId=${ATLASSIAN_USER_ID}' \
       --header 'Authorization: JWT ${TOKEN}' \
       --header 'Content-Type: application/json' \
       --data '{
@@ -173,7 +186,7 @@ If needed, you could test these APIs directly by mimicking Jira backend.
         },
         "disassociateFrom": {
             "ati": "ati:cloud:jira:issue",
-            "ari": "ari:cloud:jira:${ATLASSIAN_CLOUD_ID}:issue/10002",
+            "ari": "ari:cloud:jira:${ATLASSIAN_CLOUD_ID}:issue/${JIRA_ISSUE_ID}",
             "cloudId": "${ATLASSIAN_CLOUD_ID}",
             "id": "${JIRA_ISSUE_ID}"
         }

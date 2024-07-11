@@ -282,10 +282,6 @@ export class JiraDesignIssuePropertyService {
 					JSON.stringify(newAttachedDesignUrlIssuePropertyValue),
 					connectInstallation,
 				);
-			} else {
-				getLogger().warn(
-					`Design with ID: ${figmaDesignId.toAtlassianDesignId()} that was requested to be deleted was not removed from the 'attached-design-v2' issue property array`,
-				);
 			}
 		});
 
