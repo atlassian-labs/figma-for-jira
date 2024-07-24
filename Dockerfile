@@ -1,4 +1,4 @@
-FROM node:20.12.2-bookworm-slim@sha256:72f2f046a5f8468db28730b990b37de63ce93fd1a72a40f531d6aa82afdf0d46 as build
+FROM node:20.15.0-bookworm-slim@sha256:b5e567dc37677a1485cec21e2f0c0df517c7afe40c1ebc28248c41520c77b3d0 as build
 
 # Compile TS
 WORKDIR /app
@@ -10,7 +10,7 @@ RUN npm run db:generate
 COPY src ./src
 RUN npm run build
 
-FROM node:20.12.2-bookworm-slim@sha256:72f2f046a5f8468db28730b990b37de63ce93fd1a72a40f531d6aa82afdf0d46 as app
+FROM node:20.15.0-bookworm-slim@sha256:b5e567dc37677a1485cec21e2f0c0df517c7afe40c1ebc28248c41520c77b3d0 as app
 
 RUN apt-get update -y && apt-get install -y openssl
 
