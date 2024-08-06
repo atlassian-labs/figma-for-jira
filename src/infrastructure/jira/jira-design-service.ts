@@ -60,7 +60,7 @@ export class JiraDesignService {
 	) => {
 		if (response.rejectedEntities.length) {
 			const { key, errors } = response.rejectedEntities[0];
-			throw JiraSubmitDesignServiceError.designRejected(key.designId, errors);
+			throw JiraSubmitDesignServiceError.designRejected(key.entityId, errors);
 		}
 
 		// TODO: Confirm whether we need to consider the use case below as a failure and throw or just leave a warning.

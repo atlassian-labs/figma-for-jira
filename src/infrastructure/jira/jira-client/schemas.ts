@@ -19,9 +19,10 @@ import type {
 const DESIGN_KEY_SCHEMA: JSONSchemaType<DesignKey> = {
 	type: 'object',
 	properties: {
-		designId: { type: 'string' },
+		entityType: { type: 'string' },
+		entityId: { type: 'string' },
 	},
-	required: ['designId'],
+	required: ['entityId'],
 };
 
 const ASSOCIATION_SCHEMA: JSONSchemaType<Association> = {
