@@ -36,7 +36,8 @@ export type SubmitDesignsRequest = {
 };
 
 export type DesignKey = {
-	readonly designId: string;
+	readonly entityType: string;
+	readonly entityId: string;
 };
 
 export type SubmitDesignsResponse = {

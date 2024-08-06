@@ -92,7 +92,10 @@ export const generateSubmitDesignsRequest = (
 export const generateSuccessfulSubmitDesignsResponse = (
 	designIds = [uuidv4()],
 ): SubmitDesignsResponse => ({
-	acceptedEntities: designIds.map((designId) => ({ designId })),
+	acceptedEntities: designIds.map((entityId) => ({
+		entityType: 'design',
+		entityId,
+	})),
 	rejectedEntities: [],
 });
 
@@ -100,8 +103,8 @@ export const generateFailedSubmitDesignsResponse = (
 	designIds = [uuidv4()],
 ): SubmitDesignsResponse => ({
 	acceptedEntities: [],
-	rejectedEntities: designIds.map((designId) => ({
-		key: { designId },
+	rejectedEntities: designIds.map((entityId) => ({
+		key: { entityId, entityType: 'design' },
 		errors: [{ message: 'Failure' }],
 	})),
 });

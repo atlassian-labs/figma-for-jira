@@ -113,7 +113,7 @@ describe('JiraDesignService', () => {
 				designs.map((design) => design.id),
 			);
 			const expectedError = JiraSubmitDesignServiceError.designRejected(
-				submitDesignsResponse.rejectedEntities[0].key.designId,
+				submitDesignsResponse.rejectedEntities[0].key.entityId,
 				submitDesignsResponse.rejectedEntities[0].errors,
 			);
 			jest
