@@ -14,7 +14,7 @@ else
   COMPOSE_PROJECT=development
 fi
 
-docker-compose --project-name "$COMPOSE_PROJECT" --file "$COMPOSE_FILE" --env-file "$ENV_FILE" up --detach
+docker compose --project-name "$COMPOSE_PROJECT" --file "$COMPOSE_FILE" --env-file "$ENV_FILE" up --detach
 
 echo 'Waiting for Postgres...'
 until [ "$(docker inspect -f '{{.State.Health.Status}}' "$DB_CONTAINER_NAME")" == "healthy" ]; do

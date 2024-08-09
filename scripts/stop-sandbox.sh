@@ -13,4 +13,4 @@ else
 fi
 
 echo 'Stopping app sandbox'
-docker-compose --project-name "$COMPOSE_PROJECT" --file "$COMPOSE_FILE" --env-file="$ENV_FILE" down
+docker compose --project-name "$COMPOSE_PROJECT" --file "$COMPOSE_FILE" --env-file="$ENV_FILE" down
