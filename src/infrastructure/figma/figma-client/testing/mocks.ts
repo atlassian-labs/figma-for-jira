@@ -4,7 +4,6 @@ import type {
 	CreateDevResourceError,
 	CreateDevResourcesRequest,
 	CreateDevResourcesResponse,
-	CreateWebhookRequest,
 	CreateWebhookResponse,
 	GetDevResourcesResponse,
 	GetFileMetaResponse,
@@ -215,20 +214,6 @@ export const generateEmptyDevResourcesResponse =
 	(): GetDevResourcesResponse => ({
 		dev_resources: [],
 	});
-
-export const generateCreateWebhookRequest = ({
-	teamId = uuidv4(),
-	eventType = 'FILE_UPDATE',
-	endpoint = `https://figma-for-jira.atlassian.com/figma/webhooks`,
-	passcode = uuidv4(),
-	description = 'Figma for Jira',
-} = {}): CreateWebhookRequest => ({
-	team_id: teamId,
-	event_type: eventType,
-	endpoint,
-	passcode,
-	description,
-});
 
 export const generateCreateWebhookResponse = ({
 	id = uuidv4(),

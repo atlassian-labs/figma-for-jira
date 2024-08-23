@@ -60,9 +60,6 @@ export const handleFigmaFileUpdateEventUseCase = {
 
 		if (!designs.length) return;
 
-		await jiraService.submitDesigns(
-			designs.map((design) => ({ design })),
-			connectInstallation,
-		);
+		await jiraService.submitDesigns(designs, connectInstallation);
 	},
 };

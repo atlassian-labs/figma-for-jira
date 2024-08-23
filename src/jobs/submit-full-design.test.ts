@@ -39,9 +39,7 @@ describe('submitFullDesign', () => {
 			connectInstallationId: connectInstallation.id,
 		});
 		expect(jiraService.submitDesign).toHaveBeenCalledWith(
-			{
-				design: atlassianDesign,
-			},
+			atlassianDesign,
 			connectInstallation,
 		);
 	});

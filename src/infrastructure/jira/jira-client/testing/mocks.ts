@@ -11,7 +11,6 @@ import {
 } from '../../../../domain/entities/testing';
 import type { JwtTokenParams } from '../jwt-utils';
 import type {
-	Association,
 	CheckPermissionsRequest,
 	CheckPermissionsResponse,
 	GetIssuePropertyResponse,
@@ -48,10 +47,6 @@ export const generateSubmitDesignsRequest = (
 		lastUpdatedBy?: AtlassianProviderUser;
 		iconUrl?: string;
 		updateSequenceNumber?: number;
-		addAssociations?: Association[] | null;
-		removeAssociations?: Association[] | null;
-		associationsLastUpdated?: string;
-		associationsUpdateSequenceNumber?: number;
 	}[] = [{}],
 ): SubmitDesignsRequest => ({
 	designs: designs.map(
@@ -66,10 +61,6 @@ export const generateSubmitDesignsRequest = (
 			lastUpdated = new Date().toISOString(),
 			lastUpdatedBy,
 			updateSequenceNumber = Date.now(),
-			addAssociations = null,
-			removeAssociations = null,
-			associationsLastUpdated = new Date().toISOString(),
-			associationsUpdateSequenceNumber = Date.now(),
 		}) => ({
 			id,
 			displayName,
@@ -81,10 +72,6 @@ export const generateSubmitDesignsRequest = (
 			lastUpdated,
 			lastUpdatedBy,
 			updateSequenceNumber,
-			addAssociations,
-			removeAssociations,
-			associationsLastUpdated,
-			associationsUpdateSequenceNumber,
 		}),
 	),
 });
@@ -107,21 +94,6 @@ export const generateFailedSubmitDesignsResponse = (
 		key: { entityId, entityType: 'design' },
 		errors: [{ message: 'Failure' }],
 	})),
-});
-
-export const generateSubmitDesignsResponseWithUnknownData = ({
-	unknownIssueKeys = [uuidv4()],
-	unknownAssociations = [
-		{
-			associationType: 'issueIdOrKeys',
-			values: ['unknown'],
-		},
-	],
-} = {}): SubmitDesignsResponse => ({
-	acceptedEntities: [],
-	rejectedEntities: [],
-	unknownIssueKeys,
-	unknownAssociations,
 });
 
 export const generateGetIssueResponse = ({
