@@ -4,7 +4,6 @@ import { Router } from 'express';
 
 import { adminRouter } from './admin';
 import { authRouter } from './auth';
-import { entitiesRouter } from './entities';
 import { entitiesRouterV2 } from './entities-v2';
 import { figmaRouter } from './figma';
 import { lifecycleEventsRouter } from './lifecycle-events';
@@ -34,8 +33,7 @@ rootRouter.use('/admin', adminRouter);
 
 rootRouter.use('/auth', authRouter);
 
-// TODO: MDTZ-1751: Remove the legacy `entitiesRouter` and its endpoints.
-rootRouter.use('/entities', entitiesRouter, entitiesRouterV2);
+rootRouter.use('/entities', entitiesRouterV2);
 
 // Endpoints to handle requests from Figma
 rootRouter.use('/figma', figmaRouter);
