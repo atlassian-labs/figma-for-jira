@@ -1,6 +1,9 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { ForbiddenByJiraServiceError } from './errors';
+import {
+	ForbiddenByJiraServiceError,
+	NotFoundByJiraServiceError,
+} from './errors';
 import { jiraClient } from './jira-client';
 import { generateGetIssuePropertyResponse } from './jira-client/testing';
 import {
@@ -58,6 +61,34 @@ describe('JiraDesignIssuePropertyService', () => {
 				),
 			).resolves.toBeUndefined();
 		});
+
+		it('should not throw when forbidden to view the Issue', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const figmaDesignIdToReplace = generateFigmaDesignIdentifier();
+			const design = generateAtlassianDesign();
+			jest
+				.spyOn(
+					jiraDesignIssuePropertyService,
+					'setAttachedDesignInIssuePropertiesIfMissing',
+				)
+				.mockRejectedValue(new NotFoundByJiraServiceError());
+			jest
+				.spyOn(
+					jiraDesignIssuePropertyService,
+					'updateAttachedDesignV2IssueProperty',
+				)
+				.mockRejectedValue(new NotFoundByJiraServiceError());
+
+			await expect(
+				jiraDesignIssuePropertyService.trySaveDesignInIssueProperties(
+					issueId,
+					figmaDesignIdToReplace,
+					design,
+					connectInstallation,
+				),
+			).resolves.toBeUndefined();
+		});
 	});
 
 	describe('tryDeleteDesignFromIssueProperties', () => {
@@ -77,6 +108,31 @@ describe('JiraDesignIssuePropertyService', () => {
 					'deleteFromAttachedDesignV2IssueProperties',
 				)
 				.mockRejectedValue(new ForbiddenByJiraServiceError());
+
+			await expect(
+				jiraDesignIssuePropertyService.tryDeleteDesignFromIssueProperties(
+					issueId,
+					figmaDesignId,
+					connectInstallation,
+				),
+			).resolves.toBeUndefined();
+		});
+		it('should not throw when forbidden to view the Issue', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const figmaDesignId = generateFigmaDesignIdentifier();
+			jest
+				.spyOn(
+					jiraDesignIssuePropertyService,
+					'deleteAttachedDesignInIssuePropertiesIfPresent',
+				)
+				.mockRejectedValue(new NotFoundByJiraServiceError());
+			jest
+				.spyOn(
+					jiraDesignIssuePropertyService,
+					'deleteFromAttachedDesignV2IssueProperties',
+				)
+				.mockRejectedValue(new NotFoundByJiraServiceError());
 
 			await expect(
 				jiraDesignIssuePropertyService.tryDeleteDesignFromIssueProperties(
@@ -156,6 +212,28 @@ describe('JiraDesignIssuePropertyService', () => {
 					connectInstallation,
 				),
 			).rejects.toThrow(ForbiddenByJiraServiceError);
+		});
+
+		it('should throw `NotFoundByJiraServiceError` when forbidden to view the Issue', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign({
+				displayName: 'Test - Design 1',
+			});
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockRejectedValue(new NotFoundHttpClientError());
+			jest
+				.spyOn(jiraClient, 'setIssueProperty')
+				.mockRejectedValue(new NotFoundHttpClientError());
+
+			await expect(
+				jiraDesignIssuePropertyService.setAttachedDesignInIssuePropertiesIfMissing(
+					issueId,
+					design,
+					connectInstallation,
+				),
+			).rejects.toThrow(NotFoundByJiraServiceError);
 		});
 
 		it('should rethrow unknown errors', async () => {
@@ -525,6 +603,29 @@ describe('JiraDesignIssuePropertyService', () => {
 			).rejects.toThrow(ForbiddenByJiraServiceError);
 		});
 
+		it('should throw `NotFoundByJiraServiceError` when forbidden to view the Issue', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const design = generateAtlassianDesign({
+				displayName: 'Test / Design 1',
+			});
+			jest
+				.spyOn(jiraClient, 'getIssueProperty')
+				.mockRejectedValue(new NotFoundHttpClientError());
+			jest
+				.spyOn(jiraClient, 'setIssueProperty')
+				.mockRejectedValue(new NotFoundHttpClientError());
+
+			await expect(
+				jiraDesignIssuePropertyService.updateAttachedDesignV2IssueProperty(
+					issueId,
+					FigmaDesignIdentifier.fromAtlassianDesignId(design.id),
+					design,
+					connectInstallation,
+				),
+			).rejects.toThrow(NotFoundByJiraServiceError);
+		});
+
 		it('should rethrow unknown errors', async () => {
 			const issueId = generateJiraIssueId();
 			const connectInstallation = generateConnectInstallation();
@@ -784,6 +885,35 @@ describe('JiraDesignIssuePropertyService', () => {
 					connectInstallation,
 				),
 			).rejects.toThrow(ForbiddenByJiraServiceError);
+		});
+
+		it('should throw `NotFoundByJiraServiceError` when forbidden to view the Issue', async () => {
+			const issueId = generateJiraIssueId();
+			const connectInstallation = generateConnectInstallation();
+			const figmaDesignId = generateFigmaDesignIdentifier();
+			const designPropertyValue = {
+				url: generateFigmaDesignUrl(figmaDesignId),
+				name: 'Target Design',
+			};
+			const attachedDesignPropertyValues = [designPropertyValue];
+			jest.spyOn(jiraClient, 'getIssueProperty').mockResolvedValue(
+				generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify(attachedDesignPropertyValues),
+				}),
+			);
+			// This is very unlikely to happen since the permissions would have needed to change between the two calls
+			jest
+				.spyOn(jiraClient, 'setIssueProperty')
+				.mockRejectedValue(new NotFoundHttpClientError());
+
+			await expect(
+				jiraDesignIssuePropertyService.deleteFromAttachedDesignV2IssueProperties(
+					issueId,
+					figmaDesignId,
+					connectInstallation,
+				),
+			).rejects.toThrow(NotFoundByJiraServiceError);
 		});
 
 		it('should rethrow unknown errors', async () => {

@@ -1,4 +1,7 @@
-import { ForbiddenByJiraServiceError } from './errors';
+import {
+	ForbiddenByJiraServiceError,
+	NotFoundByJiraServiceError,
+} from './errors';
 import type { GetIssuePropertyResponse } from './jira-client';
 import { jiraClient } from './jira-client';
 
@@ -74,6 +77,11 @@ export class JiraDesignIssuePropertyService {
 					'The app does not have permission to edit the Issue.',
 					error,
 				);
+			} else if (error instanceof NotFoundByJiraServiceError) {
+				return getLogger().warn(
+					'The Issue does not exist or the user does not have permission to view the Issue.',
+					error,
+				);
 			}
 
 			throw error;
@@ -104,6 +112,11 @@ export class JiraDesignIssuePropertyService {
 					'The app does not have permission to edit the Issue.',
 					error,
 				);
+			} else if (error instanceof NotFoundByJiraServiceError) {
+				return getLogger().warn(
+					'The Issue does not exist or the user does not have permission to view the Issue.',
+					error,
+				);
 			}
 
 			throw error;
@@ -115,6 +128,7 @@ export class JiraDesignIssuePropertyService {
 	 * Visible only for testing.
 	 *
 	 * @throws {ForbiddenByJiraServiceError} The app does not have permission to edit the Issue.
+	 * @throws {NotFoundByJiraServiceError} The Issue does not exist or the user does not have permission to view the Issue.
 	 */
 	// TODO: Consider removing this method after deprecating the previous version of
 	//  "Figma for Jira" (which is included in this app as the fallback).
@@ -157,6 +171,7 @@ export class JiraDesignIssuePropertyService {
 	 * Visible only for testing.
 	 *
 	 * @throws {ForbiddenByJiraServiceError} The app does not have permission to edit the Issue.
+	 * @throws {NotFoundByJiraServiceError} The Issue does not exist or the user does not have permission to view the Issue.
 	 */
 	updateAttachedDesignV2IssueProperty = async (
 		issueIdOrKey: string,
@@ -236,6 +251,7 @@ export class JiraDesignIssuePropertyService {
 	 * Only visible for testing.
 	 *
 	 * @throws {ForbiddenByJiraServiceError} The app does not have permission to edit the Issue.
+	 * @throws {NotFoundByJiraServiceError} The Issue does not exist or the user does not have permission to view the Issue.
 	 */
 	deleteFromAttachedDesignV2IssueProperties = async (
 		issueIdOrKey: string,
@@ -326,6 +342,7 @@ export class JiraDesignIssuePropertyService {
 
 	/**
 	 * @throws {ForbiddenByJiraServiceError} Forbidden to perform this operation in Jira.
+	 * @throws {NotFoundByJiraServiceError} Not found or the user does not have permission to view the resource.
 	 */
 	private withErrorTranslation = async <T>(fn: () => Promise<T>) => {
 		try {
@@ -334,6 +351,11 @@ export class JiraDesignIssuePropertyService {
 			if (e instanceof ForbiddenHttpClientError) {
 				throw new ForbiddenByJiraServiceError(
 					'Forbidden to perform the operation.',
+					e,
+				);
+			} else if (e instanceof NotFoundHttpClientError) {
+				throw new NotFoundByJiraServiceError(
+					'Not found or the user does not have permission to view the resource.',
 					e,
 				);
 			}

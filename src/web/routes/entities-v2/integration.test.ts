@@ -801,6 +801,89 @@ describe('/entities', () => {
 			});
 		});
 
+		it('should handle when app is not authorised to view the Issue', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const issue = generateJiraIssue();
+			const issueAri = generateJiraIssueAri({ issueId: issue.id });
+			const figmaDesignId = generateFigmaDesignIdentifier({
+				nodeId: undefined,
+			});
+			const expectedIssuePropertyDesignUrl = buildDesignUrlForIssueProperties({
+				url: buildDesignUrl(figmaDesignId).toString(),
+				displayName: 'Untitled',
+			});
+
+			mockJiraGetIssueEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				status: HttpStatusCode.NotFound,
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+				status: HttpStatusCode.NotFound,
+			});
+			mockJiraSetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+				request: JSON.stringify(expectedIssuePropertyDesignUrl),
+				status: HttpStatusCode.NotFound,
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				status: HttpStatusCode.NotFound,
+			});
+			mockJiraSetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				request: JSON.stringify(
+					JSON.stringify([
+						{
+							url: expectedIssuePropertyDesignUrl,
+							name: 'Untitled',
+						},
+					]),
+				),
+				status: HttpStatusCode.NotFound,
+			});
+
+			await request(app)
+				.put('/entities/onEntityAssociated')
+				.send(
+					generateOnEntityAssociatedRequestBody({
+						issueId: issue.id,
+						issueAri,
+						entityId: figmaDesignId.toAtlassianDesignId(),
+					}),
+				)
+				.set(
+					'Authorization',
+					`JWT ${generateJiraServerSymmetricJwtToken({
+						request: {
+							method: 'PUT',
+							pathname: '/entities/onEntityAssociated',
+						},
+						connectInstallation,
+					})}`,
+				)
+				.set('Content-Type', 'application/json')
+				.expect(HttpStatusCode.Ok);
+			expect(await associatedFigmaDesignRepository.getAll()).toContainEqual({
+				id: expect.anything(),
+				designId: figmaDesignId,
+				associatedWithAri: issueAri,
+				connectInstallationId: connectInstallation.id,
+				inputUrl: undefined,
+			});
+		});
+
 		it('should handle when app is not authorised to access Figma on behalf of user', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
@@ -1380,6 +1463,110 @@ describe('/entities', () => {
 				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
 				request: JSON.stringify(JSON.stringify([])),
 				status: HttpStatusCode.Forbidden,
+			});
+			mockFigmaGetDevResourcesEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey: figmaDesignId.fileKey,
+				nodeId: '0:0',
+				response: generateGetDevResourcesResponse({
+					id: devResourceId,
+					url: generateJiraIssueUrl({
+						baseUrl: connectInstallation.baseUrl,
+						key: issue.key,
+					}),
+				}),
+			});
+			mockFigmaDeleteDevResourcesEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey: figmaDesignId.fileKey,
+				devResourceId,
+			});
+
+			await request(app)
+				.put('/entities/onEntityDisassociated')
+				.query({ userId: atlassianUserId })
+				.send(
+					generateOnEntityDisassociatedRequestBody({
+						issueId: issue.id,
+						issueAri,
+						entityId: figmaDesignId.toAtlassianDesignId(),
+					}),
+				)
+				.set(
+					'Authorization',
+					generateOnEntityDisassociatedAuthorisationHeader({
+						connectInstallation,
+						userId: atlassianUserId,
+					}),
+				)
+				.set('Content-Type', 'application/json')
+				.expect(HttpStatusCode.Ok);
+			expect(await associatedFigmaDesignRepository.getAll()).not.toContainEqual(
+				associatedFigmaDesign,
+			);
+		});
+
+		it('should handle when app is not authorised to view the Issue', async () => {
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const atlassianUserId = uuidv4();
+			await figmaOAuth2UserCredentialsRepository.upsert(
+				generateFigmaOAuth2UserCredentialCreateParams({
+					atlassianUserId,
+					connectInstallationId: connectInstallation.id,
+				}),
+			);
+			const issue = generateJiraIssue();
+			const issueAri = generateJiraIssueAri({ issueId: issue.id });
+			const devResourceId = uuidv4();
+			const figmaDesignId = generateFigmaDesignIdentifier({
+				nodeId: undefined,
+			});
+			const associatedFigmaDesign =
+				await associatedFigmaDesignRepository.upsert({
+					designId: figmaDesignId,
+					associatedWithAri: issueAri,
+					connectInstallationId: connectInstallation.id,
+				});
+
+			mockJiraGetIssueEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				response: issue,
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+				response: generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL,
+					value: buildDesignUrl(figmaDesignId),
+				}),
+			});
+			mockJiraDeleteIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
+				status: HttpStatusCode.NotFound,
+			});
+			mockJiraGetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				response: generateGetIssuePropertyResponse({
+					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+					value: JSON.stringify([
+						{ url: buildDesignUrl(figmaDesignId), name: 'Test Design' },
+					]),
+				}),
+			});
+			mockJiraSetIssuePropertyEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
+				request: JSON.stringify(JSON.stringify([])),
+				status: HttpStatusCode.NotFound,
 			});
 			mockFigmaGetDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
