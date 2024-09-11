@@ -165,7 +165,7 @@ If needed, you could test these APIs directly by mimicking Jira backend.
             "id": "${FILE_KEY}",
             "ari": "NOT_USED"
         },
-        "associateWith": {
+        "associatedWith": {
             "ati": "ati:cloud:jira:issue",
             "ari": "ari:cloud:jira:${ATLASSIAN_CLOUD_ID}:issue/${JIRA_ISSUE_ID}",
             "cloudId": "${ATLASSIAN_CLOUD_ID}",
@@ -184,7 +184,7 @@ If needed, you could test these APIs directly by mimicking Jira backend.
             "id": "${FILE_KEY}",
             "ari": "NOT_USED"
         },
-        "disassociateFrom": {
+        "disassociatedFrom": {
             "ati": "ati:cloud:jira:issue",
             "ari": "ari:cloud:jira:${ATLASSIAN_CLOUD_ID}:issue/${JIRA_ISSUE_ID}",
             "cloudId": "${ATLASSIAN_CLOUD_ID}",

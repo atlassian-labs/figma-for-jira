@@ -79,9 +79,7 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 
 			expect(figmaTeamRepository.updateAuthStatus).not.toHaveBeenCalled();
 			expect(jiraService.submitDesigns).toHaveBeenCalledWith(
-				associatedAtlassianDesigns.map((design) => ({
-					design,
-				})),
+				associatedAtlassianDesigns,
 				connectInstallation,
 			);
 		});
@@ -116,9 +114,7 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 			await handleFigmaFileUpdateEventUseCase.execute(figmaTeam, fileKey);
 
 			expect(jiraService.submitDesigns).toHaveBeenCalledWith(
-				associatedAtlassianDesigns.map((design) => ({
-					design,
-				})),
+				associatedAtlassianDesigns,
 				connectInstallation,
 			);
 		});

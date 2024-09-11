@@ -1,7 +1,5 @@
-export * from './associate-design-use-case';
 export * from './check-user-figma-auth-use-case';
 export * from './connect-figma-team-use-case';
-export * from './disassociate-design-use-case';
 export * from './disconnect-figma-team-use-case';
 export * from './errors';
 export * from './get-current-figma-user-use-case';

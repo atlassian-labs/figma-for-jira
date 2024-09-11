@@ -2,12 +2,10 @@ import { isEnumValueOf } from './enumUtils';
 
 enum NumericTestEnum {
 	ONE = 1,
-	TWO = 2,
 }
 
 enum StringTestEnum {
 	ONE = 'ONE',
-	TWO = 'TWO',
 }
 
 describe('enumUtils', () => {

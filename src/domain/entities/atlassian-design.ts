@@ -17,17 +17,6 @@ export interface AtlassianProviderUser {
 	readonly id: string;
 }
 
-export class AtlassianAssociation {
-	constructor(
-		readonly associationType: string,
-		readonly values: string[],
-	) {}
-
-	static createDesignIssueAssociation(issueAri: string): AtlassianAssociation {
-		return new AtlassianAssociation('ati:cloud:jira:issue', [issueAri]);
-	}
-}
-
 /**
  * An Atlassian representation of a Design from a provider.
  */

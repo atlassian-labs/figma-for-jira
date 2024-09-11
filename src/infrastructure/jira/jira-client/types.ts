@@ -28,10 +28,10 @@ export type SubmitDesignsRequest = {
 		readonly type: string;
 		readonly lastUpdated: string;
 		readonly updateSequenceNumber: number;
-		readonly addAssociations: Association[] | null;
-		readonly removeAssociations: Association[] | null;
-		readonly associationsLastUpdated: string;
-		readonly associationsUpdateSequenceNumber: number;
+		readonly addAssociations?: Association[];
+		readonly removeAssociations?: Association[];
+		readonly associationsLastUpdated?: string;
+		readonly associationsUpdateSequenceNumber?: number;
 	}[];
 };
 

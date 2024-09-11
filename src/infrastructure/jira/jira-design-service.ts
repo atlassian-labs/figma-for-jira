@@ -6,46 +6,27 @@ import type {
 	AtlassianDesign,
 	ConnectInstallation,
 } from '../../domain/entities';
-import { AtlassianAssociation } from '../../domain/entities';
-
-export type SubmitDesignParams = {
-	readonly design: AtlassianDesign;
-	readonly addAssociations?: AtlassianAssociation[];
-	readonly removeAssociations?: AtlassianAssociation[];
-};
 
 export class JiraDesignService {
 	/**
 	 * @throws {JiraSubmitDesignServiceError} Design submission fails.
 	 */
 	submitDesign = async (
-		params: SubmitDesignParams,
+		design: AtlassianDesign,
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
-		return this.submitDesigns([params], connectInstallation);
+		return this.submitDesigns([design], connectInstallation);
 	};
 
 	/**
 	 * @throws {JiraSubmitDesignServiceError} Design submission fails.
 	 */
 	submitDesigns = async (
-		designs: SubmitDesignParams[],
+		designs: AtlassianDesign[],
 		connectInstallation: ConnectInstallation,
 	): Promise<void> => {
-		const associationsLastUpdated = new Date();
-
 		const response = await jiraClient.submitDesigns(
-			{
-				designs: designs.map(
-					({ design, addAssociations, removeAssociations }) => ({
-						...design,
-						addAssociations: addAssociations ?? null,
-						removeAssociations: removeAssociations ?? null,
-						associationsLastUpdated: associationsLastUpdated.toISOString(),
-						associationsUpdateSequenceNumber: associationsLastUpdated.valueOf(),
-					}),
-				),
-			},
+			{ designs },
 			connectInstallation,
 		);
 
@@ -62,21 +43,6 @@ export class JiraDesignService {
 			const { key, errors } = response.rejectedEntities[0];
 			throw JiraSubmitDesignServiceError.designRejected(key.entityId, errors);
 		}
-
-		// TODO: Confirm whether we need to consider the use case below as a failure and throw or just leave a warning.
-		if (response.unknownIssueKeys?.length) {
-			throw JiraSubmitDesignServiceError.unknownIssueKeys(
-				response.unknownIssueKeys,
-			);
-		}
-
-		if (response.unknownAssociations?.length) {
-			throw JiraSubmitDesignServiceError.unknownAssociations(
-				response.unknownAssociations.map(
-					(x) => new AtlassianAssociation(x.associationType, x.values),
-				),
-			);
-		}
 	};
 }
 
@@ -85,27 +51,19 @@ export const jiraDesignService = new JiraDesignService();
 export class JiraSubmitDesignServiceError extends CauseAwareError {
 	designId?: string;
 	rejectionErrors?: { readonly message: string }[];
-	unknownIssueKeys?: string[];
-	unknownAssociations?: AtlassianAssociation[];
 
 	private constructor({
 		message,
 		designId,
 		rejectionErrors,
-		unknownIssueKeys,
-		unknownAssociations,
 	}: {
 		message: string;
 		designId?: string;
 		rejectionErrors?: { readonly message: string }[];
-		unknownIssueKeys?: string[];
-		unknownAssociations?: AtlassianAssociation[];
 	}) {
 		super(message);
 		this.designId = designId;
 		this.rejectionErrors = rejectionErrors;
-		this.unknownIssueKeys = unknownIssueKeys;
-		this.unknownAssociations = unknownAssociations;
 	}
 
 	static designRejected(
@@ -116,20 +74,6 @@ export class JiraSubmitDesignServiceError extends CauseAwareError {
 			message: 'The design submission has been rejected',
 			designId,
 			rejectionErrors,
-		});
-	}
-
-	static unknownIssueKeys(unknownIssueKeys: string[]) {
-		return new JiraSubmitDesignServiceError({
-			message: 'The design has unknown issue keys',
-			unknownIssueKeys,
-		});
-	}
-
-	static unknownAssociations(unknownAssociations: AtlassianAssociation[]) {
-		return new JiraSubmitDesignServiceError({
-			message: 'The design has unknown associations',
-			unknownAssociations,
 		});
 	}
 }

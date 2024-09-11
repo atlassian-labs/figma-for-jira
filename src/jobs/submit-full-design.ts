@@ -46,12 +46,7 @@ export const submitFullDesign = async ({
 			return;
 		}
 
-		await jiraService.submitDesign(
-			{
-				design,
-			},
-			connectInstallation,
-		);
+		await jiraService.submitDesign(design, connectInstallation);
 
 		eventBus.emit('job.submit-full-design.succeeded');
 		logger.info('The job was successfully completed.');
