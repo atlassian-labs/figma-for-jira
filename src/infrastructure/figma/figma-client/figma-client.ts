@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { parser } from 'stream-json';
-import { streamValues } from 'stream-json/streamers/StreamValues';
+import { withParser } from 'stream-json/streamers/StreamValues';
 
 import type { Stream } from 'stream';
 
@@ -197,14 +196,11 @@ export class FigmaClient {
 			});
 
 			const fileJson = await new Promise((resolve, reject) => {
-				const result = {};
+				let result: unknown = {};
 				(response.data as Stream)
-					.pipe(parser())
-					.pipe(streamValues())
+					.pipe(withParser())
 					.on('data', ({ value }) => {
-						// Assuming the JSON is an object at the root level
-						// Merge each object into the result
-						Object.assign(result, value);
+						result = value;
 					})
 					.on('end', () => {
 						resolve(result);
