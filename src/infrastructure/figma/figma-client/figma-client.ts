@@ -1,4 +1,8 @@
 import axios from 'axios';
+import { parser } from 'stream-json';
+import { streamValues } from 'stream-json/streamers/StreamValues';
+
+import type { Stream } from 'stream';
 
 import {
 	CREATE_DEV_RESOURCE_RESPONSE_SCHEMA,
@@ -183,15 +187,36 @@ export class FigmaClient {
 				);
 			}
 
+			// Since the file json string that gets returned can be longer than the max
+			// string size allowed in node - we instead the json as a stream
 			const response = await axios.get<unknown>(url.toString(), {
 				headers: {
 					['Authorization']: `Bearer ${accessToken}`,
 				},
+				responseType: 'stream',
 			});
 
-			assertSchema(response.data, GET_FILE_RESPONSE_SCHEMA);
+			const fileJson = await new Promise((resolve, reject) => {
+				const result = {};
+				(response.data as Stream)
+					.pipe(parser())
+					.pipe(streamValues())
+					.on('data', ({ value }) => {
+						// Assuming the JSON is an object at the root level
+						// Merge each object into the result
+						Object.assign(result, value);
+					})
+					.on('end', () => {
+						resolve(result);
+					})
+					.on('error', (err) => {
+						reject(err);
+					});
+			});
 
-			return response.data;
+			assertSchema(fileJson, GET_FILE_RESPONSE_SCHEMA);
+
+			return fileJson;
 		});
 
 	/**
