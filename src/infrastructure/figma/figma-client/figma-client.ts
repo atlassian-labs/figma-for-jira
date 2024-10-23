@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { withParser } from 'stream-json/streamers/StreamValues';
+import { withParser } from 'stream-json/filters/Filter';
+import { streamValues } from 'stream-json/streamers/StreamValues';
 
 import type { Stream } from 'stream';
 
@@ -28,12 +29,34 @@ import type {
 	GetMeResponse,
 	GetOAuth2TokenResponse,
 	GetTeamProjectsResponse,
+	Node,
+	NodeDevStatus,
 	RefreshOAuth2TokenResponse,
 } from './types';
 
 import { assertSchema } from '../../../common/schema-validation';
 import { getConfig } from '../../../config';
 import { withAxiosErrorTranslation } from '../../axios-utils';
+
+const GET_FILE_RESPONSE_PROPERTIES = new Set<keyof GetFileResponse>([
+	'name',
+	'lastModified',
+	'editorType',
+	'document',
+]);
+
+const GET_FILE_NODE_PROPERTIES = new Set<keyof Node>([
+	'id',
+	'name',
+	'type',
+	'devStatus',
+	'lastModified',
+	'children',
+]);
+
+const GET_FILE_NODE_DEV_STATUS_PROPERTIES = new Set<keyof NodeDevStatus>([
+	'type',
+]);
 
 /**
  * A generic Figma API client.
@@ -194,11 +217,47 @@ export class FigmaClient {
 				},
 				responseType: 'stream',
 			});
-
 			const fileJson = await new Promise((resolve, reject) => {
 				let result: unknown = {};
 				(response.data as Stream)
-					.pipe(withParser())
+					.pipe(
+						withParser({
+							filter: (stack) => {
+								if (stack.length === 0) {
+									return false;
+								}
+
+								const property = stack[stack.length - 1];
+								const parentProperty = stack[stack.length - 2];
+								const grandParentProperty = stack[stack.length - 3];
+
+								if (parentProperty == null) {
+									return (
+										GET_FILE_RESPONSE_PROPERTIES as Set<typeof property>
+									).has(property);
+								}
+
+								if (
+									parentProperty === 'document' ||
+									(typeof parentProperty === 'number' &&
+										grandParentProperty === 'children')
+								) {
+									return (GET_FILE_NODE_PROPERTIES as Set<typeof property>).has(
+										property,
+									);
+								}
+
+								if (parentProperty === 'devStatus') {
+									return (
+										GET_FILE_NODE_DEV_STATUS_PROPERTIES as Set<typeof property>
+									).has(property);
+								}
+
+								return false;
+							},
+						}),
+					)
+					.pipe(streamValues())
 					.on('data', ({ value }) => {
 						result = value;
 					})
