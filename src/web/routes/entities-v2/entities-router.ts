@@ -44,7 +44,7 @@ entitiesRouterV2.post(
 		next: NextFunction,
 	) => {
 		const { connectInstallation } = res.locals;
-		const atlassianUserId = req.query.userId;
+		const atlassianUserId = req.body.user.id;
 
 		const designUrl = tryParseUrl(req.body.entity.url);
 
@@ -97,7 +97,7 @@ entitiesRouterV2.put(
 		next: NextFunction,
 	) => {
 		const { connectInstallation } = res.locals;
-		const atlassianUserId = req.query.userId;
+		const atlassianUserId = req.body.user.id;
 
 		onDesignAssociatedWithIssueUseCaseParams
 			.execute({
@@ -123,7 +123,7 @@ entitiesRouterV2.put(
 		next: NextFunction,
 	) => {
 		const { connectInstallation } = res.locals;
-		const atlassianUserId = req.query.userId;
+		const atlassianUserId = req.body.user.id;
 
 		onDesignDisassociatedFromIssueUseCase
 			.execute({

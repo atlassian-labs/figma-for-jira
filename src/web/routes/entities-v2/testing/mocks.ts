@@ -16,16 +16,13 @@ import type {
 
 export const generateGetEntityByUrlAuthorisationHeader = ({
 	connectInstallation,
-	userId,
 }: {
 	readonly connectInstallation: ConnectInstallation;
-	readonly userId: string;
 }): string => {
 	const jwt = generateJiraServerSymmetricJwtToken({
 		request: {
 			method: 'POST',
 			pathname: '/entities/getEntityByUrl',
-			query: { userId },
 		},
 		connectInstallation,
 	});
@@ -35,26 +32,28 @@ export const generateGetEntityByUrlAuthorisationHeader = ({
 
 export const generateGetEntityByUrlRequestBody = ({
 	url = generateFigmaDesignUrl().toString(),
+	userId,
 }: {
 	readonly url?: string;
-} = {}): GetEntityByUrlRequestBody => ({
+	readonly userId: string;
+}): GetEntityByUrlRequestBody => ({
 	entity: {
 		url,
+	},
+	user: {
+		id: userId,
 	},
 });
 
 export const generateOnEntityAssociatedAuthorisationHeader = ({
 	connectInstallation,
-	userId,
 }: {
 	readonly connectInstallation: ConnectInstallation;
-	readonly userId?: string;
 }): string => {
 	return generateJiraServerSymmetricJwtToken({
 		request: {
 			method: 'PUT',
 			pathname: '/entities/onEntityAssociated',
-			query: userId ? { userId } : undefined,
 		},
 		connectInstallation,
 	});
@@ -64,10 +63,12 @@ export const generateOnEntityAssociatedRequestBody = ({
 	entityId = generateFigmaDesignIdentifier().toAtlassianDesignId(),
 	issueId = generateJiraIssueId(),
 	issueAri = generateJiraIssueAri({ issueId }),
+	userId,
 }: {
 	readonly entityId?: string;
 	readonly issueId?: string;
 	readonly issueAri?: string;
+	readonly userId?: string;
 } = {}): OnEntityAssociatedRequestBody => ({
 	entity: {
 		ari: 'NOT_USED',
@@ -79,20 +80,20 @@ export const generateOnEntityAssociatedRequestBody = ({
 		cloudId: uuidv4(),
 		id: issueId,
 	},
+	user: {
+		id: userId,
+	},
 });
 
 export const generateOnEntityDisassociatedAuthorisationHeader = ({
 	connectInstallation,
-	userId,
 }: {
 	readonly connectInstallation: ConnectInstallation;
-	readonly userId?: string;
 }): string => {
 	return generateJiraServerSymmetricJwtToken({
 		request: {
 			method: 'PUT',
 			pathname: '/entities/onEntityDisassociated',
-			query: userId ? { userId } : undefined,
 		},
 		connectInstallation,
 	});
@@ -102,10 +103,12 @@ export const generateOnEntityDisassociatedRequestBody = ({
 	entityId = generateFigmaDesignIdentifier().toAtlassianDesignId(),
 	issueId = generateJiraIssueId(),
 	issueAri = generateJiraIssueAri({ issueId }),
+	userId,
 }: {
 	readonly entityId?: string;
 	readonly issueId?: string;
 	readonly issueAri?: string;
+	readonly userId?: string;
 } = {}): OnEntityDisassociatedRequestBody => ({
 	entity: {
 		ari: 'NOT_USED',
@@ -116,5 +119,8 @@ export const generateOnEntityDisassociatedRequestBody = ({
 		ari: issueAri,
 		cloudId: uuidv4(),
 		id: issueId,
+	},
+	user: {
+		id: userId,
 	},
 });

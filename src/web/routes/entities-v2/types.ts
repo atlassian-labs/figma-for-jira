@@ -11,13 +11,14 @@ export type EntitiesRequestLocals = {
 
 /*
  * The contract of the `getEntityByUrl` action.
- * See https://developer.atlassian.com/cloud/devops-provider-actions/specifications/current/#get-entity-by-url
+ * See https://developer.atlassian.com/cloud/devops-provider-actions/specification_v2/get-entity-by-url/
  */
-export type GetEntityByUrlRequestQueryParameters = { readonly userId: string };
-
 export type GetEntityByUrlRequestBody = {
 	readonly entity: {
 		readonly url: string;
+	};
+	readonly user: {
+		readonly id: string;
 	};
 };
 
@@ -27,7 +28,7 @@ export type GetEntityByUrlRequest = Request<
 	Record<string, never>,
 	GetEntityByUrlRequestResponseBody,
 	GetEntityByUrlRequestBody,
-	GetEntityByUrlRequestQueryParameters,
+	Record<string, never>,
 	EntitiesRequestLocals
 >;
 
@@ -38,12 +39,8 @@ export type GetEntityByUrlResponse = Response<
 
 /*
  * The contract of the `onEntityAssociated` action.
- * See https://developer.atlassian.com/cloud/devops-provider-actions/specifications/current/#on-entity-associated
+ * See https://developer.atlassian.com/cloud/devops-provider-actions/specification_v2/on-entity-associated/
  */
-export type OnEntityAssociatedRequestQueryParameters = {
-	readonly userId?: string;
-};
-
 export type OnEntityAssociatedRequestBody = {
 	readonly entity: {
 		readonly ari: string;
@@ -55,13 +52,16 @@ export type OnEntityAssociatedRequestBody = {
 		readonly cloudId: string;
 		readonly id: string;
 	};
+	readonly user: {
+		readonly id?: string;
+	};
 };
 
 export type OnEntityAssociatedRequest = Request<
 	Record<string, never>,
 	void,
 	OnEntityAssociatedRequestBody,
-	OnEntityAssociatedRequestQueryParameters,
+	Record<string, never>,
 	EntitiesRequestLocals
 >;
 
@@ -69,12 +69,8 @@ export type OnEntityAssociatedResponse = Response<void, EntitiesRequestLocals>;
 
 /*
  * The contract of the `onEntityDisassociated` action.
- * See https://developer.atlassian.com/cloud/devops-provider-actions/specifications/current/#on-entity-disassociated
+ * See https://developer.atlassian.com/cloud/devops-provider-actions/specification_v2/on-entity-disassociated/
  */
-export type OnEntityDisassociatedRequestQueryParameters = {
-	readonly userId?: string;
-};
-
 export type OnEntityDisassociatedRequestBody = {
 	readonly entity: {
 		readonly ari: string;
@@ -86,13 +82,16 @@ export type OnEntityDisassociatedRequestBody = {
 		readonly cloudId: string;
 		readonly id: string;
 	};
+	readonly user: {
+		readonly id?: string;
+	};
 };
 
 export type OnEntityDisassociatedRequest = Request<
 	Record<string, never>,
 	void,
 	OnEntityDisassociatedRequestBody,
-	OnEntityDisassociatedRequestQueryParameters,
+	Record<string, never>,
 	EntitiesRequestLocals
 >;
 
