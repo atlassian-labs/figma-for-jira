@@ -127,17 +127,16 @@ describe('/entities', () => {
 
 			return request(app)
 				.post('/entities/getEntityByUrl')
-				.query({ userId: atlassianUserId })
 				.send(
 					generateGetEntityByUrlRequestBody({
 						url: inputFigmaFileUrl.toString(),
+						userId: atlassianUserId,
 					}),
 				)
 				.set(
 					'Authorization',
 					generateGetEntityByUrlAuthorisationHeader({
 						connectInstallation,
-						userId: atlassianUserId,
 					}),
 				)
 				.set('Content-Type', 'application/json')
@@ -192,17 +191,16 @@ describe('/entities', () => {
 
 			return request(app)
 				.post('/entities/getEntityByUrl')
-				.query({ userId: atlassianUserId })
 				.send(
 					generateGetEntityByUrlRequestBody({
 						url: inputFigmaFileNodeUrl.toString(),
+						userId: atlassianUserId,
 					}),
 				)
 				.set(
 					'Authorization',
 					generateGetEntityByUrlAuthorisationHeader({
 						connectInstallation,
-						userId: atlassianUserId,
 					}),
 				)
 				.set('Content-Type', 'application/json')
@@ -210,7 +208,7 @@ describe('/entities', () => {
 				.expect(expectedDesign);
 		});
 
-		it('should respond with `HTTP 400` when `userId` query parameter is not given', async () => {
+		it('should respond with `HTTP 400` when `user` parameter is not given', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
@@ -224,7 +222,11 @@ describe('/entities', () => {
 
 			return request(app)
 				.post('/entities/getEntityByUrl')
-				.send(generateGetEntityByUrlRequestBody())
+				.send({
+					entity: {
+						url: generateFigmaDesignUrl().toString(),
+					},
+				})
 				.set('Authorization', `JWT ${jwt}`)
 				.set('Content-Type', 'application/json')
 				.expect(HttpStatusCode.BadRequest);
@@ -234,6 +236,7 @@ describe('/entities', () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
+			const atlassianUserId = uuidv4();
 			const jwt = generateJiraServerSymmetricJwtToken({
 				request: {
 					method: 'POST',
@@ -247,6 +250,7 @@ describe('/entities', () => {
 				.send(
 					generateGetEntityByUrlRequestBody({
 						url: 'http://figma.com/invalid',
+						userId: atlassianUserId,
 					}),
 				)
 				.set('Authorization', `JWT ${jwt}`)
@@ -255,9 +259,11 @@ describe('/entities', () => {
 		});
 
 		it('should respond with `HTTP 401` when given JWT token is not valid', async () => {
+			const atlassianUserId = uuidv4();
+
 			return request(app)
 				.post('/entities/getEntityByUrl')
-				.send(generateGetEntityByUrlRequestBody())
+				.send(generateGetEntityByUrlRequestBody({ userId: atlassianUserId }))
 				.set('Authorization', `JWT INVALID_TOKEN`)
 				.set('Content-Type', 'application/json')
 				.expect(HttpStatusCode.Unauthorized);
@@ -271,13 +277,11 @@ describe('/entities', () => {
 
 			return request(app)
 				.post('/entities/getEntityByUrl')
-				.query({ userId: atlassianUserId })
-				.send(generateGetEntityByUrlRequestBody())
+				.send(generateGetEntityByUrlRequestBody({ userId: atlassianUserId }))
 				.set(
 					'Authorization',
 					generateGetEntityByUrlAuthorisationHeader({
 						connectInstallation,
-						userId: atlassianUserId,
 					}),
 				)
 				.set('Content-Type', 'application/json')
@@ -310,17 +314,16 @@ describe('/entities', () => {
 
 			await request(app)
 				.post('/entities/getEntityByUrl')
-				.query({ userId: atlassianUserId })
 				.send(
 					generateGetEntityByUrlRequestBody({
 						url: inputFigmaUrl.toString(),
+						userId: atlassianUserId,
 					}),
 				)
 				.set(
 					'Authorization',
 					generateGetEntityByUrlAuthorisationHeader({
 						connectInstallation,
-						userId: atlassianUserId,
 					}),
 				)
 				.set('Content-Type', 'application/json')
@@ -368,17 +371,16 @@ describe('/entities', () => {
 
 				await request(app)
 					.post('/entities/getEntityByUrl')
-					.query({ userId: atlassianUserId })
 					.send(
 						generateGetEntityByUrlRequestBody({
 							url: inputFigmaDesignUrl.toString(),
+							userId: atlassianUserId,
 						}),
 					)
 					.set(
 						'Authorization',
 						generateGetEntityByUrlAuthorisationHeader({
 							connectInstallation,
-							userId: atlassianUserId,
 						}),
 					)
 					.set('Content-Type', 'application/json')
@@ -418,17 +420,16 @@ describe('/entities', () => {
 
 				await request(app)
 					.post('/entities/getEntityByUrl')
-					.query({ userId: atlassianUserId })
 					.send(
 						generateGetEntityByUrlRequestBody({
 							url: inputFigmaUrl.toString(),
+							userId: atlassianUserId,
 						}),
 					)
 					.set(
 						'Authorization',
 						generateGetEntityByUrlAuthorisationHeader({
 							connectInstallation,
-							userId: atlassianUserId,
 						}),
 					)
 					.set('Content-Type', 'application/json')
@@ -519,19 +520,18 @@ describe('/entities', () => {
 
 			await request(app)
 				.put('/entities/onEntityAssociated')
-				.query({ userId: atlassianUserId })
 				.send(
 					generateOnEntityAssociatedRequestBody({
 						issueId: issue.id,
 						issueAri,
 						entityId: figmaDesignId.toAtlassianDesignId(),
+						userId: atlassianUserId,
 					}),
 				)
 				.set(
 					'Authorization',
 					generateOnEntityAssociatedAuthorisationHeader({
 						connectInstallation,
-						userId: atlassianUserId,
 					}),
 				)
 				.set('Content-Type', 'application/json')
@@ -615,19 +615,18 @@ describe('/entities', () => {
 
 			await request(app)
 				.put('/entities/onEntityAssociated')
-				.query({ userId: atlassianUserId })
 				.send(
 					generateOnEntityAssociatedRequestBody({
 						issueId,
 						issueAri,
 						entityId: figmaDesignId.toAtlassianDesignId(),
+						userId: atlassianUserId,
 					}),
 				)
 				.set(
 					'Authorization',
 					generateOnEntityAssociatedAuthorisationHeader({
 						connectInstallation,
-						userId: atlassianUserId,
 					}),
 				)
 				.set('Content-Type', 'application/json')
@@ -641,7 +640,7 @@ describe('/entities', () => {
 			});
 		});
 
-		it('should skip creating Figma Dev Resource when `user` query parameter is not given', async () => {
+		it('should skip creating Figma Dev Resource when `user` parameter is not given', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
@@ -961,19 +960,18 @@ describe('/entities', () => {
 
 			await request(app)
 				.put('/entities/onEntityAssociated')
-				.query({ userId: atlassianUserId })
 				.send(
 					generateOnEntityAssociatedRequestBody({
 						issueId: issue.id,
 						issueAri,
 						entityId: figmaDesignId.toAtlassianDesignId(),
+						userId: atlassianUserId,
 					}),
 				)
 				.set(
 					'Authorization',
 					generateOnEntityAssociatedAuthorisationHeader({
 						connectInstallation,
-						userId: atlassianUserId,
 					}),
 				)
 				.set('Content-Type', 'application/json')
@@ -1077,19 +1075,18 @@ describe('/entities', () => {
 
 			await request(app)
 				.put('/entities/onEntityAssociated')
-				.query({ userId: atlassianUserId })
 				.send(
 					generateOnEntityAssociatedRequestBody({
 						issueId: issue.id,
 						issueAri,
 						entityId: figmaDesignId.toAtlassianDesignId(),
+						userId: atlassianUserId,
 					}),
 				)
 				.set(
 					'Authorization',
 					generateOnEntityAssociatedAuthorisationHeader({
 						connectInstallation,
-						userId: atlassianUserId,
 					}),
 				)
 				.set('Content-Type', 'application/json')
@@ -1107,17 +1104,16 @@ describe('/entities', () => {
 
 			await request(app)
 				.put('/entities/onEntityAssociated')
-				.query({ userId: atlassianUserId })
 				.send(
 					generateOnEntityAssociatedRequestBody({
 						entityId: '',
+						userId: atlassianUserId,
 					}),
 				)
 				.set(
 					'Authorization',
 					generateOnEntityAssociatedAuthorisationHeader({
 						connectInstallation,
-						userId: atlassianUserId,
 					}),
 				)
 				.set('Content-Type', 'application/json')
@@ -1214,19 +1210,18 @@ describe('/entities', () => {
 
 			await request(app)
 				.put('/entities/onEntityDisassociated')
-				.query({ userId: atlassianUserId })
 				.send(
 					generateOnEntityDisassociatedRequestBody({
 						issueId: issue.id,
 						issueAri,
 						entityId: figmaDesignId.toAtlassianDesignId(),
+						userId: atlassianUserId,
 					}),
 				)
 				.set(
 					'Authorization',
 					generateOnEntityDisassociatedAuthorisationHeader({
 						connectInstallation,
-						userId: atlassianUserId,
 					}),
 				)
 				.set('Content-Type', 'application/json')
@@ -1298,19 +1293,18 @@ describe('/entities', () => {
 
 			await request(app)
 				.put('/entities/onEntityDisassociated')
-				.query({ userId: atlassianUserId })
 				.send(
 					generateOnEntityDisassociatedRequestBody({
 						issueId,
 						issueAri,
 						entityId: figmaDesignId.toAtlassianDesignId(),
+						userId: atlassianUserId,
 					}),
 				)
 				.set(
 					'Authorization',
 					generateOnEntityDisassociatedAuthorisationHeader({
 						connectInstallation,
-						userId: atlassianUserId,
 					}),
 				)
 				.set('Content-Type', 'application/json')
@@ -1320,7 +1314,7 @@ describe('/entities', () => {
 			);
 		});
 
-		it('should skip creating Figma Dev Resource when `user` query parameter is not given', async () => {
+		it('should skip creating Figma Dev Resource when `user` parameter is not given', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
@@ -1484,19 +1478,18 @@ describe('/entities', () => {
 
 			await request(app)
 				.put('/entities/onEntityDisassociated')
-				.query({ userId: atlassianUserId })
 				.send(
 					generateOnEntityDisassociatedRequestBody({
 						issueId: issue.id,
 						issueAri,
 						entityId: figmaDesignId.toAtlassianDesignId(),
+						userId: atlassianUserId,
 					}),
 				)
 				.set(
 					'Authorization',
 					generateOnEntityDisassociatedAuthorisationHeader({
 						connectInstallation,
-						userId: atlassianUserId,
 					}),
 				)
 				.set('Content-Type', 'application/json')
@@ -1588,19 +1581,18 @@ describe('/entities', () => {
 
 			await request(app)
 				.put('/entities/onEntityDisassociated')
-				.query({ userId: atlassianUserId })
 				.send(
 					generateOnEntityDisassociatedRequestBody({
 						issueId: issue.id,
 						issueAri,
 						entityId: figmaDesignId.toAtlassianDesignId(),
+						userId: atlassianUserId,
 					}),
 				)
 				.set(
 					'Authorization',
 					generateOnEntityDisassociatedAuthorisationHeader({
 						connectInstallation,
-						userId: atlassianUserId,
 					}),
 				)
 				.set('Content-Type', 'application/json')
@@ -1691,19 +1683,18 @@ describe('/entities', () => {
 
 			await request(app)
 				.put('/entities/onEntityDisassociated')
-				.query({ userId: atlassianUserId })
 				.send(
 					generateOnEntityDisassociatedRequestBody({
 						issueId: issue.id,
 						issueAri,
 						entityId: figmaDesignId.toAtlassianDesignId(),
+						userId: atlassianUserId,
 					}),
 				)
 				.set(
 					'Authorization',
 					generateOnEntityDisassociatedAuthorisationHeader({
 						connectInstallation,
-						userId: atlassianUserId,
 					}),
 				)
 				.set('Content-Type', 'application/json')
@@ -1756,19 +1747,18 @@ describe('/entities', () => {
 
 			await request(app)
 				.put('/entities/onEntityDisassociated')
-				.query({ userId: atlassianUserId })
 				.send(
 					generateOnEntityDisassociatedRequestBody({
 						issueId: issue.id,
 						issueAri,
 						entityId: figmaDesignId.toAtlassianDesignId(),
+						userId: atlassianUserId,
 					}),
 				)
 				.set(
 					'Authorization',
 					generateOnEntityDisassociatedAuthorisationHeader({
 						connectInstallation,
-						userId: atlassianUserId,
 					}),
 				)
 				.set('Content-Type', 'application/json')
@@ -1783,17 +1773,16 @@ describe('/entities', () => {
 
 			await request(app)
 				.put('/entities/onEntityDisassociated')
-				.query({ userId: atlassianUserId })
 				.send(
 					generateOnEntityDisassociatedRequestBody({
 						entityId: '',
+						userId: atlassianUserId,
 					}),
 				)
 				.set(
 					'Authorization',
 					generateOnEntityDisassociatedAuthorisationHeader({
 						connectInstallation,
-						userId: atlassianUserId,
 					}),
 				)
 				.set('Content-Type', 'application/json')

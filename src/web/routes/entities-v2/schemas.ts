@@ -22,15 +22,15 @@ export const GET_ENTITY_BY_URL_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 					},
 					required: ['url'],
 				},
+				user: {
+					type: 'object',
+					properties: {
+						id: { type: 'string' },
+					},
+					required: ['id'],
+				},
 			},
-			required: ['entity'],
-		},
-		query: {
-			type: 'object',
-			properties: {
-				userId: { type: 'string' },
-			},
-			required: ['userId'],
+			required: ['entity', 'user'],
 		},
 	},
 	required: ['body'],
@@ -63,14 +63,14 @@ export const ON_ENTITY_ASSOCIATED_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 					},
 					required: ['ati', 'ari', 'cloudId', 'id'],
 				},
+				user: {
+					type: 'object',
+					properties: {
+						id: { type: 'string', nullable: true },
+					},
+				},
 			},
-			required: ['entity', 'associatedWith'],
-		},
-		query: {
-			type: 'object',
-			properties: {
-				userId: { type: 'string' },
-			},
+			required: ['entity', 'associatedWith', 'user'],
 		},
 	},
 	required: ['body'],
@@ -103,14 +103,14 @@ export const ON_ENTITY_DISASSOCIATED_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 					},
 					required: ['ati', 'ari', 'cloudId', 'id'],
 				},
+				user: {
+					type: 'object',
+					properties: {
+						id: { type: 'string', nullable: true },
+					},
+				},
 			},
-			required: ['entity', 'disassociatedFrom'],
-		},
-		query: {
-			type: 'object',
-			properties: {
-				userId: { type: 'string' },
-			},
+			required: ['entity', 'disassociatedFrom', 'user'],
 		},
 	},
 	required: ['body'],
