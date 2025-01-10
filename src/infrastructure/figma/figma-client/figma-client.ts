@@ -74,10 +74,7 @@ export class FigmaClient {
 	 */
 	getOAuth2Token = async (code: string): Promise<GetOAuth2TokenResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const url = new URL(
-				'/api/oauth/token',
-				getConfig().figma.oauth2.authorizationServerBaseUrl,
-			);
+			const url = new URL('/v1/oauth/token', getConfig().figma.apiBaseUrl);
 
 			const basicAuthHeader =
 				'Basic ' +
@@ -117,10 +114,7 @@ export class FigmaClient {
 		refreshToken: string,
 	): Promise<RefreshOAuth2TokenResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const url = new URL(
-				'/api/oauth/refresh',
-				getConfig().figma.oauth2.authorizationServerBaseUrl,
-			);
+			const url = new URL('/v1/oauth/refresh', getConfig().figma.apiBaseUrl);
 			const basicAuthHeader =
 				'Basic ' +
 				btoa(
