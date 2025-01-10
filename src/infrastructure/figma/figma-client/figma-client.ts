@@ -78,11 +78,15 @@ export class FigmaClient {
 				'/api/oauth/token',
 				getConfig().figma.oauth2.authorizationServerBaseUrl,
 			);
-			url.searchParams.append('client_id', getConfig().figma.oauth2.clientId);
-			url.searchParams.append(
-				'client_secret',
-				getConfig().figma.oauth2.clientSecret,
-			);
+
+			const basicAuthHeader =
+				'Basic ' +
+				btoa(
+					`${getConfig().figma.oauth2.clientId}:${
+						getConfig().figma.oauth2.clientSecret
+					}`,
+				);
+
 			url.searchParams.append(
 				'redirect_uri',
 				`${getConfig().app.baseUrl}/figma/oauth/callback`,
@@ -90,7 +94,12 @@ export class FigmaClient {
 			url.searchParams.append('code', code);
 			url.searchParams.append('grant_type', 'authorization_code');
 
-			const response = await axios.post<unknown>(url.toString());
+			const response = await axios.post<unknown>(url.toString(), null, {
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+					Authorization: basicAuthHeader,
+				},
+			});
 
 			assertSchema(response.data, GET_OAUTH2_TOKEN_RESPONSE_SCHEMA);
 
@@ -112,14 +121,22 @@ export class FigmaClient {
 				'/api/oauth/refresh',
 				getConfig().figma.oauth2.authorizationServerBaseUrl,
 			);
-			url.searchParams.append('client_id', getConfig().figma.oauth2.clientId);
-			url.searchParams.append(
-				'client_secret',
-				getConfig().figma.oauth2.clientSecret,
-			);
+			const basicAuthHeader =
+				'Basic ' +
+				btoa(
+					`${getConfig().figma.oauth2.clientId}:${
+						getConfig().figma.oauth2.clientSecret
+					}`,
+				);
+
 			url.searchParams.append('refresh_token', refreshToken);
 
-			const response = await axios.post<unknown>(url.toString());
+			const response = await axios.post<unknown>(url.toString(), null, {
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+					Authorization: basicAuthHeader,
+				},
+			});
 
 			assertSchema(response.data, REFRESH_OAUTH2_TOKEN_RESPONSE_SCHEMA);
 
