@@ -18,7 +18,6 @@ import type {
 
 import { tryParseUrl } from '../../../common/url-utils';
 import {
-	getDesignByUrlForBackfillUseCase,
 	getDesignByUrlUseCase,
 	onDesignAssociatedWithIssueUseCaseParams,
 	onDesignDisassociatedFromIssueUseCase,
@@ -52,36 +51,14 @@ entitiesRouterV2.post(
 			return next(new BadRequestResponseStatusError('Invalid design URL.'));
 		}
 
-		// TODO: The backfill implementation is temporary. Delete it once it is deprecated.
-		// Determine whether the design is being backfilled. The design is considered for backfill if it contains a
-		// special query parameter (`com.atlassian.designs.backfill`).
-		// Jira Frontend appends this query parameter to the design URL as a temporary workaround that allows to
-		// distinguish "Backfill" from normal "Associate" operations. Therefore, the app can apply some special considerations
-		// to designs for backfill (e.g., handle deleted designs).
-		const isBackfill = designUrl.searchParams.has(
-			'com.atlassian.designs.backfill',
-			'true',
-		);
-
-		if (isBackfill) {
-			getDesignByUrlForBackfillUseCase
-				.execute({
-					designUrl,
-					atlassianUserId,
-					connectInstallation,
-				})
-				.then((design) => res.status(HttpStatusCode.Ok).send(design))
-				.catch(next);
-		} else {
-			getDesignByUrlUseCase
-				.execute({
-					designUrl,
-					atlassianUserId,
-					connectInstallation,
-				})
-				.then((design) => res.status(HttpStatusCode.Ok).send(design))
-				.catch(next);
-		}
+		getDesignByUrlUseCase
+			.execute({
+				designUrl,
+				atlassianUserId,
+				connectInstallation,
+			})
+			.then((design) => res.status(HttpStatusCode.Ok).send(design))
+			.catch(next);
 	},
 );
 

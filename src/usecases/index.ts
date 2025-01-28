@@ -4,7 +4,6 @@ export * from './disconnect-figma-team-use-case';
 export * from './errors';
 export * from './get-current-figma-user-use-case';
 export * from './get-design-by-url-use-case';
-export * from './get-design-by-url-for-backfill-use-case';
 export * from './handle-figma-authorization-response-use-case';
 export * from './handle-figma-file-update-event-use-case';
 export * from './installed-use-case';

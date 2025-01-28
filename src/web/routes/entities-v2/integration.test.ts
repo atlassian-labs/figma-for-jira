@@ -12,14 +12,12 @@ import {
 } from './testing';
 
 import app from '../../../app';
-import { appendToPathname } from '../../../common/url-utils';
 import { getConfig } from '../../../config';
 import { buildJiraIssueUrl } from '../../../domain/entities';
 import {
 	generateConnectInstallationCreateParams,
 	generateFigmaDesignIdentifier,
 	generateFigmaDesignUrl,
-	generateFigmaDesignUrlForBackfill,
 	generateFigmaFileKey,
 	generateFigmaNodeId,
 	generateFigmaOAuth2UserCredentialCreateParams,
@@ -28,7 +26,6 @@ import {
 	generateJiraIssueId,
 	generateJiraIssueUrl,
 } from '../../../domain/entities/testing';
-import { figmaBackfillService } from '../../../infrastructure/figma';
 import {
 	generateChildNode,
 	generateCreateDevResourcesRequest,
@@ -41,18 +38,11 @@ import {
 	transformFileMetaToAtlassianDesign,
 	transformNodeToAtlassianDesign,
 } from '../../../infrastructure/figma/transformers';
-import { buildDesignUrl } from '../../../infrastructure/figma/transformers/utils';
-import {
-	generateGetIssuePropertyResponse,
-	generateSubmitDesignsRequest,
-} from '../../../infrastructure/jira/jira-client/testing';
-import type { IssuePropertyInputDesignData } from '../../../infrastructure/jira/jira-design-issue-property-service';
 import {
 	associatedFigmaDesignRepository,
 	connectInstallationRepository,
 	figmaOAuth2UserCredentialsRepository,
 } from '../../../infrastructure/repositories';
-import { waitForEvent } from '../../../infrastructure/testing';
 import {
 	generateJiraServerSymmetricJwtToken,
 	mockFigmaCreateDevResourcesEndpoint,
@@ -60,26 +50,8 @@ import {
 	mockFigmaGetDevResourcesEndpoint,
 	mockFigmaGetFileEndpoint,
 	mockFigmaGetFileMetaEndpoint,
-	mockJiraDeleteIssuePropertyEndpoint,
 	mockJiraGetIssueEndpoint,
-	mockJiraGetIssuePropertyEndpoint,
-	mockJiraSetIssuePropertyEndpoint,
-	mockJiraSubmitDesignsEndpoint,
 } from '../../testing';
-
-const issuePropertyKeys = {
-	ATTACHED_DESIGN_URL: 'attached-design-url',
-	ATTACHED_DESIGN_URL_V2: 'attached-design-url-v2',
-} as const;
-
-const buildDesignUrlForIssueProperties = ({
-	url,
-	displayName,
-}: IssuePropertyInputDesignData): string => {
-	const encodedName = encodeURIComponent(displayName).replaceAll('-', '%2D');
-	const urlWithFileName = appendToPathname(new URL(url), encodedName);
-	return urlWithFileName.toString();
-};
 
 describe('/entities', () => {
 	describe('/getEntityByUrl', () => {
@@ -329,119 +301,10 @@ describe('/entities', () => {
 				.set('Content-Type', 'application/json')
 				.expect(HttpStatusCode.NotFound);
 		});
-
-		describe('Backfill', () => {
-			it('should return mininal design for given Figma URL and ingest full design asynchronously', async () => {
-				const connectInstallation = await connectInstallationRepository.upsert(
-					generateConnectInstallationCreateParams(),
-				);
-				const atlassianUserId = uuidv4();
-				const figmaUserCredentials =
-					await figmaOAuth2UserCredentialsRepository.upsert(
-						generateFigmaOAuth2UserCredentialCreateParams({
-							atlassianUserId,
-							connectInstallationId: connectInstallation.id,
-						}),
-					);
-				const figmaDesignId = generateFigmaDesignIdentifier({
-					nodeId: undefined,
-				});
-				const inputFigmaDesignUrl = generateFigmaDesignUrlForBackfill({
-					...figmaDesignId,
-					mode: 'dev',
-				});
-				const figmaFileMetaResponse = generateGetFileMetaResponse();
-				const expectedMinimalDesign =
-					figmaBackfillService.buildMinimalDesignFromUrl(inputFigmaDesignUrl);
-				const expectedFullDesign = transformFileMetaToAtlassianDesign({
-					fileKey: figmaDesignId.fileKey,
-					fileMetaResponse: figmaFileMetaResponse,
-				});
-
-				mockFigmaGetFileMetaEndpoint({
-					baseUrl: getConfig().figma.apiBaseUrl,
-					fileKey: figmaDesignId.fileKey,
-					accessToken: figmaUserCredentials.accessToken,
-					response: figmaFileMetaResponse,
-				});
-				mockJiraSubmitDesignsEndpoint({
-					baseUrl: connectInstallation.baseUrl,
-					request: generateSubmitDesignsRequest([expectedFullDesign]),
-				});
-
-				await request(app)
-					.post('/entities/getEntityByUrl')
-					.send(
-						generateGetEntityByUrlRequestBody({
-							url: inputFigmaDesignUrl.toString(),
-							userId: atlassianUserId,
-						}),
-					)
-					.set(
-						'Authorization',
-						generateGetEntityByUrlAuthorisationHeader({
-							connectInstallation,
-						}),
-					)
-					.set('Content-Type', 'application/json')
-					.expect(HttpStatusCode.Ok)
-					.expect(expectedMinimalDesign);
-				await waitForEvent('job.submit-full-design.succeeded');
-			});
-
-			it('should return mininal design for given Figma URL and skip full ingestion when design is not available in Figma', async () => {
-				const connectInstallation = await connectInstallationRepository.upsert(
-					generateConnectInstallationCreateParams(),
-				);
-				const atlassianUserId = uuidv4();
-				const figmaUserCredentials =
-					await figmaOAuth2UserCredentialsRepository.upsert(
-						generateFigmaOAuth2UserCredentialCreateParams({
-							atlassianUserId,
-							connectInstallationId: connectInstallation.id,
-						}),
-					);
-				const figmaDesignId = generateFigmaDesignIdentifier({
-					nodeId: undefined,
-				});
-				const inputFigmaUrl = generateFigmaDesignUrlForBackfill({
-					...figmaDesignId,
-					mode: 'dev',
-				});
-				const expectedMinimalDesign =
-					figmaBackfillService.buildMinimalDesignFromUrl(inputFigmaUrl);
-
-				mockFigmaGetFileMetaEndpoint({
-					baseUrl: getConfig().figma.apiBaseUrl,
-					fileKey: figmaDesignId.fileKey,
-					accessToken: figmaUserCredentials.accessToken,
-					status: HttpStatusCode.NotFound,
-				});
-
-				await request(app)
-					.post('/entities/getEntityByUrl')
-					.send(
-						generateGetEntityByUrlRequestBody({
-							url: inputFigmaUrl.toString(),
-							userId: atlassianUserId,
-						}),
-					)
-					.set(
-						'Authorization',
-						generateGetEntityByUrlAuthorisationHeader({
-							connectInstallation,
-						}),
-					)
-					.set('Content-Type', 'application/json')
-					.expect(HttpStatusCode.Ok)
-					.expect(expectedMinimalDesign);
-				await waitForEvent('job.submit-full-design.cancelled');
-			});
-		});
 	});
 
 	describe('/onEntityAssociated', () => {
-		it('should update Jira Issue Properties, create Figma Dev Resource and store associated Design data', async () => {
+		it('should create Figma Dev Resource and store associated Design data', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
@@ -459,12 +322,6 @@ describe('/entities', () => {
 				nodeId: undefined,
 			});
 			const figmaFileMetaResponse = generateGetFileMetaResponse();
-			const design = transformFileMetaToAtlassianDesign({
-				fileKey: figmaDesignId.fileKey,
-				fileMetaResponse: figmaFileMetaResponse,
-			});
-			const expectedIssuePropertyDesignUrl =
-				buildDesignUrlForIssueProperties(design);
 
 			mockFigmaGetFileMetaEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
@@ -476,37 +333,6 @@ describe('/entities', () => {
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
 				response: issue,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				request: JSON.stringify(expectedIssuePropertyDesignUrl),
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				request: JSON.stringify(
-					JSON.stringify([
-						{
-							url: expectedIssuePropertyDesignUrl,
-							name: design.displayName,
-						},
-					]),
-				),
 			});
 			mockFigmaCreateDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
@@ -563,12 +389,6 @@ describe('/entities', () => {
 				nodeId: undefined,
 			});
 			const figmaFileMetaResponse = generateGetFileMetaResponse();
-			const design = transformFileMetaToAtlassianDesign({
-				fileKey: figmaDesignId.fileKey,
-				fileMetaResponse: figmaFileMetaResponse,
-			});
-			const expectedIssuePropertyDesignUrl =
-				buildDesignUrlForIssueProperties(design);
 
 			mockFigmaGetFileMetaEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
@@ -580,37 +400,6 @@ describe('/entities', () => {
 				baseUrl: connectInstallation.baseUrl,
 				issueId,
 				status: HttpStatusCode.NotFound,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				request: JSON.stringify(expectedIssuePropertyDesignUrl),
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				request: JSON.stringify(
-					JSON.stringify([
-						{
-							url: expectedIssuePropertyDesignUrl,
-							name: design.displayName,
-						},
-					]),
-				),
 			});
 
 			await request(app)
@@ -649,46 +438,11 @@ describe('/entities', () => {
 			const figmaDesignId = generateFigmaDesignIdentifier({
 				nodeId: undefined,
 			});
-			const expectedIssuePropertyDesignUrl = buildDesignUrlForIssueProperties({
-				url: buildDesignUrl(figmaDesignId).toString(),
-				displayName: 'Untitled',
-			});
 
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
 				response: issue,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				request: JSON.stringify(expectedIssuePropertyDesignUrl),
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				request: JSON.stringify(
-					JSON.stringify([
-						{
-							url: expectedIssuePropertyDesignUrl,
-							name: 'Untitled',
-						},
-					]),
-				),
 			});
 
 			await request(app)
@@ -717,89 +471,6 @@ describe('/entities', () => {
 			});
 		});
 
-		it('should handle when app is not authorised to update Issue Properties', async () => {
-			const connectInstallation = await connectInstallationRepository.upsert(
-				generateConnectInstallationCreateParams(),
-			);
-			const issue = generateJiraIssue();
-			const issueAri = generateJiraIssueAri({ issueId: issue.id });
-			const figmaDesignId = generateFigmaDesignIdentifier({
-				nodeId: undefined,
-			});
-			const expectedIssuePropertyDesignUrl = buildDesignUrlForIssueProperties({
-				url: buildDesignUrl(figmaDesignId).toString(),
-				displayName: 'Untitled',
-			});
-
-			mockJiraGetIssueEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				request: JSON.stringify(expectedIssuePropertyDesignUrl),
-				status: HttpStatusCode.Forbidden,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				request: JSON.stringify(
-					JSON.stringify([
-						{
-							url: expectedIssuePropertyDesignUrl,
-							name: 'Untitled',
-						},
-					]),
-				),
-				status: HttpStatusCode.Forbidden,
-			});
-
-			await request(app)
-				.put('/entities/onEntityAssociated')
-				.send(
-					generateOnEntityAssociatedRequestBody({
-						issueId: issue.id,
-						issueAri,
-						entityId: figmaDesignId.toAtlassianDesignId(),
-					}),
-				)
-				.set(
-					'Authorization',
-					`JWT ${generateJiraServerSymmetricJwtToken({
-						request: {
-							method: 'PUT',
-							pathname: '/entities/onEntityAssociated',
-						},
-						connectInstallation,
-					})}`,
-				)
-				.set('Content-Type', 'application/json')
-				.expect(HttpStatusCode.Ok);
-			expect(await associatedFigmaDesignRepository.getAll()).toContainEqual({
-				id: expect.anything(),
-				designId: figmaDesignId,
-				associatedWithAri: issueAri,
-				connectInstallationId: connectInstallation.id,
-				inputUrl: undefined,
-			});
-		});
-
 		it('should handle when app is not authorised to view the Issue', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
@@ -809,47 +480,10 @@ describe('/entities', () => {
 			const figmaDesignId = generateFigmaDesignIdentifier({
 				nodeId: undefined,
 			});
-			const expectedIssuePropertyDesignUrl = buildDesignUrlForIssueProperties({
-				url: buildDesignUrl(figmaDesignId).toString(),
-				displayName: 'Untitled',
-			});
 
 			mockJiraGetIssueEndpoint({
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				request: JSON.stringify(expectedIssuePropertyDesignUrl),
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				request: JSON.stringify(
-					JSON.stringify([
-						{
-							url: expectedIssuePropertyDesignUrl,
-							name: 'Untitled',
-						},
-					]),
-				),
 				status: HttpStatusCode.NotFound,
 			});
 
@@ -900,10 +534,6 @@ describe('/entities', () => {
 			const figmaDesignId = generateFigmaDesignIdentifier({
 				nodeId: undefined,
 			});
-			const expectedIssuePropertyDesignUrl = buildDesignUrlForIssueProperties({
-				url: buildDesignUrl(figmaDesignId).toString(),
-				displayName: 'Untitled',
-			});
 
 			mockFigmaGetFileMetaEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
@@ -915,37 +545,6 @@ describe('/entities', () => {
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
 				response: issue,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				request: JSON.stringify(expectedIssuePropertyDesignUrl),
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				request: JSON.stringify(
-					JSON.stringify([
-						{
-							url: expectedIssuePropertyDesignUrl,
-							name: 'Untitled',
-						},
-					]),
-				),
 			});
 			mockFigmaCreateDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
@@ -985,7 +584,7 @@ describe('/entities', () => {
 			});
 		});
 
-		it('should handle when Jira Issue Properties, Figma Dev Resource and associated Design data exist', async () => {
+		it('should handle when Figma Dev Resource and associated Design data already exist', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
@@ -1009,12 +608,6 @@ describe('/entities', () => {
 					connectInstallationId: connectInstallation.id,
 				});
 			const figmaFileMetaResponse = generateGetFileMetaResponse();
-			const design = transformFileMetaToAtlassianDesign({
-				fileKey: figmaDesignId.fileKey,
-				fileMetaResponse: figmaFileMetaResponse,
-			});
-			const expectedIssuePropertyDesignUrl =
-				buildDesignUrlForIssueProperties(design);
 
 			mockFigmaGetFileMetaEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
@@ -1026,42 +619,6 @@ describe('/entities', () => {
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
 				response: issue,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				response: generateGetIssuePropertyResponse({
-					key: issuePropertyKeys.ATTACHED_DESIGN_URL,
-					value: JSON.stringify(expectedIssuePropertyDesignUrl),
-				}),
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				response: generateGetIssuePropertyResponse({
-					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-					value: JSON.stringify([
-						{
-							url: expectedIssuePropertyDesignUrl,
-							name: design.displayName,
-						},
-					]),
-				}),
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				request: JSON.stringify(
-					JSON.stringify([
-						{
-							url: expectedIssuePropertyDesignUrl,
-							name: design.displayName,
-						},
-					]),
-				),
 			});
 			mockFigmaCreateDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
@@ -1130,7 +687,7 @@ describe('/entities', () => {
 	});
 
 	describe('/onEntityDisassociated', () => {
-		it('should update Jira Issue Properties, delete Figma Dev Resource and associated Design data', async () => {
+		it('should delete Figma Dev Resource and associated Design data', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
@@ -1158,37 +715,6 @@ describe('/entities', () => {
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
 				response: issue,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				response: generateGetIssuePropertyResponse({
-					key: issuePropertyKeys.ATTACHED_DESIGN_URL,
-					value: buildDesignUrl(figmaDesignId),
-				}),
-			});
-			mockJiraDeleteIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				response: generateGetIssuePropertyResponse({
-					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-					value: JSON.stringify([
-						{ url: buildDesignUrl(figmaDesignId), name: 'Test Design' },
-					]),
-				}),
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				request: JSON.stringify(JSON.stringify([])),
 			});
 			mockFigmaGetDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
@@ -1259,37 +785,6 @@ describe('/entities', () => {
 				issueId,
 				status: HttpStatusCode.NotFound,
 			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				response: generateGetIssuePropertyResponse({
-					key: issuePropertyKeys.ATTACHED_DESIGN_URL,
-					value: buildDesignUrl(figmaDesignId),
-				}),
-			});
-			mockJiraDeleteIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				response: generateGetIssuePropertyResponse({
-					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-					value: JSON.stringify([
-						{ url: buildDesignUrl(figmaDesignId), name: 'Test Design' },
-					]),
-				}),
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				request: JSON.stringify(JSON.stringify([])),
-			});
 
 			await request(app)
 				.put('/entities/onEntityDisassociated')
@@ -1342,37 +837,6 @@ describe('/entities', () => {
 				issueId: issue.id,
 				response: issue,
 			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				response: generateGetIssuePropertyResponse({
-					key: issuePropertyKeys.ATTACHED_DESIGN_URL,
-					value: buildDesignUrl(figmaDesignId),
-				}),
-			});
-			mockJiraDeleteIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				response: generateGetIssuePropertyResponse({
-					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-					value: JSON.stringify([
-						{ url: buildDesignUrl(figmaDesignId), name: 'Test Design' },
-					]),
-				}),
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				request: JSON.stringify(JSON.stringify([])),
-			});
 
 			await request(app)
 				.put('/entities/onEntityDisassociated')
@@ -1381,109 +845,6 @@ describe('/entities', () => {
 						issueId: issue.id,
 						issueAri,
 						entityId: figmaDesignId.toAtlassianDesignId(),
-					}),
-				)
-				.set(
-					'Authorization',
-					generateOnEntityDisassociatedAuthorisationHeader({
-						connectInstallation,
-					}),
-				)
-				.set('Content-Type', 'application/json')
-				.expect(HttpStatusCode.Ok);
-			expect(await associatedFigmaDesignRepository.getAll()).not.toContainEqual(
-				associatedFigmaDesign,
-			);
-		});
-
-		it('should handle when app is not authorised to update Issue Properties', async () => {
-			const connectInstallation = await connectInstallationRepository.upsert(
-				generateConnectInstallationCreateParams(),
-			);
-			const atlassianUserId = uuidv4();
-			await figmaOAuth2UserCredentialsRepository.upsert(
-				generateFigmaOAuth2UserCredentialCreateParams({
-					atlassianUserId,
-					connectInstallationId: connectInstallation.id,
-				}),
-			);
-			const issue = generateJiraIssue();
-			const issueAri = generateJiraIssueAri({ issueId: issue.id });
-			const devResourceId = uuidv4();
-			const figmaDesignId = generateFigmaDesignIdentifier({
-				nodeId: undefined,
-			});
-			const associatedFigmaDesign =
-				await associatedFigmaDesignRepository.upsert({
-					designId: figmaDesignId,
-					associatedWithAri: issueAri,
-					connectInstallationId: connectInstallation.id,
-				});
-
-			mockJiraGetIssueEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				response: issue,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				response: generateGetIssuePropertyResponse({
-					key: issuePropertyKeys.ATTACHED_DESIGN_URL,
-					value: buildDesignUrl(figmaDesignId),
-				}),
-			});
-			mockJiraDeleteIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				status: HttpStatusCode.Forbidden,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				response: generateGetIssuePropertyResponse({
-					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-					value: JSON.stringify([
-						{ url: buildDesignUrl(figmaDesignId), name: 'Test Design' },
-					]),
-				}),
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				request: JSON.stringify(JSON.stringify([])),
-				status: HttpStatusCode.Forbidden,
-			});
-			mockFigmaGetDevResourcesEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-				fileKey: figmaDesignId.fileKey,
-				nodeId: '0:0',
-				response: generateGetDevResourcesResponse({
-					id: devResourceId,
-					url: generateJiraIssueUrl({
-						baseUrl: connectInstallation.baseUrl,
-						key: issue.key,
-					}),
-				}),
-			});
-			mockFigmaDeleteDevResourcesEndpoint({
-				baseUrl: getConfig().figma.apiBaseUrl,
-				fileKey: figmaDesignId.fileKey,
-				devResourceId,
-			});
-
-			await request(app)
-				.put('/entities/onEntityDisassociated')
-				.send(
-					generateOnEntityDisassociatedRequestBody({
-						issueId: issue.id,
-						issueAri,
-						entityId: figmaDesignId.toAtlassianDesignId(),
-						userId: atlassianUserId,
 					}),
 				)
 				.set(
@@ -1527,39 +888,6 @@ describe('/entities', () => {
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
 				response: issue,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				response: generateGetIssuePropertyResponse({
-					key: issuePropertyKeys.ATTACHED_DESIGN_URL,
-					value: buildDesignUrl(figmaDesignId),
-				}),
-			});
-			mockJiraDeleteIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				response: generateGetIssuePropertyResponse({
-					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-					value: JSON.stringify([
-						{ url: buildDesignUrl(figmaDesignId), name: 'Test Design' },
-					]),
-				}),
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				request: JSON.stringify(JSON.stringify([])),
-				status: HttpStatusCode.NotFound,
 			});
 			mockFigmaGetDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
@@ -1631,37 +959,6 @@ describe('/entities', () => {
 				issueId: issue.id,
 				response: issue,
 			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				response: generateGetIssuePropertyResponse({
-					key: issuePropertyKeys.ATTACHED_DESIGN_URL,
-					value: buildDesignUrl(figmaDesignId),
-				}),
-			});
-			mockJiraDeleteIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				response: generateGetIssuePropertyResponse({
-					key: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-					value: JSON.stringify([
-						{ url: buildDesignUrl(figmaDesignId), name: 'Test Design' },
-					]),
-				}),
-			});
-			mockJiraSetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				request: JSON.stringify(JSON.stringify([])),
-			});
 			mockFigmaGetDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,
 				fileKey: figmaDesignId.fileKey,
@@ -1704,7 +1001,7 @@ describe('/entities', () => {
 			);
 		});
 
-		it('should handle when Jira Issue Properties, Figma Dev Resource and associated Design data do not exist', async () => {
+		it('should handle when Figma Dev Resource and associated Design data do not exist', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
@@ -1725,18 +1022,6 @@ describe('/entities', () => {
 				baseUrl: connectInstallation.baseUrl,
 				issueId: issue.id,
 				response: issue,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL,
-				status: HttpStatusCode.NotFound,
-			});
-			mockJiraGetIssuePropertyEndpoint({
-				baseUrl: connectInstallation.baseUrl,
-				issueId: issue.id,
-				propertyKey: issuePropertyKeys.ATTACHED_DESIGN_URL_V2,
-				status: HttpStatusCode.NotFound,
 			});
 			mockFigmaGetDevResourcesEndpoint({
 				baseUrl: getConfig().figma.apiBaseUrl,

@@ -1,7 +1,5 @@
 import { figmaService, UnauthorizedFigmaServiceError } from './figma';
-import { buildDesignUrl } from './figma/transformers/utils';
 import { jiraService } from './jira';
-import type { IssuePropertyInputDesignData } from './jira/jira-design-issue-property-service';
 import { getLogger } from './logger';
 
 import type {
@@ -16,26 +14,17 @@ import { buildJiraIssueUrl } from '../domain/entities';
  */
 export class FigmaBackwardIntegrationServiceV2 {
 	/**
-	 * Notifies Figma on the added Issue-Design association:
-	 * - Sets the Figma design URL to Jira Issue Properties
-	 * - Creates a Dev Resource for Jira Issue for the target Figma File/Node.
+	 * Creates a Dev Resource for Jira Issue for the target Figma File/Node.
 	 *
 	 * Makes the best effort to perform the operation: silently stops the operation in case of an expected error
 	 * (e.g., a lack of permissions to read Jira Issue) and throws only in case of an unexpected error.
 	 */
-	tryNotifyFigmaOnDesignAssociatedWithIssue = async (params: {
+	tryCreateDevResourceForJiraIssue = async (params: {
 		readonly figmaDesignId: FigmaDesignIdentifier;
 		readonly issueId: string;
 		readonly atlassianUserId?: string;
 		readonly connectInstallation: ConnectInstallation;
 	}): Promise<void> => {
-		await jiraService.trySaveDesignInIssueProperties(
-			params.issueId,
-			params.figmaDesignId,
-			await this.getIssuePropertyInputDesignData(params),
-			params.connectInstallation,
-		);
-
 		// Atlassian User ID should always be provided within the normal business flows.
 		// However, there can be edge cases when the association is removed in from a user-less context on
 		// Atlassian side (e.g., on a system event, data migration, etc.).
@@ -81,25 +70,17 @@ export class FigmaBackwardIntegrationServiceV2 {
 	};
 
 	/**
-	 * Notifies Figma on the removed Issue-Design association.
-	 * - Removes the Figma design URL from Jira Issue Properties
-	 * - Deletes the Dev Resource for Jira Issue from the target Figma File/Node.
+	 * Deletes the Dev Resource for Jira Issue from the target Figma File/Node.
 	 *
 	 * Makes the best effort to perform the operation: silently stops the operation in case of an expected error
 	 * (e.g., a lack of permissions to read Jira Issue) and throws only in case of an unexpected error.
 	 */
-	tryNotifyFigmaOnDesignDisassociatedFromIssue = async (params: {
+	tryDeleteDevResourceForJiraIssue = async (params: {
 		readonly figmaDesignId: FigmaDesignIdentifier;
 		readonly issueId: string;
 		readonly atlassianUserId?: string;
 		readonly connectInstallation: ConnectInstallation;
 	}): Promise<void> => {
-		await jiraService.tryDeleteDesignFromIssueProperties(
-			params.issueId,
-			params.figmaDesignId,
-			params.connectInstallation,
-		);
-
 		// Atlassian User ID should always be provided within the normal business flows.
 		// However, there can be edge cases when the association is removed in from a user-less context on
 		// Atlassian side (e.g., on a system event, data migration, etc.).
@@ -139,32 +120,6 @@ export class FigmaBackwardIntegrationServiceV2 {
 					e,
 				);
 			}
-			throw e;
-		}
-	};
-
-	private getIssuePropertyInputDesignData = async (params: {
-		readonly figmaDesignId: FigmaDesignIdentifier;
-		readonly atlassianUserId?: string;
-		readonly connectInstallation: ConnectInstallation;
-	}): Promise<IssuePropertyInputDesignData> => {
-		const fallbackValue = {
-			url: buildDesignUrl(params.figmaDesignId).toString(),
-			displayName: 'Untitled',
-		};
-
-		if (!params.atlassianUserId) return fallbackValue;
-
-		try {
-			const design = await figmaService.getDesign(params.figmaDesignId, {
-				atlassianUserId: params.atlassianUserId,
-				connectInstallationId: params.connectInstallation.id,
-			});
-
-			return design ?? fallbackValue;
-		} catch (e) {
-			if (e instanceof UnauthorizedFigmaServiceError) return fallbackValue;
-
 			throw e;
 		}
 	};

@@ -42,13 +42,11 @@ export const onDesignDisassociatedFromIssueUseCase = {
 			params.connectInstallation.id,
 		);
 
-		await figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignDisassociatedFromIssue(
-			{
-				figmaDesignId,
-				issueId: params.issue.id,
-				atlassianUserId: params.atlassianUserId,
-				connectInstallation: params.connectInstallation,
-			},
-		);
+		await figmaBackwardIntegrationServiceV2.tryDeleteDevResourceForJiraIssue({
+			figmaDesignId,
+			issueId: params.issue.id,
+			atlassianUserId: params.atlassianUserId,
+			connectInstallation: params.connectInstallation,
+		});
 	},
 };

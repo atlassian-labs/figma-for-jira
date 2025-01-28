@@ -1,5 +1,4 @@
 import { jiraAppConfigurationService } from './jira-app-configuration-service';
-import { jiraDesignIssuePropertyService } from './jira-design-issue-property-service';
 import { jiraDesignService } from './jira-design-service';
 import { jiraIssueService } from './jira-issue-service';
 import { jiraUserService } from './jira-user-service';
@@ -25,16 +24,6 @@ export class JiraService {
 	deleteAppConfigurationState =
 		jiraAppConfigurationService.deleteAppConfigurationState.bind(
 			jiraAppConfigurationService,
-		);
-
-	trySaveDesignInIssueProperties =
-		jiraDesignIssuePropertyService.trySaveDesignInIssueProperties.bind(
-			jiraDesignIssuePropertyService,
-		);
-
-	tryDeleteDesignFromIssueProperties =
-		jiraDesignIssuePropertyService.tryDeleteDesignFromIssueProperties.bind(
-			jiraDesignIssuePropertyService,
 		);
 
 	isAdmin = jiraUserService.isAdmin.bind(jiraUserService);
