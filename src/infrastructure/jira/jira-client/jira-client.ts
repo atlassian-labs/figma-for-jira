@@ -4,14 +4,12 @@ import axios, { AxiosHeaders } from 'axios';
 import { createJwtToken } from './jwt-utils';
 import {
 	CHECK_PERMISSIONS_RESPONSE_SCHEMA,
-	GET_ISSUE_PROPERTY_RESPONSE_SCHEMA,
 	GET_ISSUE_RESPONSE_SCHEMA,
 	SUBMIT_DESIGNS_RESPONSE_SCHEMA,
 } from './schemas';
 import type {
 	CheckPermissionsRequest,
 	CheckPermissionsResponse,
-	GetIssuePropertyResponse,
 	GetIssueResponse,
 	SubmitDesignsRequest,
 	SubmitDesignsResponse,
@@ -98,121 +96,6 @@ class JiraClient {
 			assertSchema(response.data, GET_ISSUE_RESPONSE_SCHEMA);
 
 			return response.data;
-		}, context);
-	};
-
-	/**
-	 * Returns the key and value of an issue's property
-	 *
-	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-properties/#api-rest-api-2-issue-issueidorkey-properties-propertykey-get
-	 *
-	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 */
-	getIssueProperty = async (
-		issueIdOrKey: string,
-		propertyKey: string,
-		connectInstallation: ConnectInstallation,
-	): Promise<GetIssuePropertyResponse> => {
-		const context = {
-			issueIdOrKey,
-			propertyKey,
-			baseUrl: connectInstallation.baseUrl,
-			clientKey: connectInstallation.clientKey,
-		};
-		return withAxiosErrorTranslation(async () => {
-			const url = new URL(
-				`/rest/api/2/issue/${encodeURIComponent(
-					issueIdOrKey,
-				)}/properties/${encodeURIComponent(propertyKey)}`,
-				connectInstallation.baseUrl,
-			);
-
-			const response = await axios.get<unknown>(url.toString(), {
-				headers: new AxiosHeaders()
-					.setAuthorization(
-						this.buildAuthorizationHeader('GET', url, connectInstallation),
-					)
-					.setAccept('application/json'),
-			});
-
-			assertSchema<GetIssuePropertyResponse>(
-				response.data,
-				GET_ISSUE_PROPERTY_RESPONSE_SCHEMA,
-			);
-
-			return response.data;
-		}, context);
-	};
-
-	/**
-	 * Sets the value of an issue's property. Use this resource to store custom data against an issue.
-	 *
-	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-properties/#api-rest-api-2-issue-issueidorkey-properties-propertykey-put
-	 *
-	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 */
-	setIssueProperty = async (
-		issueIdOrKey: string,
-		propertyKey: string,
-		value: unknown,
-		connectInstallation: ConnectInstallation,
-	): Promise<void> => {
-		const context = {
-			issueIdOrKey,
-			propertyKey,
-			baseUrl: connectInstallation.baseUrl,
-			clientKey: connectInstallation.clientKey,
-		};
-		return withAxiosErrorTranslation(async () => {
-			const url = new URL(
-				`/rest/api/2/issue/${encodeURIComponent(
-					issueIdOrKey,
-				)}/properties/${encodeURIComponent(propertyKey)}`,
-				connectInstallation.baseUrl,
-			);
-
-			await axios.put<unknown>(url.toString(), JSON.stringify(value), {
-				headers: new AxiosHeaders()
-					.setAuthorization(
-						this.buildAuthorizationHeader('PUT', url, connectInstallation),
-					)
-					.setAccept('application/json')
-					.setContentType('application/json'),
-			});
-		}, context);
-	};
-
-	/**
-	 * Deletes an issue's property
-	 *
-	 * @see https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-properties/#api-rest-api-2-issue-issueidorkey-properties-propertykey-delete
-	 *
-	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
-	 */
-	deleteIssueProperty = async (
-		issueIdOrKey: string,
-		propertyKey: string,
-		connectInstallation: ConnectInstallation,
-	): Promise<void> => {
-		const context = {
-			issueIdOrKey,
-			propertyKey,
-			baseUrl: connectInstallation.baseUrl,
-			clientKey: connectInstallation.clientKey,
-		};
-		return withAxiosErrorTranslation(async () => {
-			const url = new URL(
-				`/rest/api/2/issue/${encodeURIComponent(
-					issueIdOrKey,
-				)}/properties/${encodeURIComponent(propertyKey)}`,
-				connectInstallation.baseUrl,
-			);
-
-			await axios.delete<unknown>(url.toString(), {
-				headers: new AxiosHeaders().setAuthorization(
-					this.buildAuthorizationHeader('DELETE', url, connectInstallation),
-				),
-			});
 		}, context);
 	};
 

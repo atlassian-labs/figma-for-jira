@@ -48,13 +48,11 @@ export const onDesignAssociatedWithIssueUseCaseParams = {
 			inputUrl: undefined,
 		});
 
-		await figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignAssociatedWithIssue(
-			{
-				figmaDesignId,
-				issueId: params.issue.id,
-				atlassianUserId: params.atlassianUserId,
-				connectInstallation: params.connectInstallation,
-			},
-		);
+		await figmaBackwardIntegrationServiceV2.tryCreateDevResourceForJiraIssue({
+			figmaDesignId,
+			issueId: params.issue.id,
+			atlassianUserId: params.atlassianUserId,
+			connectInstallation: params.connectInstallation,
+		});
 	},
 };

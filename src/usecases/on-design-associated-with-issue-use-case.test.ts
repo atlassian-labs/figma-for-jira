@@ -44,7 +44,7 @@ describe('onDesignAssociatedWithIssueUseCase', () => {
 		jest
 			.spyOn(
 				figmaBackwardIntegrationServiceV2,
-				'tryNotifyFigmaOnDesignAssociatedWithIssue',
+				'tryCreateDevResourceForJiraIssue',
 			)
 			.mockResolvedValue();
 
@@ -57,7 +57,7 @@ describe('onDesignAssociatedWithIssueUseCase', () => {
 			inputUrl: undefined,
 		});
 		expect(
-			figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignAssociatedWithIssue,
+			figmaBackwardIntegrationServiceV2.tryCreateDevResourceForJiraIssue,
 		).toHaveBeenCalledWith({
 			figmaDesignId,
 			issueId: params.issue.id,

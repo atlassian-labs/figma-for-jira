@@ -47,7 +47,7 @@ describe('onDesignDisassociatedWithIssueUseCase', () => {
 		jest
 			.spyOn(
 				figmaBackwardIntegrationServiceV2,
-				'tryNotifyFigmaOnDesignDisassociatedFromIssue',
+				'tryDeleteDevResourceForJiraIssue',
 			)
 			.mockResolvedValue();
 
@@ -61,7 +61,7 @@ describe('onDesignDisassociatedWithIssueUseCase', () => {
 			params.connectInstallation.id,
 		);
 		expect(
-			figmaBackwardIntegrationServiceV2.tryNotifyFigmaOnDesignDisassociatedFromIssue,
+			figmaBackwardIntegrationServiceV2.tryDeleteDevResourceForJiraIssue,
 		).toHaveBeenCalledWith({
 			figmaDesignId,
 			issueId: params.issue.id,

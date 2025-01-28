@@ -13,7 +13,6 @@ import type { JwtTokenParams } from '../jwt-utils';
 import type {
 	CheckPermissionsRequest,
 	CheckPermissionsResponse,
-	GetIssuePropertyResponse,
 	GetIssueResponse,
 	SubmitDesignsRequest,
 	SubmitDesignsResponse,
@@ -108,14 +107,6 @@ export const generateGetIssueResponse = ({
 	key,
 	self,
 	fields,
-});
-
-export const generateGetIssuePropertyResponse = ({
-	key = 'property-key',
-	value = 'some value',
-}: Partial<GetIssuePropertyResponse> = {}): GetIssuePropertyResponse => ({
-	key,
-	value,
 });
 
 export const generateCheckPermissionsRequest = ({

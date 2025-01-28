@@ -62,20 +62,6 @@ export const generateFigmaDesignUrl = ({
 	return url;
 };
 
-export const generateFigmaDesignUrlForBackfill = (
-	params: {
-		readonly fileKey?: string;
-		readonly nodeId?: string;
-		readonly mode?: string;
-	} = {},
-): URL => {
-	const url = generateFigmaDesignUrl(params);
-
-	url.searchParams.set('com.atlassian.designs.backfill', 'true');
-
-	return url;
-};
-
 export const generateFigmaOAuth2UserCredentialCreateParams = ({
 	atlassianUserId = uuidv4(),
 	accessToken = uuidv4(),
