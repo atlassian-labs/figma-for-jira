@@ -132,9 +132,7 @@ export const connectAppDescriptor = {
 					}/entities/onEntityDisassociated`,
 				},
 				checkAuth: {
-					templateUrl: `${
-						getConfig().app.baseUrl
-					}/auth/checkAuth?userId={userId}`,
+					templateUrl: `${getConfig().app.baseUrl}/auth/checkAuth`,
 				},
 			},
 		},
