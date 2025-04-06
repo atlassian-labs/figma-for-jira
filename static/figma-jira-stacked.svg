@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100" height="150" viewBox="0 0 100 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Figma Logo -->
+  <g transform="translate(30,20)">
+    <path d="M20 0C9 0 0 9 0 20C0 31 9 40 20 40V0Z" fill="#1ABCFE"/>
+    <path d="M0 60C0 71 9 80 20 80C31 80 40 71 40 60C40 49 31 40 20 40C9 40 0 49 0 60Z" fill="#0ACF83"/>
+    <path d="M20 40V80C31 80 40 71 40 60C40 49 31 40 20 40Z" fill="#A259FF"/>
+    <path d="M0 20C0 31 9 40 20 40C31 40 40 31 40 20C40 9 31 0 20 0C9 0 0 9 0 20Z" fill="#FF7262"/>
+    <path d="M0 20C0 31 9 40 20 40C31 40 40 31 40 20C40 9 31 0 20 0C9 0 0 9 0 20Z" fill="#F24E1E"/>
+  </g>
+
+  <!-- Plus Sign -->
+  <text x="45" y="90" font-family="Arial" font-size="24" fill="#253858">+</text>
+
+  <!-- Jira Logo -->
+  <g transform="translate(20,100)">
+    <path d="M49.32 9.7L45.41 0H41.5L47.635 14.7H51L57.135 0H53.225L49.32 9.7Z" fill="#0052CC"/>
+    <path d="M28.725 0L22.59 14.7H26.18L27.5 11.1H34.725L36.045 14.7H39.635L33.5 0H28.725ZM28.725 7.5L31.135 1.9L33.545 7.5H28.725Z" fill="#0052CC"/>
+    <path d="M17.725 0H14.135V14.7H22.455V11.5H17.725V0Z" fill="#0052CC"/>
+    <path d="M0 0V14.7H8.32V11.5H3.59V8.8H7.725V5.9H3.59V3.2H8.32V0H0Z" fill="#0052CC"/>
+  </g>
+</svg>
