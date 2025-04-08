@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="240" height="60" viewBox="0 0 240 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Figma Icon (Left) -->
+    <g transform="translate(20,10)">
+        <path d="M20 0C8.95 0 0 8.95 0 20C0 31.05 8.95 40 20 40C31.05 40 40 31.05 40 20C40 8.95 31.05 0 20 0Z" fill="#1ABCFE"/>
+        <path d="M25 15H15V25H25V15Z" fill="#0052CC"/>
+    </g>
+    
+    <!-- Connection Line -->
+    <line x1="70" y1="30" x2="170" y2="30" stroke="#253858" stroke-width="2" stroke-dasharray="4"/>
+    
+    <!-- Jira Icon (Right) -->
+    <g transform="translate(180,10)">
+        <path d="M20 0C8.95 0 0 8.95 0 20C0 31.05 8.95 40 20 40C31.05 40 40 31.05 40 20C40 8.95 31.05 0 20 0Z" fill="#0052CC"/>
+        <path d="M29 15L20 24L11 15" stroke="white" stroke-width="2" fill="none"/>
+    </g>
+</svg>
