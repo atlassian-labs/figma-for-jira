@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="48" viewBox="0 0 200 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Figma part -->
+  <g transform="translate(0,0)">
+    <path d="M16 0C7.2 0 0 7.2 0 16C0 24.8 7.2 32 16 32C24.8 32 32 24.8 32 16C32 7.2 24.8 0 16 0Z" fill="#1ABCFE"/>
+    <path d="M8 16C8 12.7 10.7 10 14 10H20V22H14C10.7 22 8 19.3 8 16Z" fill="#0ACF83"/>
+  </g>
+  <!-- Connecting element -->
+  <rect x="40" y="14" width="8" height="4" fill="#253858"/>
+  <!-- Jira part -->
+  <g transform="translate(56,0)">
+    <path d="M31.1 16L16.9 0H16v32h0.9l14.2-16z" fill="#2684FF"/>
+    <path d="M16 0H0v32h16V0z" fill="#0052CC"/>
+  </g>
+  <!-- Text -->
+  <text x="100" y="22" font-family="Arial, sans-serif" font-size="16" fill="#253858">Figma for Jira</text>
+</svg>

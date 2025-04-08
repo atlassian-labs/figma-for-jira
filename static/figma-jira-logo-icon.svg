@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Combined icon -->
+  <g transform="translate(0,0)">
+    <!-- Figma part (top) -->
+    <path d="M44 0H20C8.95 0 0 8.95 0 20v24c0 11.05 8.95 20 20 20h24c11.05 0 20-8.95 20-20V20C64 8.95 55.05 0 44 0z" fill="#1ABCFE"/>
+    <!-- Jira overlay (bottom-right) -->
+    <path d="M44 24L32 12v40h12L56 40 44 24z" fill="#2684FF"/>
+    <path d="M32 12H20v40h12V12z" fill="#0052CC"/>
+    <!-- Figma element (top-left) -->
+    <path d="M20 24c0-4.4 3.6-8 8-8h12v16H28c-4.4 0-8-3.6-8-8z" fill="#0ACF83"/>
+  </g>
+</svg>
