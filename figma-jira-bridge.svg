@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Left circle (Figma) -->
+    <circle cx="40" cy="64" r="24" fill="#A259FF" />
+    
+    <!-- Right circle (Jira) -->
+    <circle cx="88" cy="64" r="24" fill="#0052CC" />
+    
+    <!-- Intersection/bridge shape -->
+    <path d="M64 40 L64 88" stroke="white" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- Connecting curves -->
+    <path d="M40 52 Q64 64 88 52" stroke="white" stroke-width="4" fill="none"/>
+    <path d="M40 76 Q64 64 88 76" stroke="white" stroke-width="4" fill="none"/>
+</svg>
