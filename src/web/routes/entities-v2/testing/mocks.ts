@@ -80,9 +80,7 @@ export const generateOnEntityAssociatedRequestBody = ({
 		cloudId: uuidv4(),
 		id: issueId,
 	},
-	user: {
-		id: userId,
-	},
+	user: userId ? { id: userId } : undefined,
 });
 
 export const generateOnEntityDisassociatedAuthorisationHeader = ({
@@ -120,7 +118,5 @@ export const generateOnEntityDisassociatedRequestBody = ({
 		cloudId: uuidv4(),
 		id: issueId,
 	},
-	user: {
-		id: userId,
-	},
+	user: userId ? { id: userId } : undefined,
 });

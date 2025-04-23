@@ -429,7 +429,7 @@ describe('/entities', () => {
 			});
 		});
 
-		it('should skip creating Figma Dev Resource when `user` parameter is not given', async () => {
+		it('should skip creating Figma Dev Resource when user is not given', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
@@ -809,7 +809,7 @@ describe('/entities', () => {
 			);
 		});
 
-		it('should skip creating Figma Dev Resource when `user` parameter is not given', async () => {
+		it('should skip creating Figma Dev Resource when user is not given', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);

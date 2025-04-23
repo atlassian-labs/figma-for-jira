@@ -52,7 +52,7 @@ export type OnEntityAssociatedRequestBody = {
 		readonly cloudId: string;
 		readonly id: string;
 	};
-	readonly user: {
+	readonly user?: {
 		readonly id?: string;
 	};
 };
@@ -82,7 +82,7 @@ export type OnEntityDisassociatedRequestBody = {
 		readonly cloudId: string;
 		readonly id: string;
 	};
-	readonly user: {
+	readonly user?: {
 		readonly id?: string;
 	};
 };

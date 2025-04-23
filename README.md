@@ -145,10 +145,13 @@ If needed, you could test these APIs directly by mimicking Jira backend.
 
    ```shell
    curl --request POST \
-     --url '${APP_URL}/entities/getEntityByUrl?userId=${ATLASSIAN_USER_ID}' \
+     --url '${APP_URL}/entities/getEntityByUrl' \
      --header 'Authorization: JWT ${TOKEN}' \
      --header 'Content-Type: application/json' \
      --data '{
+       "user": {
+           "id": "${ATLASSIAN_USER_ID}"
+       },
        "entity": {
            "url": "https://www.figma.com/file/${FILE_KEY}"
        }
@@ -157,7 +160,7 @@ If needed, you could test these APIs directly by mimicking Jira backend.
 
    ```shell
     curl --request PUT \
-      --url '${APP_URL}/entities/onEntityAssociated?userId=${ATLASSIAN_USER_ID}' \
+      --url '${APP_URL}/entities/onEntityAssociated' \
       --header 'Authorization: JWT ${TOKEN}' \
       --header 'Content-Type: application/json' \
       --data '{
@@ -170,13 +173,16 @@ If needed, you could test these APIs directly by mimicking Jira backend.
             "ari": "ari:cloud:jira:${ATLASSIAN_CLOUD_ID}:issue/${JIRA_ISSUE_ID}",
             "cloudId": "${ATLASSIAN_CLOUD_ID}",
             "id": "${JIRA_ISSUE_ID}"
+        },
+        "user": {
+           "id": "${ATLASSIAN_USER_ID}"
         }
     }'
    ```
 
    ```shell
     curl --request PUT \
-      --url '${APP_URL}/entities/onEntityDisassociated?userId=${ATLASSIAN_USER_ID}' \
+      --url '${APP_URL}/entities/onEntityDisassociated' \
       --header 'Authorization: JWT ${TOKEN}' \
       --header 'Content-Type: application/json' \
       --data '{
@@ -189,6 +195,9 @@ If needed, you could test these APIs directly by mimicking Jira backend.
             "ari": "ari:cloud:jira:${ATLASSIAN_CLOUD_ID}:issue/${JIRA_ISSUE_ID}",
             "cloudId": "${ATLASSIAN_CLOUD_ID}",
             "id": "${JIRA_ISSUE_ID}"
+        },
+        "user": {
+           "id": "${ATLASSIAN_USER_ID}"
         }
     }'
    ```
