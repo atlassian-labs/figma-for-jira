@@ -68,9 +68,10 @@ export const ON_ENTITY_ASSOCIATED_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 					properties: {
 						id: { type: 'string', nullable: true },
 					},
+					nullable: true,
 				},
 			},
-			required: ['entity', 'associatedWith', 'user'],
+			required: ['entity', 'associatedWith'],
 		},
 	},
 	required: ['body'],
@@ -108,9 +109,10 @@ export const ON_ENTITY_DISASSOCIATED_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 					properties: {
 						id: { type: 'string', nullable: true },
 					},
+					nullable: true,
 				},
 			},
-			required: ['entity', 'disassociatedFrom', 'user'],
+			required: ['entity', 'disassociatedFrom'],
 		},
 	},
 	required: ['body'],
