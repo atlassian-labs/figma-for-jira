@@ -62,7 +62,7 @@ export const getConfig = (): Config => {
 					clientId: readEnvVarString('FIGMA_OAUTH2_CLIENT_ID'),
 					clientSecret: readEnvVarString('FIGMA_OAUTH2_CLIENT_SECRET'),
 					scope:
-						'files:read,file_dev_resources:read,file_dev_resources:write,webhooks:write',
+						'file_content:read,file_metadata:read,current_user:read,projects:read,file_dev_resources:read,file_dev_resources:write,webhooks:write',
 					stateSecretKey: readEnvVarString('FIGMA_OAUTH2_STATE_SECRET_KEY'),
 				},
 			},
