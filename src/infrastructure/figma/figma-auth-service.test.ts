@@ -179,7 +179,7 @@ describe('FigmaAuthService', () => {
 			const result = figmaAuthService.createOAuth2AuthorizationRequest({
 				atlassianUserId,
 				connectInstallation,
-				redirectEndpoint: `figma/oauth2/callback`,
+				redirectEndpoint: `/figma/oauth2/callback`,
 			});
 
 			const expectedUrl = new URL(
