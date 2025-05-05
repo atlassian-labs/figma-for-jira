@@ -1,4 +1,4 @@
-import { getConfig, getAppPath, getAppUrl, getFigmaDomain } from './config';
+import { getAppPath, getAppUrl, getConfig, getFigmaDomain } from './config';
 
 const APP_NAME = 'Figma for JIRA Cloud';
 

@@ -20,7 +20,10 @@ export function SuccessBanner({ size = 'large' }: SuccessBannerProps) {
 			})}
 		>
 			<div css={css({ padding: logoPadding, paddingRight: 0 })}>
-				<Image src={getAppPath('/static/admin/jira-logo.svg')} width={logoWidth} />
+				<Image
+					src={getAppPath('/static/admin/jira-logo.svg')}
+					width={logoWidth}
+				/>
 			</div>
 			<Image
 				src={getAppPath('/static/admin/sync-success.svg')}
@@ -28,7 +31,10 @@ export function SuccessBanner({ size = 'large' }: SuccessBannerProps) {
 				height={connectorHeight}
 			/>
 			<div css={css({ padding: logoPadding, paddingLeft: 0 })}>
-				<Image src={getAppPath('/static/admin/figma-logo.svg')} width={logoWidth} />
+				<Image
+					src={getAppPath('/static/admin/figma-logo.svg')}
+					width={logoWidth}
+				/>
 			</div>
 		</div>
 	);

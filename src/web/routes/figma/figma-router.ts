@@ -12,12 +12,12 @@ import type {
 	FigmaWebhookEventResponse,
 } from './types';
 
+import { getAppPath } from '../../../config';
 import { getLogger } from '../../../infrastructure';
 import { handleFigmaFileUpdateEvent } from '../../../jobs';
 import { handleFigmaAuthorizationResponseUseCase } from '../../../usecases';
 import { requestSchemaValidationMiddleware } from '../../middleware';
 import { figmaWebhookAuthMiddleware } from '../../middleware/figma/figma-webhook-auth-middleware';
-import { getAppPath } from '../../../config';
 
 export const SUCCESS_PAGE_URL = getAppPath('/static/auth-result/success');
 export const FAILURE_PAGE_URL = getAppPath('/static/auth-result/failure');
