@@ -1,5 +1,9 @@
 const VALID_FIGMA_ORIGINS = ['www.figma.com', 'figma.com'];
 
+if (import.meta.env.VITE_FIGMA_FOR_JIRA_FIGMA_WEB_DOMAIN) {
+	VALID_FIGMA_ORIGINS.push(import.meta.env.VITE_FIGMA_FOR_JIRA_FIGMA_WEB_DOMAIN);
+}
+
 function withHttp(url: string) {
 	return !/^https?:\/\//i.test(url) ? `http://${url}` : url;
 }

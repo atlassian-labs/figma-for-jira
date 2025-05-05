@@ -1,5 +1,6 @@
 import Image from '@atlaskit/image';
 import { css } from '@emotion/react';
+import { getAppPath } from '../utils';
 
 export function ConnectBanner() {
 	return (
@@ -10,11 +11,11 @@ export function ConnectBanner() {
 			`}
 		>
 			<div css={css({ padding: 16 })}>
-				<Image src="/static/admin/jira-logo.svg" />
+				<Image src={getAppPath('/static/admin/jira-logo.svg')} />
 			</div>
-			<Image src="/static/admin/sync.svg" />
+			<Image src={getAppPath('/static/admin/sync.svg')} />
 			<div css={css({ padding: 16 })}>
-				<Image src="/static/admin/figma-logo.svg" />
+				<Image src={getAppPath('/static/admin/figma-logo.svg')} />
 			</div>
 		</div>
 	);

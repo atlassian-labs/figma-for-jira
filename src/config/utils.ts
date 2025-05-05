@@ -1,5 +1,7 @@
+const FIGMA_FOR_JIRA_FALLBACK_PREFIX = 'FIGMA_FOR_JIRA_';
+
 export function readEnvVarString(key: string, fallback?: string): string {
-	const value = process.env[key];
+	const value = process.env[key] ?? process.env[`${FIGMA_FOR_JIRA_FALLBACK_PREFIX}${key}`];
 	if (value) {
 		return value;
 	}

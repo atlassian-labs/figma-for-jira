@@ -17,9 +17,10 @@ import { handleFigmaFileUpdateEvent } from '../../../jobs';
 import { handleFigmaAuthorizationResponseUseCase } from '../../../usecases';
 import { requestSchemaValidationMiddleware } from '../../middleware';
 import { figmaWebhookAuthMiddleware } from '../../middleware/figma/figma-webhook-auth-middleware';
+import { getAppPath } from '../../../config';
 
-export const SUCCESS_PAGE_URL = `/static/auth-result/success`;
-export const FAILURE_PAGE_URL = `/static/auth-result/failure`;
+export const SUCCESS_PAGE_URL = getAppPath('/static/auth-result/success');
+export const FAILURE_PAGE_URL = getAppPath('/static/auth-result/failure');
 
 export const figmaRouter = Router();
 

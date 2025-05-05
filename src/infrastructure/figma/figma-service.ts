@@ -19,7 +19,7 @@ import { CauseAwareError } from '../../common/errors';
 import { isNotNullOrUndefined } from '../../common/predicates';
 import { isOfSchema } from '../../common/schema-validation';
 import { isString } from '../../common/string-utils';
-import { getConfig } from '../../config';
+import { getAppUrl } from '../../config';
 import type {
 	AtlassianDesign,
 	ConnectUserInfo,
@@ -290,7 +290,7 @@ export class FigmaService {
 			const request: CreateWebhookRequest = {
 				event_type: 'FILE_UPDATE',
 				team_id: teamId,
-				endpoint: `${getConfig().app.baseUrl}/figma/webhook`,
+				endpoint: getAppUrl('/figma/webhook'),
 				passcode,
 				description: 'Figma for Jira Cloud',
 			};

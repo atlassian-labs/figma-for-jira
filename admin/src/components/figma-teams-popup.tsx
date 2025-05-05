@@ -1,6 +1,7 @@
 import { css } from '@emotion/react';
 
 import { FigmaPopup } from './figma-popup';
+import { getAppPath } from '../utils';
 
 type FigmaTeamsPopupProps = {
 	children: React.ReactNode;
@@ -22,7 +23,7 @@ export function FigmaTeamsPopup({ children }: FigmaTeamsPopupProps) {
 	return (
 		<FigmaPopup
 			content={content}
-			imageSrc={'/static/admin/figma-team-url.svg'}
+			imageSrc={getAppPath('/static/admin/figma-team-url.svg')}
 			children={children}
 		/>
 	);

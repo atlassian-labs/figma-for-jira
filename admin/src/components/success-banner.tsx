@@ -1,5 +1,6 @@
 import Image from '@atlaskit/image';
 import { css } from '@emotion/react';
+import { getAppPath } from '../utils';
 
 type SuccessBannerProps = {
 	size?: 'small' | 'large';
@@ -19,15 +20,15 @@ export function SuccessBanner({ size = 'large' }: SuccessBannerProps) {
 			})}
 		>
 			<div css={css({ padding: logoPadding, paddingRight: 0 })}>
-				<Image src="/static/admin/jira-logo.svg" width={logoWidth} />
+				<Image src={getAppPath('/static/admin/jira-logo.svg')} width={logoWidth} />
 			</div>
 			<Image
-				src="/static/admin/sync-success.svg"
+				src={getAppPath('/static/admin/sync-success.svg')}
 				width={connectorWidth}
 				height={connectorHeight}
 			/>
 			<div css={css({ padding: logoPadding, paddingLeft: 0 })}>
-				<Image src="/static/admin/figma-logo.svg" width={logoWidth} />
+				<Image src={getAppPath('/static/admin/figma-logo.svg')} width={logoWidth} />
 			</div>
 		</div>
 	);
