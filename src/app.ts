@@ -3,6 +3,7 @@
 import './infrastructure/tracer';
 import express, { json } from 'express';
 
+import { getConfig } from './config';
 import { errorHandlerMiddleware, httpLoggerMiddleware } from './web/middleware';
 import { rootRouter } from './web/routes/router';
 
@@ -15,6 +16,11 @@ app.use(json());
 
 // Setting the routes
 app.use(rootRouter);
+
+// For internal Figma development purposes only.
+if (getConfig().app.basePath.length > 0) {
+	app.use(getConfig().app.basePath, rootRouter);
+}
 
 // Error handling
 app.use(errorHandlerMiddleware);

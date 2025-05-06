@@ -4,6 +4,7 @@ export type Config = {
 	readonly app: {
 		readonly baseUrl: string;
 		readonly key: string;
+		readonly basePath: string;
 	};
 	readonly server: {
 		readonly port: number;
@@ -17,6 +18,7 @@ export type Config = {
 		readonly enabled: boolean;
 	};
 	readonly figma: {
+		readonly domain: string;
 		readonly webBaseUrl: string;
 		readonly apiBaseUrl: string;
 		readonly oauth2: {
@@ -40,6 +42,7 @@ export const getConfig = (): Config => {
 			app: {
 				baseUrl: readEnvVarString('APP_URL'),
 				key: readEnvVarString('APP_KEY'),
+				basePath: readEnvVarString('APP_BASE_PATH', ''),
 			},
 			server: {
 				port: readEnvVarInt('SERVER_PORT'),
@@ -53,6 +56,7 @@ export const getConfig = (): Config => {
 				enabled: readEnvVarString('DD_TRACE_ENABLED', '') === 'true',
 			},
 			figma: {
+				domain: readEnvVarString('FIGMA_DOMAIN', 'figma.com'),
 				webBaseUrl: readEnvVarString('FIGMA_WEB_BASE_URL'),
 				apiBaseUrl: readEnvVarString('FIGMA_API_BASE_URL'),
 				oauth2: {
@@ -74,3 +78,13 @@ export const getConfig = (): Config => {
 
 	return config;
 };
+
+export function getAppPath(path: string): string {
+	const config = getConfig();
+	return `${config.app.basePath}${path}`;
+}
+
+export function getAppUrl(path: string): string {
+	const config = getConfig();
+	return `${config.app.baseUrl}${config.app.basePath}${path}`;
+}
