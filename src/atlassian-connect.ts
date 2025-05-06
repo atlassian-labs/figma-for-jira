@@ -1,4 +1,4 @@
-import { getAppPath, getAppUrl, getConfig, getFigmaDomain } from './config';
+import { getAppPath, getAppUrl, getConfig } from './config';
 
 const APP_NAME = 'Figma for JIRA Cloud';
 
@@ -115,7 +115,7 @@ export const connectAppDescriptor = {
 				value: 'Figma',
 			},
 			key: 'figma-integration',
-			handledDomainName: getFigmaDomain(),
+			handledDomainName: getConfig().figma.domain,
 			logoUrl: getAppUrl('/static/figma-logo.svg'),
 			documentationUrl:
 				'https://help.figma.com/hc/en-us/articles/360039827834-Jira-and-Figma',

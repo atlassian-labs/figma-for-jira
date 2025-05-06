@@ -18,6 +18,7 @@ export type Config = {
 		readonly enabled: boolean;
 	};
 	readonly figma: {
+		readonly domain: string;
 		readonly webBaseUrl: string;
 		readonly apiBaseUrl: string;
 		readonly oauth2: {
@@ -55,6 +56,7 @@ export const getConfig = (): Config => {
 				enabled: readEnvVarString('DD_TRACE_ENABLED', '') === 'true',
 			},
 			figma: {
+				domain: readEnvVarString('FIGMA_DOMAIN', 'figma.com'),
 				webBaseUrl: readEnvVarString('FIGMA_WEB_BASE_URL'),
 				apiBaseUrl: readEnvVarString('FIGMA_API_BASE_URL'),
 				oauth2: {
@@ -85,9 +87,4 @@ export function getAppPath(path: string): string {
 export function getAppUrl(path: string): string {
 	const config = getConfig();
 	return `${config.app.baseUrl}${config.app.basePath}${path}`;
-}
-
-export function getFigmaDomain(): string {
-	const config = getConfig();
-	return new URL(config.figma.webBaseUrl).hostname;
 }
