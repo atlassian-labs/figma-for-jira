@@ -1,5 +1,6 @@
 const VALID_FIGMA_ORIGINS = ['www.figma.com', 'figma.com'];
 
+// This is only used for local development when tunneling Figma via ngrok.
 if (import.meta.env.VITE_FIGMA_FOR_JIRA_FIGMA_WEB_DOMAIN) {
 	VALID_FIGMA_ORIGINS.push(
 		import.meta.env.VITE_FIGMA_FOR_JIRA_FIGMA_WEB_DOMAIN,
