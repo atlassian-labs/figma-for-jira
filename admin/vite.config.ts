@@ -4,7 +4,9 @@ import { defineConfig } from 'vite';
 // https://vitejs.dev/config/
 export default () => {
 	return defineConfig({
-		base: (process.env['FIGMA_FOR_JIRA_APP_BASE_PATH'] ?? '') + '/static/admin',
+		base:
+			(process.env['VITE_FIGMA_FOR_JIRA_APP_BASE_PATH'] ?? '') +
+			'/static/admin',
 		plugins: [
 			react({
 				jsxImportSource: '@emotion/react',

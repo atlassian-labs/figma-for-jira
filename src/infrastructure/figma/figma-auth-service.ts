@@ -12,7 +12,7 @@ import { CauseAwareError } from '../../common/errors';
 import type { JSONSchemaTypeWithId } from '../../common/schema-validation';
 import { assertSchema } from '../../common/schema-validation';
 import { ensureString } from '../../common/string-utils';
-import { getAppUrl, getConfig } from '../../config';
+import { getConfig } from '../../config';
 import type {
 	ConnectInstallation,
 	ConnectUserInfo,
@@ -138,7 +138,7 @@ export class FigmaAuthService {
 
 		authorizationEndpoint.search = new URLSearchParams({
 			client_id: getConfig().figma.oauth2.clientId,
-			redirect_uri: getAppUrl(redirectEndpoint),
+			redirect_uri: `${getConfig().app.baseUrl}/${redirectEndpoint}`,
 			scope: getConfig().figma.oauth2.scope,
 			state,
 			response_type: 'code',

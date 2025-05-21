@@ -35,7 +35,7 @@ import type {
 } from './types';
 
 import { assertSchema } from '../../../common/schema-validation';
-import { getAppUrl, getConfig } from '../../../config';
+import { getConfig } from '../../../config';
 import { withAxiosErrorTranslation } from '../../axios-utils';
 
 const GET_FILE_RESPONSE_PROPERTIES = new Set<keyof GetFileResponse>([
@@ -86,7 +86,7 @@ export class FigmaClient {
 
 			url.searchParams.append(
 				'redirect_uri',
-				getAppUrl('/figma/oauth/callback'),
+				`${getConfig().app.baseUrl}/figma/oauth/callback`,
 			);
 			url.searchParams.append('code', code);
 			url.searchParams.append('grant_type', 'authorization_code');

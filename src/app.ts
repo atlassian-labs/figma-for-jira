@@ -3,7 +3,7 @@
 import './infrastructure/tracer';
 import express, { json } from 'express';
 
-import { getConfig } from './config';
+import { getAppBaseUrl } from './config';
 import { errorHandlerMiddleware, httpLoggerMiddleware } from './web/middleware';
 import { rootRouter } from './web/routes/router';
 
@@ -18,8 +18,9 @@ app.use(json());
 app.use(rootRouter);
 
 // For internal Figma development purposes only.
-if (getConfig().app.basePath.length > 0) {
-	app.use(getConfig().app.basePath, rootRouter);
+const basePath = getAppBaseUrl().pathname;
+if (basePath !== '/') {
+	app.use(basePath, rootRouter);
 }
 
 // Error handling

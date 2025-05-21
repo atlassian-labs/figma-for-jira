@@ -4,7 +4,6 @@ export type Config = {
 	readonly app: {
 		readonly baseUrl: string;
 		readonly key: string;
-		readonly basePath: string;
 	};
 	readonly server: {
 		readonly port: number;
@@ -42,7 +41,6 @@ export const getConfig = (): Config => {
 			app: {
 				baseUrl: readEnvVarString('APP_URL'),
 				key: readEnvVarString('APP_KEY'),
-				basePath: readEnvVarString('APP_BASE_PATH', ''),
 			},
 			server: {
 				port: readEnvVarInt('SERVER_PORT'),
@@ -79,12 +77,21 @@ export const getConfig = (): Config => {
 	return config;
 };
 
-export function getAppPath(path: string): string {
-	const config = getConfig();
-	return `${config.app.basePath}${path}`;
+let appBaseUrl: URL | undefined;
+export function getAppBaseUrl(): URL {
+	if (!appBaseUrl) {
+		const config = getConfig();
+		appBaseUrl = new URL(config.app.baseUrl);
+	}
+
+	return appBaseUrl;
 }
 
-export function getAppUrl(path: string): string {
-	const config = getConfig();
-	return `${config.app.baseUrl}${config.app.basePath}${path}`;
+export function getAppPath(path: string): string {
+	const basePath = getAppBaseUrl().pathname;
+	if (basePath === '/') {
+		return path;
+	}
+
+	return `${basePath}${path}`;
 }

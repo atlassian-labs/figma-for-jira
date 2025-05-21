@@ -3,5 +3,10 @@ export function getAppBasePath(): string | undefined {
 }
 
 export function getAppPath(path: string): string {
-	return `${getAppBasePath()}${path}`;
+	const appBasePath = getAppBasePath();
+	if (appBasePath) {
+		return `${appBasePath}${path}`;
+	}
+
+	return path;
 }

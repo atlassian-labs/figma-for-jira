@@ -1,4 +1,4 @@
-import { getAppPath, getAppUrl, getConfig } from './config';
+import { getConfig } from './config';
 
 const APP_NAME = 'Figma for JIRA Cloud';
 
@@ -64,8 +64,8 @@ export const connectAppDescriptor = {
 	 *
 	 */
 	lifecycle: {
-		installed: getAppPath('/lifecycleEvents/installed'),
-		uninstalled: getAppPath('/lifecycleEvents/uninstalled'),
+		installed: '/lifecycleEvents/installed',
+		uninstalled: '/lifecycleEvents/uninstalled',
 	},
 
 	/**
@@ -79,7 +79,7 @@ export const connectAppDescriptor = {
 			name: {
 				value: 'Configure',
 			},
-			url: getAppPath('/static/admin'),
+			url: '/static/admin',
 			conditions: [{ condition: 'user_is_admin' }],
 		},
 		webSections: [
@@ -98,7 +98,7 @@ export const connectAppDescriptor = {
 					value: 'Configure',
 				},
 				location: 'admin_plugins_menu/figma-addon-admin-section',
-				url: getAppPath('/static/admin'),
+				url: '/static/admin',
 				conditions: [
 					{
 						condition: 'user_is_admin',
@@ -116,21 +116,23 @@ export const connectAppDescriptor = {
 			},
 			key: 'figma-integration',
 			handledDomainName: getConfig().figma.domain,
-			logoUrl: getAppUrl('/static/figma-logo.svg'),
+			logoUrl: `${getConfig().app.baseUrl}/static/figma-logo.svg`,
 			documentationUrl:
 				'https://help.figma.com/hc/en-us/articles/360039827834-Jira-and-Figma',
 			actions: {
 				getEntityByUrl: {
-					templateUrl: getAppUrl('/entities/getEntityByUrl'),
+					templateUrl: `${getConfig().app.baseUrl}/entities/getEntityByUrl`,
 				},
 				onEntityAssociated: {
-					templateUrl: getAppUrl('/entities/onEntityAssociated'),
+					templateUrl: `${getConfig().app.baseUrl}/entities/onEntityAssociated`,
 				},
 				onEntityDisassociated: {
-					templateUrl: getAppUrl('/entities/onEntityDisassociated'),
+					templateUrl: `${
+						getConfig().app.baseUrl
+					}/entities/onEntityDisassociated`,
 				},
 				checkAuth: {
-					templateUrl: getAppUrl('/auth/checkAuth'),
+					templateUrl: `${getConfig().app.baseUrl}/auth/checkAuth`,
 				},
 			},
 		},

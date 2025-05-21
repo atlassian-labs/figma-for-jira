@@ -12,7 +12,7 @@ import { isEnumValueOf } from '../../../common/enumUtils';
 import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
 import { assertSchema } from '../../../common/schema-validation';
 import { ensureString } from '../../../common/string-utils';
-import { getConfig } from '../../../config';
+import { getAppBaseUrl } from '../../../config';
 
 type JiraAsymmetricJwtClaims = {
 	readonly iss: string;
@@ -103,7 +103,7 @@ export class JiraAsymmetricJwtTokenVerifier {
 		assertSchema(verifiedClaims, JIRA_ASYMMETRIC_JWT_CLAIMS_SCHEMA);
 		verifyQshClaimBoundToUrl(verifiedClaims, request);
 		verifyExpClaim(verifiedClaims);
-		verifyAudClaimIncludesBaseUrl(verifiedClaims, getConfig().app.baseUrl);
+		verifyAudClaimIncludesBaseUrl(verifiedClaims, getAppBaseUrl().origin);
 	};
 }
 

@@ -34,7 +34,7 @@ authRouter.get(
 					figmaAuthService.createOAuth2AuthorizationRequest({
 						atlassianUserId,
 						connectInstallation,
-						redirectEndpoint: `/figma/oauth/callback`,
+						redirectEndpoint: `figma/oauth/callback`,
 					});
 
 				return res.send({
