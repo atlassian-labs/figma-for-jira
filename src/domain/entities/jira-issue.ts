@@ -15,6 +15,9 @@ export type JiraIssue = {
 	};
 };
 
-export const buildJiraIssueUrl = (baseUrl: string, issueKey: string) => {
-	return `${baseUrl}/browse/${issueKey}`;
+export const buildJiraIssueUrl = (
+	baseUrl: URL | string,
+	issueKey: string,
+): URL => {
+	return new URL(`browse/${issueKey}`, baseUrl);
 };

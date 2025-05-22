@@ -4,6 +4,7 @@ import { Router } from 'express';
 import { CHECK_AUTH_REQUEST_SCHEMA } from './schemas';
 import type { CheckAuthRequest, CheckAuthResponse } from './types';
 
+import { buildAppUrl } from '../../../config';
 import { figmaAuthService } from '../../../infrastructure/figma';
 import { checkUserFigmaAuthUseCase } from '../../../usecases';
 import { requestSchemaValidationMiddleware } from '../../middleware';
@@ -34,7 +35,7 @@ authRouter.get(
 					figmaAuthService.createOAuth2AuthorizationRequest({
 						atlassianUserId,
 						connectInstallation,
-						redirectEndpoint: `figma/oauth/callback`,
+						redirectUrl: buildAppUrl(`figma/oauth/callback`),
 					});
 
 				return res.send({

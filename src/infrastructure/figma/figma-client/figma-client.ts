@@ -35,7 +35,7 @@ import type {
 } from './types';
 
 import { assertSchema } from '../../../common/schema-validation';
-import { getConfig } from '../../../config';
+import { buildAppUrl, getConfig } from '../../../config';
 import { withAxiosErrorTranslation } from '../../axios-utils';
 
 const GET_FILE_RESPONSE_PROPERTIES = new Set<keyof GetFileResponse>([
@@ -74,7 +74,7 @@ export class FigmaClient {
 	 */
 	getOAuth2Token = async (code: string): Promise<GetOAuth2TokenResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const url = new URL('/v1/oauth/token', getConfig().figma.apiBaseUrl);
+			const url = new URL('v1/oauth/token', getConfig().figma.apiBaseUrl);
 
 			const basicAuthHeader =
 				'Basic ' +
@@ -86,7 +86,7 @@ export class FigmaClient {
 
 			url.searchParams.append(
 				'redirect_uri',
-				`${getConfig().app.baseUrl}/figma/oauth/callback`,
+				buildAppUrl('figma/oauth/callback').toString(),
 			);
 			url.searchParams.append('code', code);
 			url.searchParams.append('grant_type', 'authorization_code');
@@ -114,7 +114,7 @@ export class FigmaClient {
 		refreshToken: string,
 	): Promise<RefreshOAuth2TokenResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const url = new URL('/v1/oauth/refresh', getConfig().figma.apiBaseUrl);
+			const url = new URL('v1/oauth/refresh', getConfig().figma.apiBaseUrl);
 			const basicAuthHeader =
 				'Basic ' +
 				btoa(
@@ -146,7 +146,7 @@ export class FigmaClient {
 	 */
 	me = async (accessToken: string): Promise<GetMeResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const url = new URL(`/v1/me`, getConfig().figma.apiBaseUrl);
+			const url = new URL(`v1/me`, getConfig().figma.apiBaseUrl);
 
 			const response = await axios.get<unknown>(url.toString(), {
 				headers: {
@@ -174,7 +174,7 @@ export class FigmaClient {
 	): Promise<GetFileMetaResponse> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`/v1/files/${encodeURIComponent(fileKey)}/meta`,
+				`v1/files/${encodeURIComponent(fileKey)}/meta`,
 				getConfig().figma.apiBaseUrl,
 			);
 
@@ -203,7 +203,7 @@ export class FigmaClient {
 	): Promise<GetFileResponse> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`/v1/files/${encodeURIComponent(fileKey)}`,
+				`v1/files/${encodeURIComponent(fileKey)}`,
 				getConfig().figma.apiBaseUrl,
 			);
 
@@ -297,7 +297,7 @@ export class FigmaClient {
 		accessToken: string,
 	): Promise<CreateDevResourcesResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const url = new URL(`/v1/dev_resources`, getConfig().figma.apiBaseUrl);
+			const url = new URL(`v1/dev_resources`, getConfig().figma.apiBaseUrl);
 
 			const response = await axios.post<unknown>(url.toString(), request, {
 				headers: {
@@ -324,7 +324,7 @@ export class FigmaClient {
 	}: GetDevResourcesRequest): Promise<GetDevResourcesResponse> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`/v1/files/${encodeURIComponent(fileKey)}/dev_resources`,
+				`v1/files/${encodeURIComponent(fileKey)}/dev_resources`,
 				getConfig().figma.apiBaseUrl,
 			);
 			if (nodeIds?.length) {
@@ -356,7 +356,7 @@ export class FigmaClient {
 	}: DeleteDevResourceRequest): Promise<void> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`/v1/files/${encodeURIComponent(
+				`v1/files/${encodeURIComponent(
 					fileKey,
 				)}/dev_resources/${encodeURIComponent(devResourceId)}`,
 				getConfig().figma.apiBaseUrl,
@@ -381,7 +381,7 @@ export class FigmaClient {
 		accessToken: string,
 	): Promise<CreateWebhookResponse> =>
 		withAxiosErrorTranslation(async () => {
-			const url = new URL(`/v2/webhooks`, getConfig().figma.apiBaseUrl);
+			const url = new URL(`v2/webhooks`, getConfig().figma.apiBaseUrl);
 
 			const response = await axios.post<unknown>(url.toString(), request, {
 				headers: {
@@ -407,7 +407,7 @@ export class FigmaClient {
 	): Promise<void> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`/v2/webhooks/${encodeURIComponent(webhookId)}`,
+				`v2/webhooks/${encodeURIComponent(webhookId)}`,
 				getConfig().figma.apiBaseUrl,
 			);
 
@@ -431,7 +431,7 @@ export class FigmaClient {
 	): Promise<GetTeamProjectsResponse> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`/v1/teams/${encodeURIComponent(teamId)}/projects`,
+				`v1/teams/${encodeURIComponent(teamId)}/projects`,
 				getConfig().figma.apiBaseUrl,
 			);
 

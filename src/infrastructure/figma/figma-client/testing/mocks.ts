@@ -78,11 +78,11 @@ export const generateRefreshOAuth2TokenResponse = ({
 });
 
 export const generateGetOAuth2TokenQueryParams = ({
-	redirect_uri = 'https://www.example.com/auth/callback',
+	redirect_uri = new URL('https://www.example.com/auth/callback'),
 	code = 'code-123',
 	grant_type = 'authorization_code',
 } = {}) => ({
-	redirect_uri,
+	redirect_uri: redirect_uri.toString(),
 	code,
 	grant_type,
 });
@@ -164,7 +164,7 @@ export const generateGetFileResponseWithNodes = ({
 
 export const generateCreateDevResourcesRequest = ({
 	name = 'Mock dev resource',
-	url = generateJiraIssueUrl(),
+	url = generateJiraIssueUrl().toString(),
 	fileKey = generateFigmaFileKey(),
 	nodeId = generateFigmaNodeId(),
 }: {
@@ -194,7 +194,7 @@ export const generateCreateDevResourcesResponse = ({
 export const generateGetDevResourcesResponse = ({
 	id = uuidv4(),
 	name = 'Mock dev resource',
-	url = generateJiraIssueUrl(),
+	url = generateJiraIssueUrl().toString(),
 	file_key = generateFigmaFileKey(),
 	node_id = generateFigmaNodeId(),
 }: {

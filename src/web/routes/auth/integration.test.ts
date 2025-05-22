@@ -4,7 +4,7 @@ import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
 import app from '../../../app';
-import { getConfig } from '../../../config';
+import { buildAppUrl, getConfig } from '../../../config';
 import {
 	generateConnectInstallationCreateParams,
 	generateExpiredFigmaOAuth2UserCredentialCreateParams,
@@ -26,8 +26,6 @@ import {
 } from '../../testing';
 
 const FIGMA_OAUTH_API_BASE_URL = getConfig().figma.apiBaseUrl;
-const FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT = '/v1/oauth/refresh';
-const CHECK_AUTH_ENDPOINT = '/auth/checkAuth';
 
 describe('/auth', () => {
 	describe('/checkAuth', () => {
@@ -55,7 +53,7 @@ describe('/auth', () => {
 			const jwt = generateJiraServerSymmetricJwtToken({
 				request: {
 					method: 'GET',
-					pathname: '/auth/checkAuth',
+					pathname: buildAppUrl('auth/checkAuth').pathname,
 					query: { userId: atlassianUserId },
 				},
 				connectInstallation,
@@ -64,7 +62,7 @@ describe('/auth', () => {
 			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 
 			return request(app)
-				.get(CHECK_AUTH_ENDPOINT)
+				.get(buildAppUrl('auth/checkAuth').pathname)
 				.query({
 					userId: atlassianUserId,
 				})
@@ -89,14 +87,14 @@ describe('/auth', () => {
 			const jwt = generateJiraServerSymmetricJwtToken({
 				request: {
 					method: 'GET',
-					pathname: '/auth/checkAuth',
+					pathname: buildAppUrl('auth/checkAuth').pathname,
 					query: { userId: atlassianUserId },
 				},
 				connectInstallation,
 			});
 
-			nock(FIGMA_OAUTH_API_BASE_URL)
-				.post(FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT)
+			nock(FIGMA_OAUTH_API_BASE_URL.toString())
+				.post('/v1/oauth/refresh')
 				.query(REFRESH_TOKEN_QUERY_PARAMS)
 				.matchHeader('Content-Type', 'application/x-www-form-urlencoded')
 				.matchHeader('Authorization', BASIC_AUTH_HEADER)
@@ -104,7 +102,7 @@ describe('/auth', () => {
 			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 
 			await request(app)
-				.get(CHECK_AUTH_ENDPOINT)
+				.get(buildAppUrl(`auth/checkAuth`).pathname)
 				.query({
 					userId: atlassianUserId,
 				})
@@ -130,14 +128,14 @@ describe('/auth', () => {
 			const jwt = generateJiraServerSymmetricJwtToken({
 				request: {
 					method: 'GET',
-					pathname: '/auth/checkAuth',
+					pathname: buildAppUrl('auth/checkAuth').pathname,
 					query: { userId: atlassianUserId },
 				},
 				connectInstallation,
 			});
 
 			return request(app)
-				.get(CHECK_AUTH_ENDPOINT)
+				.get(buildAppUrl('auth/checkAuth').pathname)
 				.query({
 					userId: atlassianUserId,
 				})
@@ -169,19 +167,19 @@ describe('/auth', () => {
 			const jwt = generateJiraServerSymmetricJwtToken({
 				request: {
 					method: 'GET',
-					pathname: '/auth/checkAuth',
+					pathname: buildAppUrl('auth/checkAuth').pathname,
 					query: { userId: atlassianUserId },
 				},
 				connectInstallation,
 			});
 
-			nock(FIGMA_OAUTH_API_BASE_URL)
-				.post(FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT)
+			nock(FIGMA_OAUTH_API_BASE_URL.toString())
+				.post('/v1/oauth/refresh')
 				.query(REFRESH_TOKEN_QUERY_PARAMS)
 				.reply(HttpStatusCode.InternalServerError);
 
 			return request(app)
-				.get(CHECK_AUTH_ENDPOINT)
+				.get(buildAppUrl('auth/checkAuth').pathname)
 				.query({
 					userId: atlassianUserId,
 				})
@@ -212,7 +210,7 @@ describe('/auth', () => {
 			const jwt = generateJiraServerSymmetricJwtToken({
 				request: {
 					method: 'GET',
-					pathname: '/auth/checkAuth',
+					pathname: buildAppUrl('auth/checkAuth').pathname,
 					query: { userId: atlassianUserId },
 				},
 				connectInstallation,
@@ -224,7 +222,7 @@ describe('/auth', () => {
 			});
 
 			return request(app)
-				.get(CHECK_AUTH_ENDPOINT)
+				.get(buildAppUrl('auth/checkAuth').pathname)
 				.query({
 					userId: atlassianUserId,
 				})
@@ -249,14 +247,14 @@ describe('/auth', () => {
 			const jwt = generateJiraServerSymmetricJwtToken({
 				request: {
 					method: 'GET',
-					pathname: '/auth/checkAuth',
+					pathname: buildAppUrl('auth/checkAuth').pathname,
 					query: { userId: atlassianUserId },
 				},
 				connectInstallation,
 			});
 
 			return request(app)
-				.get(CHECK_AUTH_ENDPOINT)
+				.get(buildAppUrl('auth/checkAuth').pathname)
 				.query({
 					userId: atlassianUserId,
 				})
@@ -269,14 +267,20 @@ describe('/auth', () => {
 					);
 
 					expect(authorizationEndpoint.origin).toBe(
-						getConfig().figma.oauth2.authorizationServerBaseUrl,
+						getConfig().figma.oauth2.authorizationServerBaseUrl.origin,
 					);
 					expect(authorizationEndpoint.pathname).toBe('/oauth');
 					expect([
 						...authorizationEndpoint.searchParams.entries(),
 					]).toStrictEqual([
 						['client_id', getConfig().figma.oauth2.clientId],
-						['redirect_uri', `${getConfig().app.baseUrl}/figma/oauth/callback`],
+						[
+							'redirect_uri',
+							new URL(
+								'figma/oauth/callback',
+								getConfig().app.baseUrl,
+							).toString(),
+						],
 						['scope', getConfig().figma.oauth2.scope],
 						['state', expect.any(String)],
 						['response_type', 'code'],

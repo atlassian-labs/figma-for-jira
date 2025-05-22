@@ -4,7 +4,7 @@ import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
 import app from '../../../../app';
-import { getConfig } from '../../../../config';
+import { buildAppUrl, getConfig } from '../../../../config';
 import {
 	generateConnectInstallationCreateParams,
 	generateExpiredFigmaOAuth2UserCredentialCreateParams,
@@ -27,9 +27,6 @@ import {
 } from '../../../testing';
 
 const FIGMA_OAUTH_API_BASE_URL = getConfig().figma.apiBaseUrl;
-
-const FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT = '/v1/oauth/refresh';
-const AUTH_ME_ENDPOINT = '/admin/auth/me';
 
 describe('/admin/auth', () => {
 	describe('/me', () => {
@@ -72,7 +69,7 @@ describe('/admin/auth', () => {
 			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 
 			return request(app)
-				.get(AUTH_ME_ENDPOINT)
+				.get(buildAppUrl('admin/auth/me').pathname)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok)
 				.then((response) => {
@@ -111,8 +108,8 @@ describe('/admin/auth', () => {
 					globalPermissions: ['ADMINISTER'],
 				},
 			});
-			nock(FIGMA_OAUTH_API_BASE_URL)
-				.post(FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT)
+			nock(FIGMA_OAUTH_API_BASE_URL.toString())
+				.post('/v1/oauth/refresh')
 				.query(REFRESH_TOKEN_QUERY_PARAMS)
 				.matchHeader('Content-Type', 'application/x-www-form-urlencoded')
 				.matchHeader('Authorization', BASIC_AUTH_HEADER)
@@ -120,7 +117,7 @@ describe('/admin/auth', () => {
 			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 
 			await request(app)
-				.get(AUTH_ME_ENDPOINT)
+				.get(buildAppUrl('admin/auth/me').pathname)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok)
 				.then((response) => {
@@ -162,7 +159,7 @@ describe('/admin/auth', () => {
 			});
 
 			return request(app)
-				.get(AUTH_ME_ENDPOINT)
+				.get(buildAppUrl('admin/auth/me').pathname)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok)
 				.then((response) => {
@@ -199,15 +196,15 @@ describe('/admin/auth', () => {
 					globalPermissions: ['ADMINISTER'],
 				},
 			});
-			nock(FIGMA_OAUTH_API_BASE_URL)
-				.post(FIGMA_OAUTH_REFRESH_TOKEN_ENDPOINT)
+			nock(FIGMA_OAUTH_API_BASE_URL.toString())
+				.post('/v1/oauth/refresh')
 				.query(REFRESH_TOKEN_QUERY_PARAMS)
 				.matchHeader('Content-Type', 'application/x-www-form-urlencoded')
 				.matchHeader('Authorization', BASIC_AUTH_HEADER)
 				.reply(HttpStatusCode.InternalServerError);
 
 			return request(app)
-				.get(AUTH_ME_ENDPOINT)
+				.get(buildAppUrl('admin/auth/me').pathname)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok)
 				.then((response) => {
@@ -249,7 +246,7 @@ describe('/admin/auth', () => {
 			});
 
 			return request(app)
-				.get(AUTH_ME_ENDPOINT)
+				.get(buildAppUrl('admin/auth/me').pathname)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok)
 				.then((response) => {
@@ -281,7 +278,7 @@ describe('/admin/auth', () => {
 			});
 
 			return request(app)
-				.get(AUTH_ME_ENDPOINT)
+				.get(buildAppUrl('admin/auth/me').pathname)
 				.query({
 					userId: atlassianUserId,
 				})
@@ -294,14 +291,20 @@ describe('/admin/auth', () => {
 					);
 
 					expect(authorizationEndpoint.origin).toBe(
-						getConfig().figma.oauth2.authorizationServerBaseUrl,
+						getConfig().figma.oauth2.authorizationServerBaseUrl.origin,
 					);
 					expect(authorizationEndpoint.pathname).toBe('/oauth');
 					expect([
 						...authorizationEndpoint.searchParams.entries(),
 					]).toStrictEqual([
 						['client_id', getConfig().figma.oauth2.clientId],
-						['redirect_uri', `${getConfig().app.baseUrl}/figma/oauth/callback`],
+						[
+							'redirect_uri',
+							new URL(
+								'figma/oauth/callback',
+								getConfig().app.baseUrl,
+							).toString(),
+						],
 						['scope', getConfig().figma.oauth2.scope],
 						['state', expect.any(String)],
 						['response_type', 'code'],
@@ -346,7 +349,7 @@ describe('/admin/auth', () => {
 			mockFigmaMeEndpoint({ baseUrl: getConfig().figma.apiBaseUrl });
 
 			return request(app)
-				.get(AUTH_ME_ENDPOINT)
+				.get(buildAppUrl('admin/auth/me').pathname)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Unauthorized);
 		});

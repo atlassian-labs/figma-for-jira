@@ -15,7 +15,7 @@ export const buildDesignUrl = ({
 	nodeId?: string;
 }): URL => {
 	const url = new URL(
-		`/file/${encodeURIComponent(fileKey)}`,
+		`file/${encodeURIComponent(fileKey)}`,
 		getConfig().figma.webBaseUrl,
 	);
 	if (nodeId) {
@@ -35,7 +35,7 @@ export const buildInspectUrl = ({
 	nodeId?: string;
 }): URL => {
 	const url = new URL(
-		`/file/${encodeURIComponent(fileKey)}`,
+		`file/${encodeURIComponent(fileKey)}`,
 		getConfig().figma.webBaseUrl,
 	);
 	if (nodeId) {
@@ -58,7 +58,7 @@ export const buildLiveEmbedUrl = ({
 	nodeId?: string;
 }): URL => {
 	const inspectUrl = buildInspectUrl({ fileKey, nodeId });
-	const url = new URL(`/embed`, getConfig().figma.webBaseUrl);
+	const url = new URL(`embed`, getConfig().figma.webBaseUrl);
 	url.searchParams.append('embed_host', 'figma-jira-add-on');
 	url.searchParams.append('url', inspectUrl.toString());
 	return url;

@@ -98,7 +98,7 @@ export const generateFailedSubmitDesignsResponse = (
 export const generateGetIssueResponse = ({
 	id = generateJiraIssueId(),
 	key = generateJiraIssueKey(),
-	self = generateJiraIssueUrl({ key }),
+	self = generateJiraIssueUrl({ key }).toString(),
 	fields = {
 		summary: `Issue ${key}`,
 	},

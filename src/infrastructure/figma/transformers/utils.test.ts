@@ -20,8 +20,8 @@ describe('utils', () => {
 
 			const result = buildDesignUrl({ fileKey });
 
-			expect(result.toString()).toEqual(
-				`${getConfig().figma.webBaseUrl}/file/${fileKey}`,
+			expect(result).toEqual(
+				new URL(`file/${fileKey}`, getConfig().figma.webBaseUrl),
 			);
 		});
 
@@ -31,8 +31,8 @@ describe('utils', () => {
 
 			const result = buildDesignUrl({ fileKey, nodeId });
 
-			expect(result.toString()).toEqual(
-				`${getConfig().figma.webBaseUrl}/file/${fileKey}?node-id=1%3A3`,
+			expect(result).toEqual(
+				new URL(`file/${fileKey}?node-id=1%3A3`, getConfig().figma.webBaseUrl),
 			);
 		});
 	});
@@ -43,8 +43,8 @@ describe('utils', () => {
 
 			const result = buildInspectUrl({ fileKey });
 
-			expect(result.toString()).toEqual(
-				`${getConfig().figma.webBaseUrl}/file/${fileKey}?mode=dev`,
+			expect(result).toEqual(
+				new URL(`file/${fileKey}?mode=dev`, getConfig().figma.webBaseUrl),
 			);
 		});
 
@@ -54,10 +54,11 @@ describe('utils', () => {
 
 			const result = buildInspectUrl({ fileKey, nodeId });
 
-			expect(result.toString()).toEqual(
-				`${
-					getConfig().figma.webBaseUrl
-				}/file/${fileKey}?node-id=1%3A3&mode=dev`,
+			expect(result).toEqual(
+				new URL(
+					`file/${fileKey}?node-id=1%3A3&mode=dev`,
+					getConfig().figma.webBaseUrl,
+				),
 			);
 		});
 	});
@@ -69,7 +70,7 @@ describe('utils', () => {
 
 			const result = buildLiveEmbedUrl({ fileKey, nodeId });
 
-			const expected = new URL(`${getConfig().figma.webBaseUrl}/embed`);
+			const expected = new URL('/embed', getConfig().figma.webBaseUrl);
 			expected.search = new URLSearchParams({
 				embed_host: 'figma-jira-add-on',
 				url: generateFigmaDesignUrl({
