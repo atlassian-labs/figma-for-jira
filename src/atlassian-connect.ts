@@ -110,12 +110,12 @@ export const connectAppDescriptor = {
 		 * This module allows third-party providers to send design information to Jira and associate it with an issue.
 		 */
 		jiraDesignInfoProvider: {
-			homeUrl: 'https://www.figma.com/',
+			homeUrl: getConfig().figma.webBaseUrl,
 			name: {
 				value: 'Figma',
 			},
 			key: 'figma-integration',
-			handledDomainName: 'figma.com',
+			handledDomainName: getConfig().figma.domain,
 			logoUrl: `${getConfig().app.baseUrl}/static/figma-logo.svg`,
 			documentationUrl:
 				'https://help.figma.com/hc/en-us/articles/360039827834-Jira-and-Figma',

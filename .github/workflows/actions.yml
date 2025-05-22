@@ -27,6 +27,9 @@ jobs:
       - name: Run unit tests
         run: npm run test:unit
 
+      - name: Run unit tests for the admin app
+        run: npm run admin:test
+
       - name: Run integration tests
         run: npm run test:it:ci
 
