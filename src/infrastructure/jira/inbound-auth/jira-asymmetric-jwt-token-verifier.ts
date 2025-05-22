@@ -103,10 +103,7 @@ export class JiraAsymmetricJwtTokenVerifier {
 		assertSchema(verifiedClaims, JIRA_ASYMMETRIC_JWT_CLAIMS_SCHEMA);
 		verifyQshClaimBoundToUrl(verifiedClaims, request);
 		verifyExpClaim(verifiedClaims);
-		verifyAudClaimIncludesBaseUrl(
-			verifiedClaims,
-			getConfig().app.baseUrl.toString(),
-		);
+		verifyAudClaimIncludesBaseUrl(verifiedClaims, getConfig().app.baseUrl);
 	};
 }
 

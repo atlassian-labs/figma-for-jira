@@ -46,9 +46,9 @@ export const verifyExpClaim = ({ exp }: { exp: number }) => {
  */
 export const verifyAudClaimIncludesBaseUrl = (
 	{ aud }: { aud: string | string[] },
-	baseUrl: string,
+	baseUrl: URL,
 ) => {
-	if (!aud?.[0]?.includes(baseUrl)) {
+	if (!aud?.[0]?.includes(baseUrl.origin)) {
 		throw new Error('The token contains an invalid `aud` claim.');
 	}
 };
