@@ -214,7 +214,10 @@ describe('/admin/teams', () => {
 				request: {
 					event_type: 'FILE_UPDATE',
 					team_id: teamId,
-					endpoint: `${getConfig().app.baseUrl}/figma/webhook`,
+					endpoint: new URL(
+						`figma/webhook`,
+						getConfig().app.baseUrl,
+					).toString(),
 					passcode: /.+/i,
 					description: /.+/i,
 				},
