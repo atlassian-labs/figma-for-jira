@@ -8,7 +8,7 @@ import {
 } from './testing';
 
 import app from '../../../app';
-import { getConfig } from '../../../config';
+import { buildAppUrl, getConfig } from '../../../config';
 import {
 	generateAssociatedFigmaDesign,
 	generateConnectInstallationCreateParams,
@@ -43,9 +43,9 @@ describe('/lifecycleEvents', () => {
 					pathname: '/lifecycleEvents/installed',
 				},
 				connectInstallation: {
-					baseUrl: getConfig().app.baseUrl,
 					clientKey,
 				},
+				baseUrl: getConfig().app.baseUrl,
 			});
 
 			mockConnectGetKeyEndpoint({
@@ -56,7 +56,7 @@ describe('/lifecycleEvents', () => {
 			});
 
 			await request(app)
-				.post('/lifecycleEvents/installed')
+				.post(buildAppUrl('lifecycleEvents/installed').pathname)
 				.set('Authorization', `JWT ${jwtToken}`)
 				.send(installedRequest)
 				.expect(HttpStatusCode.NoContent);
@@ -82,9 +82,9 @@ describe('/lifecycleEvents', () => {
 					pathname: '/incorrect-pathname',
 				},
 				connectInstallation: {
-					baseUrl: getConfig().app.baseUrl,
 					clientKey: uuidv4(),
 				},
+				baseUrl: getConfig().app.baseUrl,
 			});
 
 			mockConnectGetKeyEndpoint({
@@ -95,7 +95,7 @@ describe('/lifecycleEvents', () => {
 			});
 
 			return request(app)
-				.post('/lifecycleEvents/installed')
+				.post(buildAppUrl('lifecycleEvents/installed').pathname)
 				.set('Authorization', `JWT ${jwtToken}`)
 				.send(generateInstalledConnectLifecycleEventRequest())
 				.expect(HttpStatusCode.Unauthorized);
@@ -103,7 +103,7 @@ describe('/lifecycleEvents', () => {
 
 		it('should respond 401 when JWT token is missing', () => {
 			return request(app)
-				.post('/lifecycleEvents/installed')
+				.post(buildAppUrl('lifecycleEvents/installed').pathname)
 				.send(generateInstalledConnectLifecycleEventRequest())
 				.expect(HttpStatusCode.Unauthorized);
 		});
@@ -185,9 +185,9 @@ describe('/lifecycleEvents', () => {
 					pathname: '/lifecycleEvents/uninstalled',
 				},
 				connectInstallation: {
-					baseUrl: getConfig().app.baseUrl,
 					clientKey: targetConnectInstallation.clientKey,
 				},
+				baseUrl: getConfig().app.baseUrl,
 			});
 
 			mockConnectGetKeyEndpoint({
@@ -209,13 +209,13 @@ describe('/lifecycleEvents', () => {
 				status: HttpStatusCode.Ok,
 			});
 			mockJiraDeleteAppPropertyEndpoint({
-				baseUrl: targetConnectInstallation.baseUrl,
+				baseUrl: new URL(targetConnectInstallation.baseUrl),
 				appKey: targetConnectInstallation.key,
 				propertyKey: 'is-configured',
 			});
 
 			await request(app)
-				.post('/lifecycleEvents/uninstalled')
+				.post(buildAppUrl('lifecycleEvents/uninstalled').pathname)
 				.set('Authorization', `JWT ${jwtToken}`)
 				.send(
 					generateUninstalledConnectLifecycleEventRequest({
@@ -245,9 +245,9 @@ describe('/lifecycleEvents', () => {
 					pathname: '/incorrect-pathname',
 				},
 				connectInstallation: {
-					baseUrl: getConfig().app.baseUrl,
 					clientKey: uuidv4(),
 				},
+				baseUrl: getConfig().app.baseUrl,
 			});
 
 			mockConnectGetKeyEndpoint({
@@ -258,7 +258,7 @@ describe('/lifecycleEvents', () => {
 			});
 
 			return request(app)
-				.post('/lifecycleEvents/uninstalled')
+				.post(buildAppUrl('lifecycleEvents/uninstalled').pathname)
 				.set('Authorization', `JWT ${jwtToken}`)
 				.send(generateUninstalledConnectLifecycleEventRequest())
 				.expect(HttpStatusCode.Unauthorized);
@@ -266,7 +266,7 @@ describe('/lifecycleEvents', () => {
 
 		it('should respond 401 when JWT token is missing', () => {
 			return request(app)
-				.post('/lifecycleEvents/uninstalled')
+				.post(buildAppUrl('lifecycleEvents/uninstalled').pathname)
 				.send(generateUninstalledConnectLifecycleEventRequest())
 				.expect(HttpStatusCode.Unauthorized);
 		});

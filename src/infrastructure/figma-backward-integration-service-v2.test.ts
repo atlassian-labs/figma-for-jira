@@ -38,7 +38,7 @@ describe('FigmaBackwardIntegrationServiceV2', () => {
 				issue: {
 					key: issue.key,
 					title: issue.fields.summary,
-					url: `${connectInstallation.baseUrl}/browse/${issue.key}`,
+					url: new URL(`browse/${issue.key}`, connectInstallation.baseUrl),
 				},
 				user: {
 					atlassianUserId: atlassianUserId,
@@ -126,7 +126,10 @@ describe('FigmaBackwardIntegrationServiceV2', () => {
 
 			expect(figmaService.tryDeleteDevResource).toHaveBeenCalledWith({
 				designId: figmaDesignId,
-				devResourceUrl: `${connectInstallation.baseUrl}/browse/${issue.key}`,
+				devResourceUrl: new URL(
+					`browse/${issue.key}`,
+					connectInstallation.baseUrl,
+				),
 				user: {
 					atlassianUserId: atlassianUserId,
 					connectInstallationId: connectInstallation.id,

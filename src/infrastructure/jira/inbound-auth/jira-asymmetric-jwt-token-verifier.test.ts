@@ -12,7 +12,7 @@ import { connectKeyServerClient } from './connect-key-server-client';
 import { jiraAsymmetricJwtTokenVerifier } from './jira-asymmetric-jwt-token-verifier';
 
 import { Duration } from '../../../common/duration';
-import * as configModule from '../../../config';
+import { getConfig } from '../../../config';
 
 const NOW = Date.now();
 const NOW_IN_SECONDS = Math.floor(NOW / 1000);
@@ -63,7 +63,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 					iat: NOW_IN_SECONDS,
 					exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
 					qsh: createQueryStringHash(REQUEST),
-					aud: [`${configModule.getConfig().app.baseUrl}/test`],
+					aud: [new URL('test', getConfig().app.baseUrl).toString()],
 				},
 				privateKey,
 				AsymmetricAlgorithm.RS256,
@@ -91,7 +91,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 					iat: NOW_IN_SECONDS,
 					exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
 					qsh: createQueryStringHash(REQUEST),
-					aud: [`${configModule.getConfig().app.baseUrl}/test`],
+					aud: [new URL('test', getConfig().app.baseUrl).toString()],
 				},
 				privateKey,
 				AsymmetricAlgorithm.RS256,
@@ -125,7 +125,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 					iat: NOW_IN_SECONDS,
 					exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
 					qsh: createQueryStringHash(REQUEST),
-					aud: [`${configModule.getConfig().app.baseUrl}/test`],
+					aud: [new URL('test', getConfig().app.baseUrl).toString()],
 				},
 				privateKey,
 				AsymmetricAlgorithm.RS256,
@@ -150,7 +150,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 					iat: NOW_IN_SECONDS,
 					exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
 					qsh: createQueryStringHash(REQUEST),
-					aud: [`${configModule.getConfig().app.baseUrl}/test`],
+					aud: [new URL('test', getConfig().app.baseUrl).toString()],
 				},
 				privateKey,
 				AsymmetricAlgorithm.RS256,
@@ -178,7 +178,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 						...REQUEST,
 						method: 'GET',
 					}),
-					aud: [`${configModule.getConfig().app.baseUrl}/test`],
+					aud: [new URL('test', getConfig().app.baseUrl).toString()],
 				},
 				privateKey,
 				AsymmetricAlgorithm.RS256,
@@ -206,7 +206,7 @@ describe('JiraAsymmetricJwtTokenVerifier', () => {
 					iat: NOW_IN_SECONDS,
 					exp: NOW_IN_SECONDS - Duration.ofMinutes(5).asSeconds,
 					qsh: createQueryStringHash(REQUEST),
-					aud: [`${configModule.getConfig().app.baseUrl}/test`],
+					aud: [new URL('test', getConfig().app.baseUrl).toString()],
 				},
 				privateKey,
 				AsymmetricAlgorithm.RS256,

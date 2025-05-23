@@ -3,7 +3,7 @@ import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
 import app from '../../../../app';
-import { getConfig } from '../../../../config';
+import { buildAppUrl, getConfig } from '../../../../config';
 import type {
 	ConnectInstallation,
 	FigmaOAuth2UserCredentials,
@@ -37,12 +37,6 @@ import {
 
 const figmaTeamSummaryComparer = (a: FigmaTeamSummary, b: FigmaTeamSummary) =>
 	a.teamId.localeCompare(b.teamId);
-
-const TEAMS_ENDPOINT = '/admin/teams';
-const connectTeamEndpoint = (teamId: string): string =>
-	`/admin/teams/${teamId}/connect`;
-const disconnectTeamEndpoint = (teamId: string): string =>
-	`/admin/teams/${teamId}/disconnect`;
 
 describe('/admin/teams', () => {
 	describe('GET /', () => {
@@ -100,7 +94,7 @@ describe('/admin/teams', () => {
 			});
 
 			const response = await request(app)
-				.get(TEAMS_ENDPOINT)
+				.get(buildAppUrl('admin/teams').pathname)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok);
 
@@ -144,7 +138,7 @@ describe('/admin/teams', () => {
 			});
 
 			const response = await request(app)
-				.get(TEAMS_ENDPOINT)
+				.get(buildAppUrl('admin/teams').pathname)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok);
 
@@ -169,7 +163,7 @@ describe('/admin/teams', () => {
 			});
 
 			await request(app)
-				.get(TEAMS_ENDPOINT)
+				.get(buildAppUrl('admin/teams').pathname)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Unauthorized);
 		});
@@ -195,7 +189,6 @@ describe('/admin/teams', () => {
 			const teamId = uuidv4();
 			const teamName = uuidv4();
 			const webhookId = uuidv4();
-			const requestPath = connectTeamEndpoint(teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				connectInstallation,
@@ -221,7 +214,10 @@ describe('/admin/teams', () => {
 				request: {
 					event_type: 'FILE_UPDATE',
 					team_id: teamId,
-					endpoint: `${getConfig().app.baseUrl}/figma/webhook`,
+					endpoint: new URL(
+						`figma/webhook`,
+						getConfig().app.baseUrl,
+					).toString(),
 					passcode: /.+/i,
 					description: /.+/i,
 				},
@@ -238,7 +234,7 @@ describe('/admin/teams', () => {
 			});
 
 			await request(app)
-				.post(requestPath)
+				.post(buildAppUrl(`admin/teams/${teamId}/connect`).pathname)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok)
 				.expect({
@@ -263,7 +259,6 @@ describe('/admin/teams', () => {
 		it('should return HTTP 500 and not create a FigmaTeam when creating the webhook fails', async () => {
 			const teamId = uuidv4();
 			const teamName = uuidv4();
-			const requestPath = connectTeamEndpoint(teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				connectInstallation,
@@ -290,7 +285,7 @@ describe('/admin/teams', () => {
 			});
 
 			await request(app)
-				.post(requestPath)
+				.post(buildAppUrl(`admin/teams/${teamId}/connect`).pathname)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.InternalServerError);
 
@@ -300,7 +295,6 @@ describe('/admin/teams', () => {
 		it('should return HTTP 402 if a user is not on Figma paid plan', async () => {
 			const teamId = uuidv4();
 			const teamName = uuidv4();
-			const requestPath = connectTeamEndpoint(teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				connectInstallation,
@@ -330,14 +324,13 @@ describe('/admin/teams', () => {
 			});
 
 			await request(app)
-				.post(requestPath)
+				.post(buildAppUrl(`admin/teams/${teamId}/connect`).pathname)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.PaymentRequired);
 		});
 
 		it('should return HTTP 403 if a user is not Jira admin', async () => {
 			const teamId = uuidv4();
-			const requestPath = connectTeamEndpoint(teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				connectInstallation,
@@ -355,7 +348,7 @@ describe('/admin/teams', () => {
 			});
 
 			await request(app)
-				.post(requestPath)
+				.post(buildAppUrl(`admin/teams/${teamId}/connect`).pathname)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Unauthorized);
 		});
@@ -386,7 +379,6 @@ describe('/admin/teams', () => {
 					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				}),
 			);
-			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: nonFigmaTeamAdminAtlassianUserId,
 				connectInstallation,
@@ -416,7 +408,9 @@ describe('/admin/teams', () => {
 			});
 
 			await request(app)
-				.delete(requestPath)
+				.delete(
+					buildAppUrl(`admin/teams/${figmaTeam.teamId}/disconnect`).pathname,
+				)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok);
 
@@ -437,7 +431,6 @@ describe('/admin/teams', () => {
 					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				}),
 			);
-			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: nonFigmaTeamAdminAtlassianUserId,
 				connectInstallation,
@@ -467,7 +460,9 @@ describe('/admin/teams', () => {
 			});
 
 			await request(app)
-				.delete(requestPath)
+				.delete(
+					buildAppUrl(`admin/teams/${figmaTeam.teamId}/disconnect`).pathname,
+				)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Ok);
 
@@ -484,7 +479,6 @@ describe('/admin/teams', () => {
 					figmaAdminAtlassianUserId: figmaOAuth2UserCredentials.atlassianUserId,
 				}),
 			);
-			const requestPath = disconnectTeamEndpoint(figmaTeam.teamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: nonFigmaTeamAdminAtlassianUserId,
 				connectInstallation,
@@ -508,7 +502,9 @@ describe('/admin/teams', () => {
 			});
 
 			await request(app)
-				.delete(requestPath)
+				.delete(
+					buildAppUrl(`admin/teams/${figmaTeam.teamId}/disconnect`).pathname,
+				)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.InternalServerError);
 
@@ -521,7 +517,6 @@ describe('/admin/teams', () => {
 			jest.spyOn(figmaClient, 'deleteWebhook');
 			const atlassianUserId = uuidv4();
 			const figmaTeamId = uuidv4();
-			const requestPath = disconnectTeamEndpoint(figmaTeamId);
 			const jwt = generateJiraContextSymmetricJwtToken({
 				atlassianUserId: atlassianUserId,
 				connectInstallation,
@@ -539,7 +534,7 @@ describe('/admin/teams', () => {
 			});
 
 			await request(app)
-				.delete(requestPath)
+				.delete(buildAppUrl(`admin/teams/${figmaTeamId}/disconnect`).pathname)
 				.set('Authorization', `JWT ${jwt}`)
 				.expect(HttpStatusCode.Unauthorized);
 		});

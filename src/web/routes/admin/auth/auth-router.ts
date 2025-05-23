@@ -5,6 +5,7 @@ import type { MeRequest, MeResponse } from './types';
 
 import { figmaAuthService } from '../../../../infrastructure/figma';
 import { getCurrentFigmaUserUseCase } from '../../../../usecases';
+import { buildAppUrl } from '../../../../config';
 
 export const authRouter = Router();
 
@@ -23,7 +24,7 @@ authRouter.get(
 					figmaAuthService.createOAuth2AuthorizationRequest({
 						atlassianUserId,
 						connectInstallation,
-						redirectEndpoint: `figma/oauth/callback`,
+						redirectUrl: buildAppUrl('figma/oauth/callback'),
 					});
 
 				if (currentUser) {

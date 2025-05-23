@@ -48,7 +48,7 @@ lifecycleEventsRouter.post(
 		installedUseCase
 			.execute(installation)
 			.then(() => res.sendStatus(HttpStatusCode.NoContent))
-			.catch(next);
+			.catch((e) => next(e));
 	},
 );
 

@@ -14,7 +14,7 @@ export const generateFigmaOAuth2State = ({
 	secretKey,
 }: {
 	atlassianUserId: string;
-	appBaseUrl: string;
+	appBaseUrl: URL;
 	connectClientKey: string;
 	secretKey: string;
 }) => {
@@ -25,7 +25,7 @@ export const generateFigmaOAuth2State = ({
 			exp: NOW_IN_SECONDS + Duration.ofMinutes(3).asSeconds,
 			iss: connectClientKey,
 			sub: atlassianUserId,
-			aud: appBaseUrl,
+			aud: appBaseUrl.toString(),
 		},
 		secretKey,
 	);

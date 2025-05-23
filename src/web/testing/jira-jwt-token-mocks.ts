@@ -9,6 +9,7 @@ import { generateKeyPair } from 'node:crypto';
 import { promisify } from 'util';
 
 import { Duration } from '../../common/duration';
+import { getConfig } from '../../config';
 
 /**
  * Generates an asymmetric JWT token.
@@ -23,7 +24,8 @@ import { Duration } from '../../common/duration';
 export const generateJiraAsymmetricJwtToken = async ({
 	keyId,
 	request,
-	connectInstallation: { baseUrl, clientKey },
+	connectInstallation: { clientKey },
+	baseUrl,
 }: {
 	keyId: string;
 	request: {
@@ -31,9 +33,9 @@ export const generateJiraAsymmetricJwtToken = async ({
 		pathname: string;
 	};
 	connectInstallation: {
-		baseUrl: string;
 		clientKey: string;
 	};
+	baseUrl: URL;
 }): Promise<{ jwtToken: string; privateKey: string; publicKey: string }> => {
 	const generateKeyPairPromisified = promisify(generateKeyPair);
 
@@ -56,7 +58,7 @@ export const generateJiraAsymmetricJwtToken = async ({
 			exp: NOW_IN_SECONDS + 99999,
 			iss: clientKey,
 			qsh: createQueryStringHash(request),
-			aud: [baseUrl],
+			aud: [baseUrl.toString()],
 		},
 		privateKey,
 		AsymmetricAlgorithm.RS256,
@@ -93,7 +95,11 @@ export const generateJiraServerSymmetricJwtToken = ({
 			iat: NOW_IN_SECONDS,
 			exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
 			iss: clientKey,
-			qsh: createQueryStringHash(request),
+			qsh: createQueryStringHash(
+				request,
+				false,
+				getConfig().app.baseUrl.toString(),
+			),
 		},
 		sharedSecret,
 	);

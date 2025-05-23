@@ -19,7 +19,8 @@ import { CauseAwareError } from '../../common/errors';
 import { isNotNullOrUndefined } from '../../common/predicates';
 import { isOfSchema } from '../../common/schema-validation';
 import { isString } from '../../common/string-utils';
-import { getConfig } from '../../config';
+import { tryParseUrl } from '../../common/url-utils';
+import { buildAppUrl } from '../../config';
 import type {
 	AtlassianDesign,
 	ConnectUserInfo,
@@ -189,7 +190,7 @@ export class FigmaService {
 	}: {
 		designId: FigmaDesignIdentifier;
 		issue: {
-			url: string;
+			url: URL;
 			key: string;
 			title: string;
 		};
@@ -203,7 +204,7 @@ export class FigmaService {
 					dev_resources: [
 						{
 							name: `[${issue.key}] ${issue.title}`,
-							url: issue.url,
+							url: issue.url.toString(),
 							file_key: designId.fileKey,
 							node_id: designId.nodeIdOrDefaultDocumentId,
 						},
@@ -232,7 +233,7 @@ export class FigmaService {
 		user,
 	}: {
 		designId: FigmaDesignIdentifier;
-		devResourceUrl: string;
+		devResourceUrl: URL;
 		user: ConnectUserInfo;
 	}): Promise<void> => {
 		try {
@@ -245,7 +246,9 @@ export class FigmaService {
 			});
 
 			const devResourceToDelete = dev_resources.find(
-				(devResource) => devResource.url === devResourceUrl,
+				(devResource) =>
+					tryParseUrl(devResource.url)?.toString() ===
+					devResourceUrl.toString(),
 			);
 
 			if (!devResourceToDelete) {
@@ -290,7 +293,7 @@ export class FigmaService {
 			const request: CreateWebhookRequest = {
 				event_type: 'FILE_UPDATE',
 				team_id: teamId,
-				endpoint: `${getConfig().app.baseUrl}/figma/webhook`,
+				endpoint: buildAppUrl('figma/webhook').toString(),
 				passcode,
 				description: 'Figma for Jira Cloud',
 			};

@@ -20,12 +20,14 @@ export const mockJiraSubmitDesignsEndpoint = ({
 	response = generateSuccessfulSubmitDesignsResponse(),
 	status = HttpStatusCode.Ok,
 }: {
-	baseUrl: string;
+	baseUrl: URL | string;
 	request?: SubmitDesignsRequest | RequestBodyMatcher;
 	response?: SubmitDesignsResponse;
 	status?: HttpStatusCode;
 }) => {
-	nock(baseUrl).post('/rest/designs/1.0/bulk', request).reply(status, response);
+	nock(baseUrl.toString())
+		.post('/rest/designs/1.0/bulk', request)
+		.reply(status, response);
 };
 
 export const mockJiraGetIssueEndpoint = ({
@@ -34,12 +36,14 @@ export const mockJiraGetIssueEndpoint = ({
 	status = HttpStatusCode.Ok,
 	response = generateGetIssueResponse({ id: issueId }),
 }: {
-	baseUrl: string;
+	baseUrl: URL | string;
 	issueId: string;
 	status?: HttpStatusCode;
 	response?: Record<string, unknown>;
 }) => {
-	nock(baseUrl).get(`/rest/api/3/issue/${issueId}`).reply(status, response);
+	nock(baseUrl.toString())
+		.get(`/rest/api/3/issue/${issueId}`)
+		.reply(status, response);
 };
 
 export const mockJiraSetAppPropertyEndpoint = ({
@@ -49,13 +53,13 @@ export const mockJiraSetAppPropertyEndpoint = ({
 	request,
 	status = HttpStatusCode.Ok,
 }: {
-	baseUrl: string;
+	baseUrl: URL | string;
 	appKey: string;
 	propertyKey: string;
 	request: RequestBodyMatcher;
 	status?: HttpStatusCode;
 }) => {
-	nock(baseUrl)
+	nock(baseUrl.toString())
 		.put(
 			`/rest/atlassian-connect/1/addons/${appKey}/properties/${propertyKey}`,
 			request,
@@ -69,12 +73,12 @@ export const mockJiraDeleteAppPropertyEndpoint = ({
 	propertyKey,
 	status = HttpStatusCode.NoContent,
 }: {
-	baseUrl: string;
+	baseUrl: URL | string;
 	appKey: string;
 	propertyKey: string;
 	status?: HttpStatusCode;
 }) => {
-	nock(baseUrl)
+	nock(baseUrl.toString())
 		.delete(
 			`/rest/atlassian-connect/1/addons/${appKey}/properties/${propertyKey}`,
 		)
@@ -87,12 +91,12 @@ export const mockJiraCheckPermissionsEndpoint = ({
 	status = HttpStatusCode.Ok,
 	response = generateCheckPermissionsResponse(),
 }: {
-	baseUrl: string;
+	baseUrl: URL | string;
 	request: CheckPermissionsRequest;
 	status?: HttpStatusCode;
 	response?: CheckPermissionsResponse;
 }) => {
-	nock(baseUrl)
+	nock(baseUrl.toString())
 		.post(`/rest/api/3/permissions/check`, request)
 		.reply(status, response);
 };

@@ -1,4 +1,4 @@
-import { getConfig } from './config';
+import { buildAppUrl, getConfig, getOriginalConnectAppBaseUrl } from './config';
 
 const APP_NAME = 'Figma for JIRA Cloud';
 
@@ -24,7 +24,7 @@ export const connectAppDescriptor = {
 	/**
 	 * The base url of the server, which is used for all communications between Connect and the app.
 	 */
-	baseUrl: getConfig().app.baseUrl,
+	baseUrl: getOriginalConnectAppBaseUrl(),
 
 	/**
 	 * The vendor who is offering this Connect app.
@@ -79,7 +79,7 @@ export const connectAppDescriptor = {
 			name: {
 				value: 'Configure',
 			},
-			url: '/static/admin',
+			url: 'static/admin',
 			conditions: [{ condition: 'user_is_admin' }],
 		},
 		webSections: [
@@ -98,7 +98,7 @@ export const connectAppDescriptor = {
 					value: 'Configure',
 				},
 				location: 'admin_plugins_menu/figma-addon-admin-section',
-				url: '/static/admin',
+				url: 'static/admin',
 				conditions: [
 					{
 						condition: 'user_is_admin',
@@ -110,29 +110,27 @@ export const connectAppDescriptor = {
 		 * This module allows third-party providers to send design information to Jira and associate it with an issue.
 		 */
 		jiraDesignInfoProvider: {
-			homeUrl: getConfig().figma.webBaseUrl,
+			homeUrl: getConfig().figma.webBaseUrl.toString(),
 			name: {
 				value: 'Figma',
 			},
 			key: 'figma-integration',
 			handledDomainName: getConfig().figma.domain,
-			logoUrl: `${getConfig().app.baseUrl}/static/figma-logo.svg`,
+			logoUrl: buildAppUrl('static/figma-logo.svg'),
 			documentationUrl:
 				'https://help.figma.com/hc/en-us/articles/360039827834-Jira-and-Figma',
 			actions: {
 				getEntityByUrl: {
-					templateUrl: `${getConfig().app.baseUrl}/entities/getEntityByUrl`,
+					templateUrl: buildAppUrl('entities/getEntityByUrl'),
 				},
 				onEntityAssociated: {
-					templateUrl: `${getConfig().app.baseUrl}/entities/onEntityAssociated`,
+					templateUrl: buildAppUrl('entities/onEntityAssociated'),
 				},
 				onEntityDisassociated: {
-					templateUrl: `${
-						getConfig().app.baseUrl
-					}/entities/onEntityDisassociated`,
+					templateUrl: buildAppUrl('entities/onEntityDisassociated'),
 				},
 				checkAuth: {
-					templateUrl: `${getConfig().app.baseUrl}/auth/checkAuth`,
+					templateUrl: buildAppUrl('auth/checkAuth'),
 				},
 			},
 		},

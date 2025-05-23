@@ -3,7 +3,6 @@ import nock from 'nock';
 import request from 'supertest';
 import { v4 as uuidv4 } from 'uuid';
 
-import { FAILURE_PAGE_URL, SUCCESS_PAGE_URL } from './figma-router';
 import {
 	generateFileUpdateWebhookEventRequestBody,
 	generatePingWebhookEventRequestBody,
@@ -13,7 +12,7 @@ import type { FigmaWebhookEventRequestBody } from './types';
 import app from '../../../app';
 import { isNotNullOrUndefined } from '../../../common/predicates';
 import { isString } from '../../../common/string-utils';
-import { getConfig } from '../../../config';
+import { buildAppUrl, getConfig } from '../../../config';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
@@ -69,10 +68,6 @@ import {
 import { generateFigmaOAuth2State } from '../../testing/figma-jwt-token-mocks';
 
 const FIGMA_OAUTH_API_BASE_URL = getConfig().figma.apiBaseUrl;
-const FIGMA_OAUTH_CALLBACK_ENDPOINT = '/figma/oauth/callback';
-const FIGMA_OAUTH_TOKEN_ENDPOINT = '/v1/oauth/token';
-
-const FIGMA_WEBHOOK_EVENT_ENDPOINT = '/figma/webhook';
 
 function generateAtlassianDesignFromDesignIdAndFileResponse(
 	designId: FigmaDesignIdentifier,
@@ -214,7 +209,7 @@ describe('/figma', () => {
 				});
 
 				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.post(buildAppUrl('figma/webhook').pathname)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
@@ -240,7 +235,7 @@ describe('/figma', () => {
 				});
 
 				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.post(buildAppUrl('figma/webhook').pathname)
 					.send(otherFilewebhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
@@ -283,7 +278,7 @@ describe('/figma', () => {
 				});
 
 				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.post(buildAppUrl('figma/webhook').pathname)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
@@ -351,7 +346,7 @@ describe('/figma', () => {
 				});
 
 				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.post(buildAppUrl('figma/webhook').pathname)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
@@ -412,7 +407,7 @@ describe('/figma', () => {
 				});
 
 				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.post(buildAppUrl('figma/webhook').pathname)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
@@ -455,7 +450,7 @@ describe('/figma', () => {
 				});
 
 				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.post(buildAppUrl('figma/webhook').pathname)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
@@ -470,7 +465,7 @@ describe('/figma', () => {
 				});
 
 				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.post(buildAppUrl('figma/webhook').pathname)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
@@ -520,7 +515,7 @@ describe('/figma', () => {
 				});
 
 				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.post(buildAppUrl('figma/webhook').pathname)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
@@ -544,7 +539,7 @@ describe('/figma', () => {
 					});
 
 				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.post(buildAppUrl('figma/webhook').pathname)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.BadRequest);
 			});
@@ -566,7 +561,7 @@ describe('/figma', () => {
 				});
 
 				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.post(buildAppUrl('figma/webhook').pathname)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 			});
@@ -586,7 +581,7 @@ describe('/figma', () => {
 				});
 
 				await request(app)
-					.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+					.post(buildAppUrl('figma/webhook').pathname)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.BadRequest);
 			});
@@ -594,7 +589,7 @@ describe('/figma', () => {
 
 		it('should return a 400 if invalid request is received', async () => {
 			await request(app)
-				.post(FIGMA_WEBHOOK_EVENT_ENDPOINT)
+				.post(buildAppUrl('figma/webhook').pathname)
 				.send({ event_type: 'FILE_COMMENT', webhook_id: 1 })
 				.expect(HttpStatusCode.BadRequest);
 		});
@@ -602,9 +597,7 @@ describe('/figma', () => {
 
 	describe('/oauth/callback', () => {
 		const getTokenQueryParams = generateGetOAuth2TokenQueryParams({
-			redirect_uri: `${
-				getConfig().app.baseUrl
-			}${FIGMA_OAUTH_CALLBACK_ENDPOINT}`,
+			redirect_uri: new URL('figma/oauth/callback', getConfig().app.baseUrl),
 		});
 
 		const basicAuthHeader = generateOAuth2BasicAuthHeader({
@@ -612,21 +605,21 @@ describe('/figma', () => {
 			client_secret: getConfig().figma.oauth2.clientSecret,
 		});
 
-		it('should redirect to success page if auth callback to figma succeeds', async () => {
+		it('should redirect to success page if auth callback to Figma succeeds', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallation(),
 			);
 			const atlassianUserId = uuidv4();
 
-			nock(FIGMA_OAUTH_API_BASE_URL)
-				.post(FIGMA_OAUTH_TOKEN_ENDPOINT)
+			nock(FIGMA_OAUTH_API_BASE_URL.toString())
+				.post('/v1/oauth/token')
 				.query(getTokenQueryParams)
 				.matchHeader('Content-Type', 'application/x-www-form-urlencoded')
 				.matchHeader('Authorization', basicAuthHeader)
 				.reply(HttpStatusCode.Ok, generateGetOAuth2TokenResponse());
 
 			return request(app)
-				.get(FIGMA_OAUTH_CALLBACK_ENDPOINT)
+				.get(buildAppUrl('figma/oauth/callback').pathname)
 				.query({
 					state: generateFigmaOAuth2State({
 						atlassianUserId,
@@ -637,7 +630,13 @@ describe('/figma', () => {
 					code: getTokenQueryParams.code,
 				})
 				.expect(HttpStatusCode.Found)
-				.expect('Location', SUCCESS_PAGE_URL);
+				.expect(
+					'Location',
+					new URL(
+						`static/auth-result/success`,
+						getConfig().app.baseUrl,
+					).toString(),
+				);
 		});
 
 		it('should redirect to failure page if auth callback is invalid', async () => {
@@ -646,13 +645,13 @@ describe('/figma', () => {
 			);
 			const atlassianUserId = uuidv4();
 
-			nock(FIGMA_OAUTH_API_BASE_URL)
-				.post(FIGMA_OAUTH_TOKEN_ENDPOINT)
+			nock(FIGMA_OAUTH_API_BASE_URL.toString())
+				.post('/v1/oauth/token')
 				.query(getTokenQueryParams)
 				.reply(HttpStatusCode.Unauthorized);
 
 			return request(app)
-				.get(FIGMA_OAUTH_CALLBACK_ENDPOINT)
+				.get(buildAppUrl('figma/oauth/callback').pathname)
 				.query({
 					state: generateFigmaOAuth2State({
 						atlassianUserId,
@@ -663,22 +662,28 @@ describe('/figma', () => {
 					code: getTokenQueryParams.code,
 				})
 				.expect(HttpStatusCode.Found)
-				.expect('Location', FAILURE_PAGE_URL);
+				.expect(
+					'Location',
+					new URL(
+						`static/auth-result/failure`,
+						getConfig().app.baseUrl,
+					).toString(),
+				);
 		});
 
-		it('should redirect to failure page if auth callback to figma fails', async () => {
+		it('should redirect to failure page if auth callback to Figma fails', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallation(),
 			);
 			const atlassianUserId = uuidv4();
 
-			nock(FIGMA_OAUTH_API_BASE_URL)
-				.post(FIGMA_OAUTH_TOKEN_ENDPOINT)
+			nock(FIGMA_OAUTH_API_BASE_URL.toString())
+				.post('/v1/oauth/token')
 				.query(getTokenQueryParams)
 				.reply(HttpStatusCode.Unauthorized);
 
 			return request(app)
-				.get(FIGMA_OAUTH_CALLBACK_ENDPOINT)
+				.get(buildAppUrl('figma/oauth/callback').pathname)
 				.query({
 					state: generateFigmaOAuth2State({
 						atlassianUserId,
@@ -689,7 +694,13 @@ describe('/figma', () => {
 					code: getTokenQueryParams.code,
 				})
 				.expect(HttpStatusCode.Found)
-				.expect('Location', FAILURE_PAGE_URL);
+				.expect(
+					'Location',
+					new URL(
+						`static/auth-result/failure`,
+						getConfig().app.baseUrl,
+					).toString(),
+				);
 		});
 	});
 });

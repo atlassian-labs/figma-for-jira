@@ -175,11 +175,15 @@ describe('FigmaAuthService', () => {
 			jest.setSystemTime(NOW);
 			const connectInstallation = generateConnectInstallation();
 			const atlassianUserId = uuidv4();
+			const redirectUrl = new URL(
+				`figma/oauth2/callback`,
+				getConfig().app.baseUrl,
+			);
 
 			const result = figmaAuthService.createOAuth2AuthorizationRequest({
 				atlassianUserId,
 				connectInstallation,
-				redirectEndpoint: `figma/oauth2/callback`,
+				redirectUrl: redirectUrl,
 			});
 
 			const expectedUrl = new URL(
@@ -188,7 +192,7 @@ describe('FigmaAuthService', () => {
 			);
 			expectedUrl.search = new URLSearchParams({
 				client_id: getConfig().figma.oauth2.clientId,
-				redirect_uri: `${getConfig().app.baseUrl}/figma/oauth2/callback`,
+				redirect_uri: redirectUrl.toString(),
 				scope: getConfig().figma.oauth2.scope,
 				state: encodeSymmetric(
 					{
@@ -196,7 +200,7 @@ describe('FigmaAuthService', () => {
 						iat: NOW_IN_SECONDS,
 						exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
 						sub: atlassianUserId,
-						aud: [getConfig().app.baseUrl],
+						aud: [getConfig().app.baseUrl.toString()],
 					},
 					getConfig().figma.oauth2.stateSecretKey,
 					SymmetricAlgorithm.HS256,
@@ -219,7 +223,7 @@ describe('FigmaAuthService', () => {
 					iat: NOW_IN_SECONDS,
 					exp: NOW_IN_SECONDS + Duration.ofMinutes(5).asSeconds,
 					sub: atlassianUserId,
-					aud: [getConfig().app.baseUrl],
+					aud: [getConfig().app.baseUrl.toString()],
 				},
 				getConfig().figma.oauth2.stateSecretKey,
 				SymmetricAlgorithm.HS256,

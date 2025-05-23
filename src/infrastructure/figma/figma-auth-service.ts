@@ -18,8 +18,10 @@ import type {
 	ConnectUserInfo,
 	FigmaOAuth2UserCredentials,
 } from '../../domain/entities';
-import { figmaOAuth2UserCredentialsRepository } from '../repositories';
-import { NotFoundRepositoryError } from '../repositories/errors';
+import {
+	figmaOAuth2UserCredentialsRepository,
+	NotFoundRepositoryError,
+} from '../repositories';
 
 type FigmaOAuth2StateJwtClaims = {
 	readonly iss: string;
@@ -111,14 +113,14 @@ export class FigmaAuthService {
 	createOAuth2AuthorizationRequest = ({
 		atlassianUserId,
 		connectInstallation,
-		redirectEndpoint,
+		redirectUrl,
 	}: {
 		atlassianUserId: string;
 		connectInstallation: ConnectInstallation;
-		redirectEndpoint: string;
+		redirectUrl: URL;
 	}): string => {
 		const authorizationEndpoint = new URL(
-			'/oauth',
+			'oauth',
 			getConfig().figma.oauth2.authorizationServerBaseUrl,
 		);
 
@@ -130,7 +132,7 @@ export class FigmaAuthService {
 				iat: nowInSeconds,
 				exp: nowInSeconds + Duration.ofMinutes(5).asSeconds,
 				sub: atlassianUserId,
-				aud: [getConfig().app.baseUrl],
+				aud: [getConfig().app.baseUrl.toString()],
 			},
 			getConfig().figma.oauth2.stateSecretKey,
 			SymmetricAlgorithm.HS256,
@@ -138,7 +140,7 @@ export class FigmaAuthService {
 
 		authorizationEndpoint.search = new URLSearchParams({
 			client_id: getConfig().figma.oauth2.clientId,
-			redirect_uri: `${getConfig().app.baseUrl}/${redirectEndpoint}`,
+			redirect_uri: redirectUrl.toString(),
 			scope: getConfig().figma.oauth2.scope,
 			state,
 			response_type: 'code',
@@ -175,7 +177,12 @@ export class FigmaAuthService {
 			throw new Error('The token is expired.');
 		}
 
-		if (claims.aud[0] !== getConfig().app.baseUrl) {
+		if (
+			claims.aud[0] !== getConfig().app.baseUrl.toString() &&
+			// Remove this line as the next step. It is required to avoid disruption
+			// of the OAuth flow started with the previous version of the app.
+			claims.aud[0] !== getConfig().app.baseUrl.origin
+		) {
 			throw new Error('The token contains an invalid `aud` claim.');
 		}
 

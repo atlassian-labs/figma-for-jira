@@ -10,10 +10,10 @@ export const mockConnectGetKeyEndpoint = ({
 	status = HttpStatusCode.Ok,
 	response,
 }: {
-	baseUrl: string;
+	baseUrl: URL;
 	keyId: string;
 	response?: string;
 	status: HttpStatusCode;
 }) => {
-	nock(baseUrl).get(`/${keyId}`).reply(status, response);
+	nock(baseUrl.toString()).get(`/${keyId}`).reply(status, response);
 };
