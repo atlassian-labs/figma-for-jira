@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="240" height="80" viewBox="0 0 240 80" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <!-- Figma Circle -->
+  <circle cx="40" cy="40" r="32" fill="#1ABCFE"/>
+  
+  <!-- Integration Arrow -->
+  <path d="M80 40 L120 40" stroke="#253858" stroke-width="4" marker-end="url(#arrowhead)"/>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#253858"/>
+    </marker>
+  </defs>
+  
+  <!-- Jira Symbol -->
+  <path d="M160 20 L200 20 L180 60 Z" fill="#0052CC"/>
+  
+  <!-- Text -->
+  <text x="120" y="75" font-family="Arial, sans-serif" font-size="14" fill="#253858" text-anchor="middle">Figma for Jira</text>
+</svg>
