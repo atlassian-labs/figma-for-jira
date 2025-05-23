@@ -85,3 +85,26 @@ export const getConfig = (): Config => {
 export function buildAppUrl(relativeUrl: string): URL {
 	return new URL(relativeUrl, getConfig().app.baseUrl);
 }
+
+/**
+ * Returns a base URL for the Connect descriptor.
+ *
+ * A returned URL is the same as returned by {@link buildAppUrl} but it does not
+ * have a path segment if the URL path is `/`. For example,
+ * - {@link buildAppUrl} returns `https://figma-for-jira.com/` -- {@link getOriginalConnectAppBaseUrl}
+ * 	returns `https://figma-for-jira.com`
+ * - {@link buildAppUrl} returns `https://figma-for-jira.com/app/` -- {@link getOriginalConnectAppBaseUrl}
+ * 	returns `https://figma-for-jira.com/app/`
+ *
+ * While there is no technical requirement to use {@link getOriginalConnectAppBaseUrl},
+ * it allows to avoid a `baseUrl` change in the Connect Descriptor for the app,
+ * which is already available in Atlassian Marketplace. Changing `baseUrl` is
+ * feasible, but has some side effects, and it is better to be handled separately.
+ */
+export function getOriginalConnectAppBaseUrl(): string {
+	const baseUrl = getConfig().app.baseUrl;
+
+	return baseUrl.pathname === '/'
+		? baseUrl.toString().replace(/\/$/, '')
+		: baseUrl.toString();
+}

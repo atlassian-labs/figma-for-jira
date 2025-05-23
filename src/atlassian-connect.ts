@@ -1,4 +1,4 @@
-import { buildAppUrl, getConfig } from './config';
+import { buildAppUrl, getConfig, getOriginalConnectAppBaseUrl } from './config';
 
 const APP_NAME = 'Figma for JIRA Cloud';
 
@@ -24,7 +24,7 @@ export const connectAppDescriptor = {
 	/**
 	 * The base url of the server, which is used for all communications between Connect and the app.
 	 */
-	baseUrl: getConfig().app.baseUrl.toString(),
+	baseUrl: getOriginalConnectAppBaseUrl(),
 
 	/**
 	 * The vendor who is offering this Connect app.
