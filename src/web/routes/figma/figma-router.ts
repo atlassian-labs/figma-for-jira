@@ -12,15 +12,15 @@ import type {
 	FigmaWebhookEventResponse,
 } from './types';
 
-import { getAppPath } from '../../../config';
+import { buildAppUrl } from '../../../config';
 import { getLogger } from '../../../infrastructure';
 import { handleFigmaFileUpdateEvent } from '../../../jobs';
 import { handleFigmaAuthorizationResponseUseCase } from '../../../usecases';
 import { requestSchemaValidationMiddleware } from '../../middleware';
 import { figmaWebhookAuthMiddleware } from '../../middleware/figma/figma-webhook-auth-middleware';
 
-export const SUCCESS_PAGE_URL = getAppPath('/static/auth-result/success');
-export const FAILURE_PAGE_URL = getAppPath('/static/auth-result/failure');
+const SUCCESS_PAGE_RELATIVE_URL = 'static/auth-result/success';
+const FAILURE_PAGE_RELATIVE_URL = 'static/auth-result/failure';
 
 export const figmaRouter = Router();
 
@@ -68,11 +68,13 @@ figmaRouter.get(
 		handleFigmaAuthorizationResponseUseCase
 			.execute(code, state)
 			.then(() => {
-				res.redirect(SUCCESS_PAGE_URL);
+				const redirectUrl = buildAppUrl(SUCCESS_PAGE_RELATIVE_URL);
+				res.redirect(redirectUrl.toString());
 			})
 			.catch((error) => {
 				getLogger().error(error, 'Figma OAuth 2.0 callback failed.');
-				res.redirect(FAILURE_PAGE_URL);
+				const redirectUrl = buildAppUrl(FAILURE_PAGE_RELATIVE_URL);
+				res.redirect(redirectUrl.toString());
 			});
 	},
 );

@@ -2,7 +2,7 @@ import { readEnvVarInt, readEnvVarString } from './utils';
 
 export type Config = {
 	readonly app: {
-		readonly baseUrl: string;
+		readonly baseUrl: URL;
 		readonly key: string;
 	};
 	readonly server: {
@@ -18,10 +18,10 @@ export type Config = {
 	};
 	readonly figma: {
 		readonly domain: string;
-		readonly webBaseUrl: string;
-		readonly apiBaseUrl: string;
+		readonly webBaseUrl: URL;
+		readonly apiBaseUrl: URL;
 		readonly oauth2: {
-			readonly authorizationServerBaseUrl: string;
+			readonly authorizationServerBaseUrl: URL;
 			readonly clientId: string;
 			readonly clientSecret: string;
 			readonly scope: string;
@@ -29,7 +29,7 @@ export type Config = {
 		};
 	};
 	readonly jira: {
-		readonly connectKeyServerUrl: string;
+		readonly connectKeyServerUrl: URL;
 	};
 };
 
@@ -39,7 +39,7 @@ export const getConfig = (): Config => {
 	if (!config) {
 		config = {
 			app: {
-				baseUrl: readEnvVarString('APP_URL'),
+				baseUrl: new URL(readEnvVarString('APP_URL')),
 				key: readEnvVarString('APP_KEY'),
 			},
 			server: {
@@ -55,11 +55,11 @@ export const getConfig = (): Config => {
 			},
 			figma: {
 				domain: readEnvVarString('FIGMA_DOMAIN', 'figma.com'),
-				webBaseUrl: readEnvVarString('FIGMA_WEB_BASE_URL'),
-				apiBaseUrl: readEnvVarString('FIGMA_API_BASE_URL'),
+				webBaseUrl: new URL(readEnvVarString('FIGMA_WEB_BASE_URL')),
+				apiBaseUrl: new URL(readEnvVarString('FIGMA_API_BASE_URL')),
 				oauth2: {
-					authorizationServerBaseUrl: readEnvVarString(
-						'FIGMA_OAUTH2_AUTHORIZATION_SERVER_BASE_URL',
+					authorizationServerBaseUrl: new URL(
+						readEnvVarString('FIGMA_OAUTH2_AUTHORIZATION_SERVER_BASE_URL'),
 					),
 					clientId: readEnvVarString('FIGMA_OAUTH2_CLIENT_ID'),
 					clientSecret: readEnvVarString('FIGMA_OAUTH2_CLIENT_SECRET'),
@@ -69,7 +69,9 @@ export const getConfig = (): Config => {
 				},
 			},
 			jira: {
-				connectKeyServerUrl: readEnvVarString('JIRA_CONNECT_KEY_SERVER_URL'),
+				connectKeyServerUrl: new URL(
+					readEnvVarString('JIRA_CONNECT_KEY_SERVER_URL'),
+				),
 			},
 		};
 	}
@@ -77,21 +79,32 @@ export const getConfig = (): Config => {
 	return config;
 };
 
-let appBaseUrl: URL | undefined;
-export function getAppBaseUrl(): URL {
-	if (!appBaseUrl) {
-		const config = getConfig();
-		appBaseUrl = new URL(config.app.baseUrl);
-	}
-
-	return appBaseUrl;
+/**
+ * Returns a new absolute URL using the app base URL and the given relative URL.
+ */
+export function buildAppUrl(relativeUrl: string): URL {
+	return new URL(relativeUrl, getConfig().app.baseUrl);
 }
 
-export function getAppPath(path: string): string {
-	const basePath = getAppBaseUrl().pathname;
-	if (basePath === '/') {
-		return path;
-	}
+/**
+ * Returns a base URL for the Connect descriptor.
+ *
+ * A returned URL is the same as returned by {@link buildAppUrl} but it does not
+ * have a path segment if the URL path is `/`. For example,
+ * - {@link buildAppUrl} returns `https://figma-for-jira.com/` -- {@link getOriginalConnectAppBaseUrl}
+ * 	returns `https://figma-for-jira.com`
+ * - {@link buildAppUrl} returns `https://figma-for-jira.com/app/` -- {@link getOriginalConnectAppBaseUrl}
+ * 	returns `https://figma-for-jira.com/app/`
+ *
+ * While there is no technical requirement to use {@link getOriginalConnectAppBaseUrl},
+ * it allows to avoid a `baseUrl` change in the Connect Descriptor for the app,
+ * which is already available in Atlassian Marketplace. Changing `baseUrl` is
+ * feasible, but has some side effects, and it is better to be handled separately.
+ */
+export function getOriginalConnectAppBaseUrl(): string {
+	const baseUrl = getConfig().app.baseUrl;
 
-	return `${basePath}${path}`;
+	return baseUrl.pathname === '/'
+		? baseUrl.toString().replace(/\/$/, '')
+		: baseUrl.toString();
 }

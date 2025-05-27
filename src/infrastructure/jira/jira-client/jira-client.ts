@@ -48,10 +48,7 @@ class JiraClient {
 			clientKey: connectInstallation.clientKey,
 		};
 		return withAxiosErrorTranslation(async () => {
-			const url = new URL(
-				'/rest/designs/1.0/bulk',
-				connectInstallation.baseUrl,
-			);
+			const url = new URL('rest/designs/1.0/bulk', connectInstallation.baseUrl);
 
 			const response = await axios.post<unknown>(url.toString(), payload, {
 				headers: new AxiosHeaders().setAuthorization(
@@ -83,7 +80,7 @@ class JiraClient {
 		};
 		return withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`/rest/api/3/issue/${encodeURIComponent(issueIdOrKey)}`,
+				`rest/api/3/issue/${encodeURIComponent(issueIdOrKey)}`,
 				connectInstallation.baseUrl,
 			);
 
@@ -118,7 +115,7 @@ class JiraClient {
 		};
 		return withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`/rest/atlassian-connect/1/addons/${encodeURIComponent(
+				`rest/atlassian-connect/1/addons/${encodeURIComponent(
 					connectInstallation.key,
 				)}/properties/${encodeURIComponent(propertyKey)}`,
 				connectInstallation.baseUrl,
@@ -153,7 +150,7 @@ class JiraClient {
 		};
 		return withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`/rest/atlassian-connect/1/addons/${encodeURIComponent(
+				`rest/atlassian-connect/1/addons/${encodeURIComponent(
 					connectInstallation.key,
 				)}/properties/${encodeURIComponent(propertyKey)}`,
 				connectInstallation.baseUrl,
@@ -184,7 +181,7 @@ class JiraClient {
 		};
 		return withAxiosErrorTranslation(async () => {
 			const url = new URL(
-				`/rest/api/3/permissions/check`,
+				`rest/api/3/permissions/check`,
 				connectInstallation.baseUrl,
 			);
 

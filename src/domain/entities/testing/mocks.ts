@@ -178,7 +178,7 @@ export const generateJiraIssueKey = () => `KEY-${generateNumericStringId()}`;
 export const generateJiraIssueUrl = ({
 	baseUrl = `https://${uuidv4()}.atlassian.net`,
 	key = generateJiraIssueKey(),
-} = {}) => new URL(`/browse/${key}`, baseUrl).toString();
+} = {}) => new URL(`browse/${key}`, baseUrl);
 
 export const generateJiraIssueAri = ({
 	cloudId = uuidv4(),
@@ -188,7 +188,7 @@ export const generateJiraIssueAri = ({
 export const generateJiraIssue = ({
 	id = generateJiraIssueId(),
 	key = generateJiraIssueKey(),
-	self = generateJiraIssueUrl({ key }),
+	self = generateJiraIssueUrl({ key }).toString(),
 	fields = {
 		summary: `Issue ${key}`,
 	},
