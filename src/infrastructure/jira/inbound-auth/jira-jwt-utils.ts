@@ -1,6 +1,7 @@
 import { createQueryStringHash } from 'atlassian-jwt';
 
 import { Duration } from '../../../common/duration';
+import { getConfig } from '../../../config';
 
 const TOKEN_EXPIRATION_LEEWAY = Duration.ofSeconds(3);
 
@@ -18,7 +19,10 @@ export const verifyQshClaimBoundToUrl = (
 		query?: Record<string, unknown>;
 	},
 ) => {
-	if (qsh !== createQueryStringHash(request, false)) {
+	if (
+		qsh !==
+		createQueryStringHash(request, false, getConfig().app.baseUrl.toString())
+	) {
 		throw new Error('The token contains an invalid `qsh` claim.');
 	}
 };

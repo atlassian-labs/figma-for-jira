@@ -12,7 +12,7 @@ import {
 } from './testing';
 
 import app from '../../../app';
-import { getConfig } from '../../../config';
+import { buildAppUrl, getConfig } from '../../../config';
 import { buildJiraIssueUrl } from '../../../domain/entities';
 import {
 	generateConnectInstallationCreateParams,
@@ -98,7 +98,7 @@ describe('/entities', () => {
 			});
 
 			return request(app)
-				.post('/entities/getEntityByUrl')
+				.post(buildAppUrl('entities/getEntityByUrl').pathname)
 				.send(
 					generateGetEntityByUrlRequestBody({
 						url: inputFigmaFileUrl.toString(),
@@ -162,7 +162,7 @@ describe('/entities', () => {
 			});
 
 			return request(app)
-				.post('/entities/getEntityByUrl')
+				.post(buildAppUrl('entities/getEntityByUrl').pathname)
 				.send(
 					generateGetEntityByUrlRequestBody({
 						url: inputFigmaFileNodeUrl.toString(),
@@ -193,7 +193,7 @@ describe('/entities', () => {
 			});
 
 			return request(app)
-				.post('/entities/getEntityByUrl')
+				.post(buildAppUrl('entities/getEntityByUrl').pathname)
 				.send({
 					entity: {
 						url: generateFigmaDesignUrl().toString(),
@@ -218,7 +218,7 @@ describe('/entities', () => {
 			});
 
 			return request(app)
-				.post('/entities/getEntityByUrl')
+				.post(buildAppUrl('entities/getEntityByUrl').pathname)
 				.send(
 					generateGetEntityByUrlRequestBody({
 						url: 'http://figma.com/invalid',
@@ -234,7 +234,7 @@ describe('/entities', () => {
 			const atlassianUserId = uuidv4();
 
 			return request(app)
-				.post('/entities/getEntityByUrl')
+				.post(buildAppUrl('entities/getEntityByUrl').pathname)
 				.send(generateGetEntityByUrlRequestBody({ userId: atlassianUserId }))
 				.set('Authorization', `JWT INVALID_TOKEN`)
 				.set('Content-Type', 'application/json')
@@ -248,7 +248,7 @@ describe('/entities', () => {
 			const atlassianUserId = uuidv4();
 
 			return request(app)
-				.post('/entities/getEntityByUrl')
+				.post(buildAppUrl('entities/getEntityByUrl').pathname)
 				.send(generateGetEntityByUrlRequestBody({ userId: atlassianUserId }))
 				.set(
 					'Authorization',
@@ -285,7 +285,7 @@ describe('/entities', () => {
 			});
 
 			await request(app)
-				.post('/entities/getEntityByUrl')
+				.post(buildAppUrl('entities/getEntityByUrl').pathname)
 				.send(
 					generateGetEntityByUrlRequestBody({
 						url: inputFigmaUrl.toString(),
@@ -338,14 +338,17 @@ describe('/entities', () => {
 				baseUrl: getConfig().figma.apiBaseUrl,
 				request: generateCreateDevResourcesRequest({
 					name: `[${issue.key}] ${issue.fields.summary}`,
-					url: buildJiraIssueUrl(connectInstallation.baseUrl, issue.key),
+					url: buildJiraIssueUrl(
+						connectInstallation.baseUrl,
+						issue.key,
+					).toString(),
 					fileKey: figmaDesignId.fileKey,
 					nodeId: '0:0',
 				}),
 			});
 
 			await request(app)
-				.put('/entities/onEntityAssociated')
+				.put(buildAppUrl('entities/onEntityAssociated').pathname)
 				.send(
 					generateOnEntityAssociatedRequestBody({
 						issueId: issue.id,
@@ -403,7 +406,7 @@ describe('/entities', () => {
 			});
 
 			await request(app)
-				.put('/entities/onEntityAssociated')
+				.put(buildAppUrl('entities/onEntityAssociated').pathname)
 				.send(
 					generateOnEntityAssociatedRequestBody({
 						issueId,
@@ -446,7 +449,7 @@ describe('/entities', () => {
 			});
 
 			await request(app)
-				.put('/entities/onEntityAssociated')
+				.put(buildAppUrl('entities/onEntityAssociated').pathname)
 				.send(
 					generateOnEntityAssociatedRequestBody({
 						issueId: issue.id,
@@ -488,7 +491,7 @@ describe('/entities', () => {
 			});
 
 			await request(app)
-				.put('/entities/onEntityAssociated')
+				.put(buildAppUrl('entities/onEntityAssociated').pathname)
 				.send(
 					generateOnEntityAssociatedRequestBody({
 						issueId: issue.id,
@@ -550,7 +553,10 @@ describe('/entities', () => {
 				baseUrl: getConfig().figma.apiBaseUrl,
 				request: generateCreateDevResourcesRequest({
 					name: `[${issue.key}] ${issue.fields.summary}`,
-					url: buildJiraIssueUrl(connectInstallation.baseUrl, issue.key),
+					url: buildJiraIssueUrl(
+						connectInstallation.baseUrl,
+						issue.key,
+					).toString(),
 					fileKey: figmaDesignId.fileKey,
 					nodeId: '0:0',
 				}),
@@ -558,7 +564,7 @@ describe('/entities', () => {
 			});
 
 			await request(app)
-				.put('/entities/onEntityAssociated')
+				.put(buildAppUrl('entities/onEntityAssociated').pathname)
 				.send(
 					generateOnEntityAssociatedRequestBody({
 						issueId: issue.id,
@@ -624,14 +630,17 @@ describe('/entities', () => {
 				baseUrl: getConfig().figma.apiBaseUrl,
 				request: generateCreateDevResourcesRequest({
 					name: `[${issue.key}] ${issue.fields.summary}`,
-					url: buildJiraIssueUrl(connectInstallation.baseUrl, issue.key),
+					url: buildJiraIssueUrl(
+						connectInstallation.baseUrl,
+						issue.key,
+					).toString(),
 					fileKey: figmaDesignId.fileKey,
 					nodeId: '0:0',
 				}),
 			});
 
 			await request(app)
-				.put('/entities/onEntityAssociated')
+				.put(buildAppUrl('entities/onEntityAssociated').pathname)
 				.send(
 					generateOnEntityAssociatedRequestBody({
 						issueId: issue.id,
@@ -660,7 +669,7 @@ describe('/entities', () => {
 			const atlassianUserId = uuidv4();
 
 			await request(app)
-				.put('/entities/onEntityAssociated')
+				.put(buildAppUrl('entities/onEntityAssociated').pathname)
 				.send(
 					generateOnEntityAssociatedRequestBody({
 						entityId: '',
@@ -679,7 +688,7 @@ describe('/entities', () => {
 
 		it('should respond with `HTTP 401` when given JWT token is not valid', async () => {
 			return request(app)
-				.put('/entities/onEntityAssociated')
+				.put(buildAppUrl('entities/onEntityAssociated').pathname)
 				.set('Authorization', `JWT INVALID_TOKEN`)
 				.set('Content-Type', 'application/json')
 				.expect(HttpStatusCode.Unauthorized);
@@ -725,7 +734,7 @@ describe('/entities', () => {
 					url: generateJiraIssueUrl({
 						baseUrl: connectInstallation.baseUrl,
 						key: issue.key,
-					}),
+					}).toString(),
 				}),
 			});
 			mockFigmaDeleteDevResourcesEndpoint({
@@ -735,7 +744,7 @@ describe('/entities', () => {
 			});
 
 			await request(app)
-				.put('/entities/onEntityDisassociated')
+				.put(buildAppUrl('entities/onEntityDisassociated').pathname)
 				.send(
 					generateOnEntityDisassociatedRequestBody({
 						issueId: issue.id,
@@ -787,7 +796,7 @@ describe('/entities', () => {
 			});
 
 			await request(app)
-				.put('/entities/onEntityDisassociated')
+				.put(buildAppUrl('entities/onEntityDisassociated').pathname)
 				.send(
 					generateOnEntityDisassociatedRequestBody({
 						issueId,
@@ -839,7 +848,7 @@ describe('/entities', () => {
 			});
 
 			await request(app)
-				.put('/entities/onEntityDisassociated')
+				.put(buildAppUrl('entities/onEntityDisassociated').pathname)
 				.send(
 					generateOnEntityDisassociatedRequestBody({
 						issueId: issue.id,
@@ -898,7 +907,7 @@ describe('/entities', () => {
 					url: generateJiraIssueUrl({
 						baseUrl: connectInstallation.baseUrl,
 						key: issue.key,
-					}),
+					}).toString(),
 				}),
 			});
 			mockFigmaDeleteDevResourcesEndpoint({
@@ -908,7 +917,7 @@ describe('/entities', () => {
 			});
 
 			await request(app)
-				.put('/entities/onEntityDisassociated')
+				.put(buildAppUrl('entities/onEntityDisassociated').pathname)
 				.send(
 					generateOnEntityDisassociatedRequestBody({
 						issueId: issue.id,
@@ -968,7 +977,7 @@ describe('/entities', () => {
 					url: generateJiraIssueUrl({
 						baseUrl: connectInstallation.baseUrl,
 						key: issue.key,
-					}),
+					}).toString(),
 				}),
 			});
 			mockFigmaDeleteDevResourcesEndpoint({
@@ -979,7 +988,7 @@ describe('/entities', () => {
 			});
 
 			await request(app)
-				.put('/entities/onEntityDisassociated')
+				.put(buildAppUrl('entities/onEntityDisassociated').pathname)
 				.send(
 					generateOnEntityDisassociatedRequestBody({
 						issueId: issue.id,
@@ -1031,7 +1040,7 @@ describe('/entities', () => {
 			});
 
 			await request(app)
-				.put('/entities/onEntityDisassociated')
+				.put(buildAppUrl('entities/onEntityDisassociated').pathname)
 				.send(
 					generateOnEntityDisassociatedRequestBody({
 						issueId: issue.id,
@@ -1057,7 +1066,7 @@ describe('/entities', () => {
 			const atlassianUserId = uuidv4();
 
 			await request(app)
-				.put('/entities/onEntityDisassociated')
+				.put(buildAppUrl('entities/onEntityDisassociated').pathname)
 				.send(
 					generateOnEntityDisassociatedRequestBody({
 						entityId: '',
@@ -1076,7 +1085,7 @@ describe('/entities', () => {
 
 		it('should respond with `HTTP 401` when given JWT token is not valid', async () => {
 			return request(app)
-				.put('/entities/onEntityDisassociated')
+				.put(buildAppUrl('entities/onEntityDisassociated').pathname)
 				.set('Authorization', `JWT INVALID_TOKEN`)
 				.set('Content-Type', 'application/json')
 				.expect(HttpStatusCode.Unauthorized);

@@ -568,7 +568,7 @@ describe('FigmaService', () => {
 					dev_resources: [
 						{
 							name: `[${issueKey}] ${issueTitle}`,
-							url: issueUrl,
+							url: issueUrl.toString(),
 							file_key: designId.fileKey,
 							node_id: '0:0',
 						},
@@ -603,7 +603,7 @@ describe('FigmaService', () => {
 					dev_resources: [
 						{
 							name: `[${issueKey}] ${issueTitle}`,
-							url: issueUrl,
+							url: issueUrl.toString(),
 							file_key: designId.fileKey,
 							node_id: designId.nodeId!,
 						},
@@ -649,7 +649,7 @@ describe('FigmaService', () => {
 			const designId = generateFigmaDesignIdentifier();
 			const devResourceUrl = generateJiraIssueUrl();
 			const getDevResourcesResponse = generateGetDevResourcesResponse({
-				url: devResourceUrl,
+				url: devResourceUrl.toString(),
 			});
 			jest
 				.spyOn(figmaClient, 'getDevResources')
@@ -683,7 +683,7 @@ describe('FigmaService', () => {
 			});
 			const devResourceUrl = generateJiraIssueUrl();
 			const getDevResourcesResponse = generateGetDevResourcesResponse({
-				url: devResourceUrl,
+				url: devResourceUrl.toString(),
 			});
 			jest
 				.spyOn(figmaClient, 'getDevResources')
@@ -745,7 +745,7 @@ describe('FigmaService', () => {
 				});
 				const devResourceUrl = generateJiraIssueUrl();
 				const getDevResourcesResponse = generateGetDevResourcesResponse({
-					url: devResourceUrl,
+					url: devResourceUrl.toString(),
 				});
 				jest
 					.spyOn(figmaClient, 'getDevResources')
@@ -768,7 +768,7 @@ describe('FigmaService', () => {
 			});
 			const devResourceUrl = generateJiraIssueUrl();
 			const getDevResourcesResponse = generateGetDevResourcesResponse({
-				url: devResourceUrl,
+				url: devResourceUrl.toString(),
 			});
 			const error = new Error();
 			jest
@@ -796,7 +796,10 @@ describe('FigmaService', () => {
 		it('should call figmaClient to create a webhook', async () => {
 			const webhookId = uuidv4();
 			const teamId = uuidv4();
-			const endpoint = `${getConfig().app.baseUrl}/figma/webhook`;
+			const endpoint = new URL(
+				'figma/webhook',
+				getConfig().app.baseUrl,
+			).toString();
 			const passcode = uuidv4();
 			const description = 'Figma for Jira Cloud';
 

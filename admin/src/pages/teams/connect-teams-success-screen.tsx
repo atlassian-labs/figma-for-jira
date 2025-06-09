@@ -4,6 +4,7 @@ import { token } from '@atlaskit/tokens';
 import { css } from '@emotion/react';
 
 import { SuccessBanner } from '../../components';
+import { getAppPath } from '../../utils';
 
 type ConnectTeamSuccessScreenProps = {
 	teamName: string;
@@ -55,7 +56,7 @@ export function ConnectTeamSuccessScreen({
 					background: ${token('elevation.surface.sunken')};
 				`}
 			>
-				<Image src="/static/admin/figma-jira-ui.svg" />
+				<Image src={getAppPath('/static/admin/figma-jira-ui.svg')} />
 				<div
 					css={css`
 						align-items: center;

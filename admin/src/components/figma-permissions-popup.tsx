@@ -1,6 +1,7 @@
 import { css } from '@emotion/react';
 
 import { FigmaPopup } from './figma-popup';
+import { getAppPath } from '../utils';
 
 type FigmaPermissionsPopupProps = {
 	children: React.ReactNode;
@@ -23,7 +24,7 @@ export function FigmaPermissionsPopup({
 	return (
 		<FigmaPopup
 			content={content}
-			imageSrc={'/static/admin/figma-teams-ui.svg'}
+			imageSrc={getAppPath('/static/admin/figma-teams-ui.svg')}
 			children={children}
 		/>
 	);
