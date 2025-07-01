@@ -62,7 +62,6 @@ function getLaunchDarklySecretKey(): string | undefined {
 
 		default: {
 			const rawMap = process.env['LAUNCH_DARKLY_SECRET_KEY_MAP'];
-			getLogger().info(`LaunchDarkly secret map: ${rawMap}`);
 			if (!rawMap) {
 				secretKey = undefined;
 			} else {
