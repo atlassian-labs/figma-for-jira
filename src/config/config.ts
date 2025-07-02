@@ -20,6 +20,7 @@ export type Config = {
 		readonly domain: string;
 		readonly webBaseUrl: URL;
 		readonly apiBaseUrl: URL;
+		readonly clusterName: string;
 		readonly oauth2: {
 			readonly authorizationServerBaseUrl: URL;
 			readonly clientId: string;
@@ -57,6 +58,7 @@ export const getConfig = (): Config => {
 				domain: readEnvVarString('FIGMA_DOMAIN', 'figma.com'),
 				webBaseUrl: new URL(readEnvVarString('FIGMA_WEB_BASE_URL')),
 				apiBaseUrl: new URL(readEnvVarString('FIGMA_API_BASE_URL')),
+				clusterName: readEnvVarString('CLUSTER_NAME', 'unknown'),
 				oauth2: {
 					authorizationServerBaseUrl: new URL(
 						readEnvVarString('FIGMA_OAUTH2_AUTHORIZATION_SERVER_BASE_URL'),
