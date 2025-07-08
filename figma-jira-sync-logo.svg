@@ -1,0 +1,27 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="60" cy="60" r="60" fill="#F8F9FA"/>
+  
+  <!-- Outer sync ring -->
+  <circle cx="60" cy="60" r="35" stroke="#E5E7EB" stroke-width="2" fill="none"/>
+  
+  <!-- Left element (Figma-inspired) -->
+  <circle cx="35" cy="60" r="12" fill="#8B5CF6"/>
+  <rect x="29" y="54" width="12" height="12" rx="2" fill="#FFFFFF" opacity="0.9"/>
+  
+  <!-- Right element (Jira-inspired) -->
+  <circle cx="85" cy="60" r="12" fill="#2563EB"/>
+  <rect x="79" y="54" width="12" height="12" rx="2" fill="#FFFFFF" opacity="0.9"/>
+  
+  <!-- Sync arrows -->
+  <!-- Top arrow (Figma to Jira) -->
+  <path d="M 45 45 Q 60 35 75 45" stroke="#6366F1" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M 70 42 L 75 45 L 70 48" stroke="#6366F1" stroke-width="3" fill="none" stroke-linecap="round"/>
+  
+  <!-- Bottom arrow (Jira to Figma) -->
+  <path d="M 75 75 Q 60 85 45 75" stroke="#6366F1" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M 50 78 L 45 75 L 50 72" stroke="#6366F1" stroke-width="3" fill="none" stroke-linecap="round"/>
+  
+  <!-- Central sync indicator -->
+  <circle cx="60" cy="60" r="3" fill="#6366F1"/>
+</svg>

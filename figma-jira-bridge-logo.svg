@@ -1,0 +1,23 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="60" cy="60" r="60" fill="#F8F9FA"/>
+  
+  <!-- Left platform (Figma-inspired) -->
+  <rect x="20" y="45" width="25" height="30" rx="4" fill="#8B5CF6"/>
+  
+  <!-- Right platform (Jira-inspired) -->
+  <rect x="75" y="45" width="25" height="30" rx="4" fill="#2563EB"/>
+  
+  <!-- Bridge connecting the platforms -->
+  <rect x="45" y="57" width="30" height="6" rx="3" fill="#6B7280"/>
+  
+  <!-- Connection points -->
+  <circle cx="45" cy="60" r="3" fill="#8B5CF6"/>
+  <circle cx="75" cy="60" r="3" fill="#2563EB"/>
+  
+  <!-- Subtle design elements -->
+  <rect x="25" y="50" width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.8"/>
+  <rect x="32" y="55" width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.8"/>
+  <rect x="80" y="50" width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.8"/>
+  <rect x="87" y="55" width="3" height="3" rx="1" fill="#FFFFFF" opacity="0.8"/>
+</svg>

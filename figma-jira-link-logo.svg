@@ -1,0 +1,23 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="60" cy="60" r="60" fill="#F8F9FA"/>
+  
+  <!-- Interlocking rings representing connection -->
+  <!-- Left ring (Figma-inspired) -->
+  <circle cx="45" cy="60" r="18" stroke="#8B5CF6" stroke-width="6" fill="none"/>
+  
+  <!-- Right ring (Jira-inspired) -->
+  <circle cx="75" cy="60" r="18" stroke="#2563EB" stroke-width="6" fill="none"/>
+  
+  <!-- Intersection highlight -->
+  <path d="M 57 60 A 18 18 0 0 1 63 60" stroke="#6366F1" stroke-width="6" fill="none" stroke-linecap="round"/>
+  
+  <!-- Central connection point -->
+  <circle cx="60" cy="60" r="4" fill="#6366F1"/>
+  
+  <!-- Subtle accent dots -->
+  <circle cx="45" cy="42" r="2" fill="#8B5CF6" opacity="0.6"/>
+  <circle cx="75" cy="42" r="2" fill="#2563EB" opacity="0.6"/>
+  <circle cx="45" cy="78" r="2" fill="#8B5CF6" opacity="0.6"/>
+  <circle cx="75" cy="78" r="2" fill="#2563EB" opacity="0.6"/>
+</svg>
