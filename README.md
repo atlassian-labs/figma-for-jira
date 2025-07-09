@@ -1,5 +1,9 @@
 # Figma for Jira
 
+<img src="figma-jira-bridge-logo.svg" alt="Figma for Jira Bridge Logo" width="64" height="64">
+<img src="figma-jira-sync-logo.svg" alt="Figma for Jira Sync Logo" width="64" height="64">
+<img src="figma-jira-connect-logo.svg" alt="Figma for Jira Connect Logo" width="64" height="64">
+
 A [Connect app](https://developer.atlassian.com/cloud/jira/platform/getting-started-with-connect/) for integrating Figma
 designs into Jira.
 

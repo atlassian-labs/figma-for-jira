@@ -1,0 +1,10 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bridge concept: Two circles connected by flowing lines -->
+  <circle cx="16" cy="32" r="12" fill="#6366F1" opacity="0.9"/>
+  <circle cx="48" cy="32" r="12" fill="#0052CC" opacity="0.9"/>
+  
+  <!-- Connecting bridge/flow -->
+  <path d="M28 28 Q32 20 36 28" stroke="#8B5CF6" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M28 32 Q32 32 36 32" stroke="#8B5CF6" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M28 36 Q32 44 36 36" stroke="#8B5CF6" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,9 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sync concept: Two interlocking shapes with flow indicators -->
+  <rect x="8" y="20" width="20" height="20" rx="4" fill="#6366F1" opacity="0.9"/>
+  <rect x="36" y="24" width="20" height="20" rx="4" fill="#0052CC" opacity="0.9"/>
+  
+  <!-- Sync arrows/flow -->
+  <path d="M30 26 L34 26 M32 24 L34 26 L32 28" stroke="#8B5CF6" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M34 38 L30 38 M32 40 L30 38 L32 36" stroke="#8B5CF6" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
