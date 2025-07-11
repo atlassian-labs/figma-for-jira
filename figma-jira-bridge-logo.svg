@@ -1,0 +1,22 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle for better visibility -->
+  <circle cx="60" cy="60" r="58" fill="none" stroke="#f0f0f0" stroke-width="2" opacity="0.1"/>
+  
+  <!-- Left shape representing Figma (creative/design) -->
+  <rect x="20" y="35" width="25" height="25" rx="6" fill="#FF6B35" transform="rotate(-15 32.5 47.5)"/>
+  
+  <!-- Right shape representing Jira (structured/organized) -->
+  <rect x="75" y="35" width="25" height="25" rx="3" fill="#0052CC"/>
+  
+  <!-- Connection bridge -->
+  <rect x="45" y="57" width="30" height="6" rx="3" fill="#6B73FF"/>
+  
+  <!-- Small connecting dots -->
+  <circle cx="45" cy="60" r="3" fill="#6B73FF"/>
+  <circle cx="75" cy="60" r="3" fill="#6B73FF"/>
+  
+  <!-- Bottom sync indicator -->
+  <path d="M35 80 Q60 70 85 80" stroke="#6B73FF" stroke-width="2" fill="none" opacity="0.6"/>
+  <circle cx="35" cy="80" r="2" fill="#FF6B35"/>
+  <circle cx="85" cy="80" r="2" fill="#0052CC"/>
+</svg>

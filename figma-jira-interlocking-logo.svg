@@ -1,0 +1,21 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle for better visibility -->
+  <circle cx="60" cy="60" r="58" fill="none" stroke="#f0f0f0" stroke-width="2" opacity="0.1"/>
+  
+  <!-- Interlocking puzzle pieces representing integration -->
+  <!-- Left piece (Figma - creative) -->
+  <path d="M25 40 L55 40 L55 50 L65 50 L65 70 L55 70 L55 80 L25 80 L25 70 L35 70 L35 50 L25 50 Z" 
+        fill="#FF6B35" opacity="0.9"/>
+  
+  <!-- Right piece (Jira - structured) -->
+  <path d="M55 30 L95 30 L95 40 L85 40 L85 60 L95 60 L95 90 L65 90 L65 80 L55 80 L55 70 L65 70 L65 50 L55 50 Z" 
+        fill="#0052CC" opacity="0.9"/>
+  
+  <!-- Overlapping area showing integration -->
+  <rect x="55" y="50" width="10" height="20" fill="#6B73FF"/>
+  
+  <!-- Small accent dots -->
+  <circle cx="40" cy="55" r="2" fill="#FFFFFF" opacity="0.8"/>
+  <circle cx="80" cy="45" r="2" fill="#FFFFFF" opacity="0.8"/>
+  <circle cx="80" cy="75" r="2" fill="#FFFFFF" opacity="0.8"/>
+</svg>
