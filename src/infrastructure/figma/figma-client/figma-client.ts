@@ -1,3 +1,7 @@
+import type {
+	PostWebhookRequestBody,
+	PostWebhookResponse,
+} from '@figma/rest-api-spec';
 import axios from 'axios';
 import { withParser } from 'stream-json/filters/Filter';
 import { streamValues } from 'stream-json/streamers/StreamValues';
@@ -18,8 +22,6 @@ import {
 import type {
 	CreateDevResourcesRequest,
 	CreateDevResourcesResponse,
-	CreateWebhookRequest,
-	CreateWebhookResponse,
 	DeleteDevResourceRequest,
 	GetDevResourcesRequest,
 	GetDevResourcesResponse,
@@ -377,9 +379,9 @@ export class FigmaClient {
 	 * @throws {HttpClientError} An error associated with specific HTTP response status codes.
 	 */
 	createWebhook = async (
-		request: CreateWebhookRequest,
+		request: PostWebhookRequestBody,
 		accessToken: string,
-	): Promise<CreateWebhookResponse> =>
+	): Promise<PostWebhookResponse> =>
 		withAxiosErrorTranslation(async () => {
 			const url = new URL(`v2/webhooks`, getConfig().figma.apiBaseUrl);
 
