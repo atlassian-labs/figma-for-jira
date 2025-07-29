@@ -33,6 +33,7 @@
 		"test:unit": "DOTENV_CONFIG_PATH=.env.test jest -c jest.config.unit.ts"
 	},
 	"dependencies": {
+		"@figma/rest-api-spec": "^0.33.0",
 		"@prisma/client": "^5.1.1",
 		"ajv": "^8.12.0",
 		"atlassian-jwt": "^2.0.2",
