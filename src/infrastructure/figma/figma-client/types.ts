@@ -102,27 +102,6 @@ export type DeleteDevResourceRequest = {
 	readonly accessToken: string;
 };
 
-export type CreateWebhookRequest = {
-	readonly event_type: string;
-	readonly team_id: string;
-	readonly endpoint: string;
-	readonly passcode: string;
-	readonly status?: string;
-	readonly description?: string;
-};
-
-export type CreateWebhookResponse = {
-	readonly id: string;
-	readonly team_id: string;
-	readonly event_type: string;
-	readonly client_id: string;
-	readonly endpoint: string;
-	readonly passcode: string;
-	readonly status: string;
-	readonly description: string | null;
-	readonly protocol_version: string;
-};
-
 export type GetTeamProjectsResponse = {
 	readonly name: string;
 	readonly projects: {

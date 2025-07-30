@@ -1,3 +1,7 @@
+import type {
+	PostWebhookRequestBody,
+	PostWebhookResponse,
+} from '@figma/rest-api-spec';
 import { HttpStatusCode } from 'axios';
 import type { RequestBodyMatcher } from 'nock';
 import nock from 'nock';
@@ -6,8 +10,6 @@ import { v4 as uuidv4 } from 'uuid';
 import type {
 	CreateDevResourcesRequest,
 	CreateDevResourcesResponse,
-	CreateWebhookRequest,
-	CreateWebhookResponse,
 	ErrorResponse,
 	GetDevResourcesResponse,
 	GetFileMetaResponse,
@@ -145,8 +147,8 @@ export const mockFigmaCreateWebhookEndpoint = ({
 	baseUrl: URL;
 	webhookId?: string;
 	teamId?: string;
-	request?: CreateWebhookRequest | RequestBodyMatcher;
-	response?: CreateWebhookResponse | ErrorResponse;
+	request?: PostWebhookRequestBody | RequestBodyMatcher;
+	response?: PostWebhookResponse | ErrorResponse;
 	status?: HttpStatusCode;
 }) => {
 	nock(baseUrl.toString())
