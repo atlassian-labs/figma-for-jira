@@ -33,7 +33,7 @@ figmaRouter.post(
 	requestSchemaValidationMiddleware(FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA),
 	figmaWebhookAuthMiddleware,
 	(req: FigmaWebhookEventRequest, res: FigmaWebhookEventResponse) => {
-		const { figmaTeam } = res.locals;
+		const { webhookInfo } = res.locals;
 
 		switch (req.body.event_type) {
 			case 'FILE_UPDATE': {
@@ -41,11 +41,18 @@ figmaRouter.post(
 				// we did on the discriminated union
 				const body = req.body;
 				void setImmediate(
-					() => void handleFigmaFileUpdateEvent(body, figmaTeam),
+					() => void handleFigmaFileUpdateEvent(body, webhookInfo),
 				);
 
 				// Immediately send a 200 back to figma, before doing any of our own
 				// async processing
+				return res.sendStatus(HttpStatusCode.Ok);
+			}
+			case 'DEV_MODE_STATUS_UPDATE': {
+				const body = req.body;
+				void setImmediate(
+					() => void handleFigmaFileUpdateEvent(body, webhookInfo),
+				);
 				return res.sendStatus(HttpStatusCode.Ok);
 			}
 			default:
