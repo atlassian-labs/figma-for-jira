@@ -1,10 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import {
-	ForbiddenByFigmaUseCaseResultError,
-	InvalidInputUseCaseResultError,
-	PaidFigmaPlanRequiredUseCaseResultError,
-} from './errors';
+import { InvalidInputUseCaseResultError } from './errors';
 
 import { getFeatureFlag, getLDClient } from '../config/launch_darkly';
 import type {
@@ -148,11 +144,19 @@ async function maybeCreateFigmaFileWebhooks(
 		]);
 	} catch (e) {
 		if (e instanceof UnauthorizedFigmaServiceError) {
-			throw new ForbiddenByFigmaUseCaseResultError(e);
+			getLogger().warn(
+				`[OnDesignAssociatedWithIssueUseCase] Failed to create file webhooks for design. User does not have permission to create file webhooks.`,
+			);
+
+			return;
 		}
 
 		if (e instanceof PaidPlanRequiredFigmaServiceError) {
-			throw new PaidFigmaPlanRequiredUseCaseResultError(e);
+			getLogger().warn(
+				`[OnDesignAssociatedWithIssueUseCase] Failed to create file webhooks for design. User is not on a paid plan.`,
+			);
+
+			return;
 		}
 
 		throw e;
