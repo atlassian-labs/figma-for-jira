@@ -1,11 +1,15 @@
-import type { FigmaTeam } from '../domain/entities';
+import type {
+	WebhookDevModeStatusUpdatePayload,
+	WebhookFileUpdatePayload,
+} from '@figma/rest-api-spec';
+
 import { eventBus, getLogger } from '../infrastructure';
 import { handleFigmaFileUpdateEventUseCase } from '../usecases';
-import type { FigmaFileUpdateWebhookEventRequestBody } from '../web/routes/figma';
+import type { FigmaWebhookInfo } from '../web/routes/figma';
 
 export const handleFigmaFileUpdateEvent = async (
-	requestBody: FigmaFileUpdateWebhookEventRequestBody,
-	figmaTeam: FigmaTeam,
+	requestBody: WebhookFileUpdatePayload | WebhookDevModeStatusUpdatePayload,
+	webhookInfo: FigmaWebhookInfo,
 ): Promise<void> => {
 	const { file_key: fileKey, webhook_id: webhookId } = requestBody;
 	const logger = getLogger().child({
@@ -13,8 +17,7 @@ export const handleFigmaFileUpdateEvent = async (
 		webhookId,
 	});
 	try {
-		await handleFigmaFileUpdateEventUseCase.execute(figmaTeam, fileKey);
-
+		await handleFigmaFileUpdateEventUseCase.execute(webhookInfo, fileKey);
 		logger.info('Figma webhook callback succeeded.');
 		eventBus.emit('job.handle-figma-file-update-event.succeeded', {
 			webhookId,

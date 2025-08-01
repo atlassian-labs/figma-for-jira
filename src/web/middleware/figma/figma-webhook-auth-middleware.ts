@@ -2,8 +2,12 @@ import type { NextFunction, Request, Response } from 'express';
 
 import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
 import { assertSchema } from '../../../common/schema-validation';
-import { figmaTeamRepository } from '../../../infrastructure/repositories';
+import {
+	figmaFileWebhookRepository,
+	figmaTeamRepository,
+} from '../../../infrastructure/repositories';
 import { BadRequestResponseStatusError } from '../../errors';
+import type { FigmaWebhookInfo } from '../../routes/figma';
 
 type FigmaWebhookCredentials = {
 	readonly webhook_id: string;
@@ -47,15 +51,33 @@ export const figmaWebhookAuthMiddleware = (
 
 	const { webhook_id, passcode } = req.body;
 
-	void figmaTeamRepository
-		.findByWebhookId(webhook_id)
-		.then((figmaTeam) => {
-			if (figmaTeam === null || figmaTeam.webhookPasscode !== passcode) {
-				return next(new BadRequestResponseStatusError('Unknown webhook.'));
+	Promise.all([
+		figmaTeamRepository.findByWebhookId(webhook_id),
+		figmaFileWebhookRepository.findByWebhookId(webhook_id),
+	])
+		.then(([figmaTeam, figmaFileWebhook]) => {
+			let webhookInfo: FigmaWebhookInfo | undefined;
+			if (figmaTeam && figmaTeam.webhookPasscode === passcode) {
+				webhookInfo = {
+					figmaTeam,
+					webhookType: 'team',
+				};
+			} else if (
+				figmaFileWebhook &&
+				figmaFileWebhook.webhookPasscode === passcode
+			) {
+				webhookInfo = {
+					figmaFileWebhook,
+					webhookType: 'file',
+				};
 			}
 
-			res.locals.figmaTeam = figmaTeam;
-			next();
+			if (webhookInfo) {
+				res.locals.webhookInfo = webhookInfo;
+				next();
+			} else {
+				next(new BadRequestResponseStatusError('Unknown webhook.'));
+			}
 		})
 		.catch(next);
 };
