@@ -17,6 +17,7 @@ model ConnectInstallation {
   FigmaOAuth2UserCredentials FigmaOAuth2UserCredentials[]
   FigmaTeam                  FigmaTeam[]
   AssociatedFigmaDesign      AssociatedFigmaDesign[]
+  FigmaFileWebhook           FigmaFileWebhook[]
 
   @@map("jira_connect_installation")
 }
@@ -70,4 +71,26 @@ model FigmaTeam {
 
   @@unique([teamId, connectInstallationId])
   @@map("jira_figma_team")
+}
+
+model FigmaFileWebhook {
+  id                        BigInt              @id @default(autoincrement())
+  webhookId                 String              @unique @map("webhook_id")
+  webhookPasscode           String              @map("webhook_passcode")
+  eventType                 WebhookEventType    @map("event_type")
+  fileKey                   String              @map("file_key")
+  creatorAtlassianUserId    String              @map("creator_atlassian_user_id") // Atlassian user ID of the Figma user that configured the webhook
+
+  connectInstallation   ConnectInstallation @relation(fields: [connectInstallationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  connectInstallationId BigInt              @map("connect_installation_id")
+
+  @@unique([fileKey, eventType, connectInstallationId])
+  @@map("jira_figma_file_webhook")
+}
+
+enum WebhookEventType {
+  FILE_UPDATE
+  DEV_MODE_STATUS_UPDATE
+
+   @@map("jira_figma_webhook_event_type")
 }
