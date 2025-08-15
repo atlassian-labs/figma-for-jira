@@ -167,7 +167,7 @@ export const GET_DEV_RESOURCE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetDevResour
 		required: ['dev_resources'],
 	};
 
-export const CREATE_WEBHOOK_RESPONSE: JSONSchemaTypeWithId<PostWebhookResponse> =
+export const POST_WEBHOOK_RESPONSE_SCHEMA: JSONSchemaTypeWithId<PostWebhookResponse> =
 	{
 		$id: 'figma-api:post:v2/webhooks:response',
 		type: 'object',

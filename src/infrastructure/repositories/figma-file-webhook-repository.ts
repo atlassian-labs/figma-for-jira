@@ -6,7 +6,7 @@ import { NotFoundRepositoryError } from './errors';
 import { prismaClient } from './prisma-client';
 
 import {
-	FigmaFileWebhook,
+	type FigmaFileWebhook,
 	type FigmaFileWebhookCreateParams,
 	FigmaFileWebhookEventType,
 } from '../../domain/entities';
@@ -91,15 +91,14 @@ export class FigmaFileWebhookRepository {
 		webhookPasscode,
 		fileKey,
 		eventType,
-		creatorAtlassianUserId,
-		connectInstallationId,
+		createdBy,
 	}: FigmaFileWebhookCreateParams): PrismaFigmaFileWebhookCreateParams => ({
 		webhookId,
 		webhookPasscode,
 		fileKey,
 		eventType,
-		creatorAtlassianUserId,
-		connectInstallationId: BigInt(connectInstallationId),
+		creatorAtlassianUserId: createdBy.atlassianUserId,
+		connectInstallationId: BigInt(createdBy.connectInstallationId),
 	});
 
 	private mapToFigmaFileWebhook = ({
@@ -110,16 +109,19 @@ export class FigmaFileWebhookRepository {
 		eventType,
 		creatorAtlassianUserId,
 		connectInstallationId,
-	}: PrismaFigmaFileWebhook): FigmaFileWebhook =>
-		new FigmaFileWebhook({
+	}: PrismaFigmaFileWebhook): FigmaFileWebhook => {
+		return {
 			id: id.toString(),
 			webhookId,
 			webhookPasscode,
 			fileKey,
 			eventType: FigmaFileWebhookEventType[eventType],
-			creatorAtlassianUserId,
-			connectInstallationId: connectInstallationId.toString(),
-		});
+			createdBy: {
+				atlassianUserId: creatorAtlassianUserId,
+				connectInstallationId: connectInstallationId.toString(),
+			},
+		};
+	};
 }
 
 export const figmaFileWebhookRepository = new FigmaFileWebhookRepository();

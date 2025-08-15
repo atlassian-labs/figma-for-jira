@@ -172,11 +172,17 @@ describe('onDesignAssociatedWithIssueUseCase', () => {
 
 		const fileWebhook = generateFigmaFileWebhook({
 			fileKey: figmaDesignId.fileKey,
-			connectInstallationId: params.connectInstallation.id,
+			createdBy: {
+				connectInstallationId: params.connectInstallation.id,
+				atlassianUserId: params.atlassianUserId || uuidv4(),
+			},
 		});
 		const devModeStatusUpdateWebhook = generateFigmaFileWebhook({
 			fileKey: figmaDesignId.fileKey,
-			connectInstallationId: params.connectInstallation.id,
+			createdBy: {
+				connectInstallationId: params.connectInstallation.id,
+				atlassianUserId: params.atlassianUserId || uuidv4(),
+			},
 			eventType: FigmaFileWebhookEventType.DEV_MODE_STATUS_UPDATE,
 		});
 		jest

@@ -126,8 +126,10 @@ async function maybeCreateFigmaFileWebhooks(
 		> = {
 			fileKey,
 			webhookPasscode,
-			connectInstallationId,
-			creatorAtlassianUserId: atlassianUserId,
+			createdBy: {
+				connectInstallationId,
+				atlassianUserId,
+			},
 		};
 
 		await Promise.all([

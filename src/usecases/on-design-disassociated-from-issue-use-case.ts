@@ -94,7 +94,7 @@ async function maybeTryDeleteFigmaFileWebhooks(
 			fileWebhooks.map(async (webhook) => {
 				await figmaService.tryDeleteWebhook(
 					webhook.webhookId,
-					webhook.creatorInfo,
+					webhook.createdBy,
 				);
 				await figmaFileWebhookRepository.delete(webhook.id);
 			}),
