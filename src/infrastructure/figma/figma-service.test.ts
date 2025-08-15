@@ -31,6 +31,7 @@ import {
 } from './transformers';
 
 import { getConfig } from '../../config';
+import { FigmaFileWebhookEventType } from '../../domain/entities';
 import {
 	generateConnectUserInfo,
 	generateFigmaDesignIdentifier,
@@ -888,14 +889,14 @@ describe('FigmaService', () => {
 		});
 	});
 
-	describe('createFileContextWebhooks', () => {
+	describe('createWebhookForFile', () => {
 		beforeEach(() => {
 			jest
 				.spyOn(figmaAuthService, 'getCredentials')
 				.mockResolvedValue(MOCK_CREDENTIALS);
 		});
 
-		it('should create a FILE_UPDATE and DEV_MODE_STATUS_UPDATE webhook for a file', async () => {
+		it('should create a webhook for a file', async () => {
 			const fileUpdateWebhookId = uuidv4();
 			const devModeStatusUpdateWebhookId = uuidv4();
 
@@ -933,8 +934,16 @@ describe('FigmaService', () => {
 					description,
 				} as PostWebhookResponse);
 
-			await figmaService.createFileContextWebhooks(
+			await figmaService.createWebhookForFile(
 				fileKey,
+				FigmaFileWebhookEventType.FILE_UPDATE,
+				passcode,
+				MOCK_CONNECT_USER_INFO,
+			);
+
+			await figmaService.createWebhookForFile(
+				fileKey,
+				FigmaFileWebhookEventType.DEV_MODE_STATUS_UPDATE,
 				passcode,
 				MOCK_CONNECT_USER_INFO,
 			);
@@ -977,8 +986,9 @@ describe('FigmaService', () => {
 			);
 
 			await expect(() =>
-				figmaService.createFileContextWebhooks(
+				figmaService.createWebhookForFile(
 					teamId,
+					FigmaFileWebhookEventType.FILE_UPDATE,
 					connectInstallationSecret,
 					MOCK_CONNECT_USER_INFO,
 				),
@@ -995,8 +1005,9 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'createWebhook').mockRejectedValue(error);
 
 			await expect(() =>
-				figmaService.createFileContextWebhooks(
+				figmaService.createWebhookForFile(
 					teamId,
+					FigmaFileWebhookEventType.FILE_UPDATE,
 					connectInstallationSecret,
 					MOCK_CONNECT_USER_INFO,
 				),
@@ -1010,8 +1021,9 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'createWebhook').mockRejectedValue(expectedError);
 
 			await expect(() =>
-				figmaService.createFileContextWebhooks(
+				figmaService.createWebhookForFile(
 					teamId,
+					FigmaFileWebhookEventType.FILE_UPDATE,
 					connectInstallationSecret,
 					MOCK_CONNECT_USER_INFO,
 				),
