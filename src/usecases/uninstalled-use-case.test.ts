@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { uninstalledUseCase } from './uninstalled-use-case';
 
 import {
@@ -26,10 +28,16 @@ describe('uninstalledUseCase', () => {
 		];
 		const [figmaFileWebhook1, figmaFileWebhook2] = [
 			generateFigmaFileWebhook({
-				connectInstallationId: connectInstallation.id,
+				createdBy: {
+					connectInstallationId: connectInstallation.id,
+					atlassianUserId: uuidv4(),
+				},
 			}),
 			generateFigmaFileWebhook({
-				connectInstallationId: connectInstallation.id,
+				createdBy: {
+					connectInstallationId: connectInstallation.id,
+					atlassianUserId: uuidv4(),
+				},
 			}),
 		];
 		jest
@@ -62,11 +70,11 @@ describe('uninstalledUseCase', () => {
 		);
 		expect(figmaService.tryDeleteWebhook).toHaveBeenCalledWith(
 			figmaFileWebhook1.webhookId,
-			figmaFileWebhook1.creatorInfo,
+			figmaFileWebhook1.createdBy,
 		);
 		expect(figmaService.tryDeleteWebhook).toHaveBeenCalledWith(
 			figmaFileWebhook2.webhookId,
-			figmaFileWebhook2.creatorInfo,
+			figmaFileWebhook2.createdBy,
 		);
 		expect(
 			connectInstallationRepository.deleteByClientKey,

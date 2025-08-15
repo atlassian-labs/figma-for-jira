@@ -110,7 +110,7 @@ describe('onDesignDisassociatedWithIssueUseCase', () => {
 		});
 		expect(figmaService.tryDeleteWebhook).toHaveBeenCalledWith(
 			webhooks[0].webhookId,
-			webhooks[0].creatorInfo,
+			webhooks[0].createdBy,
 		);
 		expect(figmaFileWebhookRepository.delete).toHaveBeenCalledWith(
 			webhooks[0].id,
@@ -118,7 +118,7 @@ describe('onDesignDisassociatedWithIssueUseCase', () => {
 
 		expect(figmaService.tryDeleteWebhook).toHaveBeenCalledWith(
 			webhooks[1].webhookId,
-			webhooks[1].creatorInfo,
+			webhooks[1].createdBy,
 		);
 		expect(figmaFileWebhookRepository.delete).toHaveBeenCalledWith(
 			webhooks[1].id,

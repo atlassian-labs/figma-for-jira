@@ -10,13 +10,13 @@ import type { Stream } from 'stream';
 
 import {
 	CREATE_DEV_RESOURCE_RESPONSE_SCHEMA,
-	CREATE_WEBHOOK_RESPONSE,
 	GET_DEV_RESOURCE_RESPONSE_SCHEMA,
 	GET_FILE_META_RESPONSE_SCHEMA,
 	GET_FILE_RESPONSE_SCHEMA,
 	GET_ME_RESPONSE_SCHEMA,
 	GET_OAUTH2_TOKEN_RESPONSE_SCHEMA,
 	GET_TEAM_PROJECTS_RESPONSE_SCHEMA,
+	POST_WEBHOOK_RESPONSE_SCHEMA,
 	REFRESH_OAUTH2_TOKEN_RESPONSE_SCHEMA,
 } from './schemas';
 import type {
@@ -391,7 +391,7 @@ export class FigmaClient {
 				},
 			});
 
-			assertSchema(response.data, CREATE_WEBHOOK_RESPONSE);
+			assertSchema(response.data, POST_WEBHOOK_RESPONSE_SCHEMA);
 
 			return response.data;
 		});

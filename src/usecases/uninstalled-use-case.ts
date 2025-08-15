@@ -39,7 +39,7 @@ export const uninstalledUseCase = {
 			figmaFileWebhooks.map((figmaFileWebhook) =>
 				figmaService.tryDeleteWebhook(
 					figmaFileWebhook.webhookId,
-					figmaFileWebhook.creatorInfo,
+					figmaFileWebhook.createdBy,
 				),
 			),
 		);
