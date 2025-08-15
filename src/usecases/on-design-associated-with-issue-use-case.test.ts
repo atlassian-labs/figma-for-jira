@@ -83,20 +83,18 @@ describe('onDesignAssociatedWithIssueUseCase', () => {
 		jest
 			.spyOn(
 				figmaFileWebhookRepository,
-				'findManyByFileKeyAndConnectInstallationId',
+				'findByFileKeyAndEventTypeAndConnectInstallationId',
 			)
-			.mockResolvedValue([]);
+			.mockResolvedValue(null);
 		const fileWebhook = generateWebhookV2(figmaDesignId.fileKey, 'FILE_UPDATE');
 		const devModeStatusUpdateWebhook = generateWebhookV2(
 			figmaDesignId.fileKey,
 			'DEV_MODE_STATUS_UPDATE',
 		);
-		const createFileContextWebhooksMock = jest
-			.spyOn(figmaService, 'createFileContextWebhooks')
-			.mockResolvedValue({
-				fileWebhook,
-				devModeStatusUpdateWebhook,
-			});
+		const createWebhookForFileMock = jest
+			.spyOn(figmaService, 'createWebhookForFile')
+			.mockResolvedValueOnce(fileWebhook)
+			.mockResolvedValueOnce(devModeStatusUpdateWebhook);
 		jest
 			.spyOn(figmaFileWebhookRepository, 'upsert')
 			.mockResolvedValue({} as FigmaFileWebhook);
@@ -118,13 +116,31 @@ describe('onDesignAssociatedWithIssueUseCase', () => {
 			connectInstallation: params.connectInstallation,
 		});
 		expect(
-			figmaFileWebhookRepository.findManyByFileKeyAndConnectInstallationId,
+			figmaFileWebhookRepository.findByFileKeyAndEventTypeAndConnectInstallationId,
 		).toHaveBeenCalledWith(
 			figmaDesignId.fileKey,
+			'FILE_UPDATE',
 			params.connectInstallation.id,
 		);
-		expect(figmaService.createFileContextWebhooks).toHaveBeenCalledWith(
+		expect(
+			figmaFileWebhookRepository.findByFileKeyAndEventTypeAndConnectInstallationId,
+		).toHaveBeenCalledWith(
 			figmaDesignId.fileKey,
+			'DEV_MODE_STATUS_UPDATE',
+			params.connectInstallation.id,
+		);
+		expect(figmaService.createWebhookForFile).toHaveBeenCalledWith(
+			figmaDesignId.fileKey,
+			'FILE_UPDATE',
+			expect.any(String),
+			{
+				connectInstallationId: params.connectInstallation.id,
+				atlassianUserId: params.atlassianUserId,
+			},
+		);
+		expect(figmaService.createWebhookForFile).toHaveBeenCalledWith(
+			figmaDesignId.fileKey,
+			'DEV_MODE_STATUS_UPDATE',
 			expect.any(String),
 			{
 				connectInstallationId: params.connectInstallation.id,
@@ -132,25 +148,32 @@ describe('onDesignAssociatedWithIssueUseCase', () => {
 			},
 		);
 
-		const passcode = createFileContextWebhooksMock.mock.calls[0][1];
+		const passcode = createWebhookForFileMock.mock.calls[0][2];
 		expect(figmaFileWebhookRepository.upsert).toHaveBeenNthCalledWith(
 			1,
 			expect.objectContaining({
 				webhookId: fileWebhook.id,
-				webhookPasscode: passcode,
-				connectInstallationId: params.connectInstallation.id,
-				creatorAtlassianUserId: params.atlassianUserId,
+				fileKey: figmaDesignId.fileKey,
 				eventType: 'FILE_UPDATE',
+				webhookPasscode: passcode,
+				createdBy: {
+					connectInstallationId: params.connectInstallation.id,
+					atlassianUserId: params.atlassianUserId,
+				},
 			}),
 		);
+		const secondPasscode = createWebhookForFileMock.mock.calls[1][2];
 		expect(figmaFileWebhookRepository.upsert).toHaveBeenNthCalledWith(
 			2,
 			expect.objectContaining({
 				webhookId: devModeStatusUpdateWebhook.id,
-				webhookPasscode: passcode,
-				connectInstallationId: params.connectInstallation.id,
-				creatorAtlassianUserId: params.atlassianUserId,
+				fileKey: figmaDesignId.fileKey,
 				eventType: 'DEV_MODE_STATUS_UPDATE',
+				webhookPasscode: secondPasscode,
+				createdBy: {
+					connectInstallationId: params.connectInstallation.id,
+					atlassianUserId: params.atlassianUserId,
+				},
 			}),
 		);
 	});
@@ -188,22 +211,30 @@ describe('onDesignAssociatedWithIssueUseCase', () => {
 		jest
 			.spyOn(
 				figmaFileWebhookRepository,
-				'findManyByFileKeyAndConnectInstallationId',
+				'findByFileKeyAndEventTypeAndConnectInstallationId',
 			)
-			.mockResolvedValue([fileWebhook, devModeStatusUpdateWebhook]);
-
-		jest.spyOn(figmaService, 'createFileContextWebhooks');
+			.mockResolvedValueOnce(fileWebhook)
+			.mockResolvedValueOnce(devModeStatusUpdateWebhook);
+		jest.spyOn(figmaService, 'createWebhookForFile');
 		jest.spyOn(figmaFileWebhookRepository, 'upsert');
 
 		await onDesignAssociatedWithIssueUseCaseParams.execute(params);
 
 		expect(
-			figmaFileWebhookRepository.findManyByFileKeyAndConnectInstallationId,
+			figmaFileWebhookRepository.findByFileKeyAndEventTypeAndConnectInstallationId,
 		).toHaveBeenCalledWith(
 			figmaDesignId.fileKey,
+			'FILE_UPDATE',
 			params.connectInstallation.id,
 		);
-		expect(figmaService.createFileContextWebhooks).toHaveBeenCalledTimes(0);
+		expect(
+			figmaFileWebhookRepository.findByFileKeyAndEventTypeAndConnectInstallationId,
+		).toHaveBeenCalledWith(
+			figmaDesignId.fileKey,
+			'DEV_MODE_STATUS_UPDATE',
+			params.connectInstallation.id,
+		);
+		expect(figmaService.createWebhookForFile).toHaveBeenCalledTimes(0);
 		expect(figmaFileWebhookRepository.upsert).toHaveBeenCalledTimes(0);
 	});
 
