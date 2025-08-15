@@ -2,6 +2,7 @@ import { figmaService } from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
 import {
 	connectInstallationRepository,
+	figmaFileWebhookRepository,
 	figmaTeamRepository,
 } from '../infrastructure/repositories';
 
@@ -28,6 +29,21 @@ export const uninstalledUseCase = {
 				figmaService.tryDeleteWebhook(figmaTeam.webhookId, figmaTeam.adminInfo),
 			),
 		);
+
+		const figmaFileWebhooks =
+			await figmaFileWebhookRepository.findManyByConnectInstallationId(
+				connectInstallation.id,
+			);
+
+		await Promise.allSettled(
+			figmaFileWebhooks.map((figmaFileWebhook) =>
+				figmaService.tryDeleteWebhook(
+					figmaFileWebhook.webhookId,
+					figmaFileWebhook.createdBy,
+				),
+			),
+		);
+
 		// The `ConnectInstallation` deletion causes cascading deletion of all the related records.
 		await connectInstallationRepository.deleteByClientKey(clientKey);
 		// Delete the configuration state of the app since it is being uninstalled
