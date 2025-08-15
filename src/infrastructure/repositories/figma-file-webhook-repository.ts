@@ -33,6 +33,32 @@ export class FigmaFileWebhookRepository {
 		return this.mapToFigmaFileWebhook(dbModel);
 	};
 
+	/**
+	 * @internal
+	 * Required for tests only.
+	 */
+	getAll = async (): Promise<FigmaFileWebhook[]> => {
+		const dbModels = await prismaClient.get().figmaFileWebhook.findMany();
+
+		return dbModels.map((dbModel) => this.mapToFigmaFileWebhook(dbModel));
+	};
+
+	findByFileKeyAndEventTypeAndConnectInstallationId = async (
+		fileKey: string,
+		eventType: FigmaFileWebhookEventType,
+		connectInstallationId: string,
+	): Promise<FigmaFileWebhook | null> => {
+		const dbModel = await prismaClient.get().figmaFileWebhook.findFirst({
+			where: {
+				fileKey,
+				eventType,
+				connectInstallationId: BigInt(connectInstallationId),
+			},
+		});
+
+		return dbModel ? this.mapToFigmaFileWebhook(dbModel) : null;
+	};
+
 	findManyByFileKeyAndConnectInstallationId = async (
 		fileKey: string,
 		connectInstallationId: string,

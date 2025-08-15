@@ -3,10 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { InvalidInputUseCaseResultError } from './errors';
 
 import { getFeatureFlag, getLDClient } from '../config/launch_darkly';
-import type {
-	ConnectInstallation,
-	FigmaFileWebhookCreateParams,
-} from '../domain/entities';
+import type { ConnectInstallation } from '../domain/entities';
 import {
 	FigmaDesignIdentifier,
 	FigmaFileWebhookEventType,
@@ -76,6 +73,13 @@ export const onDesignAssociatedWithIssueUseCaseParams = {
 		if (params.atlassianUserId) {
 			await maybeCreateFigmaFileWebhooks(
 				figmaDesignId.fileKey,
+				FigmaFileWebhookEventType.FILE_UPDATE,
+				params.atlassianUserId,
+				params.connectInstallation.id,
+			);
+			await maybeCreateFigmaFileWebhooks(
+				figmaDesignId.fileKey,
+				FigmaFileWebhookEventType.DEV_MODE_STATUS_UPDATE,
 				params.atlassianUserId,
 				params.connectInstallation.id,
 			);
@@ -89,6 +93,7 @@ export const onDesignAssociatedWithIssueUseCaseParams = {
 
 async function maybeCreateFigmaFileWebhooks(
 	fileKey: string,
+	eventType: FigmaFileWebhookEventType,
 	atlassianUserId: string,
 	connectInstallationId: string,
 ): Promise<void> {
@@ -103,47 +108,39 @@ async function maybeCreateFigmaFileWebhooks(
 		return;
 	}
 
-	const existingWebhooks =
-		await figmaFileWebhookRepository.findManyByFileKeyAndConnectInstallationId(
+	const existingWebhook =
+		await figmaFileWebhookRepository.findByFileKeyAndEventTypeAndConnectInstallationId(
 			fileKey,
+			eventType,
 			connectInstallationId,
 		);
-	if (existingWebhooks.length > 0) {
+
+	if (existingWebhook) {
 		return;
 	}
 
 	try {
 		const webhookPasscode = uuidv4();
-		const { fileWebhook, devModeStatusUpdateWebhook } =
-			await figmaService.createFileContextWebhooks(fileKey, webhookPasscode, {
+		const webhook = await figmaService.createWebhookForFile(
+			fileKey,
+			eventType,
+			webhookPasscode,
+			{
 				atlassianUserId,
 				connectInstallationId,
-			});
+			},
+		);
 
-		const upsertParams: Omit<
-			FigmaFileWebhookCreateParams,
-			'webhookId' | 'eventType'
-		> = {
+		await figmaFileWebhookRepository.upsert({
+			webhookId: webhook.id,
+			eventType,
 			fileKey,
 			webhookPasscode,
 			createdBy: {
 				connectInstallationId,
 				atlassianUserId,
 			},
-		};
-
-		await Promise.all([
-			figmaFileWebhookRepository.upsert({
-				...upsertParams,
-				webhookId: fileWebhook.id,
-				eventType: FigmaFileWebhookEventType.FILE_UPDATE,
-			}),
-			figmaFileWebhookRepository.upsert({
-				...upsertParams,
-				webhookId: devModeStatusUpdateWebhook.id,
-				eventType: FigmaFileWebhookEventType.DEV_MODE_STATUS_UPDATE,
-			}),
-		]);
+		});
 	} catch (e) {
 		if (e instanceof UnauthorizedFigmaServiceError) {
 			getLogger().warn(

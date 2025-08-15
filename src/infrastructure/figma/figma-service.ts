@@ -26,6 +26,7 @@ import type {
 	AtlassianDesign,
 	ConnectUserInfo,
 	FigmaDesignIdentifier,
+	FigmaFileWebhookEventType,
 	FigmaOAuth2UserCredentials,
 	FigmaUser,
 } from '../../domain/entities';
@@ -323,63 +324,45 @@ export class FigmaService {
 		});
 
 	/**
-	 * Creates a FILE_UPDATE webhook and a DEV_MODE_STATUS_UPDATE webhook for the provided file.
+	 * Creates a webhook of the specified event type for the provided file.
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 * @throws {PaidPlanRequiredFigmaServiceError} A Figma paid plan is required to perform this operation.
 	 */
-	createFileContextWebhooks = async (
+	createWebhookForFile = async (
 		fileKey: string,
+		eventType: FigmaFileWebhookEventType,
 		passcode: string,
 		user: ConnectUserInfo,
-	): Promise<{
-		fileWebhook: PostWebhookResponse;
-		devModeStatusUpdateWebhook: PostWebhookResponse;
-	}> =>
-		this.withErrorTranslation(async () => {
-			const { accessToken } = await figmaAuthService.getCredentials(user);
-
-			const fileUpdateRequest: PostWebhookRequestBody = {
-				event_type: 'FILE_UPDATE',
-				context: 'file',
-				context_id: fileKey,
-				endpoint: buildAppUrl('figma/webhook').toString(),
-				passcode,
-				description: 'Figma for Jira Cloud',
-			};
-
-			const devModeStatusUpdateRequest: PostWebhookRequestBody = {
-				...fileUpdateRequest,
-				event_type: 'DEV_MODE_STATUS_UPDATE',
-			};
-
-			try {
-				const [fileWebhook, devModeStatusUpdateWebhook] = await Promise.all([
-					figmaClient.createWebhook(fileUpdateRequest, accessToken),
-					figmaClient.createWebhook(devModeStatusUpdateRequest, accessToken),
-				]);
-
-				return {
-					fileWebhook,
-					devModeStatusUpdateWebhook,
-				};
-			} catch (e: unknown) {
-				if (
-					e instanceof BadRequestHttpClientError &&
-					isOfSchema(e.response, ERROR_RESPONSE_SCHEMA)
-				) {
-					// Figma allows to create webhooks only on paid plans.
-					// See https://www.figma.com/pricing/.
-					if (e.response.message == 'Access Denied') {
-						throw new PaidPlanRequiredFigmaServiceError(
-							'A Figma paid plan is required to perform this operation.',
-							e,
-						);
-					}
+	): Promise<PostWebhookResponse> => {
+		const { accessToken } = await figmaAuthService.getCredentials(user);
+		const postWebhookRequest: PostWebhookRequestBody = {
+			event_type: eventType,
+			context: 'file',
+			context_id: fileKey,
+			endpoint: buildAppUrl('figma/webhook').toString(),
+			passcode,
+			description: 'Figma for Jira Cloud',
+		};
+		try {
+			return await figmaClient.createWebhook(postWebhookRequest, accessToken);
+		} catch (e: unknown) {
+			if (
+				e instanceof BadRequestHttpClientError &&
+				isOfSchema(e.response, ERROR_RESPONSE_SCHEMA)
+			) {
+				// Figma allows to create webhooks only on paid plans.
+				// See https://www.figma.com/pricing/.
+				if (e.response.message == 'Access Denied') {
+					throw new PaidPlanRequiredFigmaServiceError(
+						'A Figma paid plan is required to perform this operation.',
+						e,
+					);
 				}
-
-				throw e;
 			}
-		});
+
+			throw e;
+		}
+	};
 
 	/**
 	 * Tries to delete the given webhook.

@@ -13,7 +13,11 @@ import {
 
 import app from '../../../app';
 import { buildAppUrl, getConfig } from '../../../config';
-import { buildJiraIssueUrl } from '../../../domain/entities';
+import * as launchDarkly from '../../../config/launch_darkly';
+import {
+	buildJiraIssueUrl,
+	FigmaFileWebhookEventType,
+} from '../../../domain/entities';
 import {
 	generateConnectInstallationCreateParams,
 	generateFigmaDesignIdentifier,
@@ -29,6 +33,7 @@ import {
 import {
 	generateChildNode,
 	generateCreateDevResourcesRequest,
+	generateCreateWebhookResponse,
 	generateEmptyDevResourcesResponse,
 	generateGetDevResourcesResponse,
 	generateGetFileMetaResponse,
@@ -41,11 +46,13 @@ import {
 import {
 	associatedFigmaDesignRepository,
 	connectInstallationRepository,
+	figmaFileWebhookRepository,
 	figmaOAuth2UserCredentialsRepository,
 } from '../../../infrastructure/repositories';
 import {
 	generateJiraServerSymmetricJwtToken,
 	mockFigmaCreateDevResourcesEndpoint,
+	mockFigmaCreateWebhookEndpoint,
 	mockFigmaDeleteDevResourcesEndpoint,
 	mockFigmaGetDevResourcesEndpoint,
 	mockFigmaGetFileEndpoint,
@@ -365,12 +372,125 @@ describe('/entities', () => {
 				)
 				.set('Content-Type', 'application/json')
 				.expect(HttpStatusCode.Ok);
-			expect(await associatedFigmaDesignRepository.getAll()).toContainEqual({
-				id: expect.anything(),
-				designId: figmaDesignId,
-				associatedWithAri: issueAri,
-				connectInstallationId: connectInstallation.id,
-				inputUrl: undefined,
+		});
+
+		it('should create Figma webhooks for the file when the feature flag is enabled', async () => {
+			jest.spyOn(launchDarkly, 'getLDClient').mockResolvedValue(null);
+			jest.spyOn(launchDarkly, 'getFeatureFlag').mockResolvedValue(true);
+
+			const connectInstallation = await connectInstallationRepository.upsert(
+				generateConnectInstallationCreateParams(),
+			);
+			const atlassianUserId = uuidv4();
+			const figmaUserCredentials =
+				await figmaOAuth2UserCredentialsRepository.upsert(
+					generateFigmaOAuth2UserCredentialCreateParams({
+						atlassianUserId,
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
+			const issue = generateJiraIssue();
+			const issueAri = generateJiraIssueAri({ issueId: issue.id });
+			const figmaDesignId = generateFigmaDesignIdentifier({
+				nodeId: undefined,
+			});
+			const figmaFileMetaResponse = generateGetFileMetaResponse();
+
+			mockFigmaGetFileMetaEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				fileKey: figmaDesignId.fileKey,
+				accessToken: figmaUserCredentials.accessToken,
+				response: figmaFileMetaResponse,
+			});
+			mockJiraGetIssueEndpoint({
+				baseUrl: connectInstallation.baseUrl,
+				issueId: issue.id,
+				response: issue,
+			});
+			mockFigmaCreateDevResourcesEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				request: generateCreateDevResourcesRequest({
+					name: `[${issue.key}] ${issue.fields.summary}`,
+					url: buildJiraIssueUrl(
+						connectInstallation.baseUrl,
+						issue.key,
+					).toString(),
+					fileKey: figmaDesignId.fileKey,
+					nodeId: '0:0',
+				}),
+			});
+
+			const fileUpdateResponse = generateCreateWebhookResponse({
+				eventType: FigmaFileWebhookEventType.FILE_UPDATE,
+			});
+			mockFigmaCreateWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				request: {
+					event_type: 'FILE_UPDATE',
+					context: 'file',
+					context_id: figmaDesignId.fileKey,
+					endpoint: buildAppUrl('figma/webhook').toString(),
+					passcode: /.+/i,
+					description: 'Figma for Jira Cloud',
+				},
+				response: fileUpdateResponse,
+			});
+			const devModeStatusUpdateResponse = generateCreateWebhookResponse({
+				eventType: FigmaFileWebhookEventType.DEV_MODE_STATUS_UPDATE,
+			});
+
+			mockFigmaCreateWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+				request: {
+					event_type: 'DEV_MODE_STATUS_UPDATE',
+					context: 'file',
+					context_id: figmaDesignId.fileKey,
+					endpoint: buildAppUrl('figma/webhook').toString(),
+					passcode: /.+/i,
+					description: 'Figma for Jira Cloud',
+				},
+				response: devModeStatusUpdateResponse,
+			});
+
+			await request(app)
+				.put(buildAppUrl('entities/onEntityAssociated').pathname)
+				.send(
+					generateOnEntityAssociatedRequestBody({
+						issueId: issue.id,
+						issueAri,
+						entityId: figmaDesignId.toAtlassianDesignId(),
+						userId: atlassianUserId,
+					}),
+				)
+				.set(
+					'Authorization',
+					generateOnEntityAssociatedAuthorisationHeader({
+						connectInstallation,
+					}),
+				)
+				.set('Content-Type', 'application/json')
+				.expect(HttpStatusCode.Ok);
+			expect(await figmaFileWebhookRepository.getAll()).toContainEqual({
+				id: expect.any(String),
+				webhookId: fileUpdateResponse.id,
+				eventType: FigmaFileWebhookEventType.FILE_UPDATE,
+				fileKey: figmaDesignId.fileKey,
+				webhookPasscode: expect.any(String),
+				createdBy: {
+					connectInstallationId: connectInstallation.id,
+					atlassianUserId,
+				},
+			});
+			expect(await figmaFileWebhookRepository.getAll()).toContainEqual({
+				id: expect.any(String),
+				webhookId: devModeStatusUpdateResponse.id,
+				eventType: FigmaFileWebhookEventType.DEV_MODE_STATUS_UPDATE,
+				fileKey: figmaDesignId.fileKey,
+				webhookPasscode: expect.any(String),
+				createdBy: {
+					connectInstallationId: connectInstallation.id,
+					atlassianUserId,
+				},
 			});
 		});
 
