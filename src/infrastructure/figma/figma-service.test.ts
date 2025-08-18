@@ -903,7 +903,7 @@ describe('FigmaService', () => {
 			const fileKey = generateFigmaFileKey();
 
 			const endpoint = new URL(
-				'figma/webhook',
+				'figma/webhook/file',
 				getConfig().app.baseUrl,
 			).toString();
 			const passcode = uuidv4();

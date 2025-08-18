@@ -37,7 +37,10 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 				.mockResolvedValue(connectInstallation);
 
 			const figmaFileWebhook = generateFigmaFileWebhook({
-				connectInstallationId: connectInstallation.id,
+				createdBy: {
+					connectInstallationId: connectInstallation.id,
+					atlassianUserId: uuidv4(),
+				},
 			});
 			const fileKey = uuidv4();
 			const associatedFigmaDesigns = [1, 2, 3].map((i) =>

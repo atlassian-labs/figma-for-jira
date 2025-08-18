@@ -1,6 +1,7 @@
 import type {
+	FigmaFileWebhookEventRequest,
 	FigmaOAuth2CallbackQueryParameters,
-	FigmaWebhookEventRequest,
+	FigmaTeamWebhookEventRequest,
 } from './types';
 
 import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
@@ -53,7 +54,9 @@ export const FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA = {
 		},
 	},
 	required: ['body'],
-} as unknown as JSONSchemaTypeWithId<{ body: FigmaWebhookEventRequest }>;
+} as unknown as JSONSchemaTypeWithId<{
+	body: FigmaTeamWebhookEventRequest | FigmaFileWebhookEventRequest;
+}>;
 
 export const FIGMA_OAUTH2_CALLBACK_REQUEST_SCHEMA: JSONSchemaTypeWithId<{
 	query: FigmaOAuth2CallbackQueryParameters;
