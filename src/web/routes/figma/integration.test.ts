@@ -13,14 +13,19 @@ import app from '../../../app';
 import { isNotNullOrUndefined } from '../../../common/predicates';
 import { isString } from '../../../common/string-utils';
 import { buildAppUrl, getConfig } from '../../../config';
+import * as launchDarkly from '../../../config/launch_darkly';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
 	FigmaDesignIdentifier,
+	FigmaFileWebhook,
 	FigmaOAuth2UserCredentials,
 	FigmaTeam,
 } from '../../../domain/entities';
-import { FigmaTeamAuthStatus } from '../../../domain/entities';
+import {
+	FigmaFileWebhookEventType,
+	FigmaTeamAuthStatus,
+} from '../../../domain/entities';
 import {
 	generateAssociatedFigmaDesignCreateParams,
 	generateConnectInstallation,
@@ -28,6 +33,7 @@ import {
 	generateFigmaDesignIdentifier,
 	generateFigmaFileKey,
 	generateFigmaFileName,
+	generateFigmaFileWebhook,
 	generateFigmaOAuth2UserCredentialCreateParams,
 	generateFigmaTeamCreateParams,
 } from '../../../domain/entities/testing';
@@ -55,6 +61,7 @@ import {
 import {
 	associatedFigmaDesignRepository,
 	connectInstallationRepository,
+	figmaFileWebhookRepository,
 	figmaOAuth2UserCredentialsRepository,
 	figmaTeamRepository,
 } from '../../../infrastructure/repositories';
@@ -590,6 +597,632 @@ describe('/figma', () => {
 		it('should return a 400 if invalid request is received', async () => {
 			await request(app)
 				.post(buildAppUrl('figma/webhook').pathname)
+				.send({ event_type: 'FILE_COMMENT', webhook_id: 1 })
+				.expect(HttpStatusCode.BadRequest);
+		});
+	});
+
+	describe('/webhook/file', () => {
+		beforeAll(() => {
+			jest.spyOn(launchDarkly, 'getLDClient').mockResolvedValue(null);
+			jest.spyOn(launchDarkly, 'getFeatureFlag').mockResolvedValue(true);
+		});
+
+		describe('FILE_UPDATE event', () => {
+			const currentDate = new Date();
+			let connectInstallation: ConnectInstallation;
+			let figmaFileWebhook: FigmaFileWebhook;
+			let adminFigmaOAuth2UserCredentials: FigmaOAuth2UserCredentials;
+			let fileKey: string;
+			let webhookEventRequestBody: FigmaWebhookEventRequestBody;
+
+			beforeEach(async () => {
+				connectInstallation = await connectInstallationRepository.upsert(
+					generateConnectInstallationCreateParams(),
+				);
+				figmaFileWebhook = await figmaFileWebhookRepository.upsert(
+					generateFigmaFileWebhook({
+						eventType: FigmaFileWebhookEventType.FILE_UPDATE,
+						createdBy: {
+							connectInstallationId: connectInstallation.id,
+							atlassianUserId: uuidv4(),
+						},
+					}),
+				);
+				adminFigmaOAuth2UserCredentials =
+					await figmaOAuth2UserCredentialsRepository.upsert(
+						generateFigmaOAuth2UserCredentialCreateParams({
+							atlassianUserId: figmaFileWebhook.createdBy.atlassianUserId,
+							connectInstallationId: connectInstallation.id,
+						}),
+					);
+
+				fileKey = generateFigmaFileKey();
+				for (let i = 1; i <= 5; i++) {
+					const associatedFigmaDesignCreateParams =
+						generateAssociatedFigmaDesignCreateParams({
+							designId: generateFigmaDesignIdentifier({
+								fileKey,
+								nodeId: `1:${i}`,
+							}),
+							connectInstallationId: connectInstallation.id,
+						});
+
+					await associatedFigmaDesignRepository.upsert(
+						associatedFigmaDesignCreateParams,
+					);
+				}
+
+				webhookEventRequestBody = generateFileUpdateWebhookEventRequestBody({
+					webhook_id: figmaFileWebhook.webhookId,
+					file_key: fileKey,
+					file_name: generateFigmaFileName(),
+					passcode: figmaFileWebhook.webhookPasscode,
+				});
+
+				jest
+					.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] })
+					.setSystemTime(currentDate);
+			});
+
+			afterEach(() => {
+				jest.useRealTimers();
+			});
+
+			it('should fetch and submit the associated designs to Jira', async () => {
+				const associatedFigmaDesigns =
+					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
+						fileKey,
+						connectInstallation.id,
+					);
+				const nodeIds = associatedFigmaDesigns
+					.map(({ designId }) => designId.nodeId)
+					.filter(isNotNullOrUndefined);
+				const fileResponse = generateGetFileResponseWithNodes({
+					nodes: nodeIds.map((nodeId) => generateChildNode({ id: nodeId })),
+				});
+				const fileMetaResponse = generateGetFileMetaResponse();
+				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
+					(design) =>
+						generateAtlassianDesignFromDesignIdAndFileResponse(
+							design.designId,
+							fileResponse,
+							fileMetaResponse,
+						),
+				);
+
+				mockFigmaGetFileEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					query: {
+						ids: nodeIds.join(','),
+						depth: '0',
+						node_last_modified: 'true',
+					},
+					response: fileResponse,
+				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					response: fileMetaResponse,
+				});
+				mockJiraSubmitDesignsEndpoint({
+					baseUrl: connectInstallation.baseUrl,
+					request: generateSubmitDesignsRequest(associatedAtlassianDesigns),
+					response: generateSuccessfulSubmitDesignsResponse(
+						associatedAtlassianDesigns.map(
+							(atlassianDesign) => atlassianDesign.id,
+						),
+					),
+				});
+
+				await request(app)
+					.post(buildAppUrl('figma/webhook/file').pathname)
+					.send(webhookEventRequestBody)
+					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('job.handle-figma-file-update-event.succeeded');
+			});
+
+			it('should ignore if no associated designs are found for the file key', async () => {
+				const otherFileKey = generateFigmaFileKey();
+				const otherFilewebhookEventRequestBody =
+					generateFileUpdateWebhookEventRequestBody({
+						webhook_id: figmaFileWebhook.webhookId,
+						file_key: otherFileKey,
+						file_name: generateFigmaFileName(),
+						passcode: figmaFileWebhook.webhookPasscode,
+					});
+
+				await request(app)
+					.post(buildAppUrl('figma/webhook/file').pathname)
+					.send(otherFilewebhookEventRequestBody)
+					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('job.handle-figma-file-update-event.succeeded');
+			});
+
+			it('should ignore if Figma file is not found', async () => {
+				const associatedFigmaDesigns =
+					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
+						fileKey,
+						connectInstallation.id,
+					);
+				const nodeIds = associatedFigmaDesigns
+					.map(({ designId }) => designId.nodeId)
+					.filter(isNotNullOrUndefined);
+
+				mockFigmaGetFileEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					query: {
+						ids: nodeIds.join(','),
+						depth: '0',
+						node_last_modified: 'true',
+					},
+					status: HttpStatusCode.NotFound,
+				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					status: HttpStatusCode.NotFound,
+				});
+
+				await request(app)
+					.post(buildAppUrl('figma/webhook/file').pathname)
+					.send(webhookEventRequestBody)
+					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('job.handle-figma-file-update-event.succeeded');
+			});
+
+			it('should ingest designs for available Figma nodes and ignore deleted nodes', async () => {
+				const associatedFigmaDesigns =
+					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
+						fileKey,
+						connectInstallation.id,
+					);
+				const nodeIds = associatedFigmaDesigns
+					.map(({ designId }) => designId.nodeId)
+					.filter(isNotNullOrUndefined);
+				const fileResponse = generateGetFileResponseWithNodes({
+					nodes: [
+						...nodeIds.map((nodeId) => generateChildNode({ id: nodeId })),
+						generateChildNode({ id: `9999:1` }),
+						generateChildNode({ id: `9999:2` }),
+					],
+				});
+				const fileMetaResponse = generateGetFileMetaResponse();
+				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
+					(design) =>
+						generateAtlassianDesignFromDesignIdAndFileResponse(
+							design.designId,
+							fileResponse,
+							fileMetaResponse,
+						),
+				);
+
+				mockFigmaGetFileEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					query: {
+						ids: nodeIds.join(','),
+						depth: '0',
+						node_last_modified: 'true',
+					},
+					response: fileResponse,
+				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					response: fileMetaResponse,
+				});
+				mockJiraSubmitDesignsEndpoint({
+					baseUrl: connectInstallation.baseUrl,
+					request: generateSubmitDesignsRequest(associatedAtlassianDesigns),
+					response: generateSuccessfulSubmitDesignsResponse(
+						associatedAtlassianDesigns.map(
+							(atlassianDesign) => atlassianDesign.id,
+						),
+					),
+				});
+
+				await request(app)
+					.post(buildAppUrl('figma/webhook').pathname)
+					.send(webhookEventRequestBody)
+					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('job.handle-figma-file-update-event.succeeded');
+			});
+
+			it('should send an error event if fetching Figma designs fails with unexpected error', async () => {
+				const associatedFigmaDesigns =
+					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
+						fileKey,
+						connectInstallation.id,
+					);
+				const nodeIds = associatedFigmaDesigns
+					.map(({ designId }) => designId.nodeId!)
+					.filter(isString);
+
+				mockFigmaGetFileEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					query: {
+						ids: nodeIds.join(','),
+						depth: '0',
+						node_last_modified: 'true',
+					},
+					status: HttpStatusCode.InternalServerError,
+				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					status: HttpStatusCode.InternalServerError,
+				});
+
+				await request(app)
+					.post(buildAppUrl('figma/webhook').pathname)
+					.send(webhookEventRequestBody)
+					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('job.handle-figma-file-update-event.failed');
+			});
+
+			it('should return a 400 if the passcode is invalid', async () => {
+				const webhookEventRequestBody =
+					generateFileUpdateWebhookEventRequestBody({
+						webhook_id: figmaFileWebhook.webhookId,
+						file_key: fileKey,
+						file_name: generateFigmaFileName(),
+						passcode: 'invalid',
+					});
+
+				await request(app)
+					.post(buildAppUrl('figma/webhook').pathname)
+					.send(webhookEventRequestBody)
+					.expect(HttpStatusCode.BadRequest);
+			});
+		});
+
+		describe('DEV_MODE_STATUS_UPDATE event', () => {
+			const currentDate = new Date();
+			let connectInstallation: ConnectInstallation;
+			let figmaFileWebhook: FigmaFileWebhook;
+			let adminFigmaOAuth2UserCredentials: FigmaOAuth2UserCredentials;
+			let fileKey: string;
+			let webhookEventRequestBody: FigmaWebhookEventRequestBody;
+
+			beforeEach(async () => {
+				connectInstallation = await connectInstallationRepository.upsert(
+					generateConnectInstallationCreateParams(),
+				);
+				figmaFileWebhook = await figmaFileWebhookRepository.upsert(
+					generateFigmaFileWebhook({
+						eventType: FigmaFileWebhookEventType.DEV_MODE_STATUS_UPDATE,
+						createdBy: {
+							connectInstallationId: connectInstallation.id,
+							atlassianUserId: uuidv4(),
+						},
+					}),
+				);
+				adminFigmaOAuth2UserCredentials =
+					await figmaOAuth2UserCredentialsRepository.upsert(
+						generateFigmaOAuth2UserCredentialCreateParams({
+							atlassianUserId: figmaFileWebhook.createdBy.atlassianUserId,
+							connectInstallationId: connectInstallation.id,
+						}),
+					);
+
+				fileKey = generateFigmaFileKey();
+				for (let i = 1; i <= 5; i++) {
+					const associatedFigmaDesignCreateParams =
+						generateAssociatedFigmaDesignCreateParams({
+							designId: generateFigmaDesignIdentifier({
+								fileKey,
+								nodeId: `1:${i}`,
+							}),
+							connectInstallationId: connectInstallation.id,
+						});
+
+					await associatedFigmaDesignRepository.upsert(
+						associatedFigmaDesignCreateParams,
+					);
+				}
+
+				webhookEventRequestBody = generateFileUpdateWebhookEventRequestBody({
+					webhook_id: figmaFileWebhook.webhookId,
+					file_key: fileKey,
+					file_name: generateFigmaFileName(),
+					passcode: figmaFileWebhook.webhookPasscode,
+				});
+
+				jest
+					.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] })
+					.setSystemTime(currentDate);
+			});
+
+			afterEach(() => {
+				jest.useRealTimers();
+			});
+
+			it('should fetch and submit the associated designs to Jira', async () => {
+				const associatedFigmaDesigns =
+					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
+						fileKey,
+						connectInstallation.id,
+					);
+				const nodeIds = associatedFigmaDesigns
+					.map(({ designId }) => designId.nodeId)
+					.filter(isNotNullOrUndefined);
+				const fileResponse = generateGetFileResponseWithNodes({
+					nodes: nodeIds.map((nodeId) => generateChildNode({ id: nodeId })),
+				});
+				const fileMetaResponse = generateGetFileMetaResponse();
+				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
+					(design) =>
+						generateAtlassianDesignFromDesignIdAndFileResponse(
+							design.designId,
+							fileResponse,
+							fileMetaResponse,
+						),
+				);
+
+				mockFigmaGetFileEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					query: {
+						ids: nodeIds.join(','),
+						depth: '0',
+						node_last_modified: 'true',
+					},
+					response: fileResponse,
+				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					response: fileMetaResponse,
+				});
+				mockJiraSubmitDesignsEndpoint({
+					baseUrl: connectInstallation.baseUrl,
+					request: generateSubmitDesignsRequest(associatedAtlassianDesigns),
+					response: generateSuccessfulSubmitDesignsResponse(
+						associatedAtlassianDesigns.map(
+							(atlassianDesign) => atlassianDesign.id,
+						),
+					),
+				});
+
+				await request(app)
+					.post(buildAppUrl('figma/webhook/file').pathname)
+					.send(webhookEventRequestBody)
+					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('job.handle-figma-file-update-event.succeeded');
+			});
+
+			it('should ignore if no associated designs are found for the file key', async () => {
+				const otherFileKey = generateFigmaFileKey();
+				const otherFilewebhookEventRequestBody =
+					generateFileUpdateWebhookEventRequestBody({
+						webhook_id: figmaFileWebhook.webhookId,
+						file_key: otherFileKey,
+						file_name: generateFigmaFileName(),
+						passcode: figmaFileWebhook.webhookPasscode,
+					});
+
+				await request(app)
+					.post(buildAppUrl('figma/webhook/file').pathname)
+					.send(otherFilewebhookEventRequestBody)
+					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('job.handle-figma-file-update-event.succeeded');
+			});
+
+			it('should ignore if Figma file is not found', async () => {
+				const associatedFigmaDesigns =
+					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
+						fileKey,
+						connectInstallation.id,
+					);
+				const nodeIds = associatedFigmaDesigns
+					.map(({ designId }) => designId.nodeId)
+					.filter(isNotNullOrUndefined);
+
+				mockFigmaGetFileEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					query: {
+						ids: nodeIds.join(','),
+						depth: '0',
+						node_last_modified: 'true',
+					},
+					status: HttpStatusCode.NotFound,
+				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					status: HttpStatusCode.NotFound,
+				});
+
+				await request(app)
+					.post(buildAppUrl('figma/webhook/file').pathname)
+					.send(webhookEventRequestBody)
+					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('job.handle-figma-file-update-event.succeeded');
+			});
+
+			it('should ingest designs for available Figma nodes and ignore deleted nodes', async () => {
+				const associatedFigmaDesigns =
+					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
+						fileKey,
+						connectInstallation.id,
+					);
+				const nodeIds = associatedFigmaDesigns
+					.map(({ designId }) => designId.nodeId)
+					.filter(isNotNullOrUndefined);
+				const fileResponse = generateGetFileResponseWithNodes({
+					nodes: [
+						...nodeIds.map((nodeId) => generateChildNode({ id: nodeId })),
+						generateChildNode({ id: `9999:1` }),
+						generateChildNode({ id: `9999:2` }),
+					],
+				});
+				const fileMetaResponse = generateGetFileMetaResponse();
+				const associatedAtlassianDesigns = associatedFigmaDesigns.map(
+					(design) =>
+						generateAtlassianDesignFromDesignIdAndFileResponse(
+							design.designId,
+							fileResponse,
+							fileMetaResponse,
+						),
+				);
+
+				mockFigmaGetFileEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					query: {
+						ids: nodeIds.join(','),
+						depth: '0',
+						node_last_modified: 'true',
+					},
+					response: fileResponse,
+				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					response: fileMetaResponse,
+				});
+				mockJiraSubmitDesignsEndpoint({
+					baseUrl: connectInstallation.baseUrl,
+					request: generateSubmitDesignsRequest(associatedAtlassianDesigns),
+					response: generateSuccessfulSubmitDesignsResponse(
+						associatedAtlassianDesigns.map(
+							(atlassianDesign) => atlassianDesign.id,
+						),
+					),
+				});
+
+				await request(app)
+					.post(buildAppUrl('figma/webhook/file').pathname)
+					.send(webhookEventRequestBody)
+					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('job.handle-figma-file-update-event.succeeded');
+			});
+
+			it('should send an error event if fetching Figma designs fails with unexpected error', async () => {
+				const associatedFigmaDesigns =
+					await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
+						fileKey,
+						connectInstallation.id,
+					);
+				const nodeIds = associatedFigmaDesigns
+					.map(({ designId }) => designId.nodeId!)
+					.filter(isString);
+
+				mockFigmaGetFileEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					query: {
+						ids: nodeIds.join(','),
+						depth: '0',
+						node_last_modified: 'true',
+					},
+					status: HttpStatusCode.InternalServerError,
+				});
+				mockFigmaGetFileMetaEndpoint({
+					baseUrl: getConfig().figma.apiBaseUrl,
+					accessToken: adminFigmaOAuth2UserCredentials.accessToken,
+					fileKey: fileKey,
+					status: HttpStatusCode.InternalServerError,
+				});
+
+				await request(app)
+					.post(buildAppUrl('figma/webhook/file').pathname)
+					.send(webhookEventRequestBody)
+					.expect(HttpStatusCode.Ok);
+
+				await waitForEvent('job.handle-figma-file-update-event.failed');
+			});
+
+			it('should return a 400 if the passcode is invalid', async () => {
+				const webhookEventRequestBody =
+					generateFileUpdateWebhookEventRequestBody({
+						webhook_id: figmaFileWebhook.webhookId,
+						file_key: fileKey,
+						file_name: generateFigmaFileName(),
+						passcode: 'invalid',
+					});
+
+				await request(app)
+					.post(buildAppUrl('figma/webhook/file').pathname)
+					.send(webhookEventRequestBody)
+					.expect(HttpStatusCode.BadRequest);
+			});
+		});
+
+		describe('PING event', () => {
+			it('should return a 200 when valid webhook', async () => {
+				const connectInstallation = await connectInstallationRepository.upsert(
+					generateConnectInstallationCreateParams(),
+				);
+				const figmaTeam = await figmaTeamRepository.upsert(
+					generateFigmaTeamCreateParams({
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
+				const webhookEventRequestBody = generatePingWebhookEventRequestBody({
+					webhook_id: figmaTeam.webhookId,
+					passcode: figmaTeam.webhookPasscode,
+				});
+
+				await request(app)
+					.post(buildAppUrl('figma/webhook/file').pathname)
+					.send(webhookEventRequestBody)
+					.expect(HttpStatusCode.Ok);
+			});
+
+			it('should return a 400 if the passcode is invalid', async () => {
+				const connectInstallation = await connectInstallationRepository.upsert(
+					generateConnectInstallationCreateParams(),
+				);
+				const figmaTeam = await figmaTeamRepository.upsert(
+					generateFigmaTeamCreateParams({
+						connectInstallationId: connectInstallation.id,
+					}),
+				);
+				const webhookEventRequestBody = generatePingWebhookEventRequestBody({
+					webhook_id: figmaTeam.webhookId,
+					passcode: 'invalid',
+				});
+
+				await request(app)
+					.post(buildAppUrl('figma/webhook/file').pathname)
+					.send(webhookEventRequestBody)
+					.expect(HttpStatusCode.BadRequest);
+			});
+		});
+
+		it('should return a 400 if invalid request is received', async () => {
+			await request(app)
+				.post(buildAppUrl('figma/webhook/file').pathname)
 				.send({ event_type: 'FILE_COMMENT', webhook_id: 1 })
 				.expect(HttpStatusCode.BadRequest);
 		});
