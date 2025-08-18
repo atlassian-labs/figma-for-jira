@@ -1,7 +1,10 @@
 import type { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
-import { figmaWebhookAuthMiddleware } from './figma-webhook-auth-middleware';
+import {
+	figmaFileWebhookAuthMiddleware,
+	figmaTeamWebhookAuthMiddleware,
+} from './figma-webhook-auth-middleware';
 
 import { flushMacrotaskQueue } from '../../../common/testing/utils';
 import {
@@ -20,7 +23,7 @@ import {
 } from '../../routes/figma/testing';
 
 describe('figmaWebhookAuthMiddleware', () => {
-	describe('file webhook', () => {
+	describe('figmaFileWebhookAuthMiddleware', () => {
 		beforeEach(() => {
 			jest
 				.spyOn(figmaTeamRepository, 'findByWebhookId')
@@ -49,15 +52,14 @@ describe('figmaWebhookAuthMiddleware', () => {
 			} as Response;
 			const next = jest.fn();
 
-			figmaWebhookAuthMiddleware(request, response, next);
+			figmaFileWebhookAuthMiddleware(request, response, next);
 			await flushMacrotaskQueue();
 
 			expect(next).toHaveBeenCalledWith();
-			expect(response.locals.webhookInfo).toEqual({
+			expect(response.locals).toEqual({
 				figmaFileWebhook,
-				webhookType: 'file',
 			});
-			expect(figmaTeamRepository.findByWebhookId).toHaveBeenCalledWith(
+			expect(figmaFileWebhookRepository.findByWebhookId).toHaveBeenCalledWith(
 				webhookId,
 			);
 		});
@@ -85,13 +87,12 @@ describe('figmaWebhookAuthMiddleware', () => {
 			} as Response;
 			const next = jest.fn();
 
-			figmaWebhookAuthMiddleware(request, response, next);
+			figmaFileWebhookAuthMiddleware(request, response, next);
 			await flushMacrotaskQueue();
 
 			expect(next).toHaveBeenCalledWith();
-			expect(response.locals.webhookInfo).toEqual({
+			expect(response.locals).toEqual({
 				figmaFileWebhook,
-				webhookType: 'file',
 			});
 			expect(figmaFileWebhookRepository.findByWebhookId).toHaveBeenCalledWith(
 				webhookId,
@@ -113,7 +114,7 @@ describe('figmaWebhookAuthMiddleware', () => {
 			} as Request;
 			const next = jest.fn();
 
-			figmaWebhookAuthMiddleware(request, {} as Response, next);
+			figmaFileWebhookAuthMiddleware(request, {} as Response, next);
 			await flushMacrotaskQueue();
 
 			expect(next).toHaveBeenCalledWith(
@@ -122,7 +123,7 @@ describe('figmaWebhookAuthMiddleware', () => {
 		});
 	});
 
-	describe('team webhook', () => {
+	describe('figmaTeamWebhookAuthMiddleware', () => {
 		beforeEach(() => {
 			jest
 				.spyOn(figmaFileWebhookRepository, 'findByWebhookId')
@@ -148,14 +149,11 @@ describe('figmaWebhookAuthMiddleware', () => {
 			} as Response;
 			const next = jest.fn();
 
-			figmaWebhookAuthMiddleware(request, response, next);
+			figmaTeamWebhookAuthMiddleware(request, response, next);
 			await flushMacrotaskQueue();
 
 			expect(next).toHaveBeenCalledWith();
-			expect(response.locals.webhookInfo).toEqual({
-				figmaTeam,
-				webhookType: 'team',
-			});
+			expect(response.locals).toEqual({ figmaTeam });
 			expect(figmaTeamRepository.findByWebhookId).toHaveBeenCalledWith(
 				webhookId,
 			);
@@ -176,7 +174,7 @@ describe('figmaWebhookAuthMiddleware', () => {
 			} as Request;
 			const next = jest.fn();
 
-			figmaWebhookAuthMiddleware(request, {} as Response, next);
+			figmaTeamWebhookAuthMiddleware(request, {} as Response, next);
 			await flushMacrotaskQueue();
 
 			expect(next).toHaveBeenCalledWith(
@@ -199,7 +197,7 @@ describe('figmaWebhookAuthMiddleware', () => {
 		} as Request;
 		const next = jest.fn();
 
-		figmaWebhookAuthMiddleware(request, {} as Response, next);
+		figmaTeamWebhookAuthMiddleware(request, {} as Response, next);
 		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith(
@@ -211,7 +209,7 @@ describe('figmaWebhookAuthMiddleware', () => {
 		const request = {} as Request;
 		const next = jest.fn();
 
-		figmaWebhookAuthMiddleware(request, {} as Response, next);
+		figmaTeamWebhookAuthMiddleware(request, {} as Response, next);
 		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith(

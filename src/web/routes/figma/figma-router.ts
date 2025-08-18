@@ -7,9 +7,12 @@ import {
 	FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA,
 } from './schemas';
 import type {
+	FigmaFileWebhookEventRequest,
+	FigmaFileWebhookEventResponse,
 	FigmaOAuth2CallbackRequest,
-	FigmaWebhookEventRequest,
-	FigmaWebhookEventResponse,
+	FigmaTeamWebhookEventRequest,
+	FigmaTeamWebhookEventResponse,
+	FigmaWebhookInfo,
 } from './types';
 
 import { buildAppUrl } from '../../../config';
@@ -17,7 +20,10 @@ import { getLogger } from '../../../infrastructure';
 import { handleFigmaFileUpdateEvent } from '../../../jobs';
 import { handleFigmaAuthorizationResponseUseCase } from '../../../usecases';
 import { requestSchemaValidationMiddleware } from '../../middleware';
-import { figmaWebhookAuthMiddleware } from '../../middleware/figma/figma-webhook-auth-middleware';
+import {
+	figmaFileWebhookAuthMiddleware,
+	figmaTeamWebhookAuthMiddleware,
+} from '../../middleware/figma/figma-webhook-auth-middleware';
 
 const SUCCESS_PAGE_RELATIVE_URL = 'static/auth-result/success';
 const FAILURE_PAGE_RELATIVE_URL = 'static/auth-result/failure';
@@ -31,9 +37,45 @@ export const figmaRouter = Router();
 figmaRouter.post(
 	'/webhook',
 	requestSchemaValidationMiddleware(FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA),
-	figmaWebhookAuthMiddleware,
-	(req: FigmaWebhookEventRequest, res: FigmaWebhookEventResponse) => {
-		const { webhookInfo } = res.locals;
+	figmaTeamWebhookAuthMiddleware,
+	(req: FigmaTeamWebhookEventRequest, res: FigmaTeamWebhookEventResponse) => {
+		const { figmaTeam } = res.locals;
+
+		switch (req.body.event_type) {
+			case 'FILE_UPDATE': {
+				// Making body its own variable so typescript is happy with the refinement
+				// we did on the discriminated union
+				const body = req.body;
+				void setImmediate(
+					() =>
+						void handleFigmaFileUpdateEvent(body, {
+							figmaTeam,
+							webhookType: 'team',
+						}),
+				);
+
+				// Immediately send a 200 back to figma, before doing any of our own
+				// async processing
+				return res.sendStatus(HttpStatusCode.Ok);
+			}
+			default:
+				return res.sendStatus(HttpStatusCode.Ok);
+		}
+	},
+);
+
+// Handles FILE_UPDATE and DEV_MODE_STATUS_UPDATE webhookevents for a specific file
+figmaRouter.post(
+	'/webhook/file',
+	requestSchemaValidationMiddleware(FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA),
+	figmaFileWebhookAuthMiddleware,
+	(req: FigmaFileWebhookEventRequest, res: FigmaFileWebhookEventResponse) => {
+		const { figmaFileWebhook } = res.locals;
+
+		const webhookInfo: FigmaWebhookInfo = {
+			figmaFileWebhook,
+			webhookType: 'file',
+		};
 
 		switch (req.body.event_type) {
 			case 'FILE_UPDATE': {

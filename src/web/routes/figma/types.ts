@@ -28,19 +28,33 @@ export type FigmaWebhookInfo =
 			readonly figmaFileWebhook: FigmaFileWebhook;
 			readonly webhookType: 'file';
 	  };
-export type FigmaWebhookEventLocals = { webhookInfo: FigmaWebhookInfo };
+export type FigmaFileWebhookEventLocals = {
+	figmaFileWebhook: FigmaFileWebhook;
+};
+export type FigmaTeamWebhookEventLocals = { figmaTeam: FigmaTeam };
 
-export type FigmaWebhookEventRequest = Request<
+export type FigmaFileWebhookEventRequest = Request<
 	Record<string, never>,
 	never,
 	FigmaWebhookEventRequestBody,
 	Record<string, never>,
-	FigmaWebhookEventLocals
+	FigmaFileWebhookEventLocals
+>;
+export type FigmaTeamWebhookEventRequest = Request<
+	Record<string, never>,
+	never,
+	FigmaWebhookEventRequestBody,
+	Record<string, never>,
+	FigmaTeamWebhookEventLocals
 >;
 
-export type FigmaWebhookEventResponse = Response<
+export type FigmaFileWebhookEventResponse = Response<
 	never,
-	FigmaWebhookEventLocals
+	FigmaFileWebhookEventLocals
+>;
+export type FigmaTeamWebhookEventResponse = Response<
+	never,
+	FigmaTeamWebhookEventLocals
 >;
 
 export type FigmaOAuth2CallbackQueryParameters = {
