@@ -14,30 +14,6 @@ import {
 } from '../infrastructure/repositories';
 import type { FigmaWebhookInfo } from '../web/routes/figma';
 
-async function syncDesignsToJira(
-	fileKey: string,
-	connectInstallationId: string,
-	adminInfo: ConnectUserInfo,
-): Promise<void> {
-	const [connectInstallation, associatedFigmaDesigns] = await Promise.all([
-		connectInstallationRepository.get(connectInstallationId),
-		associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
-			fileKey,
-			connectInstallationId,
-		),
-	]);
-
-	if (!associatedFigmaDesigns.length) return;
-
-	const designs = await figmaService.getAvailableDesignsFromSameFile(
-		associatedFigmaDesigns.map((design) => design.designId),
-		adminInfo,
-	);
-
-	if (!designs.length) return;
-
-	await jiraService.submitDesigns(designs, connectInstallation);
-}
 export const handleFigmaFileUpdateEventUseCase = {
 	execute: async (
 		webhookInfo: FigmaWebhookInfo,
@@ -96,10 +72,35 @@ export const handleFigmaFileUpdateEventUseCase = {
 				const figmaFileWebhook = webhookInfo.figmaFileWebhook;
 				return await syncDesignsToJira(
 					fileKey,
-					figmaFileWebhook.connectInstallationId,
-					figmaFileWebhook.creatorInfo,
+					figmaFileWebhook.createdBy.connectInstallationId,
+					figmaFileWebhook.createdBy,
 				);
 			}
 		}
 	},
 };
+
+async function syncDesignsToJira(
+	fileKey: string,
+	connectInstallationId: string,
+	adminInfo: ConnectUserInfo,
+): Promise<void> {
+	const [connectInstallation, associatedFigmaDesigns] = await Promise.all([
+		connectInstallationRepository.get(connectInstallationId),
+		associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
+			fileKey,
+			connectInstallationId,
+		),
+	]);
+
+	if (!associatedFigmaDesigns.length) return;
+
+	const designs = await figmaService.getAvailableDesignsFromSameFile(
+		associatedFigmaDesigns.map((design) => design.designId),
+		adminInfo,
+	);
+
+	if (!designs.length) return;
+
+	await jiraService.submitDesigns(designs, connectInstallation);
+}
