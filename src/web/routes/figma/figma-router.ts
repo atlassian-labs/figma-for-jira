@@ -12,7 +12,6 @@ import type {
 	FigmaOAuth2CallbackRequest,
 	FigmaTeamWebhookEventRequest,
 	FigmaTeamWebhookEventResponse,
-	FigmaWebhookInfo,
 } from './types';
 
 import { buildAppUrl } from '../../../config';
@@ -64,7 +63,7 @@ figmaRouter.post(
 	},
 );
 
-// Handles FILE_UPDATE and DEV_MODE_STATUS_UPDATE webhookevents for a specific file
+// Handles FILE_UPDATE and DEV_MODE_STATUS_UPDATE webhook events for a specific file
 figmaRouter.post(
 	'/webhook/file',
 	requestSchemaValidationMiddleware(FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA),
@@ -72,29 +71,22 @@ figmaRouter.post(
 	(req: FigmaFileWebhookEventRequest, res: FigmaFileWebhookEventResponse) => {
 		const { figmaFileWebhook } = res.locals;
 
-		const webhookInfo: FigmaWebhookInfo = {
-			figmaFileWebhook,
-			webhookType: 'file',
-		};
-
 		switch (req.body.event_type) {
-			case 'FILE_UPDATE': {
+			case 'FILE_UPDATE':
+			case 'DEV_MODE_STATUS_UPDATE': {
 				// Making body its own variable so typescript is happy with the refinement
 				// we did on the discriminated union
 				const body = req.body;
 				void setImmediate(
-					() => void handleFigmaFileUpdateEvent(body, webhookInfo),
+					() =>
+						void handleFigmaFileUpdateEvent(body, {
+							figmaFileWebhook,
+							webhookType: 'file',
+						}),
 				);
 
 				// Immediately send a 200 back to figma, before doing any of our own
 				// async processing
-				return res.sendStatus(HttpStatusCode.Ok);
-			}
-			case 'DEV_MODE_STATUS_UPDATE': {
-				const body = req.body;
-				void setImmediate(
-					() => void handleFigmaFileUpdateEvent(body, webhookInfo),
-				);
 				return res.sendStatus(HttpStatusCode.Ok);
 			}
 			default:

@@ -603,7 +603,7 @@ describe('/figma', () => {
 	});
 
 	describe('/webhook/file', () => {
-		beforeAll(() => {
+		beforeEach(() => {
 			jest.spyOn(launchDarkly, 'getLDClient').mockResolvedValue(null);
 			jest.spyOn(launchDarkly, 'getFeatureFlag').mockResolvedValue(true);
 		});
@@ -834,7 +834,7 @@ describe('/figma', () => {
 				});
 
 				await request(app)
-					.post(buildAppUrl('figma/webhook').pathname)
+					.post(buildAppUrl('figma/webhook/file').pathname)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
@@ -870,7 +870,7 @@ describe('/figma', () => {
 				});
 
 				await request(app)
-					.post(buildAppUrl('figma/webhook').pathname)
+					.post(buildAppUrl('figma/webhook/file').pathname)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.Ok);
 
@@ -887,7 +887,7 @@ describe('/figma', () => {
 					});
 
 				await request(app)
-					.post(buildAppUrl('figma/webhook').pathname)
+					.post(buildAppUrl('figma/webhook/file').pathname)
 					.send(webhookEventRequestBody)
 					.expect(HttpStatusCode.BadRequest);
 			});
@@ -1183,14 +1183,18 @@ describe('/figma', () => {
 				const connectInstallation = await connectInstallationRepository.upsert(
 					generateConnectInstallationCreateParams(),
 				);
-				const figmaTeam = await figmaTeamRepository.upsert(
-					generateFigmaTeamCreateParams({
-						connectInstallationId: connectInstallation.id,
+				const figmaFileWebhook = await figmaFileWebhookRepository.upsert(
+					generateFigmaFileWebhook({
+						eventType: FigmaFileWebhookEventType.FILE_UPDATE,
+						createdBy: {
+							connectInstallationId: connectInstallation.id,
+							atlassianUserId: uuidv4(),
+						},
 					}),
 				);
 				const webhookEventRequestBody = generatePingWebhookEventRequestBody({
-					webhook_id: figmaTeam.webhookId,
-					passcode: figmaTeam.webhookPasscode,
+					webhook_id: figmaFileWebhook.webhookId,
+					passcode: figmaFileWebhook.webhookPasscode,
 				});
 
 				await request(app)
