@@ -50,6 +50,22 @@ export const FIGMA_WEBHOOK_EVENT_REQUEST_SCHEMA = {
 					},
 					required: ['event_type', 'webhook_id', 'file_key', 'passcode'],
 				},
+				{
+					properties: {
+						event_type: { const: 'DEV_MODE_STATUS_UPDATE' },
+						webhook_id: { type: 'string' },
+						file_key: { type: 'string' },
+						status: { type: 'string' },
+						passcode: { type: 'string' },
+					},
+					required: [
+						'event_type',
+						'webhook_id',
+						'file_key',
+						'status',
+						'passcode',
+					],
+				},
 			],
 		},
 	},
