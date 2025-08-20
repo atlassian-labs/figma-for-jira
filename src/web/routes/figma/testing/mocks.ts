@@ -6,6 +6,12 @@ import type {
 } from '@figma/rest-api-spec';
 import { v4 as uuidv4 } from 'uuid';
 
+import {
+	generateFigmaFileKey,
+	generateFigmaFileName,
+	generateFigmaNodeId,
+} from '../../../../domain/entities/testing';
+
 export const generatePingWebhookEventRequestBody = ({
 	passcode = uuidv4(),
 	timestamp = new Date().toISOString(),
@@ -55,9 +61,9 @@ export const generateFileDeleteWebhookEventRequestBody = ({
 export const generateDevModeStatusUpdateWebhookEventRequestBody = ({
 	webhook_id = uuidv4(),
 	passcode = uuidv4(),
-	file_key = uuidv4(),
-	file_name = uuidv4(),
-	node_id = uuidv4(),
+	file_key = generateFigmaFileKey(),
+	file_name = generateFigmaFileName(),
+	node_id = generateFigmaNodeId(),
 	related_links = [],
 	status = 'active',
 	triggered_by = {
