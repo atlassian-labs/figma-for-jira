@@ -1,13 +1,17 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { uninstalledUseCase } from './uninstalled-use-case';
 
 import {
 	generateConnectInstallation,
+	generateFigmaFileWebhook,
 	generateFigmaTeam,
 } from '../domain/entities/testing';
 import { figmaService } from '../infrastructure/figma';
 import { jiraService } from '../infrastructure/jira';
 import {
 	connectInstallationRepository,
+	figmaFileWebhookRepository,
 	figmaTeamRepository,
 } from '../infrastructure/repositories';
 
@@ -22,6 +26,20 @@ describe('uninstalledUseCase', () => {
 			generateFigmaTeam({ connectInstallationId: connectInstallation.id }),
 			generateFigmaTeam({ connectInstallationId: connectInstallation.id }),
 		];
+		const [figmaFileWebhook1, figmaFileWebhook2] = [
+			generateFigmaFileWebhook({
+				createdBy: {
+					connectInstallationId: connectInstallation.id,
+					atlassianUserId: uuidv4(),
+				},
+			}),
+			generateFigmaFileWebhook({
+				createdBy: {
+					connectInstallationId: connectInstallation.id,
+					atlassianUserId: uuidv4(),
+				},
+			}),
+		];
 		jest
 			.spyOn(connectInstallationRepository, 'getByClientKey')
 			.mockResolvedValue(connectInstallation);
@@ -29,6 +47,9 @@ describe('uninstalledUseCase', () => {
 			.spyOn(figmaTeamRepository, 'findManyByConnectInstallationId')
 			.mockResolvedValue([figmaTeam1, figmaTeam2]);
 		jest.spyOn(figmaService, 'tryDeleteWebhook').mockResolvedValue();
+		jest
+			.spyOn(figmaFileWebhookRepository, 'findManyByConnectInstallationId')
+			.mockResolvedValue([figmaFileWebhook1, figmaFileWebhook2]);
 		jest
 			.spyOn(connectInstallationRepository, 'deleteByClientKey')
 			.mockResolvedValue(connectInstallation);
@@ -38,7 +59,7 @@ describe('uninstalledUseCase', () => {
 
 		await uninstalledUseCase.execute(connectInstallation.clientKey);
 
-		expect(figmaService.tryDeleteWebhook).toHaveBeenCalledTimes(2);
+		expect(figmaService.tryDeleteWebhook).toHaveBeenCalledTimes(4);
 		expect(figmaService.tryDeleteWebhook).toHaveBeenCalledWith(
 			figmaTeam1.webhookId,
 			figmaTeam1.adminInfo,
@@ -46,6 +67,14 @@ describe('uninstalledUseCase', () => {
 		expect(figmaService.tryDeleteWebhook).toHaveBeenCalledWith(
 			figmaTeam2.webhookId,
 			figmaTeam2.adminInfo,
+		);
+		expect(figmaService.tryDeleteWebhook).toHaveBeenCalledWith(
+			figmaFileWebhook1.webhookId,
+			figmaFileWebhook1.createdBy,
+		);
+		expect(figmaService.tryDeleteWebhook).toHaveBeenCalledWith(
+			figmaFileWebhook2.webhookId,
+			figmaFileWebhook2.createdBy,
 		);
 		expect(
 			connectInstallationRepository.deleteByClientKey,

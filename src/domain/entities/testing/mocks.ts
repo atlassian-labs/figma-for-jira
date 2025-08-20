@@ -7,6 +7,7 @@ import type {
 	ConnectInstallation,
 	ConnectInstallationCreateParams,
 	ConnectUserInfo,
+	FigmaFileWebhook,
 	FigmaOAuth2UserCredentialsCreateParams,
 	FigmaTeamCreateParams,
 	FigmaTeamSummary,
@@ -16,6 +17,7 @@ import {
 	AtlassianDesignStatus,
 	AtlassianDesignType,
 	FigmaDesignIdentifier,
+	FigmaFileWebhookEventType,
 	FigmaOAuth2UserCredentials,
 	FigmaTeam,
 	FigmaTeamAuthStatus,
@@ -271,3 +273,24 @@ export const generateFigmaTeamSummary = ({
 	teamName,
 	authStatus: status,
 });
+
+export const generateFigmaFileWebhook = ({
+	id = generateNumericStringId(),
+	webhookId = uuidv4(),
+	webhookPasscode = uuidv4(),
+	fileKey = generateFigmaFileKey(),
+	eventType = FigmaFileWebhookEventType.FILE_UPDATE,
+	createdBy = {
+		atlassianUserId: uuidv4(),
+		connectInstallationId: generateNumericStringId(),
+	},
+}: Partial<FigmaFileWebhook> = {}): FigmaFileWebhook => {
+	return {
+		id,
+		webhookId,
+		webhookPasscode,
+		fileKey,
+		eventType,
+		createdBy,
+	};
+};

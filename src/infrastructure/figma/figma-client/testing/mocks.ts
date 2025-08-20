@@ -1,10 +1,14 @@
+import type {
+	PostWebhookResponse,
+	WebhookV2Event,
+	WebhookV2Status,
+} from '@figma/rest-api-spec';
 import { v4 as uuidv4 } from 'uuid';
 
 import type {
 	CreateDevResourceError,
 	CreateDevResourcesRequest,
 	CreateDevResourcesResponse,
-	CreateWebhookResponse,
 	GetDevResourcesResponse,
 	GetFileMetaResponse,
 	GetFileResponse,
@@ -215,23 +219,26 @@ export const generateEmptyDevResourcesResponse =
 export const generateCreateWebhookResponse = ({
 	id = uuidv4(),
 	teamId = uuidv4(),
-	eventType = 'FILE_UPDATE',
+	planApiId = `organization:${uuidv4()}`,
+	context = 'team',
+	eventType = 'FILE_UPDATE' as WebhookV2Event,
 	clientId = uuidv4(),
 	endpoint = `https://figma-for-jira.atlassian.com/figma/webhooks`,
 	passcode = uuidv4(),
-	status = 'ACTIVE',
+	status = 'ACTIVE' as WebhookV2Status,
 	description = 'Figma for Jira',
-	protocolVersion = '2',
-} = {}): CreateWebhookResponse => ({
+} = {}): PostWebhookResponse => ({
 	id: id,
 	team_id: teamId,
+	context: context,
+	context_id: teamId,
 	event_type: eventType,
 	client_id: clientId,
 	endpoint,
 	passcode,
 	status,
 	description,
-	protocol_version: protocolVersion,
+	plan_api_id: planApiId,
 });
 
 export const generateGetTeamProjectsResponse = ({

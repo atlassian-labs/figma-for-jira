@@ -1,9 +1,24 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { InvalidInputUseCaseResultError } from './errors';
 
+import { getFeatureFlag, getLDClient } from '../config/launch_darkly';
 import type { ConnectInstallation } from '../domain/entities';
-import { FigmaDesignIdentifier } from '../domain/entities';
-import { figmaBackwardIntegrationServiceV2 } from '../infrastructure';
+import {
+	FigmaDesignIdentifier,
+	FigmaFileWebhookEventType,
+} from '../domain/entities';
+import {
+	figmaBackwardIntegrationServiceV2,
+	getLogger,
+} from '../infrastructure';
+import {
+	figmaService,
+	PaidPlanRequiredFigmaServiceError,
+	UnauthorizedFigmaServiceError,
+} from '../infrastructure/figma';
 import { associatedFigmaDesignRepository } from '../infrastructure/repositories';
+import { figmaFileWebhookRepository } from '../infrastructure/repositories/figma-file-webhook-repository';
 
 export type OnDesignAssociatedWithIssueUseCaseParams = {
 	readonly design: {
@@ -54,5 +69,95 @@ export const onDesignAssociatedWithIssueUseCaseParams = {
 			atlassianUserId: params.atlassianUserId,
 			connectInstallation: params.connectInstallation,
 		});
+
+		if (params.atlassianUserId) {
+			await maybeCreateFigmaFileWebhooks(
+				figmaDesignId.fileKey,
+				FigmaFileWebhookEventType.FILE_UPDATE,
+				params.atlassianUserId,
+				params.connectInstallation.id,
+			);
+			await maybeCreateFigmaFileWebhooks(
+				figmaDesignId.fileKey,
+				FigmaFileWebhookEventType.DEV_MODE_STATUS_UPDATE,
+				params.atlassianUserId,
+				params.connectInstallation.id,
+			);
+		} else {
+			getLogger().warn(
+				`[OnDesignAssociatedWithIssueUseCase] No atlassianUserId provided for design association with issue ${params.issue.ari}. Skipping file webhooks creation.`,
+			);
+		}
 	},
 };
+
+async function maybeCreateFigmaFileWebhooks(
+	fileKey: string,
+	eventType: FigmaFileWebhookEventType,
+	atlassianUserId: string,
+	connectInstallationId: string,
+): Promise<void> {
+	const ldClient = await getLDClient();
+	const useFileWebhooks = await getFeatureFlag(
+		ldClient,
+		'ext_figma_for_jira_use_file_webhooks',
+		false,
+	);
+
+	if (!useFileWebhooks) {
+		return;
+	}
+
+	const existingWebhook =
+		await figmaFileWebhookRepository.findByFileKeyAndEventTypeAndConnectInstallationId(
+			fileKey,
+			eventType,
+			connectInstallationId,
+		);
+
+	if (existingWebhook) {
+		return;
+	}
+
+	try {
+		const webhookPasscode = uuidv4();
+		const webhook = await figmaService.createWebhookForFile(
+			fileKey,
+			eventType,
+			webhookPasscode,
+			{
+				atlassianUserId,
+				connectInstallationId,
+			},
+		);
+
+		await figmaFileWebhookRepository.upsert({
+			webhookId: webhook.id,
+			eventType,
+			fileKey,
+			webhookPasscode,
+			createdBy: {
+				connectInstallationId,
+				atlassianUserId,
+			},
+		});
+	} catch (e) {
+		if (e instanceof UnauthorizedFigmaServiceError) {
+			getLogger().warn(
+				`[OnDesignAssociatedWithIssueUseCase] Failed to create file webhooks for design. User does not have permission to create file webhooks.`,
+			);
+
+			return;
+		}
+
+		if (e instanceof PaidPlanRequiredFigmaServiceError) {
+			getLogger().warn(
+				`[OnDesignAssociatedWithIssueUseCase] Failed to create file webhooks for design. User is not on a paid plan.`,
+			);
+
+			return;
+		}
+
+		throw e;
+	}
+}

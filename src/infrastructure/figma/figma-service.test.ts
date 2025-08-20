@@ -1,3 +1,4 @@
+import type { PostWebhookResponse } from '@figma/rest-api-spec';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
@@ -6,7 +7,6 @@ import {
 } from './figma-auth-service';
 import type {
 	CreateDevResourcesResponse,
-	CreateWebhookResponse,
 	GetDevResourcesResponse,
 } from './figma-client';
 import { figmaClient } from './figma-client';
@@ -31,6 +31,7 @@ import {
 } from './transformers';
 
 import { getConfig } from '../../config';
+import { FigmaFileWebhookEventType } from '../../domain/entities';
 import {
 	generateConnectUserInfo,
 	generateFigmaDesignIdentifier,
@@ -806,14 +807,15 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'createWebhook').mockResolvedValue({
 				id: webhookId,
 				team_id: teamId,
+				context: 'team',
+				context_id: teamId,
 				event_type: 'FILE_UPDATE',
 				client_id: 'test-client',
 				endpoint,
 				passcode,
 				status: 'ACTIVE',
 				description,
-				protocol_version: '2',
-			} as CreateWebhookResponse);
+			} as PostWebhookResponse);
 
 			await figmaService.createFileUpdateWebhook(
 				teamId,
@@ -824,7 +826,8 @@ describe('FigmaService', () => {
 			expect(figmaClient.createWebhook).toHaveBeenCalledWith(
 				{
 					event_type: 'FILE_UPDATE',
-					team_id: teamId,
+					context: 'team',
+					context_id: teamId,
 					endpoint,
 					passcode,
 					description,
@@ -879,6 +882,148 @@ describe('FigmaService', () => {
 			await expect(() =>
 				figmaService.createFileUpdateWebhook(
 					teamId,
+					connectInstallationSecret,
+					MOCK_CONNECT_USER_INFO,
+				),
+			).rejects.toThrow(expectedError);
+		});
+	});
+
+	describe('createWebhookForFile', () => {
+		beforeEach(() => {
+			jest
+				.spyOn(figmaAuthService, 'getCredentials')
+				.mockResolvedValue(MOCK_CREDENTIALS);
+		});
+
+		it('should create a webhook for a file', async () => {
+			const fileUpdateWebhookId = uuidv4();
+			const devModeStatusUpdateWebhookId = uuidv4();
+
+			const fileKey = generateFigmaFileKey();
+
+			const endpoint = new URL(
+				'figma/webhook',
+				getConfig().app.baseUrl,
+			).toString();
+			const passcode = uuidv4();
+			const description = 'Figma for Jira Cloud';
+
+			jest
+				.spyOn(figmaClient, 'createWebhook')
+				.mockResolvedValueOnce({
+					id: fileUpdateWebhookId,
+					context: 'file',
+					context_id: fileKey,
+					event_type: 'FILE_UPDATE',
+					client_id: 'test-client',
+					endpoint,
+					passcode,
+					status: 'ACTIVE',
+					description,
+				} as PostWebhookResponse)
+				.mockResolvedValueOnce({
+					id: devModeStatusUpdateWebhookId,
+					context: 'file',
+					context_id: fileKey,
+					event_type: 'DEV_MODE_STATUS_UPDATE',
+					client_id: 'test-client',
+					endpoint,
+					passcode,
+					status: 'ACTIVE',
+					description,
+				} as PostWebhookResponse);
+
+			await figmaService.createWebhookForFile(
+				fileKey,
+				FigmaFileWebhookEventType.FILE_UPDATE,
+				passcode,
+				MOCK_CONNECT_USER_INFO,
+			);
+
+			await figmaService.createWebhookForFile(
+				fileKey,
+				FigmaFileWebhookEventType.DEV_MODE_STATUS_UPDATE,
+				passcode,
+				MOCK_CONNECT_USER_INFO,
+			);
+
+			expect(figmaClient.createWebhook).toHaveBeenNthCalledWith(
+				1,
+				{
+					event_type: 'FILE_UPDATE',
+					context: 'file',
+					context_id: fileKey,
+					endpoint: endpoint,
+					passcode: passcode,
+					description: 'Figma for Jira Cloud',
+				},
+				MOCK_CREDENTIALS.accessToken,
+			);
+
+			expect(figmaClient.createWebhook).toHaveBeenNthCalledWith(
+				2,
+				{
+					event_type: 'DEV_MODE_STATUS_UPDATE',
+					context: 'file',
+					context_id: fileKey,
+					endpoint: endpoint,
+					passcode: passcode,
+					description: 'Figma for Jira Cloud',
+				},
+				MOCK_CREDENTIALS.accessToken,
+			);
+		});
+
+		it('should throw `PaidPlanRequiredFigmaServiceError` when Figma returns HTTP 400 with "Access Denied" message', async () => {
+			const teamId = uuidv4();
+			const connectInstallationSecret = uuidv4();
+
+			jest.spyOn(figmaClient, 'createWebhook').mockRejectedValue(
+				new BadRequestHttpClientError('Failed', {
+					message: 'Access Denied',
+				}),
+			);
+
+			await expect(() =>
+				figmaService.createWebhookForFile(
+					teamId,
+					FigmaFileWebhookEventType.FILE_UPDATE,
+					connectInstallationSecret,
+					MOCK_CONNECT_USER_INFO,
+				),
+			).rejects.toThrow(PaidPlanRequiredFigmaServiceError);
+		});
+
+		it('should rethrow when Figma returns HTTP 400 with no "Access Denied" message', async () => {
+			const teamId = uuidv4();
+			const connectInstallationSecret = uuidv4();
+			const error = new BadRequestHttpClientError('Failed', {
+				message: 'Bad request',
+			});
+
+			jest.spyOn(figmaClient, 'createWebhook').mockRejectedValue(error);
+
+			await expect(() =>
+				figmaService.createWebhookForFile(
+					teamId,
+					FigmaFileWebhookEventType.FILE_UPDATE,
+					connectInstallationSecret,
+					MOCK_CONNECT_USER_INFO,
+				),
+			).rejects.toThrow(error);
+		});
+
+		it('should rethrow when webhook creation fails with unexpected error', async () => {
+			const teamId = uuidv4();
+			const connectInstallationSecret = uuidv4();
+			const expectedError = new Error('Webhook create failed');
+			jest.spyOn(figmaClient, 'createWebhook').mockRejectedValue(expectedError);
+
+			await expect(() =>
+				figmaService.createWebhookForFile(
+					teamId,
+					FigmaFileWebhookEventType.FILE_UPDATE,
 					connectInstallationSecret,
 					MOCK_CONNECT_USER_INFO,
 				),

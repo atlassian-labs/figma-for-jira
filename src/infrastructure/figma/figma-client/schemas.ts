@@ -2,9 +2,10 @@
  * Contains JSON schema definitions for Figma API responses. Used for validating the types of incoming data on the entry
  * points to the application.
  */
+import type { PostWebhookResponse } from '@figma/rest-api-spec';
+
 import type {
 	CreateDevResourcesResponse,
-	CreateWebhookResponse,
 	DevResource,
 	ErrorResponse,
 	GetDevResourcesResponse,
@@ -166,30 +167,34 @@ export const GET_DEV_RESOURCE_RESPONSE_SCHEMA: JSONSchemaTypeWithId<GetDevResour
 		required: ['dev_resources'],
 	};
 
-export const CREATE_WEBHOOK_RESPONSE: JSONSchemaTypeWithId<CreateWebhookResponse> =
+export const POST_WEBHOOK_RESPONSE_SCHEMA: JSONSchemaTypeWithId<PostWebhookResponse> =
 	{
 		$id: 'figma-api:post:v2/webhooks:response',
 		type: 'object',
 		properties: {
 			id: { type: 'string' },
 			team_id: { type: 'string' },
-			event_type: { type: 'string' },
+			event_type: { type: 'string' }, // This should match WebhookV2Event type
+			context: { type: 'string' },
+			context_id: { type: 'string' },
+			plan_api_id: { type: 'string' },
 			client_id: { type: 'string' },
 			endpoint: { type: 'string' },
 			passcode: { type: 'string' },
 			status: { type: 'string' },
 			description: { type: 'string' },
-			protocol_version: { type: 'string' },
 		},
 		required: [
 			'id',
 			'team_id',
+			'context',
+			'context_id',
+			'plan_api_id',
 			'event_type',
 			'client_id',
 			'endpoint',
 			'passcode',
 			'status',
-			'protocol_version',
 		],
 	};
 
