@@ -339,7 +339,7 @@ export class FigmaService {
 			event_type: eventType,
 			context: 'file',
 			context_id: fileKey,
-			endpoint: buildAppUrl('figma/webhook').toString(),
+			endpoint: buildAppUrl('figma/webhook/file').toString(),
 			passcode,
 			description: 'Figma for Jira Cloud',
 		};

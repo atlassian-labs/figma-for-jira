@@ -1,56 +1,193 @@
 import type { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
-import { figmaWebhookAuthMiddleware } from './figma-webhook-auth-middleware';
+import {
+	figmaFileWebhookAuthMiddleware,
+	figmaTeamWebhookAuthMiddleware,
+} from './figma-webhook-auth-middleware';
 
 import { flushMacrotaskQueue } from '../../../common/testing/utils';
-import { generateFigmaTeam } from '../../../domain/entities/testing';
-import { figmaTeamRepository } from '../../../infrastructure/repositories';
+import {
+	generateFigmaFileWebhook,
+	generateFigmaTeam,
+} from '../../../domain/entities/testing';
+import {
+	figmaFileWebhookRepository,
+	figmaTeamRepository,
+} from '../../../infrastructure/repositories';
 import { BadRequestResponseStatusError } from '../../errors';
-import { generatePingWebhookEventRequestBody } from '../../routes/figma/testing';
+import {
+	generateDevModeStatusUpdateWebhookEventRequestBody,
+	generateFileUpdateWebhookEventRequestBody,
+	generatePingWebhookEventRequestBody,
+} from '../../routes/figma/testing';
 
 describe('figmaWebhookAuthMiddleware', () => {
-	it('should authenticate request and set figmaTeam in locals if request is authentic', async () => {
-		const webhookId = uuidv4();
-		const webhookPasscode = uuidv4();
-		const figmaTeam = generateFigmaTeam({ webhookId, webhookPasscode });
-		jest
-			.spyOn(figmaTeamRepository, 'findByWebhookId')
-			.mockResolvedValue(figmaTeam);
+	describe('figmaFileWebhookAuthMiddleware', () => {
+		beforeEach(() => {
+			jest
+				.spyOn(figmaTeamRepository, 'findByWebhookId')
+				.mockResolvedValue(null);
+		});
 
-		const request = {
-			body: generatePingWebhookEventRequestBody({
-				webhook_id: webhookId,
-				passcode: webhookPasscode,
-			}),
-		} as Request;
-		const response = {
-			locals: {},
-		} as Response;
-		const next = jest.fn();
+		it('should authenticate request and set figmaFileWebhook in locals if request is authentic', async () => {
+			const webhookId = uuidv4();
+			const webhookPasscode = uuidv4();
+			const figmaFileWebhook = generateFigmaFileWebhook({
+				webhookId,
+				webhookPasscode,
+			});
+			jest
+				.spyOn(figmaFileWebhookRepository, 'findByWebhookId')
+				.mockResolvedValue(figmaFileWebhook);
 
-		figmaWebhookAuthMiddleware(request, response, next);
-		await flushMacrotaskQueue();
+			const request = {
+				body: generateFileUpdateWebhookEventRequestBody({
+					webhook_id: webhookId,
+					passcode: webhookPasscode,
+				}),
+			} as Request;
+			const response = {
+				locals: {},
+			} as Response;
+			const next = jest.fn();
 
-		expect(next).toHaveBeenCalledWith();
-		expect(response.locals.figmaTeam).toBe(figmaTeam);
-		expect(figmaTeamRepository.findByWebhookId).toHaveBeenCalledWith(webhookId);
+			figmaFileWebhookAuthMiddleware(request, response, next);
+			await flushMacrotaskQueue();
+
+			expect(next).toHaveBeenCalledWith();
+			expect(response.locals).toEqual({
+				figmaFileWebhook,
+			});
+			expect(figmaFileWebhookRepository.findByWebhookId).toHaveBeenCalledWith(
+				webhookId,
+			);
+		});
+
+		it('can handle dev mode status update webhook events', async () => {
+			const webhookId = uuidv4();
+			const webhookPasscode = uuidv4();
+			const figmaFileWebhook = generateFigmaFileWebhook({
+				webhookId,
+				webhookPasscode,
+			});
+			jest
+				.spyOn(figmaFileWebhookRepository, 'findByWebhookId')
+				.mockResolvedValue(figmaFileWebhook);
+
+			const request = {
+				body: generateDevModeStatusUpdateWebhookEventRequestBody({
+					webhook_id: webhookId,
+					passcode: webhookPasscode,
+				}),
+			} as Request;
+
+			const response = {
+				locals: {},
+			} as Response;
+			const next = jest.fn();
+
+			figmaFileWebhookAuthMiddleware(request, response, next);
+			await flushMacrotaskQueue();
+
+			expect(next).toHaveBeenCalledWith();
+			expect(response.locals).toEqual({
+				figmaFileWebhook,
+			});
+			expect(figmaFileWebhookRepository.findByWebhookId).toHaveBeenCalledWith(
+				webhookId,
+			);
+		});
+
+		it('should not authenticate request if request contains invalid passcode', async () => {
+			const webhookId = uuidv4();
+			const figmaFileWebhook = generateFigmaFileWebhook({ webhookId });
+			jest
+				.spyOn(figmaFileWebhookRepository, 'findByWebhookId')
+				.mockResolvedValue(figmaFileWebhook);
+
+			const request = {
+				body: generatePingWebhookEventRequestBody({
+					webhook_id: webhookId,
+					passcode: 'invalid',
+				}),
+			} as Request;
+			const next = jest.fn();
+
+			figmaFileWebhookAuthMiddleware(request, {} as Response, next);
+			await flushMacrotaskQueue();
+
+			expect(next).toHaveBeenCalledWith(
+				expect.any(BadRequestResponseStatusError),
+			);
+		});
 	});
 
-	it('should not authenticate request if request does not contain webhook credentials', async () => {
-		const request = {} as Request;
-		const next = jest.fn();
+	describe('figmaTeamWebhookAuthMiddleware', () => {
+		beforeEach(() => {
+			jest
+				.spyOn(figmaFileWebhookRepository, 'findByWebhookId')
+				.mockResolvedValue(null);
+		});
 
-		figmaWebhookAuthMiddleware(request, {} as Response, next);
-		await flushMacrotaskQueue();
+		it('should authenticate request and set figmaTeam in locals if request is authentic', async () => {
+			const webhookId = uuidv4();
+			const webhookPasscode = uuidv4();
+			const figmaTeam = generateFigmaTeam({ webhookId, webhookPasscode });
+			jest
+				.spyOn(figmaTeamRepository, 'findByWebhookId')
+				.mockResolvedValue(figmaTeam);
 
-		expect(next).toHaveBeenCalledWith(
-			expect.any(BadRequestResponseStatusError),
-		);
+			const request = {
+				body: generatePingWebhookEventRequestBody({
+					webhook_id: webhookId,
+					passcode: webhookPasscode,
+				}),
+			} as Request;
+			const response = {
+				locals: {},
+			} as Response;
+			const next = jest.fn();
+
+			figmaTeamWebhookAuthMiddleware(request, response, next);
+			await flushMacrotaskQueue();
+
+			expect(next).toHaveBeenCalledWith();
+			expect(response.locals).toEqual({ figmaTeam });
+			expect(figmaTeamRepository.findByWebhookId).toHaveBeenCalledWith(
+				webhookId,
+			);
+		});
+
+		it('should not authenticate request if request contains invalid passcode', async () => {
+			const webhookId = uuidv4();
+			const figmaTeam = generateFigmaTeam({ webhookId });
+			jest
+				.spyOn(figmaTeamRepository, 'findByWebhookId')
+				.mockResolvedValue(figmaTeam);
+
+			const request = {
+				body: generatePingWebhookEventRequestBody({
+					webhook_id: figmaTeam.webhookId,
+					passcode: 'invalid',
+				}),
+			} as Request;
+			const next = jest.fn();
+
+			figmaTeamWebhookAuthMiddleware(request, {} as Response, next);
+			await flushMacrotaskQueue();
+
+			expect(next).toHaveBeenCalledWith(
+				expect.any(BadRequestResponseStatusError),
+			);
+		});
 	});
 
 	it('should not authenticate request if webhook is unknown', async () => {
 		jest.spyOn(figmaTeamRepository, 'findByWebhookId').mockResolvedValue(null);
+		jest
+			.spyOn(figmaFileWebhookRepository, 'findByWebhookId')
+			.mockResolvedValue(null);
 
 		const request = {
 			body: generatePingWebhookEventRequestBody({
@@ -60,7 +197,7 @@ describe('figmaWebhookAuthMiddleware', () => {
 		} as Request;
 		const next = jest.fn();
 
-		figmaWebhookAuthMiddleware(request, {} as Response, next);
+		figmaTeamWebhookAuthMiddleware(request, {} as Response, next);
 		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith(
@@ -68,22 +205,11 @@ describe('figmaWebhookAuthMiddleware', () => {
 		);
 	});
 
-	it('should not authenticate request if request contains invalid passcode', async () => {
-		const webhookId = uuidv4();
-		const figmaTeam = generateFigmaTeam({ webhookId });
-		jest
-			.spyOn(figmaTeamRepository, 'findByWebhookId')
-			.mockResolvedValue(figmaTeam);
-
-		const request = {
-			body: generatePingWebhookEventRequestBody({
-				webhook_id: figmaTeam.webhookId,
-				passcode: 'invalid',
-			}),
-		} as Request;
+	it('should not authenticate request if request does not contain webhook credentials', async () => {
+		const request = {} as Request;
 		const next = jest.fn();
 
-		figmaWebhookAuthMiddleware(request, {} as Response, next);
+		figmaTeamWebhookAuthMiddleware(request, {} as Response, next);
 		await flushMacrotaskQueue();
 
 		expect(next).toHaveBeenCalledWith(

@@ -2,7 +2,10 @@ import type { NextFunction, Request, Response } from 'express';
 
 import type { JSONSchemaTypeWithId } from '../../../common/schema-validation';
 import { assertSchema } from '../../../common/schema-validation';
-import { figmaTeamRepository } from '../../../infrastructure/repositories';
+import {
+	figmaFileWebhookRepository,
+	figmaTeamRepository,
+} from '../../../infrastructure/repositories';
 import { BadRequestResponseStatusError } from '../../errors';
 
 type FigmaWebhookCredentials = {
@@ -32,7 +35,7 @@ export const FIGMA_WEBHOOK_CREDENTIALS_SCHEMA: JSONSchemaTypeWithId<FigmaWebhook
  *
  * @see https://www.figma.com/developers/api#webhooks-v2-security
  */
-export const figmaWebhookAuthMiddleware = (
+export const figmaTeamWebhookAuthMiddleware = (
 	req: Request,
 	res: Response,
 	next: NextFunction,
@@ -55,6 +58,37 @@ export const figmaWebhookAuthMiddleware = (
 			}
 
 			res.locals.figmaTeam = figmaTeam;
+			next();
+		})
+		.catch(next);
+};
+
+export const figmaFileWebhookAuthMiddleware = (
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) => {
+	try {
+		assertSchema(req.body, FIGMA_WEBHOOK_CREDENTIALS_SCHEMA);
+	} catch (e) {
+		return next(
+			new BadRequestResponseStatusError('Cannot authenticate a webhook.'),
+		);
+	}
+
+	const { webhook_id, passcode } = req.body;
+
+	void figmaFileWebhookRepository
+		.findByWebhookId(webhook_id)
+		.then((figmaFileWebhook) => {
+			if (
+				figmaFileWebhook === null ||
+				figmaFileWebhook.webhookPasscode !== passcode
+			) {
+				return next(new BadRequestResponseStatusError('Unknown webhook.'));
+			}
+
+			res.locals.figmaFileWebhook = figmaFileWebhook;
 			next();
 		})
 		.catch(next);

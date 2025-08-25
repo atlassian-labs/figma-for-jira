@@ -1,55 +1,60 @@
+import type {
+	WebhookDevModeStatusUpdatePayload,
+	WebhookFileDeletePayload,
+	WebhookFileUpdatePayload,
+	WebhookPingPayload,
+} from '@figma/rest-api-spec';
 import type { Request, Response } from 'express';
 
-import type { FigmaTeam } from '../../../domain/entities';
-
-export type FigmaPingWebhookEventRequestBody = {
-	readonly event_type: 'PING';
-	readonly webhook_id: string;
-	readonly passcode: string;
-	readonly timestamp: string;
-};
-
-export type FigmaFileUpdateWebhookEventRequestBody = {
-	readonly event_type: 'FILE_UPDATE';
-	readonly webhook_id: string;
-	readonly file_key: string;
-	readonly file_name: string;
-	readonly passcode: string;
-	readonly timestamp: string;
-};
+import type { FigmaFileWebhook, FigmaTeam } from '../../../domain/entities';
 
 /**
  * @remarks
- * Currently, not handled but its sent within a subscription to `FILE_UPDATE` events.
+ * WebhookFileUpdatePayload is currently not handled but it's sent within a subscription to `FILE_UPDATE` events.
  * See for more detail: https://www.figma.com/developers/api#webhooks-v2-events
  */
-export type FigmaFileDeleteWebhookEventRequestBody = {
-	readonly event_type: 'FILE_DELETE';
-	readonly webhook_id: string;
-	readonly file_key: string;
-	readonly passcode: string;
-};
-
 export type FigmaWebhookEventRequestBody =
-	| FigmaPingWebhookEventRequestBody
-	| FigmaFileUpdateWebhookEventRequestBody
-	| FigmaFileDeleteWebhookEventRequestBody;
+	| WebhookPingPayload
+	| WebhookFileUpdatePayload
+	| WebhookFileDeletePayload
+	| WebhookDevModeStatusUpdatePayload;
 
-export type FigmaWebhookEventLocals = {
-	readonly figmaTeam: FigmaTeam;
+export type FigmaWebhookInfo =
+	| {
+			readonly figmaTeam: FigmaTeam;
+			readonly webhookType: 'team';
+	  }
+	| {
+			readonly figmaFileWebhook: FigmaFileWebhook;
+			readonly webhookType: 'file';
+	  };
+export type FigmaFileWebhookEventLocals = {
+	figmaFileWebhook: FigmaFileWebhook;
 };
+export type FigmaTeamWebhookEventLocals = { figmaTeam: FigmaTeam };
 
-export type FigmaWebhookEventRequest = Request<
+export type FigmaFileWebhookEventRequest = Request<
 	Record<string, never>,
 	never,
 	FigmaWebhookEventRequestBody,
 	Record<string, never>,
-	FigmaWebhookEventLocals
+	FigmaFileWebhookEventLocals
+>;
+export type FigmaTeamWebhookEventRequest = Request<
+	Record<string, never>,
+	never,
+	FigmaWebhookEventRequestBody,
+	Record<string, never>,
+	FigmaTeamWebhookEventLocals
 >;
 
-export type FigmaWebhookEventResponse = Response<
+export type FigmaFileWebhookEventResponse = Response<
 	never,
-	FigmaWebhookEventLocals
+	FigmaFileWebhookEventLocals
+>;
+export type FigmaTeamWebhookEventResponse = Response<
+	never,
+	FigmaTeamWebhookEventLocals
 >;
 
 export type FigmaOAuth2CallbackQueryParameters = {
