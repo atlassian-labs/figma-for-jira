@@ -1,0 +1,16 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Left pillar (Figma) -->
+  <rect x="12" y="20" width="8" height="24" rx="4" fill="#F24E1E"/>
+  <circle cx="16" cy="16" r="6" fill="#FF7262"/>
+  
+  <!-- Right pillar (Jira) -->
+  <rect x="44" y="20" width="8" height="24" rx="4" fill="#0052CC"/>
+  <rect x="40" y="12" width="16" height="8" rx="4" fill="#2684FF"/>
+  
+  <!-- Bridge connecting them -->
+  <path d="M20 28 Q32 20 44 28 L44 36 Q32 28 20 36 Z" fill="#36B37E"/>
+  
+  <!-- Subtle flow indicators -->
+  <circle cx="28" cy="30" r="1.5" fill="#FFFFFF" opacity="0.8"/>
+  <circle cx="36" cy="30" r="1.5" fill="#FFFFFF" opacity="0.8"/>
+</svg>

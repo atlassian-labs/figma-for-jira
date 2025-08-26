@@ -1,0 +1,15 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Figma-inspired shape (left) -->
+  <rect x="8" y="16" width="16" height="16" rx="8" fill="#F24E1E"/>
+  <rect x="8" y="32" width="16" height="16" rx="8" fill="#FF7262"/>
+  
+  <!-- Jira-inspired shape (right) -->
+  <rect x="40" y="16" width="16" height="32" rx="4" fill="#0052CC"/>
+  
+  <!-- Connection element -->
+  <rect x="24" y="28" width="16" height="8" rx="4" fill="#36B37E"/>
+  
+  <!-- Subtle connecting dots -->
+  <circle cx="26" cy="32" r="2" fill="#DEEBFF"/>
+  <circle cx="38" cy="32" r="2" fill="#DEEBFF"/>
+</svg>
