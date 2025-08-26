@@ -1,0 +1,17 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle for better visibility -->
+  <circle cx="60" cy="60" r="58" fill="#FFFFFF" stroke="#F3F4F6" stroke-width="2"/>
+  
+  <!-- Left circle representing Figma -->
+  <circle cx="35" cy="60" r="18" fill="#9747FF"/>
+  
+  <!-- Right circle representing Jira -->
+  <circle cx="85" cy="60" r="18" fill="#0052CC"/>
+  
+  <!-- Bridge/connection line -->
+  <rect x="48" y="57" width="24" height="6" rx="3" fill="#6B7280"/>
+  
+  <!-- Small connecting dots for emphasis -->
+  <circle cx="53" cy="60" r="2" fill="#FFFFFF"/>
+  <circle cx="67" cy="60" r="2" fill="#FFFFFF"/>
+</svg>

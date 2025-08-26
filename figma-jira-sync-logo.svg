@@ -1,0 +1,21 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle for better visibility -->
+  <circle cx="60" cy="60" r="58" fill="#FFFFFF" stroke="#F3F4F6" stroke-width="2"/>
+  
+  <!-- Left interlocking shape (Figma) -->
+  <path d="M25 45 L55 45 L55 75 L40 75 C31.7 75 25 68.3 25 60 L25 45 Z" fill="#9747FF"/>
+  
+  <!-- Right interlocking shape (Jira) -->
+  <path d="M65 45 L95 45 L95 60 C95 68.3 88.3 75 80 75 L65 75 L65 45 Z" fill="#0052CC"/>
+  
+  <!-- Sync arrows -->
+  <g transform="translate(60, 35)">
+    <!-- Top arrow pointing right -->
+    <path d="M-8 0 L8 0 M4 -4 L8 0 L4 4" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+  
+  <g transform="translate(60, 85)">
+    <!-- Bottom arrow pointing left -->
+    <path d="M8 0 L-8 0 M-4 -4 L-8 0 L-4 4" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>

@@ -1,0 +1,19 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle for better visibility -->
+  <circle cx="60" cy="60" r="58" fill="#FFFFFF" stroke="#F3F4F6" stroke-width="2"/>
+  
+  <!-- Left flowing shape (Figma - Design) -->
+  <path d="M20 40 Q35 25 50 40 Q50 55 35 70 Q20 55 20 40 Z" fill="#9747FF"/>
+  
+  <!-- Right flowing shape (Jira - Development) -->
+  <path d="M70 50 L90 30 L100 40 L90 50 L100 60 L90 70 L100 80 L90 90 L70 70 Q70 60 70 50 Z" fill="#0052CC"/>
+  
+  <!-- Flowing connection -->
+  <path d="M50 55 Q60 45 70 55" stroke="#6B7280" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M50 55 Q60 65 70 55" stroke="#6B7280" stroke-width="3" stroke-linecap="round" fill="none"/>
+  
+  <!-- Small dots for flow emphasis -->
+  <circle cx="55" cy="50" r="1.5" fill="#6B7280"/>
+  <circle cx="60" cy="55" r="1.5" fill="#6B7280"/>
+  <circle cx="65" cy="60" r="1.5" fill="#6B7280"/>
+</svg>
