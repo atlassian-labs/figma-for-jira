@@ -1,5 +1,13 @@
 # Figma for Jira
 
+<div align="center">
+  <img src="./FigmaJira-1.svg" alt="Figma for Jira Logo Variant 1" width="120" height="120" />
+  <img src="./FigmaJira-2.svg" alt="Figma for Jira Logo Variant 2" width="120" height="120" />
+  <img src="./FigmaJira-3.svg" alt="Figma for Jira Logo Variant 3" width="120" height="120" />
+</div>
+
+<p align="center"><em>Three minimalist marks symbolize the link and sync between Figma and Jira: overlapping tiles, a negative-space bridge, and a split-circle orbit. Limited palette (turquoise and Jira blue) with white negative space keeps it clean and scalable.</em></p>
+
 A [Connect app](https://developer.atlassian.com/cloud/jira/platform/getting-started-with-connect/) for integrating Figma
 designs into Jira.
 

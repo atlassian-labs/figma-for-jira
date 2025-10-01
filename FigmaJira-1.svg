@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Overlapping frames representing Figma and Jira with a negative-space link -->
+  <rect x="18" y="18" width="64" height="64" rx="16" fill="#00C7E6"/>
+  <rect x="46" y="46" width="64" height="64" rx="16" fill="#2684FF"/>
+  <!-- Negative-space chain link -->
+  <g transform="translate(64,64) rotate(-45)">
+    <rect x="-18" y="-7" width="36" height="14" rx="7" fill="#FFFFFF"/>
+    <circle cx="-18" cy="0" r="7" fill="#FFFFFF"/>
+    <circle cx="18" cy="0" r="7" fill="#FFFFFF"/>
+  </g>
+</svg>

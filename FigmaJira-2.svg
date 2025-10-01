@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Two tiles representing the two platforms with a negative-space bridge connecting them -->
+  <defs>
+    <mask id="tiles-mask">
+      <rect x="16" y="32" width="44" height="64" rx="12" fill="#fff"/>
+      <rect x="68" y="32" width="44" height="64" rx="12" fill="#fff"/>
+    </mask>
+  </defs>
+
+  <rect x="16" y="32" width="44" height="64" rx="12" fill="#00C7E6"/>
+  <rect x="68" y="32" width="44" height="64" rx="12" fill="#2684FF"/>
+
+  <!-- Curved bridge clipped to the tiles to emphasize connection -->
+  <path d="M36,72 Q64,40 92,72" fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" mask="url(#tiles-mask)"/>
+</svg>

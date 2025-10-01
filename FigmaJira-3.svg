@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Split circle (two ecosystems) with opposing sync arcs -->
+  <defs>
+    <clipPath id="circle-clip">
+      <circle cx="64" cy="64" r="40"/>
+    </clipPath>
+  </defs>
+
+  <!-- Base circle split into two colors -->
+  <circle cx="64" cy="64" r="40" fill="#00C7E6"/>
+  <g clip-path="url(#circle-clip)">
+    <rect x="64" y="24" width="40" height="80" fill="#2684FF"/>
+  </g>
+
+  <!-- Sync arcs -->
+  <path d="M32,64 A32,32 0 0 1 64,32" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+  <path d="M96,64 A32,32 0 0 1 64,96" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Minimal arrowheads -->
+  <path d="M64,27 l8,5 l-8,5 z" fill="#FFFFFF"/>
+  <path d="M64,101 l-8,-5 l8,-5 z" fill="#FFFFFF"/>
+</svg>
