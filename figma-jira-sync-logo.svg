@@ -1,0 +1,26 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Sync/flow concept with geometric shapes -->
+  <defs>
+    <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#F24E1E"/>
+      <stop offset="50%" style="stop-color:#FFFFFF"/>
+      <stop offset="100%" style="stop-color:#0052CC"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Left design element (Figma-style) -->
+  <circle cx="20" cy="20" r="8" fill="#F24E1E"/>
+  <circle cx="20" cy="36" r="8" fill="#A259FF"/>
+  <circle cx="20" cy="52" r="8" fill="#1ABCFE"/>
+  
+  <!-- Right issue element (Jira-style geometric) -->
+  <rect x="36" y="12" width="16" height="16" rx="2" fill="#0052CC"/>
+  <rect x="36" y="32" width="16" height="16" rx="2" fill="#2684FF"/>
+  
+  <!-- Flowing connection -->
+  <path d="M 28 32 Q 32 28 36 32 Q 32 36 28 32" fill="url(#flowGradient)" opacity="0.7"/>
+  
+  <!-- Sync arrows -->
+  <path d="M 30 30 L 32 28 L 30 26" fill="none" stroke="#666" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M 34 34 L 32 36 L 34 38" fill="none" stroke="#666" stroke-width="1.5" stroke-linecap="round"/>
+</svg>
