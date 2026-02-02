@@ -95,8 +95,11 @@ async function syncDesignsToJira(
 
 	if (!associatedFigmaDesigns.length) return;
 
+	const designIds = associatedFigmaDesigns.map((x) => x.designId);
+	const uniqueDesignIds = new Set(designIds);
+
 	const designs = await figmaService.getAvailableDesignsFromSameFile(
-		associatedFigmaDesigns.map((design) => design.designId),
+		uniqueDesignIds,
 		adminInfo,
 	);
 
