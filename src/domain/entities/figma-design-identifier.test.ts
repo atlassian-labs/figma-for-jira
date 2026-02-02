@@ -215,4 +215,41 @@ describe('FigmaDesignIdentifier', () => {
 			expect(result).toBe(`${designId.fileKey}/${designId.nodeId}`);
 		});
 	});
+
+	describe('equal', () => {
+		it.each([
+			[new FigmaDesignIdentifier('a'), new FigmaDesignIdentifier('a')],
+			[
+				new FigmaDesignIdentifier('a', '1'),
+				new FigmaDesignIdentifier('a', '1'),
+			],
+		])(
+			'should return `true` when this instance is equal to a given instance',
+			(first: FigmaDesignIdentifier, second: FigmaDesignIdentifier) => {
+				const result = first.equal(second);
+
+				expect(result).toBe(true);
+			},
+		);
+
+		it.each([
+			[new FigmaDesignIdentifier('a'), new FigmaDesignIdentifier('b')],
+			[new FigmaDesignIdentifier('a'), new FigmaDesignIdentifier('a', '1')],
+			[
+				new FigmaDesignIdentifier('a', '1'),
+				new FigmaDesignIdentifier('b', '1'),
+			],
+			[
+				new FigmaDesignIdentifier('a', '1'),
+				new FigmaDesignIdentifier('b', '2'),
+			],
+		])(
+			'should return `false` when this instance is not equal to a given instance',
+			(first: FigmaDesignIdentifier, second: FigmaDesignIdentifier) => {
+				const result = first.equal(second);
+
+				expect(result).toBe(false);
+			},
+		);
+	});
 });

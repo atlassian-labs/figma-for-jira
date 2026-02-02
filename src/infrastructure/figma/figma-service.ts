@@ -115,23 +115,21 @@ export class FigmaService {
 	 * Can be used to efficiently fetch multiple designs within the same file (e.g, a File-based design and multiple
 	 * Node-based designs). The method sends a single request to Figma API to retrieve minimal required data at once.
 	 *
-	 * @param designIds A set of design IDs within the same Figma file.
+	 * @param designIds IDs of designs within the same Figma file.
 	 *
 	 * @throws {InvalidInputFigmaServiceError} Invalid node ids specified.
 	 * @throws {UnauthorizedFigmaServiceError} Not authorized to access Figma.
 	 */
 	getAvailableDesignsFromSameFile = async (
-		designIds: Set<FigmaDesignIdentifier>,
+		designIds: FigmaDesignIdentifier[],
 		user: ConnectUserInfo,
 	): Promise<AtlassianDesign[]> =>
 		this.withErrorTranslation(async () => {
-			if (!designIds.size) return [];
-
-			const uniqueDesignIds = [...designIds];
+			if (!designIds.length) return [];
 
 			// Ensure all design identifiers have the same file key
-			const fileKey = uniqueDesignIds[0].fileKey;
-			const sameFileKey = uniqueDesignIds.every(
+			const fileKey = designIds[0].fileKey;
+			const sameFileKey = designIds.every(
 				(designId) => designId.fileKey === fileKey,
 			);
 
@@ -144,7 +142,7 @@ export class FigmaService {
 			let fileMetaResponse: GetFileMetaResponse;
 
 			try {
-				const nodeIds = uniqueDesignIds.map((id) => id.nodeId).filter(isString);
+				const nodeIds = designIds.map((id) => id.nodeId).filter(isString);
 				[fileResponse, fileMetaResponse] = await Promise.all([
 					figmaClient.getFile(
 						fileKey,
@@ -164,7 +162,7 @@ export class FigmaService {
 				throw e;
 			}
 
-			return uniqueDesignIds
+			return designIds
 				.map((designId) => {
 					if (!designId.nodeId) {
 						return transformFileToAtlassianDesign({

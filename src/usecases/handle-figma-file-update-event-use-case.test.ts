@@ -9,7 +9,9 @@ import {
 	generateAtlassianDesign,
 	generateConnectInstallation,
 	generateFigmaDesignIdentifier,
+	generateFigmaFileKey,
 	generateFigmaFileWebhook,
+	generateFigmaNodeId,
 	generateFigmaTeam,
 } from '../domain/entities/testing';
 import {
@@ -30,6 +32,7 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 			jest.spyOn(launchDarkly, 'getLDClient').mockResolvedValue(null);
 			jest.spyOn(launchDarkly, 'getFeatureFlag').mockResolvedValue(true);
 		});
+
 		it('should handle file webhook events', async () => {
 			const connectInstallation = generateConnectInstallation();
 			jest
@@ -42,22 +45,29 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 					atlassianUserId: uuidv4(),
 				},
 			});
-			const fileKey = uuidv4();
-			const associatedFigmaDesigns = [1, 2, 3].map((i) =>
+			const fileKey = generateFigmaFileKey();
+			const nodeIds = [
+				...Array.from({ length: 10 }).map(() => generateFigmaNodeId()),
+			];
+			const associatedFigmaDesignIds = [undefined, ...nodeIds].map((nodeId) =>
+				generateFigmaDesignIdentifier({ fileKey, nodeId: nodeId }),
+			);
+			const associatedFigmaDesigns = associatedFigmaDesignIds.map((designId) =>
 				generateAssociatedFigmaDesign({
-					designId: generateFigmaDesignIdentifier({
-						fileKey,
-						nodeId: `${i}:${i}`,
-					}),
+					designId,
 					connectInstallationId: connectInstallation.id,
 				}),
 			);
+			const associatedFigmaDesignsWithDuplicates = [
+				...associatedFigmaDesigns,
+				...associatedFigmaDesigns,
+			];
 			jest
 				.spyOn(
 					associatedFigmaDesignRepository,
 					'findManyByFileKeyAndConnectInstallationId',
 				)
-				.mockResolvedValue(associatedFigmaDesigns);
+				.mockResolvedValue(associatedFigmaDesignsWithDuplicates);
 			const associatedAtlassianDesigns = associatedFigmaDesigns.map(
 				(figmaDesign) =>
 					generateAtlassianDesign({
@@ -70,17 +80,22 @@ describe('handleFigmaFileUpdateEventUseCase', () => {
 
 			jest.spyOn(jiraService, 'submitDesigns').mockResolvedValue();
 
-			const webhookInfo: FigmaWebhookInfo = {
-				figmaFileWebhook,
-				webhookType: 'file',
-			};
-			await handleFigmaFileUpdateEventUseCase.execute(webhookInfo, fileKey);
+			await handleFigmaFileUpdateEventUseCase.execute(
+				{ figmaFileWebhook, webhookType: 'file' },
+				fileKey,
+			);
+
+			expect(figmaService.getAvailableDesignsFromSameFile).toHaveBeenCalledWith(
+				associatedFigmaDesignIds,
+				figmaFileWebhook.createdBy,
+			);
 			expect(jiraService.submitDesigns).toHaveBeenCalledWith(
 				associatedAtlassianDesigns,
 				connectInstallation,
 			);
 		});
 	});
+
 	describe('error handling', () => {
 		const connectInstallation = generateConnectInstallation();
 		const figmaTeam = generateFigmaTeam({

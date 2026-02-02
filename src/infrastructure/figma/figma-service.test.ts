@@ -358,7 +358,7 @@ describe('FigmaService', () => {
 				.mockResolvedValue(mockFileMetaResponse);
 
 			const result = await figmaService.getAvailableDesignsFromSameFile(
-				new Set([designIdWithoutNode]),
+				[designIdWithoutNode],
 				MOCK_CONNECT_USER_INFO,
 			);
 
@@ -408,7 +408,7 @@ describe('FigmaService', () => {
 				.mockResolvedValue(mockFileMetaResponse);
 
 			const result = await figmaService.getAvailableDesignsFromSameFile(
-				new Set([designIdWithoutNode, designIdWithNode1, designIdWithNode2]),
+				[designIdWithoutNode, designIdWithNode1, designIdWithNode2],
 				MOCK_CONNECT_USER_INFO,
 			);
 
@@ -453,7 +453,7 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaClient, 'getFile').mockRejectedValue(error);
 
 			const result = await figmaService.getAvailableDesignsFromSameFile(
-				new Set([designId]),
+				[designId],
 				MOCK_CONNECT_USER_INFO,
 			);
 
@@ -488,7 +488,7 @@ describe('FigmaService', () => {
 				.mockResolvedValue(mockFileMetaResponse);
 
 			const result = await figmaService.getAvailableDesignsFromSameFile(
-				new Set([designIdWithoutNode, designIdWithNode1, designIdWithNode2]),
+				[designIdWithoutNode, designIdWithNode1, designIdWithNode2],
 				MOCK_CONNECT_USER_INFO,
 			);
 
@@ -511,7 +511,7 @@ describe('FigmaService', () => {
 			jest.spyOn(figmaAuthService, 'getCredentials');
 
 			const result = await figmaService.getAvailableDesignsFromSameFile(
-				new Set(),
+				[],
 				MOCK_CONNECT_USER_INFO,
 			);
 
@@ -529,7 +529,7 @@ describe('FigmaService', () => {
 
 			await expect(
 				figmaService.getAvailableDesignsFromSameFile(
-					new Set(designIds),
+					designIds,
 					MOCK_CONNECT_USER_INFO,
 				),
 			).rejects.toThrow();

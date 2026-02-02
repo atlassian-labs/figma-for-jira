@@ -70,10 +70,7 @@ export class FigmaDesignIdentifier {
 		return [this.fileKey, this.nodeId].filter(Boolean).join('/');
 	}
 
-	equals(designIdentifier: FigmaDesignIdentifier): boolean {
-		return (
-			this.fileKey === designIdentifier.fileKey &&
-			this.nodeId === designIdentifier.nodeId
-		);
+	equal(other: FigmaDesignIdentifier): boolean {
+		return this.fileKey === other.fileKey && this.nodeId === other.nodeId;
 	}
 }
