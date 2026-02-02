@@ -1,7 +1,7 @@
-import { uniqueBy } from './array-utils';
+import { uniqueWith } from './array-utils';
 
 describe('arrayUtils', () => {
-	describe('uniqueBy', () => {
+	describe('uniqueWith', () => {
 		it.each([
 			[[], []],
 			[
@@ -19,7 +19,7 @@ describe('arrayUtils', () => {
 		])(
 			'should return array of unique items',
 			(input: unknown[], expected: unknown[]) => {
-				const result = uniqueBy(
+				const result = uniqueWith(
 					input,
 					(x, y) => JSON.stringify(x) === JSON.stringify(y),
 				);

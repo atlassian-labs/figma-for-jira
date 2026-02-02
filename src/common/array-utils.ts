@@ -1,7 +1,7 @@
 /**
  * Returns an array of unique items based on the given comparator.
  */
-export function uniqueBy<T>(
+export function uniqueWith<T>(
 	value: T[],
 	equalsFn: (x: T, y: T) => boolean,
 ): T[] {
