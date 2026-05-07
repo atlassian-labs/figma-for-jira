@@ -1,6 +1,5 @@
 import { InvalidInputUseCaseResultError } from './errors';
 
-import { getFeatureFlag, getLDClient } from '../config/launch_darkly';
 import type { ConnectInstallation } from '../domain/entities';
 import { FigmaDesignIdentifier } from '../domain/entities';
 import { figmaBackwardIntegrationServiceV2 } from '../infrastructure';
@@ -65,17 +64,6 @@ async function maybeTryDeleteFigmaFileWebhooks(
 	figmaDesignId: FigmaDesignIdentifier,
 	connectInstallationId: string,
 ): Promise<void> {
-	const ldClient = await getLDClient();
-	const useFileWebhooks = await getFeatureFlag(
-		ldClient,
-		'ext_figma_for_jira_use_file_webhooks',
-		false,
-	);
-
-	if (!useFileWebhooks) {
-		return;
-	}
-
 	const associatedDesigns =
 		await associatedFigmaDesignRepository.findManyByFileKeyAndConnectInstallationId(
 			figmaDesignId.fileKey,

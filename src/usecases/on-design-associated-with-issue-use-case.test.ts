@@ -5,7 +5,6 @@ import { InvalidInputUseCaseResultError } from './errors';
 import type { OnDesignAssociatedWithIssueUseCaseParams } from './on-design-associated-with-issue-use-case';
 import { onDesignAssociatedWithIssueUseCaseParams } from './on-design-associated-with-issue-use-case';
 
-import * as launch_darkly from '../config/launch_darkly';
 import {
 	type AssociatedFigmaDesign,
 	type FigmaFileWebhook,
@@ -61,11 +60,6 @@ const generateWebhookV2 = (
 });
 
 describe('onDesignAssociatedWithIssueUseCase', () => {
-	beforeEach(() => {
-		// set getFeatureFlag to return true for all feature flags
-		jest.spyOn(launch_darkly, 'getFeatureFlag').mockResolvedValue(true);
-	});
-
 	it('should store associated Design data, handle backward integration, and create file webhooks', async () => {
 		const figmaDesignId = generateFigmaDesignIdentifier();
 		const params = generateOnDesignAssociatedWithIssueUseCaseParams({

@@ -1,5 +1,4 @@
 import { uniqueWith } from '../common/array-utils';
-import { getFeatureFlag, getLDClient } from '../config/launch_darkly';
 import type { ConnectUserInfo } from '../domain/entities';
 import { FigmaTeamAuthStatus } from '../domain/entities';
 import { getLogger } from '../infrastructure';
@@ -60,16 +59,6 @@ export const handleFigmaFileUpdateEventUseCase = {
 			}
 
 			case 'file': {
-				const ldClient = await getLDClient();
-				const useFileWebhooks = await getFeatureFlag(
-					ldClient,
-					'ext_figma_for_jira_use_file_webhooks',
-					false,
-				);
-				if (!useFileWebhooks) {
-					return;
-				}
-
 				const figmaFileWebhook = webhookInfo.figmaFileWebhook;
 				return await syncDesignsToJira(
 					fileKey,
