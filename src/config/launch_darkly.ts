@@ -5,9 +5,14 @@ import { getLogger } from '../infrastructure';
 
 import { getConfig } from '.';
 
-export async function getLDClient(): Promise<LDClient | null> {
-	const ldSecretKey = getLaunchDarklySecretKey();
+let cachedClient: LDClient | null = null;
 
+export async function getLDClient(): Promise<LDClient | null> {
+	if (cachedClient) {
+		return cachedClient;
+	}
+
+	const ldSecretKey = getLaunchDarklySecretKey();
 	if (!ldSecretKey) {
 		getLogger().error(`No LaunchDarkly secret available.`);
 		return null;
@@ -23,7 +28,8 @@ export async function getLDClient(): Promise<LDClient | null> {
 	};
 	const client = init(ldSecretKey, options);
 	await client.waitForInitialization();
-	return client;
+	cachedClient = client;
+	return cachedClient;
 }
 
 export async function getFeatureFlag<T>(
