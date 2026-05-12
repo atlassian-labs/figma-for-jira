@@ -2,7 +2,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { InvalidInputUseCaseResultError } from './errors';
 
-import { getFeatureFlag, getLDClient } from '../config/launch_darkly';
 import type { ConnectInstallation } from '../domain/entities';
 import {
 	FigmaDesignIdentifier,
@@ -97,17 +96,6 @@ async function maybeCreateFigmaFileWebhooks(
 	atlassianUserId: string,
 	connectInstallationId: string,
 ): Promise<void> {
-	const ldClient = await getLDClient();
-	const useFileWebhooks = await getFeatureFlag(
-		ldClient,
-		'ext_figma_for_jira_use_file_webhooks',
-		false,
-	);
-
-	if (!useFileWebhooks) {
-		return;
-	}
-
 	const existingWebhook =
 		await figmaFileWebhookRepository.findByFileKeyAndEventTypeAndConnectInstallationId(
 			fileKey,

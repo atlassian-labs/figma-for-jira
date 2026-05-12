@@ -13,7 +13,6 @@ import {
 
 import app from '../../../app';
 import { buildAppUrl, getConfig } from '../../../config';
-import * as launchDarkly from '../../../config/launch_darkly';
 import {
 	buildJiraIssueUrl,
 	FigmaFileWebhookEventType,
@@ -353,6 +352,12 @@ describe('/entities', () => {
 					nodeId: '0:0',
 				}),
 			});
+			mockFigmaCreateWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+			});
+			mockFigmaCreateWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+			});
 
 			await request(app)
 				.put(buildAppUrl('entities/onEntityAssociated').pathname)
@@ -374,10 +379,7 @@ describe('/entities', () => {
 				.expect(HttpStatusCode.Ok);
 		});
 
-		it('should create Figma webhooks for the file when the feature flag is enabled', async () => {
-			jest.spyOn(launchDarkly, 'getLDClient').mockResolvedValue(null);
-			jest.spyOn(launchDarkly, 'getFeatureFlag').mockResolvedValue(true);
-
+		it('should create Figma webhooks for the file', async () => {
 			const connectInstallation = await connectInstallationRepository.upsert(
 				generateConnectInstallationCreateParams(),
 			);
@@ -523,6 +525,12 @@ describe('/entities', () => {
 				baseUrl: connectInstallation.baseUrl,
 				issueId,
 				status: HttpStatusCode.NotFound,
+			});
+			mockFigmaCreateWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+			});
+			mockFigmaCreateWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
 			});
 
 			await request(app)
@@ -682,6 +690,12 @@ describe('/entities', () => {
 				}),
 				status: HttpStatusCode.Forbidden,
 			});
+			mockFigmaCreateWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+			});
+			mockFigmaCreateWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+			});
 
 			await request(app)
 				.put(buildAppUrl('entities/onEntityAssociated').pathname)
@@ -757,6 +771,12 @@ describe('/entities', () => {
 					fileKey: figmaDesignId.fileKey,
 					nodeId: '0:0',
 				}),
+			});
+			mockFigmaCreateWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
+			});
+			mockFigmaCreateWebhookEndpoint({
+				baseUrl: getConfig().figma.apiBaseUrl,
 			});
 
 			await request(app)

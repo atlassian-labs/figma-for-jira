@@ -13,7 +13,6 @@ import app from '../../../app';
 import { isNotNullOrUndefined } from '../../../common/predicates';
 import { isString } from '../../../common/string-utils';
 import { buildAppUrl, getConfig } from '../../../config';
-import * as launchDarkly from '../../../config/launch_darkly';
 import type {
 	AtlassianDesign,
 	ConnectInstallation,
@@ -603,11 +602,6 @@ describe('/figma', () => {
 	});
 
 	describe('/webhook/file', () => {
-		beforeEach(() => {
-			jest.spyOn(launchDarkly, 'getLDClient').mockResolvedValue(null);
-			jest.spyOn(launchDarkly, 'getFeatureFlag').mockResolvedValue(true);
-		});
-
 		describe('FILE_UPDATE event', () => {
 			const currentDate = new Date();
 			let connectInstallation: ConnectInstallation;

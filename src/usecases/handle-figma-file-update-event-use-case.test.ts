@@ -2,7 +2,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { handleFigmaFileUpdateEventUseCase } from './handle-figma-file-update-event-use-case';
 
-import * as launchDarkly from '../config/launch_darkly';
 import { FigmaTeamAuthStatus } from '../domain/entities';
 import {
 	generateAssociatedFigmaDesign,
@@ -28,11 +27,6 @@ import type { FigmaWebhookInfo } from '../web/routes/figma';
 
 describe('handleFigmaFileUpdateEventUseCase', () => {
 	describe('file webhook', () => {
-		beforeEach(() => {
-			jest.spyOn(launchDarkly, 'getLDClient').mockResolvedValue(null);
-			jest.spyOn(launchDarkly, 'getFeatureFlag').mockResolvedValue(true);
-		});
-
 		it('should handle file webhook events', async () => {
 			const connectInstallation = generateConnectInstallation();
 			jest

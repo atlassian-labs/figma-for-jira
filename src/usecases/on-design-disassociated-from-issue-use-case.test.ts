@@ -4,7 +4,6 @@ import { InvalidInputUseCaseResultError } from './errors';
 import type { OnDesignDisassociatedFromIssueUseCaseParams } from './on-design-disassociated-from-issue-use-case';
 import { onDesignDisassociatedFromIssueUseCase } from './on-design-disassociated-from-issue-use-case';
 
-import * as launchDarkly from '../config/launch_darkly';
 import {
 	type AssociatedFigmaDesign,
 	FigmaFileWebhookEventType,
@@ -44,9 +43,6 @@ const generateOnDesignDisassociatedWithIssueUseCaseParams = ({
 
 describe('onDesignDisassociatedWithIssueUseCase', () => {
 	it('should delete stored associated Design data and handle backward integration', async () => {
-		jest.spyOn(launchDarkly, 'getLDClient').mockResolvedValue(null);
-		jest.spyOn(launchDarkly, 'getFeatureFlag').mockResolvedValue(true);
-
 		const figmaDesignId = generateFigmaDesignIdentifier();
 		const params = generateOnDesignDisassociatedWithIssueUseCaseParams({
 			designId: figmaDesignId.toAtlassianDesignId(),
@@ -126,9 +122,6 @@ describe('onDesignDisassociatedWithIssueUseCase', () => {
 	});
 
 	it('should not delete file webhooks more files rely on them', async () => {
-		jest.spyOn(launchDarkly, 'getLDClient').mockResolvedValue(null);
-		jest.spyOn(launchDarkly, 'getFeatureFlag').mockResolvedValue(true);
-
 		const figmaDesignId = generateFigmaDesignIdentifier();
 		const params = generateOnDesignDisassociatedWithIssueUseCaseParams({
 			designId: figmaDesignId.toAtlassianDesignId(),
